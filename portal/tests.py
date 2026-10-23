@@ -22,7 +22,7 @@ class PortalPageTests(TestCase):
         self.assertIn(reverse("login"), response.url)
 
     def test_registration_creates_account_and_signs_in(self):
-        response = self.client.post(reverse("portal:register"), {"username":"new_portal_user","email":"new@example.com","password1":"Sufficiently-long-pass-947!","password2":"Sufficiently-long-pass-947!"})
+        response = self.client.post(reverse("portal:register"), {"username":"new_portal_user","email":"new@example.com","password1":"Sufficiently-long-pass-947!","password2":"Sufficiently-long-pass-947!", "human_check":"on"})
         self.assertEqual(response.status_code, 302)
         self.assertTrue(get_user_model().objects.filter(username="new_portal_user", email="new@example.com").exists())
         self.assertIn("_auth_user_id", self.client.session)
