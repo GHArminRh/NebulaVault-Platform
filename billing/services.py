@@ -11,6 +11,45 @@ from subscriptions.services import _add_plan_duration
 from .models import PaymentAttempt, PaymentOrder
 
 
+def _is_provider_reference_integrity_error(exc):
+    """Return whether an IntegrityError identifies a provider-reference clash."""
+    cause = exc.__cause__
+    diagnostic = getattr(cause, "diag", None)
+
+    table_name = getattr(diagnostic, "table_name", None)
+    column_name = getattr(diagnostic, "column_name", None)
+    if (table_name, column_name) in {
+        ("billing_paymentattempt", "provider_reference"),
+        ("subscriptions_subscriptionrenewal", "payment_reference"),
+    }:
+        return True
+
+    constraint_name = getattr(diagnostic, "constraint_name", None)
+    if constraint_name in {
+        "billing_paymentattempt_provider_reference_key",
+        "subscriptions_subscriptionrenewal_payment_reference_key",
+    }:
+        return True
+
+    message = str(cause or exc).lower()
+    sqlite_unique_errors = (
+        "unique constraint failed: billing_paymentattempt.provider_reference",
+        "unique constraint failed: subscriptions_subscriptionrenewal.payment_reference",
+    )
+    if any(marker in message for marker in sqlite_unique_errors):
+        return True
+
+    # MySQL/MariaDB report duplicate-key violations in the exception text.
+    return (
+        "duplicate entry" in message
+        and "for key" in message
+        and (
+            "provider_reference" in message
+            or "payment_reference" in message
+        )
+    )
+
+
 class OrderCreationError(Exception):
     """The requested payment order cannot be created."""
 
@@ -623,8 +662,11 @@ def finalize_payment(
         raise PaymentFinalizationError(
             "The subscription was not found."
         ) from None
-    except IntegrityError:
-        # A provider reference owned by another attempt is a real conflict.
+    except IntegrityError as exc:
+        # Do not mask unrelated check, foreign-key, or uniqueness failures.
+        if not _is_provider_reference_integrity_error(exc):
+            raise
+
         existing = (
             PaymentAttempt.objects
             .select_related("order")
@@ -652,7 +694,7 @@ def finalize_payment(
         ):
             return existing
 
-        # A renewal may already own this provider reference.
+        # A renewal record may own the reference even if no attempt does.
         renewal_exists = SubscriptionRenewal.objects.filter(
             payment_reference=provider_reference,
         ).exists()
@@ -662,5 +704,5 @@ def finalize_payment(
                 "This provider reference has already been used."
             ) from None
 
-        # Preserve unrelated database integrity errors.
+        # The unique violation was not attributable to an existing reference.
         raise
