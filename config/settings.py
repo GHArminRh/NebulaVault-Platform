@@ -17,7 +17,10 @@ INSTALLED_APPS = [
     "billing.apps.BillingConfig", "audit.apps.AuditConfig",
     "notifications.apps.NotificationsConfig", "portal.apps.PortalConfig",
 ]
-AUTH_USER_MODEL = "accounts.User"
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "accounts.backends.CustomerAuthenticationBackend",
+]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware", "portal.middleware.InterfaceLanguageMiddleware", "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware", "django.middleware.csrf.CsrfViewMiddleware",
