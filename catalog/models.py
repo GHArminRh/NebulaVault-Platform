@@ -1,3 +1,164 @@
+
+from django.core.validators import RegexValidator
 from django.db import models
 
-# Create your models here.
+
+currency_code_validator = RegexValidator(
+    regex=r"^[A-Z]{3}$",
+    message="Use a three-letter uppercase currency code, such as USD.",
+)
+
+sha256_validator = RegexValidator(
+    regex=r"^[0-9a-fA-F]{64}$",
+    message="SHA-256 must contain exactly 64 hexadecimal characters.",
+)
+
+
+class Product(models.Model):
+    """The software product itself; downloading it is free."""
+
+    name = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=140, unique=True)
+    description = models.TextField(blank=True)
+    website_url = models.URLField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Software product"
+        verbose_name_plural = "Software products"
+
+    def __str__(self):
+        return self.name
+
+
+class Release(models.Model):
+    """A freely downloadable published version of a product."""
+
+    class Platform(models.TextChoices):
+        WINDOWS = "windows", "Windows"
+        MACOS = "macos", "macOS"
+        LINUX = "linux", "Linux"
+
+    class Architecture(models.TextChoices):
+        X64 = "x64", "x64"
+        ARM64 = "arm64", "ARM64"
+        UNIVERSAL = "universal", "Universal"
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.PROTECT,
+        related_name="releases",
+    )
+    version = models.CharField(max_length=40)
+    platform = models.CharField(
+        max_length=10,
+        choices=Platform.choices,
+    )
+    architecture = models.CharField(
+        max_length=10,
+        choices=Architecture.choices,
+    )
+
+    download_url = models.URLField(max_length=1000)
+    sha256 = models.CharField(
+        max_length=64,
+        validators=[sha256_validator],
+    )
+    release_notes = models.TextField(blank=True)
+
+    is_published = models.BooleanField(default=False)
+    published_at = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-published_at", "version"]
+        verbose_name = "Software release"
+        verbose_name_plural = "Software releases"
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "product",
+                    "version",
+                    "platform",
+                    "architecture",
+                ],
+                name="catalog_release_unique_build",
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.product.name} {self.version} "
+            f"({self.platform}/{self.architecture})"
+        )
+
+
+class Plan(models.Model):
+    """A paid subscription offer for a software product."""
+
+    class DurationUnit(models.TextChoices):
+        DAYS = "days", "Days"
+        MONTHS = "months", "Months"
+        YEARS = "years", "Years"
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.PROTECT,
+        related_name="plans",
+    )
+    name = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=140)
+
+    duration_unit = models.CharField(
+        max_length=10,
+        choices=DurationUnit.choices,
+        default=DurationUnit.MONTHS,
+    )
+    duration_value = models.PositiveSmallIntegerField(default=1)
+
+    # Amount in the currency's minor unit.
+    # Example: USD 1999 means $19.99.
+    price_minor_units = models.PositiveBigIntegerField()
+    currency = models.CharField(
+        max_length=3,
+        default="USD",
+        validators=[currency_code_validator],
+    )
+
+    device_limit = models.PositiveSmallIntegerField(default=1)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "price_minor_units", "name"]
+        verbose_name = "Paid subscription plan"
+        verbose_name_plural = "Paid subscription plans"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product", "slug"],
+                name="catalog_plan_unique_slug_per_product",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(duration_value__gte=1),
+                name="catalog_plan_duration_at_least_one",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(device_limit__gte=1),
+                name="catalog_plan_device_limit_at_least_one",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(price_minor_units__gt=0),
+                name="catalog_plan_price_must_be_positive",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.product.name} — {self.name}"
