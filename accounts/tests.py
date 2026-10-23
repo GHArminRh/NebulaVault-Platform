@@ -19,7 +19,7 @@ class AccountBackendTests(TestCase):
         self.assertIn(reverse("login"), response.url)
 
     def test_profile_updates_normalized_email_and_names(self):
-        self.client.force_login(self.user)
+        self.client.force_login(self.user, backend='accounts.backends.CustomerAuthenticationBackend')
         response = self.client.post(
             reverse("accounts:profile"),
             {"first_name": "Test", "last_name": "User", "email": "  ACCOUNT@example.com  "},
@@ -33,7 +33,7 @@ class AccountBackendTests(TestCase):
         Customer.objects.create_user(
             username="another_user", email="other@example.com", password="Secure-test-password-2026!"
         )
-        self.client.force_login(self.user)
+        self.client.force_login(self.user, backend='accounts.backends.CustomerAuthenticationBackend')
         response = self.client.post(
             reverse("accounts:profile"),
             {"first_name": "", "last_name": "", "email": "other@example.com"},
@@ -42,7 +42,7 @@ class AccountBackendTests(TestCase):
         self.assertContains(response, "An account with this email already exists.")
 
     def test_password_change_keeps_user_signed_in(self):
-        self.client.force_login(self.user)
+        self.client.force_login(self.user, backend='accounts.backends.CustomerAuthenticationBackend')
         response = self.client.post(
             reverse("accounts:password_change"),
             {
