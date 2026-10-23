@@ -18,9 +18,17 @@ if errorlevel 1 (
   exit /b 1
 )
 
+py -3.11 --version >nul 2>nul
+if errorlevel 1 (
+  echo ERROR: Python 3.11 or newer was not found through the Python launcher.
+  echo Install Python 3.11+ from https://www.python.org/downloads/
+  pause
+  exit /b 1
+)
+
 if not exist ".venv\Scripts\python.exe" (
   echo [1/4] Creating Python virtual environment...
-  py -3 -m venv .venv
+  py -3.11 -m venv .venv
   if errorlevel 1 (
     echo ERROR: Could not create virtual environment.
     pause
