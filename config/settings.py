@@ -12,21 +12,23 @@ ALLOWED_HOSTS = [host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS",
 INSTALLED_APPS = [
     "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
     "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
-    "accounts", "catalog.apps.CatalogConfig", "subscriptions.apps.SubscriptionsConfig",
+    "staff_access.apps.StaffAccessConfig", "customer_accounts.apps.CustomerAccountsConfig", "catalog.apps.CatalogConfig", "subscriptions.apps.SubscriptionsConfig",
     "licensing.apps.LicensingConfig", "devices.apps.DevicesConfig",
     "billing.apps.BillingConfig", "audit.apps.AuditConfig",
     "notifications.apps.NotificationsConfig", "portal.apps.PortalConfig",
 ]
-# Try customer authentication first because site customers use UUID primary keys,
-# while Django's built-in staff users use integer primary keys.
+
+# Both staff/admin accounts and site customers use UUID4 primary keys.
+# Keep the two account types separate: StaffUser owns Django permissions and admin access.
+AUTH_USER_MODEL = "staff_access.StaffUser"
 AUTHENTICATION_BACKENDS = [
-    "accounts.backends.CustomerAuthenticationBackend",
+    "customer_accounts.backends.CustomerAuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware", "portal.middleware.InterfaceLanguageMiddleware", "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware", "django.middleware.csrf.CsrfViewMiddleware",
-    "accounts.middleware.UUIDCompatibleAuthenticationMiddleware", "portal.middleware.SeparateStaffAndCustomerSessionsMiddleware", "django.contrib.messages.middleware.MessageMiddleware",
+    "staff_access.middleware.UUIDCompatibleAuthenticationMiddleware", "portal.middleware.SeparateStaffAndCustomerSessionsMiddleware", "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 ROOT_URLCONF = "config.urls"
@@ -72,4 +74,4 @@ LOGOUT_REDIRECT_URL = "portal:home"
 
 # Uploaded release installers and archives.
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = BASE_DIR / "media/"
