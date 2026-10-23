@@ -1,3 +1,5 @@
+import uuid
+
 
 import hashlib
 
@@ -18,6 +20,7 @@ sha256_validator = RegexValidator(
 
 
 class Product(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     """The software product itself; downloading it is free."""
 
     name = models.CharField(max_length=120)
@@ -53,6 +56,7 @@ class Product(models.Model):
 
 
 class Release(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     """A freely downloadable published version of a product."""
 
     class Platform(models.TextChoices):
@@ -145,6 +149,7 @@ class Release(models.Model):
 
 
 class Plan(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     """A paid subscription offer for a software product."""
 
     class DurationUnit(models.TextChoices):
