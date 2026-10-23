@@ -17,8 +17,10 @@ INSTALLED_APPS = [
     "billing.apps.BillingConfig", "audit.apps.AuditConfig",
     "notifications.apps.NotificationsConfig", "portal.apps.PortalConfig",
 ]
-# Try customer authentication first because site customers use UUID primary keys,
-# while Django's built-in staff users use integer primary keys.
+
+# Both staff/admin accounts and site customers use UUID4 primary keys.
+# Keep the two account types separate: StaffUser owns Django permissions and admin access.
+AUTH_USER_MODEL = "accounts.StaffUser"
 AUTHENTICATION_BACKENDS = [
     "accounts.backends.CustomerAuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
@@ -72,4 +74,4 @@ LOGOUT_REDIRECT_URL = "portal:home"
 
 # Uploaded release installers and archives.
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = BASE_DIR / "media/"
