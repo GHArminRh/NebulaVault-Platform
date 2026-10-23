@@ -80,7 +80,7 @@ class Subscription(models.Model):
         CANCELED = "canceled", "Canceled"
 
     user = models.ForeignKey(
-        accounts.Customer,
+        "accounts.Customer",
         on_delete=models.PROTECT,
         related_name="subscriptions",
     )
