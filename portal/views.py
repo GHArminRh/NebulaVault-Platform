@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from accounts.forms import AccountPasswordChangeForm, AccountProfileForm
+from customer_accounts.forms import AccountPasswordChangeForm, AccountProfileForm
 from billing.models import PaymentOrder
 from billing.services import OrderCreationError, create_payment_order
 from catalog.models import Plan, Product, Release
