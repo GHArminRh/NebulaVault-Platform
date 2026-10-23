@@ -28,6 +28,13 @@ class PaymentOrder(models.Model):
         editable=False,
     )
 
+    # Identifies retries of the same order-creation request.
+    idempotency_key = models.UUIDField(
+        null=True,
+        blank=True,
+        editable=False,
+    )
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -65,6 +72,11 @@ class PaymentOrder(models.Model):
             models.CheckConstraint(
                 condition=models.Q(amount_minor_units__gt=0),
                 name="billing_order_amount_positive",
+            ),
+            models.UniqueConstraint(
+                fields=["user", "idempotency_key"],
+                condition=models.Q(idempotency_key__isnull=False),
+                name="billing_order_user_idempotency_unique",
             ),
         ]
 
