@@ -1,7 +1,18 @@
-from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.db import models
 import uuid
 
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+
+class StaffUser(AbstractUser):
+    """Django admin/staff identity with a UUID4 primary key."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    class Meta:
+        verbose_name = "staff user"
+        verbose_name_plural = "staff users"
 
 
 class CustomerManager(BaseUserManager):
@@ -17,7 +28,7 @@ class CustomerManager(BaseUserManager):
         return customer
 
     def create_superuser(self, email, password=None, **extra_fields):
-        raise ValueError("Customers cannot be superusers. Use Django's built-in User for staff.")
+        raise ValueError("Customers cannot be superusers. Use StaffUser for staff accounts.")
 
 
 class Customer(AbstractBaseUser):
