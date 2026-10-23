@@ -7,7 +7,9 @@ from django.db import IntegrityError, close_old_connections, connections
 from django.test import TestCase, TransactionTestCase, skipUnlessDBFeature
 from django.utils import timezone
 
-from accounts.models import User
+from accounts.models import Customer
+
+User = Customer
 from catalog.models import Plan, Product
 from subscriptions.models import Subscription, SubscriptionRenewal
 
