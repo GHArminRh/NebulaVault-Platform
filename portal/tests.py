@@ -1,5 +1,5 @@
 from datetime import timedelta
-from django.contrib.auth import get_user_model
+from accounts.models import Customer
 from django.test import TestCase
 from django.urls import reverse
 from catalog.models import Plan, Product
@@ -7,7 +7,7 @@ from subscriptions.models import Subscription
 
 class PortalPageTests(TestCase):
     def setUp(self):
-        self.user = get_user_model().objects.create_user(username="portal_user", email="portal@example.com", password="a-secure-test-password")
+        self.user = Customer.objects.create_user(username="portal_user", email="portal@example.com", password="a-secure-test-password")
         self.product = Product.objects.create(name="Nebula Vault", slug="nebula-vault", description="A secure workspace.")
         self.plan = Plan.objects.create(product=self.product, name="Monthly", slug="monthly", duration_unit=Plan.DurationUnit.MONTHS, duration_value=1, price_minor_units=1999, currency="USD", device_limit=2)
 
@@ -24,7 +24,7 @@ class PortalPageTests(TestCase):
     def test_registration_creates_account_and_signs_in(self):
         response = self.client.post(reverse("accounts:register"), {"username":"new_portal_user","email":"new@example.com","password1":"Sufficiently-long-pass-947!","password2":"Sufficiently-long-pass-947!", "human_check":"on"})
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(get_user_model().objects.filter(username="new_portal_user", email="new@example.com").exists())
+        self.assertTrue(Customer.objects.filter(username="new_portal_user", email="new@example.com").exists())
         self.assertIn("_auth_user_id", self.client.session)
 
     def test_trial_starts_for_signed_in_user(self):
