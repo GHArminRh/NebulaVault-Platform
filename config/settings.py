@@ -67,3 +67,7 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "False").lower() == "true"
 LOGIN_REDIRECT_URL = "portal:dashboard"
 LOGOUT_REDIRECT_URL = "portal:home"
+
+# Uploaded release installers and archives.
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
