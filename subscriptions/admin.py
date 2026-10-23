@@ -1,7 +1,11 @@
 
 from django.contrib import admin
 
-from .models import Subscription, TrialRedemption
+from .models import (
+    Subscription,
+    SubscriptionRenewal,
+    TrialRedemption,
+)
 
 
 @admin.register(TrialRedemption)
@@ -55,3 +59,43 @@ class SubscriptionAdmin(admin.ModelAdmin):
         "trial_redemption",
     )
     readonly_fields = ("created_at", "updated_at")
+
+
+
+@admin.register(SubscriptionRenewal)
+class SubscriptionRenewalAdmin(admin.ModelAdmin):
+    list_display = (
+        "subscription",
+        "payment_reference",
+        "amount_minor_units",
+        "currency",
+        "previous_expires_at",
+        "new_expires_at",
+        "created_at",
+    )
+    list_filter = ("currency", "created_at")
+    search_fields = (
+        "payment_reference",
+        "subscription__user__email",
+        "subscription__user__username",
+    )
+    list_select_related = (
+        "subscription",
+        "subscription__user",
+        "subscription__product",
+    )
+    readonly_fields = (
+        "subscription",
+        "payment_reference",
+        "previous_expires_at",
+        "new_expires_at",
+        "amount_minor_units",
+        "currency",
+        "created_at",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

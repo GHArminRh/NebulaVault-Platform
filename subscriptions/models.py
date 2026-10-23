@@ -225,3 +225,51 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"{self.user} — {self.product} ({self.kind})"
+
+
+
+
+
+class SubscriptionRenewal(models.Model):
+    """Audit record for a successfully processed paid renewal."""
+
+    subscription = models.ForeignKey(
+        Subscription,
+        on_delete=models.PROTECT,
+        related_name="renewals",
+    )
+
+    # Must be supplied by trusted server-side payment processing.
+    payment_reference = models.CharField(
+        max_length=255,
+        unique=True,
+    )
+
+    previous_expires_at = models.DateTimeField()
+    new_expires_at = models.DateTimeField()
+
+    amount_minor_units = models.PositiveBigIntegerField()
+    currency = models.CharField(max_length=3)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Subscription renewal"
+        verbose_name_plural = "Subscription renewals"
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(new_expires_at__gt=models.F("previous_expires_at")),
+                name="subscriptions_renewal_end_after_previous",
+            ),
+            models.CheckConstraint(
+                condition=Q(amount_minor_units__gt=0),
+                name="subscriptions_renewal_amount_positive",
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"Renewal for subscription {self.subscription_id} "
+            f"({self.payment_reference})"
+        )
