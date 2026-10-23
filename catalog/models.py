@@ -1,6 +1,7 @@
 
 from django.core.validators import RegexValidator
 from django.db import models
+from django.utils.text import slugify
 
 
 currency_code_validator = RegexValidator(
@@ -30,6 +31,20 @@ class Product(models.Model):
         ordering = ["name"]
         verbose_name = "Software product"
         verbose_name_plural = "Software products"
+
+    def save(self, *args, **kwargs):
+        base_slug = slugify(self.name) or "product"
+        candidate = base_slug[: self._meta.get_field("slug").max_length]
+        suffix = 2
+        queryset = type(self).objects.all()
+        if self.pk:
+            queryset = queryset.exclude(pk=self.pk)
+        while queryset.filter(slug=candidate).exists():
+            ending = f"-{suffix}"
+            candidate = f"{base_slug[: self._meta.get_field('slug').max_length - len(ending)]}{ending}"
+            suffix += 1
+        self.slug = candidate
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -159,6 +174,21 @@ class Plan(models.Model):
                 name="catalog_plan_price_must_be_positive",
             ),
         ]
+
+    def save(self, *args, **kwargs):
+        base_slug = slugify(self.name) or "plan"
+        max_length = self._meta.get_field("slug").max_length
+        candidate = base_slug[:max_length]
+        suffix = 2
+        queryset = type(self).objects.filter(product_id=self.product_id)
+        if self.pk:
+            queryset = queryset.exclude(pk=self.pk)
+        while queryset.filter(slug=candidate).exists():
+            ending = f"-{suffix}"
+            candidate = f"{base_slug[: max_length - len(ending)]}{ending}"
+            suffix += 1
+        self.slug = candidate
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.product.name} — {self.name}"
