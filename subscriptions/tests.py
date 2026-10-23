@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta, timezone as dt_timezone
 from unittest.mock import patch
 
-from django.contrib.auth import get_user_model
+from accounts.models import Customer
 from django.test import TestCase
 from django.utils import timezone
 
@@ -19,7 +19,7 @@ from subscriptions.services import (
 
 
 
-User = get_user_model()
+User = Customer
 
 
 class StartTrialTests(TestCase):
