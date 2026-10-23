@@ -1,9 +1,11 @@
 import uuid
 from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from accounts.forms import AccountPasswordChangeForm, AccountProfileForm
 from billing.models import PaymentOrder
 from billing.services import OrderCreationError, create_payment_order
 from catalog.models import Plan, Product, Release
@@ -32,6 +34,27 @@ def pricing(request):
 
 @login_required
 def dashboard(request):
+    profile_form = AccountProfileForm(instance=request.user)
+    password_form = AccountPasswordChangeForm(user=request.user)
+
+    if request.method == "POST":
+        action = request.POST.get("account_action")
+        if action == "profile":
+            profile_form = AccountProfileForm(request.POST, instance=request.user)
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, "اطلاعات حساب شما با موفقیت ذخیره شد.")
+                return redirect("portal:dashboard")
+        elif action == "password":
+            password_form = AccountPasswordChangeForm(user=request.user, data=request.POST)
+            if password_form.is_valid():
+                customer = password_form.save()
+                update_session_auth_hash(request, customer)
+                messages.success(request, "رمز عبور شما با موفقیت تغییر کرد.")
+                return redirect("portal:dashboard")
+        else:
+            messages.error(request, "درخواست نامعتبر است. دوباره تلاش کنید.")
+
     all_subscriptions = list(Subscription.objects.filter(user=request.user).select_related("product", "plan"))
     orders = PaymentOrder.objects.filter(user=request.user).select_related("plan", "plan__product")
     return render(request, "portal/dashboard.html", {
@@ -39,6 +62,8 @@ def dashboard(request):
         "active_count": sum(1 for item in all_subscriptions if item.is_currently_valid),
         "pending_count": orders.filter(status=PaymentOrder.Status.PENDING).count(),
         "now": timezone.now(),
+        "profile_form": profile_form,
+        "password_form": password_form,
     })
 
 @login_required
