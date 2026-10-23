@@ -47,6 +47,17 @@ class PaymentOrder(models.Model):
         related_name="payment_orders",
     )
 
+
+    # Empty for a new purchase; set when the order renews a subscription.
+    subscription = models.ForeignKey(
+        "subscriptions.Subscription",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="payment_orders",
+    )
+
+
     # Price snapshot: later plan price changes must not rewrite this order.
     amount_minor_units = models.PositiveBigIntegerField()
     currency = models.CharField(
