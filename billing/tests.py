@@ -2,7 +2,8 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from uuid import uuid4
-from django.db import close_old_connections, connections
+from unittest.mock import patch
+from django.db import IntegrityError, close_old_connections, connections
 from django.test import TestCase, TransactionTestCase, skipUnlessDBFeature
 from django.utils import timezone
 
@@ -109,6 +110,32 @@ class CreatePaymentOrderTests(BillingServiceTestCase):
 
         with self.assertRaises(IdempotencyConflict):
             self.create_order(key=key, plan=self.other_plan)
+
+    def test_same_key_cannot_switch_from_explicit_to_automatic_subscription(self):
+        subscription = Subscription.objects.create(
+            user=self.user,
+            product=self.product,
+            kind=Subscription.Kind.PAID,
+            status=Subscription.Status.ACTIVE,
+            plan=self.plan,
+            starts_at=timezone.now(),
+            expires_at=timezone.now() + timedelta(days=10),
+        )
+        key = uuid4()
+
+        first_order = self.create_order(key=key, subscription=subscription)
+
+        self.assertTrue(first_order.subscription_id_was_explicit)
+        with self.assertRaises(IdempotencyConflict):
+            self.create_order(key=key)
+
+        self.assertEqual(
+            PaymentOrder.objects.filter(
+                user=self.user,
+                idempotency_key=key,
+            ).count(),
+            1,
+        )
 
     def test_inactive_plan_is_rejected(self):
         self.plan.is_active = False
@@ -695,6 +722,25 @@ class FinalizePaymentTests(BillingServiceTestCase):
 
         self.assertEqual(another_order.status, PaymentOrder.Status.PENDING)
         self.assertEqual(another_attempt.status, PaymentAttempt.Status.CREATED)
+
+    def test_unrelated_integrity_error_is_not_converted_to_reference_conflict(self):
+        with patch.object(
+            PaymentOrder,
+            "save",
+            side_effect=IntegrityError("unrelated integrity failure"),
+        ):
+            with self.assertRaisesRegex(
+                IntegrityError,
+                "unrelated integrity failure",
+            ):
+                self.finalize()
+
+        self.order.refresh_from_db()
+        self.attempt.refresh_from_db()
+
+        self.assertEqual(self.order.status, PaymentOrder.Status.PENDING)
+        self.assertEqual(self.attempt.status, PaymentAttempt.Status.CREATED)
+        self.assertEqual(Subscription.objects.count(), 0)
 
     def test_successful_renewal_records_renewal_and_extends_subscription(self):
         subscription = Subscription.objects.create(
