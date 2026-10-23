@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model
+from accounts.models import Customer
 from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -7,7 +7,7 @@ from django.urls import reverse
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 class AccountBackendTests(TestCase):
     def setUp(self):
-        self.user = get_user_model().objects.create_user(
+        self.user = Customer.objects.create_user(
             username="account_user",
             email="account@example.com",
             password="Secure-test-password-2026!",
