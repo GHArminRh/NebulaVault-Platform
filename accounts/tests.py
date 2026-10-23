@@ -30,7 +30,7 @@ class AccountBackendTests(TestCase):
         self.assertEqual(self.user.email, "account@example.com")
 
     def test_profile_rejects_email_used_by_another_user(self):
-        get_user_model().objects.create_user(
+        Customer.objects.create_user(
             username="another_user", email="other@example.com", password="Secure-test-password-2026!"
         )
         self.client.force_login(self.user)
