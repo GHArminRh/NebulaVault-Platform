@@ -107,20 +107,35 @@ class Release(models.Model):
         ]
 
     def save(self, *args, **kwargs):
-        if self.installer_file:
+        uploaded_file = self.installer_file
+        if uploaded_file:
             digest = hashlib.sha256()
-            self.installer_file.open("rb")
-            try:
-                for chunk in self.installer_file.chunks():
-                    digest.update(chunk)
-            finally:
-                self.installer_file.close()
+
+            # A new upload still lives in Django's temporary upload handler.
+            # Read that object directly; FieldFile.open() tries to find it in
+            # permanent storage before it has been saved there.
+            if uploaded_file._committed:
+                with uploaded_file.storage.open(uploaded_file.name, "rb") as source:
+                    for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                        digest.update(chunk)
+            else:
+                source = uploaded_file.file
+                try:
+                    source.seek(0)
+                    for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                        digest.update(chunk)
+                finally:
+                    source.seek(0)
             self.sha256 = digest.hexdigest()
-            if not self.download_url:
-                self.download_url = self.installer_file.url
         else:
             self.sha256 = ""
+
         super().save(*args, **kwargs)
+
+        # Now the upload is in permanent storage, so its URL is safe to use.
+        if self.installer_file and not self.download_url:
+            self.download_url = self.installer_file.url
+            type(self).objects.filter(pk=self.pk).update(download_url=self.download_url)
 
     def __str__(self):
         return (
