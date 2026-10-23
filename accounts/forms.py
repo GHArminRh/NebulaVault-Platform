@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import authenticate
-from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, PasswordResetForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from .models import Customer
@@ -71,6 +71,10 @@ class AccountProfileForm(forms.ModelForm):
 
 
 class AccountPasswordChangeForm(PasswordChangeForm):
+    pass
+
+
+class AccountSetPasswordForm(SetPasswordForm):
     pass
 
 
