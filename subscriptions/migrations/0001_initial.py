@@ -2,7 +2,6 @@
 
 import django.db.models.deletion
 import django.utils.timezone
-from django.conf import settings
 from django.db import migrations, models
 
 
@@ -44,7 +43,7 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('plan', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='subscriptions', to='catalog.plan')),
                 ('product', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='subscriptions', to='catalog.product')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='subscriptions', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='subscriptions', to='accounts.customer')),
                 ('trial_redemption', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='subscription', to='subscriptions.trialredemption')),
             ],
             options={
