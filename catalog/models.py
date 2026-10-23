@@ -1,4 +1,6 @@
 
+import hashlib
+
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.text import slugify
@@ -78,11 +80,9 @@ class Release(models.Model):
         choices=Architecture.choices,
     )
 
-    download_url = models.URLField(max_length=1000)
-    sha256 = models.CharField(
-        max_length=64,
-        validators=[sha256_validator],
-    )
+    installer_file = models.FileField(upload_to="releases/%Y/%m/", blank=True, help_text="Upload the release file; SHA-256 is calculated automatically.")
+    download_url = models.URLField(max_length=1000, blank=True)
+    sha256 = models.CharField(max_length=64, validators=[sha256_validator], blank=True, editable=False)
     release_notes = models.TextField(blank=True)
 
     is_published = models.BooleanField(default=False)
@@ -105,6 +105,22 @@ class Release(models.Model):
                 name="catalog_release_unique_build",
             ),
         ]
+
+    def save(self, *args, **kwargs):
+        if self.installer_file:
+            digest = hashlib.sha256()
+            self.installer_file.open("rb")
+            try:
+                for chunk in self.installer_file.chunks():
+                    digest.update(chunk)
+            finally:
+                self.installer_file.close()
+            self.sha256 = digest.hexdigest()
+            if not self.download_url:
+                self.download_url = self.installer_file.url
+        else:
+            self.sha256 = ""
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return (
