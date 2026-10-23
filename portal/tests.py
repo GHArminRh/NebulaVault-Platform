@@ -1,5 +1,6 @@
 from datetime import timedelta
 from accounts.models import Customer
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from catalog.models import Plan, Product
@@ -42,3 +43,27 @@ class PortalPageTests(TestCase):
         order = PaymentOrder.objects.get(user=self.user)
         self.assertEqual(order.status, PaymentOrder.Status.PENDING)
         self.assertIsNone(order.paid_at)
+
+
+class StaffSessionIsolationTests(TestCase):
+    def test_admin_user_is_not_treated_as_customer_on_public_site(self):
+        StaffUser = get_user_model()
+        staff = StaffUser.objects.create_user(
+            username="site_admin", password="admin-test-password", is_staff=True, is_superuser=True
+        )
+        self.client.force_login(staff, backend="django.contrib.auth.backends.ModelBackend")
+
+        response = self.client.get(reverse("portal:home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+
+    def test_staff_session_remains_available_in_django_admin(self):
+        StaffUser = get_user_model()
+        staff = StaffUser.objects.create_user(
+            username="site_admin_2", password="admin-test-password", is_staff=True, is_superuser=True
+        )
+        self.client.force_login(staff, backend="django.contrib.auth.backends.ModelBackend")
+
+        response = self.client.get("/admin/")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
