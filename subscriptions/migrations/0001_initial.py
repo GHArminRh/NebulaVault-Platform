@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('catalog', '0001_initial'),
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        ('accounts', '0001_initial'),
     ]
 
     operations = [
@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ('ends_at', models.DateTimeField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('product', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='trial_redemptions', to='catalog.product')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='trial_redemptions', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='trial_redemptions', to='accounts.customer')),
             ],
             options={
                 'verbose_name': 'Trial redemption',
