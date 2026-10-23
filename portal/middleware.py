@@ -55,3 +55,22 @@ class InterfaceLanguageMiddleware(MiddlewareMixin):
                 httponly=False,
             )
         return response
+
+
+class SeparateStaffAndCustomerSessionsMiddleware(MiddlewareMixin):
+    """Restrict built-in Django staff identities to the admin interface."""
+    def process_request(self, request):
+        from django.contrib.auth import get_user_model
+        from django.contrib.auth.models import AnonymousUser
+        from django.shortcuts import redirect
+
+        if request.path == "/admin" or request.path.startswith("/admin/"):
+            return None
+        user = getattr(request, "user", None)
+        if not user or not user.is_authenticated:
+            return None
+        if isinstance(user, get_user_model()):
+            if request.path.rstrip("/") == "/accounts/logout":
+                return redirect("portal:home")
+            request.user = AnonymousUser()
+        return None
