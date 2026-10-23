@@ -34,7 +34,13 @@ class PaymentOrder(models.Model):
         blank=True,
         editable=False,
     )
-
+    # Whether the original request explicitly supplied subscription_id.
+    # NULL preserves legacy behavior for existing orders.
+    subscription_id_was_explicit = models.BooleanField(
+        null=True,
+        blank=True,
+        default=None,
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
