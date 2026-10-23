@@ -90,7 +90,10 @@ def prepare_database(values: dict[str, str]) -> dict[str, str]:
             f"Details: {exc}"
         ) from exc
 
-    app_password = values.get("DB_PASSWORD") or secrets.token_urlsafe(24)
+    existing_password = values.get("DB_PASSWORD", "")
+    if existing_password.lower() in {"replace-with-your-local-database-password", "change-me", "your-password"}:
+        existing_password = ""
+    app_password = existing_password or secrets.token_urlsafe(24)
     try:
         conn.autocommit = True
         with conn.cursor() as cur:
