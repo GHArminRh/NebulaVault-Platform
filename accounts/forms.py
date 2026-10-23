@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, PasswordResetForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm
 
 User = get_user_model()
 
@@ -44,3 +44,7 @@ class AccountPasswordChangeForm(PasswordChangeForm):
 class AccountPasswordResetForm(PasswordResetForm):
     def clean_email(self):
         return self.cleaned_data["email"].strip().lower()
+
+
+class AccountSetPasswordForm(SetPasswordForm):
+    pass
