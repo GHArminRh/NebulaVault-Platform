@@ -10,6 +10,6 @@ urlpatterns = [
     path("dashboard/", views.dashboard, name="dashboard"),
     path("subscriptions/", views.subscriptions, name="subscriptions"),
     path("orders/", views.orders, name="orders"),
-    path("orders/create/<int:plan_id>/", views.create_order, name="create_order"),
+    path("orders/create/<uuid:plan_id>/", views.create_order, name="create_order"),
     path("trial/<slug:slug>/", views.start_trial, name="start_trial"),
 ]
