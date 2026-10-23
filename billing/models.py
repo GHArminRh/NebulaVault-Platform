@@ -1,7 +1,6 @@
 
 import uuid
 
-from django.conf import settings
 from django.core.validators import RegexValidator
 from django.db import models
 
@@ -42,7 +41,7 @@ class PaymentOrder(models.Model):
         default=None,
     )
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        "accounts.Customer",
         on_delete=models.PROTECT,
         related_name="payment_orders",
     )
