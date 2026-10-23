@@ -1,0 +1,65 @@
+/* Nebula Vault — Django admin visual layer only. No admin behavior is overridden. */
+:root{--nv-bg:#080d19;--nv-panel:#111a2d;--nv-line:rgba(172,188,232,.15);--nv-text:#f1f4ff;--nv-muted:#9aa7c4;--nv-violet:#b2a5ff;--nv-cyan:#86e5e8;--nv-green:#7ee2b5}
+html,body{min-height:100%;background:#080d19!important;color:var(--nv-text)!important;font-family:"DM Sans","Segoe UI",sans-serif!important}
+body:before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 12% 0,rgba(109,92,255,.17),transparent 34%),radial-gradient(ellipse at 92% 35%,rgba(46,188,201,.09),transparent 30%),linear-gradient(150deg,#090e1b,#080d19 68%,#0d1426)}
+#container{position:relative;z-index:1;background:transparent!important}
+#header{min-height:76px;padding:0 30px;background:rgba(10,15,29,.88)!important;border-bottom:1px solid var(--nv-line);box-shadow:0 8px 34px rgba(0,0,0,.15);display:flex;align-items:center}
+#branding{float:none!important;display:flex;align-items:center}
+#site-name{margin:0!important}
+.nv-admin-brand a{display:flex;align-items:center;gap:12px;text-decoration:none!important;color:#f3f5ff!important}
+.nv-admin-mark{width:42px;height:42px;border:1px solid rgba(178,165,255,.45);border-radius:14px;display:grid;place-items:center;color:#c2b8ff;font-size:28px;background:linear-gradient(145deg,rgba(140,120,255,.22),rgba(85,218,226,.08));box-shadow:0 0 25px rgba(126,107,255,.12)}
+.nv-admin-brand strong{display:block;font-size:19px;letter-spacing:-.7px;line-height:1.15}.nv-admin-brand strong span{font-weight:400;color:#aebbd4}
+.nv-admin-brand small{display:block;font-size:8px;letter-spacing:2.2px;color:#7e8ba9;margin-top:5px}
+#user-tools{float:none;margin-left:auto;font-size:12px;color:#9eabc8}
+#user-tools a{color:#c3baff!important;border-bottom:0!important}
+a:link,a:visited{color:#bcb2ff}
+a:hover{color:#e2ddff}
+#content{max-width:1500px;padding:34px 36px 60px;margin:0 auto}
+#content h1{font-size:27px;font-weight:650;letter-spacing:-.7px;color:#f4f5ff;margin:0 0 24px}
+#content-main,#content-related,.module,.dashboard .module{background:rgba(17,26,45,.88)!important;border:1px solid var(--nv-line)!important;border-radius:15px!important;overflow:hidden;box-shadow:0 18px 48px rgba(0,0,0,.13)}
+.module h2,.module caption,.inline-group h2{background:linear-gradient(100deg,rgba(132,115,255,.14),rgba(91,211,221,.07))!important;color:#e5e8fa!important;border-bottom:1px solid var(--nv-line)!important;padding:14px 17px!important;font-size:12px!important;letter-spacing:.4px}
+.module table{width:100%}
+#content-main .module a,#content-related a{color:#c1b7ff!important}
+#content-main .module a:hover,#content-related a:hover{color:#f1edff!important}
+.module table th,.module table td,.results table th,.results table td{border-color:rgba(172,188,232,.09)!important}
+tr:nth-child(even),.row-form-errors{background:rgba(255,255,255,.018)!important}
+#nav-sidebar{background:rgba(10,16,30,.7)!important;border-right:1px solid var(--nv-line)!important}
+#nav-sidebar .current-model{background:rgba(143,126,255,.13)!important}
+#nav-sidebar th,#nav-sidebar td{border-color:rgba(172,188,232,.08)!important}
+#nav-sidebar a{color:#aebbd5!important}
+#nav-sidebar .current-model a{color:#e5e0ff!important}
+div.breadcrumbs{background:rgba(20,29,49,.75)!important;border-bottom:1px solid var(--nv-line);color:#8f9cb9!important;padding:12px 36px!important}
+div.breadcrumbs a{color:#bcb2ff!important}
+.button, input[type=submit], input[type=button], .submit-row input, a.button, button{border:1px solid rgba(178,165,255,.3)!important;border-radius:9px!important;padding:9px 14px!important;background:linear-gradient(110deg,#b5aaff,#87e3e7)!important;color:#0b1020!important;font-weight:700!important;box-shadow:0 6px 18px rgba(120,111,255,.1)}
+.button.default, input[type=submit].default,.submit-row input.default{background:linear-gradient(110deg,#b5aaff,#87e3e7)!important;color:#0b1020!important}
+.object-tools a{border-radius:9px!important;background:rgba(139,124,255,.14)!important;color:#d7d0ff!important;border:1px solid rgba(178,165,255,.2)!important}
+input,textarea,select,.vTextField,.vLargeTextField,.selector select{background:#0a1121!important;color:#edf1ff!important;border:1px solid rgba(172,188,232,.2)!important;border-radius:9px!important;padding:9px 11px!important;box-sizing:border-box}
+input:focus,textarea:focus,select:focus{outline:2px solid rgba(147,131,255,.24)!important;border-color:#a99aff!important}
+label{color:#c3cce0!important}
+.help,.helptext,p.help,form .help{color:#8e9bb8!important}
+fieldset{border:1px solid var(--nv-line)!important;border-radius:12px!important}
+.aligned label{color:#aebbd4!important}
+.selector,.selector-chosen{background:rgba(255,255,255,.02)!important;border-color:var(--nv-line)!important}
+.messagelist li{border-radius:10px!important;border:1px solid var(--nv-line)!important;background:rgba(17,26,45,.95)!important;color:#dfe6f8!important}
+.messagelist li.success{border-color:rgba(126,226,181,.3)!important}
+.messagelist li.error{border-color:rgba(255,119,142,.35)!important}
+#footer{color:#657390;padding:22px}
+#changelist-filter{background:rgba(15,23,40,.8)!important;border-left:1px solid var(--nv-line)!important}
+#changelist-filter h2{background:rgba(143,126,255,.12)!important;color:#e7e9fa!important}
+#changelist-filter li.selected a{color:#c8beff!important}
+.paginator{border-color:var(--nv-line)!important;color:#aab6d0!important}
+#login{width:min(430px,calc(100% - 36px));margin:7vh auto!important;padding:34px!important;border:1px solid rgba(172,188,232,.17);border-radius:22px;background:linear-gradient(145deg,rgba(20,29,50,.97),rgba(11,18,33,.98));box-shadow:0 30px 90px rgba(0,0,0,.35);overflow:hidden}
+body.login #container{padding-top:30px}
+body.login #header{justify-content:center;padding:0 20px;background:transparent!important;border:0;box-shadow:none}
+body.login #branding{margin:0 auto}
+body.login #login h1{font-size:0}
+body.login #login h1:after{content:"Secure administrator access";font-size:23px;letter-spacing:-.7px;color:#f2f4ff}
+body.login #login .form-row{padding:8px 0!important}
+body.login #login .submit-row{padding:15px 0 5px!important}
+body.login #login .submit-row input{width:100%;padding:13px!important}
+body.login #login .errornote{border:1px solid rgba(255,119,142,.28);border-radius:10px;background:rgba(255,100,130,.08);color:#ffb8c5}
+body.login #login .form-row label{display:block;float:none;width:auto;padding:0 0 7px!important}
+body.login #login .form-row input{width:100%;min-height:43px}
+body.login #login .password-reset-link{display:none}
+@media(max-width:800px){#header{padding:0 17px;flex-wrap:wrap;gap:12px}#user-tools{font-size:10px}#content{padding:25px 16px 40px}div.breadcrumbs{padding:11px 17px!important}#nav-sidebar{display:none}#login{margin-top:35px!important;padding:25px!important}}
+@media(prefers-reduced-motion:no-preference){.module,#content-main{animation:nv-rise .45s ease both}@keyframes nv-rise{from{opacity:.65;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}}
