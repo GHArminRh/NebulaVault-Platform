@@ -1,8 +1,6 @@
 import uuid
 from django.contrib import messages
-from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.db import IntegrityError
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -11,7 +9,6 @@ from billing.services import OrderCreationError, create_payment_order
 from catalog.models import Plan, Product, Release
 from subscriptions.models import Subscription
 from subscriptions.services import TrialAlreadyUsed, TrialUnavailable, start_trial
-from .forms import RegisterForm
 
 def home(request):
     products = Product.objects.filter(is_active=True).prefetch_related(Prefetch("plans", queryset=Plan.objects.filter(is_active=True)))[:3]
@@ -82,17 +79,4 @@ def start_trial(request, slug):
     messages.success(request, f"Your 7-day trial for {product.name} is ready.")
     return redirect("portal:subscriptions")
 
-def register(request):
-    if request.user.is_authenticated:
-        return redirect("portal:dashboard")
-    form = RegisterForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        try:
-            user = form.save()
-        except IntegrityError:
-            form.add_error("email", "An account with this email already exists.")
-        else:
-            login(request, user)
-            messages.success(request, "Your account has been created.")
-            return redirect("portal:dashboard")
-    return render(request, "portal/register.html", {"form": form})
+
