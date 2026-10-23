@@ -9,26 +9,36 @@ echo      Nebula Vault - Local Launcher
 echo ==========================================
 echo.
 
+set "PYTHON_CMD="
 where py >nul 2>nul
-if errorlevel 1 (
-  echo ERROR: Python launcher was not found.
-  echo Install Python 3.11 or newer from https://www.python.org/downloads/
-  echo During installation, enable the Python launcher and Add Python to PATH.
+if not errorlevel 1 (
+  py -3 -c "import sys; raise SystemExit(0 if sys.version_info >= (3,11) else 1)" >nul 2>nul
+  if not errorlevel 1 set "PYTHON_CMD=py -3"
+)
+
+if not defined PYTHON_CMD (
+  where python >nul 2>nul
+  if not errorlevel 1 (
+    python -c "import sys; raise SystemExit(0 if sys.version_info >= (3,11) else 1)" >nul 2>nul
+    if not errorlevel 1 set "PYTHON_CMD=python"
+  )
+)
+
+if not defined PYTHON_CMD (
+  echo ERROR: Python 3.11 or newer could not be found.
+  echo Python is installed, but no supported version was detected.
+  echo Open PowerShell and run: py --list
   pause
   exit /b 1
 )
 
-py -3.11 --version >nul 2>nul
-if errorlevel 1 (
-  echo ERROR: Python 3.11 or newer was not found through the Python launcher.
-  echo Install Python 3.11+ from https://www.python.org/downloads/
-  pause
-  exit /b 1
-)
+echo Detected Python version:
+%PYTHON_CMD% --version
+echo.
 
 if not exist ".venv\Scripts\python.exe" (
   echo [1/4] Creating Python virtual environment...
-  py -3.11 -m venv .venv
+  %PYTHON_CMD% -m venv .venv
   if errorlevel 1 (
     echo ERROR: Could not create virtual environment.
     pause
