@@ -1,7 +1,18 @@
 from django.contrib import admin
+from django.contrib.auth.admin import GroupAdmin as DjangoGroupAdmin
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import Group as DjangoAuthGroup
 
-from .models import Customer, StaffUser
+from .models import Customer, Group, StaffUser
+
+# Replace Django's integer-PK group model in the admin with the UUID-backed
+# equivalent from accounts, while retaining Django's standard group UI.
+admin.site.unregister(DjangoAuthGroup)
+
+
+@admin.register(Group)
+class AccountsGroupAdmin(DjangoGroupAdmin):
+    """Manage UUID4 permission groups under the Accounts app."""
 
 
 @admin.register(StaffUser)
