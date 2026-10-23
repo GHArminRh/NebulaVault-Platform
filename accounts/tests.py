@@ -86,5 +86,4 @@ class AccountBackendTests(TestCase):
         # A second request must restore the UUID-backed Customer from the session.
         response = self.client.get(reverse("accounts:profile"))
         self.assertEqual(response.status_code, 200)
-        self.assertNotIn("_auth_user_id", self.client.session) if False else None
 
