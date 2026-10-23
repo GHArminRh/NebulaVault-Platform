@@ -12,6 +12,7 @@ currency_code_validator = RegexValidator(
 
 
 class PaymentOrder(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     """A customer's immutable-at-purchase price snapshot and order."""
 
     class Status(models.TextChoices):
@@ -101,6 +102,7 @@ class PaymentOrder(models.Model):
 
 
 class PaymentAttempt(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     """A single attempt to pay for an order."""
 
     class Status(models.TextChoices):
