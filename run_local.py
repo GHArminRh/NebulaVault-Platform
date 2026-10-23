@@ -169,10 +169,29 @@ def main() -> int:
         values.setdefault("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
         write_env(values)
 
-    print("\n[4/4] Applying database migrations...")
-    result = subprocess.run([sys.executable, "manage.py", "migrate"], cwd=BASE_DIR)
+    print("\n[4/5] Generating migrations from current model definitions...")
+    result = subprocess.run(
+        [sys.executable, "manage.py", "makemigrations", "--noinput"],
+        cwd=BASE_DIR,
+    )
+    if result.returncode:
+        print("\nMigration generation failed. Fix the error above, then run START_NEBULA_VAULT.bat again.")
+        return result.returncode
+
+    print("\n[5/5] Applying all pending migrations...")
+    result = subprocess.run([sys.executable, "manage.py", "migrate", "--noinput"], cwd=BASE_DIR)
     if result.returncode:
         print("\nMigration failed. Fix the error above, then run START_NEBULA_VAULT.bat again.")
+        return result.returncode
+
+    print("\nEnsuring the local development administrator exists...")
+    result = subprocess.run(
+        [sys.executable, "manage.py", "bootstrap_local_admin"],
+        cwd=BASE_DIR,
+        env={**os.environ, "DJANGO_DEBUG": values.get("DJANGO_DEBUG", "True")},
+    )
+    if result.returncode:
+        print("\nAdministrator setup failed.")
         return result.returncode
 
     print("\nStarting the local Django development server.")
