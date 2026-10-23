@@ -145,15 +145,17 @@ def prepare_database(values: dict[str, str]) -> dict[str, str]:
     return values
 
 
-def reset_database_schema(values: dict[str, str]) -> None:
-    """Clear all application data on every local startup, then recreate an empty schema."""
+def recreate_database(values: dict[str, str]) -> None:
+    """Drop and recreate the whole local PostgreSQL database on every startup."""
     import psycopg2
     from psycopg2 import sql
 
+    admin_user = values.get("POSTGRES_ADMIN_USER", "postgres").strip() or "postgres"
+    admin_password = values.get("POSTGRES_ADMIN_PASSWORD", "98741236").strip() or "98741236"
     conn = psycopg2.connect(
-        dbname=values["DB_NAME"],
-        user=values["DB_USER"],
-        password=values["DB_PASSWORD"],
+        dbname="postgres",
+        user=admin_user,
+        password=admin_password,
         host=values["DB_HOST"],
         port=values["DB_PORT"],
         connect_timeout=5,
@@ -161,11 +163,17 @@ def reset_database_schema(values: dict[str, str]) -> None:
     try:
         conn.autocommit = True
         with conn.cursor() as cur:
-            print("\\nWARNING: Clearing the Nebula Vault database for a fresh startup.")
-            cur.execute("DROP SCHEMA public CASCADE")
+            print(f"\\nWARNING: Dropping and recreating PostgreSQL database '{values['DB_NAME']}'.")
             cur.execute(
-                sql.SQL("CREATE SCHEMA public AUTHORIZATION {}").format(
-                    sql.Identifier(values["DB_USER"])
+                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
+                "WHERE datname = %s AND pid <> pg_backend_pid()",
+                (values["DB_NAME"],),
+            )
+            cur.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(values["DB_NAME"])))
+            cur.execute(
+                sql.SQL("CREATE DATABASE {} OWNER {}").format(
+                    sql.Identifier(values["DB_NAME"]),
+                    sql.Identifier(values["DB_USER"]),
                 )
             )
     finally:
@@ -186,17 +194,9 @@ def main() -> int:
     values.setdefault("POSTGRES_ADMIN_USER", "postgres")
     values.setdefault("POSTGRES_ADMIN_PASSWORD", "98741236")
 
-    if not values.get("DB_PASSWORD") or not app_database_works(values):
-        # Existing installs may not need administrator credentials if the app role
-        # and database are already provisioned. But if app connection fails, admin
-        # credentials must be available locally.
-        values = prepare_database(values)
-    else:
-        values.setdefault("DJANGO_DEBUG", "True")
-        values.setdefault("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
-        write_env(values)
-
-    reset_database_schema(values)
+    # Provision credentials and ensure the local role exists, then recreate the database.
+    values = prepare_database(values)
+    recreate_database(values)
 
     print("\n[4/5] Generating migrations from current model definitions...")
     result = subprocess.run(
