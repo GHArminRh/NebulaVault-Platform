@@ -1,10 +1,10 @@
 from django.contrib import messages
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .forms import AccountPasswordChangeForm, AccountProfileForm
+from .forms import AccountPasswordChangeForm, AccountProfileForm, RegisterForm
 
 
 @login_required
@@ -28,3 +28,16 @@ def password_change(request):
         messages.success(request, "Your password has been changed.")
         return redirect("accounts:profile")
     return render(request, "accounts/password_change.html", {"form": form})
+
+
+@require_http_methods(["GET", "POST"])
+def register(request):
+    if request.user.is_authenticated:
+        return redirect("portal:dashboard")
+    form = RegisterForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        login(request, user)
+        messages.success(request, "Your account has been created.")
+        return redirect("portal:dashboard")
+    return render(request, "portal/register.html", {"form": form})
