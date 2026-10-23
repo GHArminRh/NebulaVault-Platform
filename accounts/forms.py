@@ -1,5 +1,4 @@
 from django import forms
-from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -14,13 +13,9 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
     username = forms.EmailField(label="Email address", widget=forms.EmailInput(attrs={"autocomplete": "username", "autofocus": True}))
 
     def clean(self):
-        email, password = self.cleaned_data.get("username"), self.cleaned_data.get("password")
-        if email and password:
-            self.user_cache = authenticate(self.request, username=email.strip().lower(), password=password)
-            if self.user_cache is None:
-                raise self.get_invalid_login_error()
-            self.confirm_login_allowed(self.user_cache)
-        return self.cleaned_data
+        # Keep Django's AuthenticationForm validation and authentication flow.
+        # The configured CustomerAuthenticationBackend handles customer emails.
+        return super().clean()
 
 
 class RegisterForm(HumanCheckMixin, forms.ModelForm):
