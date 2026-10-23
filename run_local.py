@@ -145,6 +145,60 @@ def prepare_database(values: dict[str, str]) -> dict[str, str]:
     return values
 
 
+def repair_inconsistent_fresh_database(values: dict[str, str]) -> None:
+    """Reset an inconsistent local schema when migration records outlive auth_user.
+
+    This is only intended for the project's disposable local development database.
+    It preserves nothing in that database, so it runs only when Django's migration
+    ledger says auth migrations were applied but the required auth_user table is absent.
+    """
+    import psycopg2
+    from psycopg2 import sql
+
+    conn = psycopg2.connect(
+        dbname=values["DB_NAME"],
+        user=values["DB_USER"],
+        password=values["DB_PASSWORD"],
+        host=values["DB_HOST"],
+        port=values["DB_PORT"],
+        connect_timeout=5,
+    )
+    try:
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            cur.execute("SELECT to_regclass('public.auth_user')")
+            if cur.fetchone()[0] is not None:
+                return
+            cur.execute(
+                "SELECT EXISTS (SELECT 1 FROM information_schema.tables "
+                "WHERE table_schema = 'public' AND table_name = 'django_migrations')"
+            )
+            has_migration_ledger = cur.fetchone()[0]
+            if not has_migration_ledger:
+                return
+            cur.execute(
+                "SELECT EXISTS (SELECT 1 FROM public.django_migrations "
+                "WHERE app = 'auth' AND name = '0012_alter_user_first_name_max_length')"
+            )
+            auth_marked_applied = cur.fetchone()[0]
+            if not auth_marked_applied:
+                return
+
+            print(
+                "\\nWARNING: This local database has an inconsistent migration history "
+                "(auth migrations are marked applied, but auth_user is missing)."
+            )
+            print("Resetting its public schema so migrations can build a consistent fresh database.")
+            cur.execute("DROP SCHEMA public CASCADE")
+            cur.execute(
+                sql.SQL("CREATE SCHEMA public AUTHORIZATION {}").format(
+                    sql.Identifier(values["DB_USER"])
+                )
+            )
+    finally:
+        conn.close()
+
+
 def main() -> int:
     os.chdir(BASE_DIR)
     values = read_env(ENV_PATH)
@@ -168,6 +222,8 @@ def main() -> int:
         values.setdefault("DJANGO_DEBUG", "True")
         values.setdefault("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
         write_env(values)
+
+    repair_inconsistent_fresh_database(values)
 
     print("\n[4/5] Generating migrations from current model definitions...")
     result = subprocess.run(
