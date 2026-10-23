@@ -14,17 +14,17 @@ class AccountBackendTests(TestCase):
         )
 
     def test_profile_requires_authentication(self):
-        response = self.client.get(reverse("customer_accounts:profile"))
+        response = self.client.get(reverse("accounts:profile"))
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse("login"), response.url)
 
     def test_profile_updates_normalized_email_and_names(self):
         self.client.force_login(self.user, backend='customer_accounts.backends.CustomerAuthenticationBackend')
         response = self.client.post(
-            reverse("customer_accounts:profile"),
+            reverse("accounts:profile"),
             {"first_name": "Test", "last_name": "User", "email": "  ACCOUNT@example.com  "},
         )
-        self.assertRedirects(response, reverse("customer_accounts:profile"))
+        self.assertRedirects(response, reverse("accounts:profile"))
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, "Test")
         self.assertEqual(self.user.email, "account@example.com")
@@ -35,7 +35,7 @@ class AccountBackendTests(TestCase):
         )
         self.client.force_login(self.user, backend='customer_accounts.backends.CustomerAuthenticationBackend')
         response = self.client.post(
-            reverse("customer_accounts:profile"),
+            reverse("accounts:profile"),
             {"first_name": "", "last_name": "", "email": "other@example.com"},
         )
         self.assertEqual(response.status_code, 200)
@@ -44,30 +44,30 @@ class AccountBackendTests(TestCase):
     def test_password_change_keeps_user_signed_in(self):
         self.client.force_login(self.user, backend='customer_accounts.backends.CustomerAuthenticationBackend')
         response = self.client.post(
-            reverse("customer_accounts:password_change"),
+            reverse("accounts:password_change"),
             {
                 "old_password": "Secure-test-password-2026!",
                 "new_password1": "Another-secure-password-2026!",
                 "new_password2": "Another-secure-password-2026!",
             },
         )
-        self.assertRedirects(response, reverse("customer_accounts:profile"))
+        self.assertRedirects(response, reverse("accounts:profile"))
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password("Another-secure-password-2026!"))
         self.assertIn("_auth_user_id", self.client.session)
 
     def test_password_reset_does_not_disclose_unknown_email(self):
         response = self.client.post(
-            reverse("customer_accounts:password_reset"), {"email": "unknown@example.com"}
+            reverse("accounts:password_reset"), {"email": "unknown@example.com"}
         )
-        self.assertRedirects(response, reverse("customer_accounts:password_reset_done"))
+        self.assertRedirects(response, reverse("accounts:password_reset_done"))
         self.assertEqual(len(mail.outbox), 0)
 
     def test_password_reset_sends_email_for_existing_account(self):
         response = self.client.post(
-            reverse("customer_accounts:password_reset"), {"email": self.user.email}
+            reverse("accounts:password_reset"), {"email": self.user.email}
         )
-        self.assertRedirects(response, reverse("customer_accounts:password_reset_done"))
+        self.assertRedirects(response, reverse("accounts:password_reset_done"))
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("accounts/password/reset/", mail.outbox[0].body)
     def test_admin_login_clears_existing_customer_uuid_session(self):
@@ -108,7 +108,7 @@ class AccountBackendTests(TestCase):
         self.assertEqual(str(self.client.session["_auth_user_id"]), str(self.user.pk))
 
         # A second request must restore the UUID-backed Customer from the session.
-        response = self.client.get(reverse("customer_accounts:profile"))
+        response = self.client.get(reverse("accounts:profile"))
         self.assertEqual(response.status_code, 200)
 
     def test_staff_user_uses_uuid4_primary_key(self):
