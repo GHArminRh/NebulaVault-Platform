@@ -111,3 +111,30 @@ class AccountBackendTests(TestCase):
         response = self.client.get(reverse("accounts:profile"))
         self.assertEqual(response.status_code, 200)
 
+    def test_staff_user_uses_uuid4_primary_key(self):
+        import uuid
+        from django.contrib.auth import get_user_model
+
+        StaffUser = get_user_model()
+        staff = StaffUser.objects.create_user(
+            username="uuid_staff",
+            email="uuid_staff@example.com",
+            password="Secure-staff-password-2026!",
+        )
+        self.assertIsInstance(staff.pk, uuid.UUID)
+        self.assertEqual(staff.pk.version, 4)
+
+    def test_staff_uuid_session_survives_following_request(self):
+        from django.contrib.auth import get_user_model
+
+        staff = get_user_model().objects.create_superuser(
+            username="uuid_admin",
+            email="uuid_admin@example.com",
+            password="Secure-admin-password-2026!",
+        )
+        self.client.force_login(staff, backend="django.contrib.auth.backends.ModelBackend")
+        self.assertEqual(str(self.client.session["_auth_user_id"]), str(staff.pk))
+
+        response = self.client.get("/admin/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(str(self.client.session["_auth_user_id"]), str(staff.pk))
