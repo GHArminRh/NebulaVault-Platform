@@ -2,7 +2,7 @@
 import django.utils.timezone
 from django.db import migrations, models
 import django.contrib.auth.validators
-import django.contrib.auth.base_user
+import accounts.models
 
 
 class Migration(migrations.Migration):
@@ -23,6 +23,6 @@ class Migration(migrations.Migration):
                 ("date_joined", models.DateTimeField(auto_now_add=True)),
             ],
             options={"ordering": ["-date_joined"], "verbose_name": "customer", "verbose_name_plural": "customers"},
-            managers=[("objects", django.contrib.auth.base_user.BaseUserManager())],
+            managers=[("objects", accounts.models.CustomerManager())],
         ),
     ]
