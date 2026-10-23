@@ -1,0 +1,185 @@
+from __future__ import annotations
+
+import os
+import secrets
+import subprocess
+import sys
+import time
+import webbrowser
+from getpass import getpass
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+ENV_PATH = BASE_DIR / ".env"
+DB_NAME = "nebula_vault"
+DB_USER = "nebula_vault_app"
+DB_HOST = "127.0.0.1"
+DB_PORT = "5432"
+SITE_URL = "http://127.0.0.1:8000/"
+
+
+def read_env(path: Path) -> dict[str, str]:
+    values: dict[str, str] = {}
+    if not path.exists():
+        return values
+    for raw in path.read_text(encoding="utf-8-sig").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = value.strip().strip('"').strip("'")
+    return values
+
+
+def write_env(values: dict[str, str]) -> None:
+    content = (
+        "# Local development settings for Nebula Vault. Do not commit this file.\n"
+        f"DJANGO_SECRET_KEY={values['DJANGO_SECRET_KEY']}\n"
+        "DJANGO_DEBUG=True\n"
+        "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1\n"
+        f"DB_NAME={values['DB_NAME']}\n"
+        f"DB_USER={values['DB_USER']}\n"
+        f"DB_PASSWORD={values['DB_PASSWORD']}\n"
+        f"DB_HOST={values['DB_HOST']}\n"
+        f"DB_PORT={values['DB_PORT']}\n"
+    )
+    ENV_PATH.write_text(content, encoding="utf-8")
+
+
+def app_database_works(values: dict[str, str]) -> bool:
+    try:
+        import psycopg2
+        conn = psycopg2.connect(
+            dbname=values["DB_NAME"],
+            user=values["DB_USER"],
+            password=values["DB_PASSWORD"],
+            host=values["DB_HOST"],
+            port=values["DB_PORT"],
+            connect_timeout=3,
+        )
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+
+def prepare_database(values: dict[str, str]) -> dict[str, str]:
+    import psycopg2
+    from psycopg2 import sql
+
+    print("\nPostgreSQL database setup")
+    print("-------------------------")
+    print("The script needs a PostgreSQL administrator account only for first-time setup.")
+    admin_user = input("PostgreSQL administrator username [postgres]: ").strip() or "postgres"
+    admin_password = getpass("PostgreSQL administrator password: ")
+
+    try:
+        conn = psycopg2.connect(
+            dbname="postgres",
+            user=admin_user,
+            password=admin_password,
+            host=DB_HOST,
+            port=DB_PORT,
+            connect_timeout=5,
+        )
+    except Exception as exc:
+        raise RuntimeError(
+            "Could not connect to PostgreSQL at 127.0.0.1:5432.\n"
+            "Make sure PostgreSQL is installed and its Windows service is running, "
+            "then retry. Verify the administrator username/password.\n"
+            f"Details: {exc}"
+        ) from exc
+
+    app_password = values.get("DB_PASSWORD") or secrets.token_urlsafe(24)
+    try:
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (DB_USER,))
+            if cur.fetchone():
+                cur.execute(
+                    sql.SQL("ALTER ROLE {} WITH LOGIN PASSWORD %s").format(sql.Identifier(DB_USER)),
+                    (app_password,),
+                )
+            else:
+                cur.execute(
+                    sql.SQL("CREATE ROLE {} WITH LOGIN PASSWORD %s").format(sql.Identifier(DB_USER)),
+                    (app_password,),
+                )
+
+            cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", (DB_NAME,))
+            if not cur.fetchone():
+                cur.execute(
+                    sql.SQL("CREATE DATABASE {} OWNER {}").format(
+                        sql.Identifier(DB_NAME), sql.Identifier(DB_USER)
+                    )
+                )
+            else:
+                cur.execute(
+                    sql.SQL("ALTER DATABASE {} OWNER TO {}").format(
+                        sql.Identifier(DB_NAME), sql.Identifier(DB_USER)
+                    )
+                )
+    finally:
+        conn.close()
+
+    values.update({
+        "DJANGO_SECRET_KEY": values.get("DJANGO_SECRET_KEY") or secrets.token_urlsafe(50),
+        "DJANGO_DEBUG": "True",
+        "DJANGO_ALLOWED_HOSTS": "localhost,127.0.0.1",
+        "DB_NAME": DB_NAME,
+        "DB_USER": DB_USER,
+        "DB_PASSWORD": app_password,
+        "DB_HOST": DB_HOST,
+        "DB_PORT": DB_PORT,
+    })
+    write_env(values)
+    return values
+
+
+def main() -> int:
+    os.chdir(BASE_DIR)
+    values = read_env(ENV_PATH)
+
+    # Use an existing local database configuration if it still works.
+    if not values.get("DJANGO_SECRET_KEY"):
+        values["DJANGO_SECRET_KEY"] = secrets.token_urlsafe(50)
+    values.setdefault("DB_NAME", DB_NAME)
+    values.setdefault("DB_USER", DB_USER)
+    values.setdefault("DB_HOST", DB_HOST)
+    values.setdefault("DB_PORT", DB_PORT)
+
+    if not values.get("DB_PASSWORD") or not app_database_works(values):
+        values = prepare_database(values)
+    else:
+        values.setdefault("DJANGO_DEBUG", "True")
+        values.setdefault("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
+        write_env(values)
+
+    print("\n[4/4] Applying database migrations...")
+    result = subprocess.run([sys.executable, "manage.py", "migrate"], cwd=BASE_DIR)
+    if result.returncode:
+        print("\nMigration failed. Fix the error above, then run START_NEBULA_VAULT.bat again.")
+        return result.returncode
+
+    print("\nStarting the local Django development server.")
+    print(f"Site: {SITE_URL}")
+    print("Keep this window open while using the site. Press Ctrl+C to stop it.\n")
+
+    # Open the browser after the server has had a moment to start.
+    import threading
+    threading.Timer(1.5, lambda: webbrowser.open(SITE_URL)).start()
+    return subprocess.call(
+        [sys.executable, "manage.py", "runserver", "127.0.0.1:8000"],
+        cwd=BASE_DIR,
+    )
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except KeyboardInterrupt:
+        print("\nNebula Vault server stopped.")
+        raise SystemExit(0)
+    except Exception as exc:
+        print(f"\nSETUP ERROR: {exc}")
+        raise SystemExit(1)
