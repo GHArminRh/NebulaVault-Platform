@@ -12,5 +12,4 @@ urlpatterns = [
     path("orders/", views.orders, name="orders"),
     path("orders/create/<int:plan_id>/", views.create_order, name="create_order"),
     path("trial/<slug:slug>/", views.start_trial, name="start_trial"),
-    path("register/", views.register, name="register"),
 ]
