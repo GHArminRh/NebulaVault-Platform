@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('catalog', '0001_initial'),
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        ('accounts', '0001_initial'),
     ]
 
     operations = [
@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('plan', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='payment_orders', to='catalog.plan')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='payment_orders', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='payment_orders', to='accounts.customer')),
             ],
             options={
                 'verbose_name': 'Payment order',
