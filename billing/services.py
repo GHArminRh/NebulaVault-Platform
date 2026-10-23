@@ -20,6 +20,10 @@ class PaymentAttemptCreationError(Exception):
     """The requested payment attempt cannot be created."""
 
 
+class PaymentAttemptIdempotencyConflict(PaymentAttemptCreationError):
+    """An idempotency key was reused for a different request."""
+
+
 def create_payment_order(*, user, plan_id, idempotency_key):
     """
     Create an order using the current server-side plan price.
@@ -102,13 +106,15 @@ def create_payment_order(*, user, plan_id, idempotency_key):
         raise
 
 
-def create_payment_attempt(*, user, order_id, provider):
-    """
-    Create a payment attempt for an order owned by the given user.
 
-    This function does not contact a provider or confirm a payment.
+def create_payment_attempt(*, user, order_id, provider, idempotency_key):
     """
+    Create or return an idempotent payment attempt.
 
+    Repeated requests for the same order and provider return the same
+    attempt. Reusing the request key with another provider is rejected.
+    This function never confirms a payment.
+    """
     if not user.pk or not user.is_active:
         raise PaymentAttemptCreationError(
             "An active, saved user is required."
@@ -123,37 +129,75 @@ def create_payment_attempt(*, user, order_id, provider):
         raise PaymentAttemptCreationError("A valid provider is required.")
 
     try:
+        key = UUID(str(idempotency_key))
+    except (TypeError, ValueError, AttributeError):
+        raise PaymentAttemptCreationError(
+            "A valid idempotency key is required."
+        ) from None
+
+    try:
         order_pk = int(order_id)
     except (TypeError, ValueError, OverflowError):
-        raise PaymentAttemptCreationError("A valid order is required.") from None
+        raise PaymentAttemptCreationError(
+            "A valid order is required."
+        ) from None
 
     if order_pk <= 0:
         raise PaymentAttemptCreationError("A valid order is required.")
 
-    with transaction.atomic():
-        order = (
-            PaymentOrder.objects
-            .select_for_update()
-            .filter(pk=order_pk, user=user)
-            .first()
-        )
-
-        if order is None:
-            raise PaymentAttemptCreationError(
-                "The order was not found for this user."
+    try:
+        with transaction.atomic():
+            order = (
+                PaymentOrder.objects
+                .select_for_update()
+                .filter(pk=order_pk, user=user)
+                .first()
             )
 
-        if order.status != PaymentOrder.Status.PENDING:
-            raise PaymentAttemptCreationError(
-                "Only pending orders can start a payment attempt."
+            if order is None:
+                raise PaymentAttemptCreationError(
+                    "The order was not found for this user."
+                )
+
+            existing = PaymentAttempt.objects.filter(
+                order=order,
+                request_key=key,
+            ).first()
+
+            if existing:
+                if existing.provider != provider:
+                    raise PaymentAttemptIdempotencyConflict(
+                        "This request key was used with another provider."
+                    )
+                return existing
+
+            if order.status != PaymentOrder.Status.PENDING:
+                raise PaymentAttemptCreationError(
+                    "Only pending orders can start a payment attempt."
+                )
+
+            return PaymentAttempt.objects.create(
+                order=order,
+                request_key=key,
+                provider=provider,
+                amount_minor_units=order.amount_minor_units,
+                currency=order.currency,
+                status=PaymentAttempt.Status.CREATED,
             )
 
-        attempt = PaymentAttempt.objects.create(
-            order=order,
-            provider=provider,
-            amount_minor_units=order.amount_minor_units,
-            currency=order.currency,
-            status=PaymentAttempt.Status.CREATED,
-        )
+    except IntegrityError:
+        # A concurrent request may have created the same attempt.
+        existing = PaymentAttempt.objects.filter(
+            order_id=order_pk,
+            order__user=user,
+            request_key=key,
+        ).first()
 
-        return attempt
+        if existing:
+            if existing.provider != provider:
+                raise PaymentAttemptIdempotencyConflict(
+                    "This request key was used with another provider."
+                ) from None
+            return existing
+
+        raise

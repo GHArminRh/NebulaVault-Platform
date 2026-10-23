@@ -101,6 +101,13 @@ class PaymentAttempt(models.Model):
         related_name="payment_attempts",
     )
 
+    # Identifies retries of the same client payment request.
+    request_key = models.UUIDField(
+        null=True,
+        blank=True,
+        editable=False,
+    )
+
     # Examples: a provider identifier or an internal manual-payment channel.
     # No specific provider is required by this model.
     provider = models.CharField(max_length=40)
@@ -146,6 +153,11 @@ class PaymentAttempt(models.Model):
             models.CheckConstraint(
                 condition=models.Q(amount_minor_units__gt=0),
                 name="billing_attempt_amount_positive",
+            ),
+            models.UniqueConstraint(
+                fields=["order", "request_key"],
+                condition=models.Q(request_key__isnull=False),
+                name="billing_attempt_order_request_unique",
             ),
         ]
 

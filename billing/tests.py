@@ -11,6 +11,7 @@ from .services import (
     IdempotencyConflict,
     OrderCreationError,
     PaymentAttemptCreationError,
+    PaymentAttemptIdempotencyConflict,
     create_payment_attempt,
     create_payment_order,
 )
@@ -139,6 +140,7 @@ class CreatePaymentAttemptTests(BillingServiceTestCase):
             user=self.user,
             order_id=self.order.pk,
             provider="ExampleProvider",
+            idempotency_key=uuid4(),
         )
 
         self.assertEqual(attempt.order, self.order)
@@ -154,6 +156,7 @@ class CreatePaymentAttemptTests(BillingServiceTestCase):
                 user=self.other_user,
                 order_id=self.order.pk,
                 provider="example",
+                idempotency_key=uuid4(),
             )
 
         self.assertEqual(self.order.payment_attempts.count(), 0)
@@ -167,6 +170,7 @@ class CreatePaymentAttemptTests(BillingServiceTestCase):
                 user=self.user,
                 order_id=self.order.pk,
                 provider="example",
+                idempotency_key=uuid4(),
             )
 
     def test_invalid_provider_is_rejected(self):
@@ -175,6 +179,7 @@ class CreatePaymentAttemptTests(BillingServiceTestCase):
                 user=self.user,
                 order_id=self.order.pk,
                 provider="   ",
+                idempotency_key=uuid4(),
             )
 
     def test_inactive_user_cannot_start_attempt(self):
@@ -186,4 +191,67 @@ class CreatePaymentAttemptTests(BillingServiceTestCase):
                 user=self.user,
                 order_id=self.order.pk,
                 provider="example",
+                idempotency_key=uuid4(),
             )
+
+
+
+    def test_same_key_and_provider_returns_existing_attempt(self):
+        key = uuid4()
+
+        first = create_payment_attempt(
+            user=self.user,
+            order_id=self.order.pk,
+            provider="example",
+            idempotency_key=key,
+        )
+        second = create_payment_attempt(
+            user=self.user,
+            order_id=self.order.pk,
+            provider="example",
+            idempotency_key=key,
+        )
+
+        self.assertEqual(first.pk, second.pk)
+        self.assertEqual(self.order.payment_attempts.count(), 1)
+
+    def test_same_key_with_different_provider_is_rejected(self):
+        key = uuid4()
+
+        create_payment_attempt(
+            user=self.user,
+            order_id=self.order.pk,
+            provider="example",
+            idempotency_key=key,
+        )
+
+        with self.assertRaises(PaymentAttemptIdempotencyConflict):
+            create_payment_attempt(
+                user=self.user,
+                order_id=self.order.pk,
+                provider="another-provider",
+                idempotency_key=key,
+            )
+
+        self.assertEqual(self.order.payment_attempts.count(), 1)
+
+    def test_same_key_can_be_used_for_another_order(self):
+        key = uuid4()
+        another_order = self.create_order(plan=self.other_plan)
+
+        first = create_payment_attempt(
+            user=self.user,
+            order_id=self.order.pk,
+            provider="example",
+            idempotency_key=key,
+        )
+        second = create_payment_attempt(
+            user=self.user,
+            order_id=another_order.pk,
+            provider="example",
+            idempotency_key=key,
+        )
+
+        self.assertNotEqual(first.pk, second.pk)
+        self.assertEqual(first.request_key, key)
+        self.assertEqual(second.request_key, key)
