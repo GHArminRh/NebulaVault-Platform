@@ -13,7 +13,7 @@ def profile(request):
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "Your account details have been updated.")
-        return redirect("accounts:profile")
+        return redirect("customer_accounts:profile")
     return render(request, "accounts/profile.html", {"form": form})
 
 
@@ -25,7 +25,7 @@ def password_change(request):
         user = form.save()
         update_session_auth_hash(request, user)
         messages.success(request, "Your password has been changed.")
-        return redirect("accounts:profile")
+        return redirect("customer_accounts:profile")
     return render(request, "accounts/password_change.html", {"form": form})
 
 
