@@ -130,9 +130,9 @@ def create_payment_order(
     try:
         with transaction.atomic():
             # Serialize order creation for this user.
-            from django.contrib.auth import get_user_model
+            from accounts.models import Customer
 
-            UserModel = get_user_model()
+            UserModel = Customer
             locked_user = (
                 UserModel.objects
                 .select_for_update()
