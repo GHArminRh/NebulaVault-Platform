@@ -17,9 +17,11 @@ INSTALLED_APPS = [
     "billing.apps.BillingConfig", "audit.apps.AuditConfig",
     "notifications.apps.NotificationsConfig", "portal.apps.PortalConfig",
 ]
+# Try customer authentication first because site customers use UUID primary keys,
+# while Django's built-in staff users use integer primary keys.
 AUTHENTICATION_BACKENDS = [
-    "django.contrib.auth.backends.ModelBackend",
     "accounts.backends.CustomerAuthenticationBackend",
+    "django.contrib.auth.backends.ModelBackend",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware", "portal.middleware.InterfaceLanguageMiddleware", "django.contrib.sessions.middleware.SessionMiddleware",
