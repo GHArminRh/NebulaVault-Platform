@@ -1,7 +1,6 @@
 
 from datetime import timedelta
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
@@ -18,7 +17,7 @@ class TrialRedemption(models.Model):
     """
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        "accounts.Customer",
         on_delete=models.PROTECT,
         related_name="trial_redemptions",
     )
