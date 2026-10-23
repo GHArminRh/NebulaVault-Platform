@@ -7,6 +7,7 @@ from .forms import AccountPasswordResetForm, AccountSetPasswordForm
 app_name = "accounts"
 
 urlpatterns = [
+    path("register/", views.register, name="register"),
     path("profile/", views.profile, name="profile"),
     path("password/change/", views.password_change, name="password_change"),
     path(
