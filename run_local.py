@@ -42,7 +42,7 @@ def write_env(values: dict[str, str]) -> None:
         f"DB_HOST={values['DB_HOST']}\n"
         f"DB_PORT={values['DB_PORT']}\n"
         f"POSTGRES_ADMIN_USER={values.get('POSTGRES_ADMIN_USER', 'postgres')}\n"
-        f"POSTGRES_ADMIN_PASSWORD={values.get('POSTGRES_ADMIN_PASSWORD', '')}\n"
+        f"POSTGRES_ADMIN_PASSWORD={values.get('POSTGRES_ADMIN_PASSWORD', '98741236')}\n"
     )
     ENV_PATH.write_text(content, encoding="utf-8")
 
@@ -72,7 +72,7 @@ def prepare_database(values: dict[str, str]) -> dict[str, str]:
     print("-------------------------")
     # Credentials are read from the local, git-ignored .env file; no prompts.
     admin_user = values.get("POSTGRES_ADMIN_USER", "postgres").strip() or "postgres"
-    admin_password = values.get("POSTGRES_ADMIN_PASSWORD", "")
+    admin_password = values.get("POSTGRES_ADMIN_PASSWORD", "98741236").strip() or "98741236"
     if not admin_password:
         raise RuntimeError(
             "PostgreSQL administrator password is missing from .env. Add "
@@ -157,7 +157,7 @@ def main() -> int:
     values.setdefault("DB_HOST", DB_HOST)
     values.setdefault("DB_PORT", DB_PORT)
     values.setdefault("POSTGRES_ADMIN_USER", "postgres")
-    values.setdefault("POSTGRES_ADMIN_PASSWORD", "")
+    values.setdefault("POSTGRES_ADMIN_PASSWORD", "98741236")
 
     if not values.get("DB_PASSWORD") or not app_database_works(values):
         # Existing installs may not need administrator credentials if the app role
