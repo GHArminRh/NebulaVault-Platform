@@ -42,6 +42,8 @@ def write_env(values: dict[str, str]) -> None:
         f"DB_PASSWORD={values['DB_PASSWORD']}\n"
         f"DB_HOST={values['DB_HOST']}\n"
         f"DB_PORT={values['DB_PORT']}\n"
+        f"POSTGRES_ADMIN_USER={values.get('POSTGRES_ADMIN_USER', 'postgres')}\n"
+        f"POSTGRES_ADMIN_PASSWORD={values.get('POSTGRES_ADMIN_PASSWORD', '')}\n"
     )
     ENV_PATH.write_text(content, encoding="utf-8")
 
@@ -69,9 +71,14 @@ def prepare_database(values: dict[str, str]) -> dict[str, str]:
 
     print("\nPostgreSQL database setup")
     print("-------------------------")
-    print("The script needs a PostgreSQL administrator account only for first-time setup.")
-    admin_user = input("PostgreSQL administrator username [postgres]: ").strip() or "postgres"
-    admin_password = getpass("PostgreSQL administrator password: ")
+    # Credentials are read from the local, git-ignored .env file; no prompts.
+    admin_user = values.get("POSTGRES_ADMIN_USER", "postgres").strip() or "postgres"
+    admin_password = values.get("POSTGRES_ADMIN_PASSWORD", "")
+    if not admin_password:
+        raise RuntimeError(
+            "PostgreSQL administrator password is missing from .env. Add "
+            "POSTGRES_ADMIN_USER=postgres and POSTGRES_ADMIN_PASSWORD=your-password."
+        )
 
     try:
         conn = psycopg2.connect(
