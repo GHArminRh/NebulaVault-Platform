@@ -4,8 +4,8 @@ from __future__ import annotations
 import ipaddress
 import json
 import urllib.request
-from http.cookies import SimpleCookie
 
+from django.core.exceptions import ValidationError
 from django.utils.deprecation import MiddlewareMixin
 
 LANGUAGE_COOKIE = "nv_language"
@@ -67,7 +67,17 @@ class SeparateStaffAndCustomerSessionsMiddleware(MiddlewareMixin):
         if request.path == "/admin" or request.path.startswith("/admin/"):
             return None
         user = getattr(request, "user", None)
-        if not user or not user.is_authenticated:
+        try:
+            # Resolving request.user can fail for a stale session that stores a
+            # UUID customer ID with Django's integer-PK authentication backend.
+            is_authenticated = bool(user and user.is_authenticated)
+        except (ValidationError, ValueError, TypeError):
+            # Clear the incompatible session instead of returning a server error.
+            request.session.flush()
+            request.user = AnonymousUser()
+            return None
+
+        if not is_authenticated:
             return None
         if isinstance(user, get_user_model()):
             if request.path.rstrip("/") == "/accounts/logout":
