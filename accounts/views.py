@@ -3,7 +3,6 @@ from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
-
 from .forms import AccountPasswordChangeForm, AccountProfileForm, RegisterForm
 
 
@@ -36,8 +35,8 @@ def register(request):
         return redirect("portal:dashboard")
     form = RegisterForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        user = form.save()
-        login(request, user)
+        customer = form.save()
+        login(request, customer, backend="accounts.backends.CustomerAuthenticationBackend")
         messages.success(request, "Your account has been created.")
         return redirect("portal:dashboard")
     return render(request, "portal/register.html", {"form": form})
