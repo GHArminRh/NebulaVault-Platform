@@ -64,4 +64,15 @@ class UUIDCompatibleAuthenticationMiddleware(AuthenticationMiddleware):
                 "'django.contrib.sessions.middleware.SessionMiddleware' before "
                 "'accounts.middleware.UUIDCompatibleAuthenticationMiddleware'."
             )
+        # Django's admin login uses the built-in integer-PK User model. If a
+        # customer UUID session is already present, auth_login() tries to coerce
+        # that old session ID to an integer before replacing it with the staff ID.
+        # End the customer session before processing the admin login form.
+        if (
+            request.path.rstrip("/") == "/admin/login"
+            and request.session.get(BACKEND_SESSION_KEY)
+            == "accounts.backends.CustomerAuthenticationBackend"
+        ):
+            request.session.flush()
+
         request.user = SimpleLazyObject(lambda: get_session_user(request))
