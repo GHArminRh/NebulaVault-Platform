@@ -26,7 +26,7 @@ AUTHENTICATION_BACKENDS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware", "portal.middleware.InterfaceLanguageMiddleware", "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware", "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware", "portal.middleware.SeparateStaffAndCustomerSessionsMiddleware", "django.contrib.messages.middleware.MessageMiddleware",
+    "accounts.middleware.UUIDCompatibleAuthenticationMiddleware", "portal.middleware.SeparateStaffAndCustomerSessionsMiddleware", "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 ROOT_URLCONF = "config.urls"
