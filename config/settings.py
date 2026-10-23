@@ -46,6 +46,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "accounts",
+    "catalog.apps.CatalogConfig",
+    "subscriptions.apps.SubscriptionsConfig",
+    "licensing.apps.LicensingConfig",
+    "devices.apps.DevicesConfig",
+    "billing.apps.BillingConfig",
+    "audit.apps.AuditConfig",
+    "notifications.apps.NotificationsConfig",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
