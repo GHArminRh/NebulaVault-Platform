@@ -149,15 +149,20 @@ def main() -> int:
     os.chdir(BASE_DIR)
     values = read_env(ENV_PATH)
 
-    # Use an existing local database configuration if it still works.
+    # Reuse the working app DB first. Only request admin credentials if setup is necessary.
     if not values.get("DJANGO_SECRET_KEY"):
         values["DJANGO_SECRET_KEY"] = secrets.token_urlsafe(50)
     values.setdefault("DB_NAME", DB_NAME)
     values.setdefault("DB_USER", DB_USER)
     values.setdefault("DB_HOST", DB_HOST)
     values.setdefault("DB_PORT", DB_PORT)
+    values.setdefault("POSTGRES_ADMIN_USER", "postgres")
+    values.setdefault("POSTGRES_ADMIN_PASSWORD", "")
 
     if not values.get("DB_PASSWORD") or not app_database_works(values):
+        # Existing installs may not need administrator credentials if the app role
+        # and database are already provisioned. But if app connection fails, admin
+        # credentials must be available locally.
         values = prepare_database(values)
     else:
         values.setdefault("DJANGO_DEBUG", "True")
