@@ -6,7 +6,6 @@ import subprocess
 import sys
 import time
 import webbrowser
-from getpass import getpass
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
