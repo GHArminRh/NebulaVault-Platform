@@ -83,7 +83,9 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
     version = app_version[:40] if isinstance(app_version, str) else ""
 
     with transaction.atomic():
-        locked = License.objects.select_for_update().select_related(
+        # Lock only the License row. Locking the select_related joins as well can
+        # make PostgreSQL reject the query when subscription__plan is nullable.
+        locked = License.objects.select_for_update(of=("self",)).select_related(
             "subscription", "subscription__user", "subscription__product", "subscription__plan"
         ).get(pk=license_record.pk)
         if not locked.is_entitled:
