@@ -32,10 +32,21 @@ EDITOR_CONFIG = {
 }
 
 
+class StaffTinyMCE(TinyMCE):
+    """Use django-tinymce's editor, with a small CSRF-aware image-upload adapter."""
+
+    class Media:
+        js = (
+            "tinymce/tinymce.min.js",
+            "portal/js/tinymce_upload.js",
+            "tinymce/init_tinymce.js",
+        )
+
+
 class ProductAdminForm(forms.ModelForm):
     description = forms.CharField(
         required=False,
-        widget=TinyMCE(
+        widget=StaffTinyMCE(
             attrs={"cols": 80, "rows": 24},
             mce_attrs=EDITOR_CONFIG,
         ),
@@ -49,7 +60,7 @@ class ProductAdminForm(forms.ModelForm):
 class ReleaseAdminForm(forms.ModelForm):
     release_notes = forms.CharField(
         required=False,
-        widget=TinyMCE(
+        widget=StaffTinyMCE(
             attrs={"cols": 80, "rows": 24},
             mce_attrs=EDITOR_CONFIG,
         ),
