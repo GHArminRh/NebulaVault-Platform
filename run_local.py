@@ -145,48 +145,12 @@ def prepare_database(values: dict[str, str]) -> dict[str, str]:
     return values
 
 
-def recreate_database(values: dict[str, str]) -> None:
-    """Drop and recreate the whole local PostgreSQL database on every startup."""
-    import psycopg2
-    from psycopg2 import sql
-
-    admin_user = values.get("POSTGRES_ADMIN_USER", "postgres").strip() or "postgres"
-    admin_password = values.get("POSTGRES_ADMIN_PASSWORD", "98741236").strip() or "98741236"
-    conn = psycopg2.connect(
-        dbname="postgres",
-        user=admin_user,
-        password=admin_password,
-        host=values["DB_HOST"],
-        port=values["DB_PORT"],
-        connect_timeout=5,
-    )
-    try:
-        conn.autocommit = True
-        with conn.cursor() as cur:
-            print(f"\\nWARNING: Dropping and recreating PostgreSQL database '{values['DB_NAME']}'.")
-            cur.execute(
-                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
-                "WHERE datname = %s AND pid <> pg_backend_pid()",
-                (values["DB_NAME"],),
-            )
-            cur.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(values["DB_NAME"])))
-            cur.execute(
-                sql.SQL("CREATE DATABASE {} OWNER {}").format(
-                    sql.Identifier(values["DB_NAME"]),
-                    sql.Identifier(values["DB_USER"]),
-                )
-            )
-    finally:
-        conn.close()
-
 
 def main() -> int:
     os.chdir(BASE_DIR)
+    env_was_present = ENV_PATH.exists()
     values = read_env(ENV_PATH)
 
-    # Reuse the working app DB first. Only request admin credentials if setup is necessary.
-    if not values.get("DJANGO_SECRET_KEY"):
-        values["DJANGO_SECRET_KEY"] = secrets.token_urlsafe(50)
     values.setdefault("DB_NAME", DB_NAME)
     values.setdefault("DB_USER", DB_USER)
     values.setdefault("DB_HOST", DB_HOST)
@@ -194,38 +158,48 @@ def main() -> int:
     values.setdefault("POSTGRES_ADMIN_USER", "postgres")
     values.setdefault("POSTGRES_ADMIN_PASSWORD", "98741236")
 
-    # Provision credentials and ensure the local role exists, then recreate the database.
-    values = prepare_database(values)
-    recreate_database(values)
+    # First run only: provision the app role/database and write initial local settings.
+    # On later runs, reuse the existing database and never drop/recreate it automatically.
+    first_setup_needed = (
+        not env_was_present
+        or not values.get("DJANGO_SECRET_KEY")
+        or not values.get("DB_PASSWORD")
+    )
+    if first_setup_needed:
+        print("\\nFirst-time database and configuration setup...")
+        values["DJANGO_SECRET_KEY"] = values.get("DJANGO_SECRET_KEY") or secrets.token_urlsafe(50)
+        values = prepare_database(values)
+    elif app_database_works(values):
+        print("\\nExisting database connection is healthy. Skipping database provisioning.")
+    else:
+        raise RuntimeError(
+            "Could not connect to the existing Nebula Vault database using the credentials in .env.\\n"
+            "To protect your data, the launcher will not recreate or reset the database automatically.\\n"
+            "Check that PostgreSQL is running and verify DB_NAME, DB_USER, DB_PASSWORD, DB_HOST and DB_PORT in .env."
+        )
 
-    print("\n[4/5] Generating migrations from current model definitions...")
+    print("\\nChecking and applying pending Django migrations...")
     result = subprocess.run(
-        [sys.executable, "manage.py", "makemigrations", "--noinput"],
+        [sys.executable, "manage.py", "migrate", "--noinput"],
         cwd=BASE_DIR,
     )
     if result.returncode:
-        print("\nMigration generation failed. Fix the error above, then run START_NEBULA_VAULT.bat again.")
+        print("\\nMigration failed. Fix the error above, then run START_NEBULA_VAULT.bat again.")
         return result.returncode
 
-    print("\n[5/5] Applying all pending migrations...")
-    result = subprocess.run([sys.executable, "manage.py", "migrate", "--fake-initial", "--noinput"], cwd=BASE_DIR)
-    if result.returncode:
-        print("\nMigration failed. Fix the error above, then run START_NEBULA_VAULT.bat again.")
-        return result.returncode
-
-    print("\nEnsuring the local development administrator exists...")
+    print("\\nEnsuring the local development administrator exists...")
     result = subprocess.run(
         [sys.executable, "manage.py", "bootstrap_local_admin"],
         cwd=BASE_DIR,
         env={**os.environ, "DJANGO_DEBUG": values.get("DJANGO_DEBUG", "True")},
     )
     if result.returncode:
-        print("\nAdministrator setup failed.")
+        print("\\nAdministrator setup failed.")
         return result.returncode
 
-    print("\nStarting the local Django development server.")
+    print("\\nStarting the local Django development server.")
     print(f"Site: {SITE_URL}")
-    print("Keep this window open while using the site. Press Ctrl+C to stop it.\n")
+    print("Keep this window open while using the site. Press Ctrl+C to stop it.\\n")
 
     # Open the browser after the server has had a moment to start.
     import threading
