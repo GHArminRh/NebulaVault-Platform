@@ -8,6 +8,8 @@ app_name = "accounts"
 
 urlpatterns = [
     path("register/", views.register, name="register"),
+    path("verify/<str:uidb64>/<str:token>/", views.verify_email, name="verify_email"),
+    path("verify/resend/", views.resend_verification, name="resend_verification"),
     path("profile/", views.profile, name="profile"),
     path("password/change/", views.password_change, name="password_change"),
     path(
