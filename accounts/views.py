@@ -411,14 +411,39 @@ class CustomerLoginView(LoginView):
             else getattr(form, "inactive_email", None)
         )
         if inactive_email:
-            messages.info(
-                self.request,
-                "Your account email has not been verified yet. Enter the code from your email or request a new verification message.",
-            )
-            return render(
-                self.request,
-                "accounts/email_code_form.html",
-                {"purpose": "verification", "email": inactive_email},
-            )
+            context = {"purpose": "verification", "email": inactive_email}
+            try:
+                # The login flow must actually issue a verification code; merely
+                # showing the code-entry page does not send an email.
+                sent = _send_verification_email(self.request, customer)
+                if sent:
+                    messages.success(
+                        self.request,
+                        "A verification code has been sent to your email address. Check your inbox and spam folder.",
+                    )
+                else:
+                    messages.warning(
+                        self.request,
+                        "The verification email limit has been reached. Please wait before requesting another email.",
+                    )
+            except Exception:
+                logger.exception(
+                    "Could not send login-triggered verification email for customer %s",
+                    customer.pk if customer else inactive_email,
+                )
+                messages.error(
+                    self.request,
+                    "We couldn't send the verification email right now. Check the email settings and try again.",
+                )
+                # Keep a diagnostic record when SMTP/template delivery fails.
+                if customer:
+                    _record_failed_email(
+                        customer,
+                        AccountEmailLog.Purpose.VERIFICATION,
+                        inactive_email,
+                        self.request,
+                        "Verification email sending failed during login; see server logs for the SMTP/template exception.",
+                    )
+            return render(self.request, "accounts/email_code_form.html", context)
 
         return super().form_invalid(form)
