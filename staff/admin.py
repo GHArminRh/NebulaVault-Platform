@@ -5,9 +5,9 @@ from django.contrib.auth.models import Group as DjangoAuthGroup
 from .models import Group, StaffUser
 
 # جایگزینی گروه پیش‌فرض جنگو با مدل اختصاصی برنامه.
-admin.site.site_header = "مدیریت نبیولا والت"
-admin.site.site_title = "مدیریت نبیولا والت"
-admin.site.index_title = "مدیریت سامانه"
+admin.site.site_header = "Nebula Vault Administration"
+admin.site.site_title = "Nebula Vault Admin"
+admin.site.index_title = "Site administration"
 admin.site.unregister(DjangoAuthGroup)
 
 
