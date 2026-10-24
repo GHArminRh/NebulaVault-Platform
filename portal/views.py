@@ -210,26 +210,27 @@ def checkout(request):
         # only part of a multi-item cart marked as paid.
         with transaction.atomic():
             for plan in plans:
-                order = (
+                pending_orders = list(
                     PaymentOrder.objects
                     .filter(
                         user=request.user,
                         plan=plan,
                         status=PaymentOrder.Status.PENDING,
                     )
-                    .order_by("-created_at")
-                    .first()
+                    .order_by("-created_at")[:2]
                 )
+                if len(pending_orders) > 1:
+                    raise OrderCreationError(
+                        "More than one pending order exists for this plan. "
+                        "Please contact support before retrying checkout."
+                    )
+                order = pending_orders[0] if pending_orders else None
                 if order is None:
                     order = create_payment_order(
                         user=request.user,
                         plan_id=plan.pk,
                         idempotency_key=uuid.uuid4(),
                     )
-
-                if order.status == PaymentOrder.Status.PAID:
-                    completed_orders.append(order)
-                    continue
 
                 attempt = create_payment_attempt(
                     user=request.user,
