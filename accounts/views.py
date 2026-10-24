@@ -1,4 +1,5 @@
 import hashlib
+import logging
 
 from django.conf import settings
 from django.contrib import messages
@@ -16,13 +17,26 @@ from django.views.decorators.http import require_http_methods
 from .forms import AccountPasswordChangeForm, AccountProfileForm, RegisterForm, VerificationResendForm
 from .models import Customer
 
+logger = logging.getLogger(__name__)
+
 
 @login_required
 @require_http_methods(["GET", "POST"])
 def profile(request):
     form = AccountProfileForm(request.POST or None, instance=request.user)
     if request.method == "POST" and form.is_valid():
-        form.save()
+        previous_email = request.user.email
+        customer = form.save(commit=False)
+        email_changed = customer.email.casefold() != previous_email.casefold()
+        if email_changed:
+            customer.is_active = False
+        customer.save()
+        if email_changed:
+            try:
+                _send_verification_email(request, customer)
+            except Exception:
+                logger.exception("Could not send email-change verification for customer %s", customer.pk)
+            return render(request, "accounts/verification_sent.html", {"email": customer.email})
         messages.success(request, "Your account details have been updated.")
         return redirect("accounts:profile")
     return render(request, "accounts/profile.html", {"form": form})
@@ -49,7 +63,10 @@ def register(request):
         customer = form.save(commit=False)
         customer.is_active = False
         customer.save()
-        _send_verification_email(request, customer)
+        try:
+            _send_verification_email(request, customer)
+        except Exception:
+            logger.exception("Could not send verification email for newly registered customer %s", customer.pk)
         return render(request, "accounts/verification_sent.html", {"email": customer.email})
     return render(request, "portal/register.html", {"form": form})
 
@@ -131,6 +148,6 @@ def resend_verification(request):
                 _send_verification_email(request, customer)
             except Exception:
                 # Avoid disclosing account existence or SMTP delivery details.
-                pass
+                logger.exception("Could not send requested account verification email")
         return render(request, "accounts/verification_resend_done.html")
     return render(request, "accounts/verification_resend.html", {"form": form})
