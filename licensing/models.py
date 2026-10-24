@@ -68,7 +68,8 @@ class License(models.Model):
         return self.activations.filter(is_active=True).count()
 
     def __str__(self):
-        return f"{self.key_prefix or 'Unissued'} — {self.subscription.user}"
+        # Do not expose even the identifying prefix in admin relations or dropdowns.
+        return f"License for {self.subscription.user}"
 
 
 class LicenseActivation(models.Model):
