@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 
 from .models import License, LicenseActivation
 from .services import generate_license_key, _key_digest
