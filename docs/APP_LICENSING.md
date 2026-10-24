@@ -6,7 +6,7 @@ The `licensing` Django app owns license records, one-time key issuance, device a
 
 ## Key security
 
-- Keys are generated with cryptographically secure randomness and are stored only as SHA-256 digests. The full key is shown once in a Django Admin success message when a license is created.
+- Keys are generated with cryptographically secure randomness and are stored only as SHA-256 digests. The full key is shown once in a dedicated Django Admin notice after creation; it is held temporarily in the server-side session, not stored in the database or a cookie-based success message.
 - Device fingerprints are hashed before storage. Use a stable, app-generated identifier; do not send raw hardware serial numbers or other sensitive hardware data.
 - API requests are JSON POST only. Request bodies are capped at 16 KB and rate-limited per client IP using Django's cache. Use a shared production cache such as Redis for limits shared across workers.
 - Always serve the API over HTTPS. A desktop client cannot keep a distributed shared secret confidential; do not embed a server secret in the application.
@@ -25,7 +25,7 @@ Successful responses include `license_id`, `status`, `expires_at`, `product`, `d
 
 1. Create or select a valid subscription.
 2. In **App Licensing**, add a license and select that subscription.
-3. Copy the key from the one-time success message. It cannot be recovered later because only its digest is stored.
+3. Copy the key from the one-time notice above the form. It cannot be recovered later because only its digest is stored.
 4. Suspend or revoke the license from its admin record. The API rejects it on the next online check. Deactivating a device frees one activation slot.
 
 ## Migrations and rollout
