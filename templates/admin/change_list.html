@@ -1,11 +1,6 @@
 {% extends "admin/change_list.html" %}
 {% load static %}
 
-{% block extrastyle %}
-  {{ block.super }}
-  <link rel="stylesheet" href="{% static 'portal/css/admin.css' %}">
-{% endblock %}
-
 {% block extrahead %}
   {{ block.super }}
   <script src="{% static 'portal/js/admin_boolean_toggle.js' %}" defer></script>
