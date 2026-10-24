@@ -56,7 +56,7 @@ class TrialRedemption(models.Model):
         if self.started_at and self.ends_at:
             if self.ends_at <= self.started_at:
                 raise ValidationError(
-                    {"ends_at": "The trial end date must be after its start date."}
+                    {"ends_at": "تاریخ پایان دوره آزمایشی باید پس از تاریخ شروع باشد."}
                 )
 
             if self.ends_at - self.started_at > TRIAL_DURATION:
@@ -160,13 +160,13 @@ class Subscription(models.Model):
         if self.starts_at and self.expires_at:
             if self.expires_at <= self.starts_at:
                 errors["expires_at"] = (
-                    "The subscription end date must be after its start date."
+                    "تاریخ پایان اشتراک باید پس از تاریخ شروع باشد."
                 )
 
         if self.plan_id and self.product_id:
             if self.plan.product_id != self.product_id:
                 errors["plan"] = (
-                    "The selected plan must belong to the selected product."
+                    "طرح انتخاب‌شده باید متعلق به محصول انتخاب‌شده باشد."
                 )
 
         if self.kind == self.Kind.TRIAL:
@@ -176,7 +176,7 @@ class Subscription(models.Model):
                 self.Status.CANCELED,
             }:
                 errors["status"] = (
-                    "A trial must have Trial active, Expired, or Canceled status."
+                    "وضعیت اشتراک آزمایشی باید فعال، منقضی‌شده یا لغوشده باشد."
                 )
 
             if self.trial_redemption_id:
@@ -184,14 +184,14 @@ class Subscription(models.Model):
 
                 if self.user_id and redemption.user_id != self.user_id:
                     errors["trial_redemption"] = (
-                        "The trial record must belong to this customer."
+                        "سابقه دوره آزمایشی باید متعلق به این مشتری باشد."
                     )
                 elif (
                     self.product_id
                     and redemption.product_id != self.product_id
                 ):
                     errors["trial_redemption"] = (
-                        "The trial record must belong to this product."
+                        "سابقه دوره آزمایشی باید متعلق به این محصول باشد."
                     )
 
                 if (
@@ -200,13 +200,13 @@ class Subscription(models.Model):
                     and self.expires_at - self.starts_at > TRIAL_DURATION
                 ):
                     errors["expires_at"] = (
-                        "A trial subscription cannot exceed 7 days."
+                        "مدت اشتراک آزمایشی نمی‌تواند بیشتر از ۷ روز باشد."
                     )
 
         elif self.kind == self.Kind.PAID:
             if self.status == self.Status.TRIALING:
                 errors["status"] = (
-                    "A paid subscription cannot have Trial active status."
+                    "اشتراک پولی نمی‌تواند وضعیت «دوره آزمایشی فعال» داشته باشد."
                 )
 
         if errors:
