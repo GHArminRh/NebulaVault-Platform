@@ -34,11 +34,11 @@ This branch adds a server-rendered Django frontend for the existing catalog, sub
 ## Rich-text editor
 
 - A custom in-house editor with a CKEditor-inspired classic editing layout: menu bar, grouped multi-row toolbar, color palettes, contextual selection toolbar, dialogs, element path, word/character counts, and fullscreen/source views. It does not load CKEditor or a third-party editor runtime.
-- Core tools include undo/redo, paragraph styles and headings, bold/italic/underline/strikethrough, subscript/superscript, font family/size, text/highlight colors, alignment, lists, indentation, links, image URLs and secure image-file uploads with alternative text/captions, table insertion and row/column operations, block quotes, code blocks, horizontal/page breaks, special characters, find/replace, import/export HTML, block boundaries, direction controls, print, and keyboard shortcuts.
+- Core tools include undo/redo, paragraph styles and headings, bold/italic/underline/strikethrough, subscript/superscript, font family/size, text/highlight colors, alignment, lists, indentation, links, image URLs and secure image-file uploads with alternative text/captions, sandboxed YouTube/Vimeo embeds, table insertion and row/column operations, block quotes, code blocks, horizontal/page breaks, special characters, find/replace, import/export HTML, block boundaries, direction controls, print, and keyboard shortcuts.
 - Uses an explicit field allowlist instead of turning every textarea into HTML. The current model fields enabled by default are `description` and `release_notes`; other forms can opt in with `data-rich-editor` or `.rich-text`. JSON, credentials, code, and other non-prose fields remain plain text.
 - Textareas remain the submitted form fields. Source mode and visual mode are synchronized before form submission; HTML is cleaned before it leaves the editor.
 - A server-side `nh3` allow-list sanitizer is applied when product descriptions/release notes are saved and again when product-description HTML is rendered. Scripts, event-handler attributes, embedded frames, and unapproved CSS are not allowed. The client-side sanitizer is not treated as a security boundary.
-- Media player embeds, Office/PDF conversion, track changes, comments, revision history, and real-time multi-user collaboration are not implemented in this custom editor yet; those require additional document/conversion and collaboration infrastructure. AI features are intentionally excluded.
+- Office/PDF conversion, track changes, comments, revision history, and real-time multi-user collaboration are not implemented in this custom editor yet; those require additional document/conversion and collaboration infrastructure. AI features are intentionally excluded.
 
 ## Validation
 
