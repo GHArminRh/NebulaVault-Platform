@@ -58,34 +58,6 @@
     return entry ? decodeURIComponent(entry.slice(name.length + 1)) : "";
   }
 
-  class NebulaUploadAdapter {
-    constructor(loader) { this.loader = loader; this.xhr = null; }
-    upload() {
-      return this.loader.file.then(file => new Promise((resolve, reject) => {
-        const xhr = this.xhr = new XMLHttpRequest();
-        xhr.open("POST", "/admin/editor-upload/", true);
-        xhr.responseType = "json";
-        xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
-        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-        xhr.addEventListener("error", () => reject("Image upload failed because of a network error."));
-        xhr.addEventListener("abort", () => reject("Image upload was aborted."));
-        xhr.addEventListener("load", () => {
-          const response = xhr.response || {};
-          if (xhr.status >= 200 && xhr.status < 300 && response.url) resolve({ default: response.url });
-          else reject(response.error || "Image upload failed. Check staff access and server logs.");
-        });
-        const data = new FormData();
-        data.append("upload", file);
-        xhr.send(data);
-      }));
-    }
-    abort() { if (this.xhr) this.xhr.abort(); }
-  }
-
-  function NebulaUploadAdapterPlugin(editor) {
-    editor.plugins.get("FileRepository").createUploadAdapter = loader => new NebulaUploadAdapter(loader);
-  }
-
   function init(textarea, CK, runtimeConfig, allPlugins) {
     if (textarea.dataset.ckeditorInitialized === "true") return;
     textarea.dataset.ckeditorInitialized = "true";
@@ -103,19 +75,18 @@
       "FontBackgroundColor", "FontColor", "FontFamily", "FontSize", "GeneralHtmlSupport",
       "Heading", "Highlight", "HorizontalLine", "ImageBlock", "ImageCaption",
       "ImageEditing", "ImageInline", "ImageInsert", "ImageInsertViaUrl", "ImageStyle",
-      "ImageTextAlternative", "ImageToolbar", "ImageUpload", "ImageUtils",
+      "ImageTextAlternative", "ImageToolbar", "ImageUtils",
       "Indent", "IndentBlock", "Italic", "Link", "LinkImage", "List", "MediaEmbed",
       "ShowBlocks", "Strikethrough", "Subscript", "Superscript", "Table",
       "TableCaption", "TableToolbar", "TextTransformation", "TodoList", "Underline"
     ];
     const plugins = [...new Set(pluginNames.map(name => allPlugins[name]).filter(Boolean))];
-    plugins.push(NebulaUploadAdapterPlugin);
 
     const toolbar = [
       "undo", "redo", "|", "exportWord", "exportPdf", "showBlocks", "|",
       "heading", "|", "fontSize", "fontFamily", "fontColor", "fontBackgroundColor", "|",
       "bold", "italic", "underline", "strikethrough", "subscript", "superscript", "code", "|",
-      "emoji", "horizontalLine", "link", "uploadImage", "insertImage", "insertImageViaUrl",
+      "emoji", "horizontalLine", "link", "insertImage", "insertImageViaUrl",
       "mediaEmbed", "insertTable", "highlight", "blockQuote", "codeBlock", "|",
       "alignment", "|", "bulletedList", "numberedList", "todoList", "outdent", "indent"
     ];
@@ -125,7 +96,7 @@
       fontColor: "FontColor", fontBackgroundColor: "FontBackgroundColor", bold: "Bold",
       italic: "Italic", underline: "Underline", strikethrough: "Strikethrough",
       subscript: "Subscript", superscript: "Superscript", code: "Code", emoji: "Emoji",
-      horizontalLine: "HorizontalLine", link: "Link", uploadImage: "ImageUpload",
+      horizontalLine: "HorizontalLine", link: "Link",
       insertImage: "ImageInsert", insertImageViaUrl: "ImageInsertViaUrl", mediaEmbed: "MediaEmbed",
       insertTable: "Table", highlight: "Highlight", blockQuote: "BlockQuote",
       codeBlock: "CodeBlock", alignment: "Alignment", bulletedList: "List",
