@@ -26,7 +26,8 @@ Successful responses include `license_id`, `status`, `expires_at`, `product`, `d
 1. Create or select a valid subscription.
 2. In **App Licensing**, add a license and select that subscription.
 3. Copy the key from the one-time notice above the form. It cannot be recovered later because only its digest is stored.
-4. Suspend or revoke the license from its admin record. The API rejects it on the next online check. Deactivating a device frees one activation slot.\n5. If a key is lost or compromised, select exactly one license in the admin list and run **Rotate the selected license key**. The old key becomes invalid immediately and the replacement is shown once.
+4. Suspend or revoke the license from its admin record. The API rejects it on the next online check. Deactivating a device frees one activation slot.
+5. If a key is lost or compromised, select exactly one license in the admin list and run **Rotate the selected license key**. The old key becomes invalid immediately and the replacement is shown once.
 
 ## Database setup and migrations
 
