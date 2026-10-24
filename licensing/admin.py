@@ -17,6 +17,7 @@ class LicenseActivationInline(admin.TabularInline):
 
 @admin.register(License)
 class LicenseAdmin(admin.ModelAdmin):
+    change_form_template = "admin/licensing/license/change_form.html"
     list_display = (
         "key_prefix", "customer_email", "product_name", "status",
         "subscription_status", "expires_at", "activation_usage", "created_at",
@@ -57,17 +58,19 @@ class LicenseAdmin(admin.ModelAdmin):
         return f"{obj.activations.filter(is_active=True).count()} / {obj.activation_limit}"
 
     def save_model(self, request, obj, form, change):
-        newly_issued_key = None
         if not change:
-            newly_issued_key = generate_license_key()
-            obj.key_prefix = newly_issued_key[:8]
-            obj.key_digest = _key_digest(newly_issued_key)
+            plaintext_key = generate_license_key()
+            obj.key_prefix = plaintext_key[:8]
+            obj.key_digest = _key_digest(plaintext_key)
+            # Keep the one-time secret in the server-side session, not a signed cookie message.
+            request.session["licensing_one_time_key"] = plaintext_key
         super().save_model(request, obj, form, change)
-        if newly_issued_key:
-            messages.success(
-                request,
-                "License created. Copy this key now; it is shown only once: " + newly_issued_key,
-            )
+        if not change:
+            messages.success(request, "License created. Copy the one-time key from the notice above the form.")
+
+    def render_change_form(self, request, context, *args, **kwargs):
+        context["one_time_license_key"] = request.session.pop("licensing_one_time_key", None)
+        return super().render_change_form(request, context, *args, **kwargs)
 
 
 @admin.register(LicenseActivation)
@@ -76,10 +79,13 @@ class LicenseActivationAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "first_activated_at", "license__status")
     search_fields = ("license__key_prefix", "license__subscription__user__email", "device_label", "app_version")
     list_select_related = ("license", "license__subscription", "license__subscription__user")
-    readonly_fields = ("license", "fingerprint_digest", "device_label", "app_version", "first_activated_at", "last_seen_at", "deactivated_at", "is_active")
+    readonly_fields = ("license", "fingerprint_digest", "device_label", "app_version", "first_activated_at", "last_seen_at", "last_seen_at", "deactivated_at", "is_active")
 
     def has_add_permission(self, request):
         return False
 
     def has_change_permission(self, request, obj=None):
         return super().has_view_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
