@@ -208,7 +208,7 @@ def main() -> int:
         return result.returncode
 
     print("\n[5/5] Applying all pending migrations...")
-    result = subprocess.run([sys.executable, "manage.py", "migrate", "--noinput"], cwd=BASE_DIR)
+    result = subprocess.run([sys.executable, "manage.py", "migrate", "--fake-initial", "--noinput"], cwd=BASE_DIR)
     if result.returncode:
         print("\nMigration failed. Fix the error above, then run START_NEBULA_VAULT.bat again.")
         return result.returncode

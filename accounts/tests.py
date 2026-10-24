@@ -142,14 +142,14 @@ class AccountBackendTests(TestCase):
 
     def test_permission_group_uses_uuid4_primary_key(self):
         import uuid
-        from accounts.models import Group
+        from staff.models import Group
 
         group = Group.objects.create(name="UUID test group")
         self.assertIsInstance(group.pk, uuid.UUID)
         self.assertEqual(group.pk.version, 4)
 
     def test_staff_user_can_use_custom_uuid_permission_group(self):
-        from accounts.models import Group
+        from staff.models import Group
         from django.contrib.auth import get_user_model
 
         staff = get_user_model().objects.create_user(
@@ -166,7 +166,7 @@ class AccountBackendTests(TestCase):
     def test_builtin_integer_group_is_not_registered_in_admin(self):
         from django.contrib import admin
         from django.contrib.auth.models import Group as DjangoAuthGroup
-        from accounts.models import Group
+        from staff.models import Group
 
         self.assertNotIn(DjangoAuthGroup, admin.site._registry)
         self.assertIn(Group, admin.site._registry)
