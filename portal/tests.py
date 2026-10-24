@@ -29,7 +29,7 @@ class PortalPageTests(TestCase):
         self.assertIn("_auth_user_id", self.client.session)
 
     def test_trial_starts_for_signed_in_user(self):
-        self.client.force_login(self.user, backend='customer_accounts.backends.CustomerAuthenticationBackend')
+        self.client.force_login(self.user, backend='customer_customer_accounts.backends.CustomerAuthenticationBackend')
         response = self.client.post(reverse("portal:start_trial", args=[self.product.slug]))
         self.assertEqual(response.status_code, 302)
         sub = Subscription.objects.get(user=self.user, product=self.product)
@@ -38,7 +38,7 @@ class PortalPageTests(TestCase):
 
     def test_order_remains_pending_without_payment_provider(self):
         from billing.models import PaymentOrder
-        self.client.force_login(self.user, backend='customer_accounts.backends.CustomerAuthenticationBackend')
+        self.client.force_login(self.user, backend='customer_customer_accounts.backends.CustomerAuthenticationBackend')
         self.client.post(reverse("portal:create_order", args=[self.plan.pk]))
         order = PaymentOrder.objects.get(user=self.user)
         self.assertEqual(order.status, PaymentOrder.Status.PENDING)
