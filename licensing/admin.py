@@ -66,6 +66,11 @@ class LicenseAdmin(admin.ModelAdmin):
         fields = super().get_readonly_fields(request, obj)
         return fields + ("subscription",) if obj else fields
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "subscription":
+            kwargs["queryset"] = db_field.remote_field.model.objects.filter(license__isnull=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     def has_delete_permission(self, request, obj=None):
         # Revoke a license instead of deleting its audit trail.
         return False
