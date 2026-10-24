@@ -7,6 +7,8 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.text import slugify
 
+from .rich_text import clean_rich_text
+
 
 currency_code_validator = RegexValidator(
     regex=r"^[A-Z]{3}$",
@@ -49,6 +51,7 @@ class Product(models.Model):
             candidate = f"{base_slug[: self._meta.get_field('slug').max_length - len(ending)]}{ending}"
             suffix += 1
         self.slug = candidate
+        self.description = clean_rich_text(self.description)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -134,6 +137,7 @@ class Release(models.Model):
         else:
             self.sha256 = ""
 
+        self.release_notes = clean_rich_text(self.release_notes)
         super().save(*args, **kwargs)
 
         # Now the upload is in permanent storage, so its URL is safe to use.
