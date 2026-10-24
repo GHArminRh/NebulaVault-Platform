@@ -84,7 +84,7 @@
         Premium.ImportWord, CK.Indent, CK.IndentBlock, CK.Italic, Premium.LineHeight, CK.Link,
         CK.LinkImage, CK.List, CK.ListProperties, CK.MediaEmbed, Premium.MultiLevelList, CK.PageBreak,
         CK.Paragraph, CK.PasteFromOffice, Premium.PasteFromOfficeEnhanced, CK.PictureEditing,
-        CK.PlainTableOutput, CK.RemoveFormat, CK.ShowBlocks, CK.SlashCommand, CK.SpecialCharacters,
+        CK.PlainTableOutput, CK.RemoveFormat, CK.ShowBlocks, Premium.SlashCommand, CK.SpecialCharacters,
         CK.SpecialCharactersArrows, CK.SpecialCharactersCurrency, CK.SpecialCharactersEssentials,
         CK.SpecialCharactersLatin, CK.SpecialCharactersMathematical, CK.SpecialCharactersText,
         CK.Strikethrough, CK.Subscript, CK.Superscript, CK.Table, CK.TableCaption,
