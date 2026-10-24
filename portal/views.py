@@ -221,8 +221,8 @@ def checkout(request):
                 )
                 if len(pending_orders) > 1:
                     raise OrderCreationError(
-                        "More than one pending order exists for this plan. "
-                        "Please contact support before retrying checkout."
+                        "برای این طرح بیش از یک سفارش در انتظار وجود دارد. "
+                        "پیش از تلاش دوباره برای پرداخت، با پشتیبانی تماس بگیرید."
                     )
                 order = pending_orders[0] if pending_orders else None
                 if order is None:
@@ -252,7 +252,7 @@ def checkout(request):
     request.session["nebula_cart"] = []
     messages.success(
         request,
-        f"Demo payment successful. {len(completed_orders)} order(s) completed and your access has been activated.",
+        f"پرداخت آزمایشی با موفقیت انجام شد؛ {len(completed_orders)} سفارش تکمیل و دسترسی شما فعال شد.",
     )
     return redirect("portal:orders")
 
