@@ -10,8 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const input = button.parentElement.querySelector("input");
     const show = input.type === "password";
     input.type = show ? "text" : "password";
-    button.textContent = show ? "Hide" : "Show";
-    button.setAttribute("aria-label", show ? "Hide password" : "Show password");
+    button.textContent = show ? "پنهان" : "نمایش";
+    button.setAttribute("aria-label", show ? "پنهان‌کردن رمز عبور" : "نمایش رمز عبور");
   }));
   document.querySelectorAll(".message-close").forEach(button => button.addEventListener("click", () => button.closest(".message")?.remove()));
   if ("IntersectionObserver" in window) {

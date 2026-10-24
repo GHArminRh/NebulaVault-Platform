@@ -234,8 +234,8 @@ def create_payment_order(
 
                 if len(candidates) > 1:
                     raise OrderCreationError(
-                        "Multiple paid subscriptions match this product "
-                        "and plan. Specify subscription_id explicitly."
+                        "چند اشتراک پولی با این محصول و طرح مطابقت دارند. "
+                        "لطفاً اشتراک موردنظر را به‌طور مشخص انتخاب کنید."
                     )
 
                 subscription = candidates[0] if candidates else None
