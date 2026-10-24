@@ -241,21 +241,26 @@ def import_admin_json(request, app_label, model_name):
         "title": f"Import JSON — {opts.verbose_name_plural}",
         "app_label": opts.app_label,
         "model_name": opts.model_name,
+        "changelist_url": f"/admin/{opts.app_label}/{opts.model_name}/",
         "has_permission": True,
     }
     if request.method == "POST":
-        uploaded = request.FILES.get("json_file")
-        if not uploaded:
-            messages.error(request, "یک فایل JSON انتخاب کنید.")
-        elif uploaded.size > JSON_IMPORT_MAX_BYTES:
-            messages.error(request, "حداکثر اندازه فایل JSON برابر ۵ مگابایت است.")
+        uploads = request.FILES.getlist("json_files") or request.FILES.getlist("json_file")
+        if not uploads:
+            messages.error(request, "یک یا چند فایل JSON انتخاب کنید.")
+        elif sum(upload.size for upload in uploads) > JSON_IMPORT_MAX_BYTES:
+            messages.error(request, "مجموع اندازه فایل‌های JSON نباید از ۵ مگابایت بیشتر باشد.")
         else:
             try:
-                decoded = uploaded.read().decode("utf-8-sig")
-                parsed = json.loads(decoded)
-                records = parsed if isinstance(parsed, list) else [parsed]
-                if not records or len(records) > JSON_IMPORT_MAX_RECORDS:
-                    raise ValueError("فایل باید بین ۱ تا ۱۰۰۰ رکورد داشته باشد.")
+                records = []
+                for uploaded in uploads:
+                    decoded = uploaded.read().decode("utf-8-sig")
+                    parsed = json.loads(decoded)
+                    records.extend(parsed if isinstance(parsed, list) else [parsed])
+                    if len(records) > JSON_IMPORT_MAX_RECORDS:
+                        raise ValueError("حداکثر ۱۰۰۰ رکورد را می‌توان در یک عملیات وارد کرد.")
+                if not records:
+                    raise ValueError("فایل‌ها هیچ رکوردی ندارند.")
                 created = updated = 0
                 with transaction.atomic():
                     for record in records:
