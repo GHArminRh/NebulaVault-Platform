@@ -80,9 +80,12 @@ class AccountBackendTests(TestCase):
                 "human_check": "on",
             },
         )
-        self.assertRedirects(response, reverse("portal:dashboard"))
+        self.assertEqual(response.status_code, 200)
         customer = Customer.objects.get(email__iexact="GArminRh@gmail.com")
         self.assertEqual(customer.username, "GArminRh")
+        self.assertFalse(customer.is_active)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("accounts/verify/", mail.outbox[0].body)
 
     def test_registration_adds_suffix_when_generated_username_is_taken(self):
         Customer.objects.create_user(
@@ -99,7 +102,7 @@ class AccountBackendTests(TestCase):
                 "human_check": "on",
             },
         )
-        self.assertRedirects(response, reverse("portal:dashboard"))
+        self.assertEqual(response.status_code, 200)
         customer = Customer.objects.get(email__iexact="GArminRh@gmail.com")
         self.assertEqual(customer.username, "GArminRh2")
 
@@ -117,6 +120,27 @@ class AccountBackendTests(TestCase):
         self.assertRedirects(response, reverse("accounts:profile"))
         self.user.refresh_from_db()
         self.assertEqual(self.user.username, "new_account_name")
+
+    def test_verification_link_activates_account_and_is_single_use(self):
+        self.user.is_active = False
+        self.user.save(update_fields=["is_active"])
+        from accounts.views import email_verification_token
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = email_verification_token.make_token(self.user)
+        response = self.client.get(reverse("accounts:verify_email", args=[uid, token]))
+        self.assertRedirects(response, reverse("login"))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_active)
+        response = self.client.get(reverse("accounts:verify_email", args=[uid, token]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "already verified")
+
+    def test_resend_verification_does_not_disclose_unknown_email(self):
+        response = self.client.post(reverse("accounts:resend_verification"), {"email": "unknown@example.com"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(mail.outbox), 0)
 
     def test_admin_login_clears_existing_customer_uuid_session(self):
         from django.contrib.auth import get_user_model
