@@ -1,0 +1,28 @@
+{% extends 'portal/base.html' %}
+{% block title %}Account settings — Nebula Vault{% endblock %}
+{% block content %}
+<section class="page-wrap auth-layout auth-layout-premium">
+  <div class="auth-art auth-art-premium">
+    <div class="auth-orbit" aria-hidden="true"><span>◇</span><i></i><b></b></div>
+    <div class="eyebrow"><i class="eyebrow-dot"></i> YOUR ACCOUNT</div>
+    <h2>Make it<br><span class="gradient-text">your own.</span></h2>
+    <p>Manage your public account details. Your username can be changed whenever you need.</p>
+  </div>
+  <div class="auth-card auth-card-premium">
+    <div class="eyebrow">ACCOUNT SETTINGS</div>
+    <h1>Your profile</h1>
+    <p class="auth-subtitle">Update your username and account details.</p>
+    <form method="post" class="form-stack auth-form-premium">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      {% for field in form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<small class="field-error" role="alert">{{ field.errors|join:', ' }}</small>{% endif %}
+      {% endfor %}
+      <button class="button button-primary button-full button-large auth-submit" type="submit">Save changes <span aria-hidden="true">↗</span></button>
+    </form>
+    <p class="auth-switch"><a href="{% url 'accounts:password_change' %}">Change password</a> · <a href="{% url 'portal:dashboard' %}">Back to dashboard</a></p>
+  </div>
+</section>
+{% endblock %}
