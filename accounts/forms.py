@@ -25,13 +25,15 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
             # Keep Django's normal authentication flow for active customers.
             return super().clean()
         except ValidationError:
-            # If the credentials are correct but this customer has not verified
-            # their email yet, let the login view route them to verification.
+            # Only reveal account state after both the password and human check pass.
             email = (self.data.get(self.add_prefix("username")) or "").strip()
             password = self.data.get(self.add_prefix("password")) or ""
-            customer = Customer.objects.filter(email__iexact=email, is_active=False).first()
+            customer = Customer.objects.filter(email__iexact=email).first()
             if self.cleaned_data.get("human_check") and customer and password and customer.check_password(password):
-                self.inactive_email = customer.email
+                if customer.is_banned:
+                    self.banned_account = True
+                elif not customer.is_active:
+                    self.inactive_email = customer.email
             raise
 
 
