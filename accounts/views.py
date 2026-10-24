@@ -1,5 +1,11 @@
 import hashlib
 import logging
+import secrets
+import hmac
+from datetime import timedelta
+
+from django.utils import timezone
+from django.utils.crypto import salted_hmac
 
 from django.conf import settings
 from django.contrib import messages
@@ -15,7 +21,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 from .forms import AccountPasswordChangeForm, AccountProfileForm, RegisterForm, VerificationResendForm
-from .models import Customer
+from .models import AccountEmailLog, Customer
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +109,14 @@ def _send_verification_email(request, customer):
     verify_url = request.build_absolute_uri(
         reverse("accounts:verify_email", kwargs={"uidb64": uid, "token": token})
     )
-    context = {"user": customer, "verify_url": verify_url, "valid_hours": 24}
+    code = _new_email_code()
+    _supersede_codes(customer, AccountEmailLog.Purpose.VERIFICATION)
+    log = AccountEmailLog.objects.create(
+        customer=customer, recipient=customer.email, purpose=AccountEmailLog.Purpose.VERIFICATION,
+        status=AccountEmailLog.Status.FAILED, expires_at=timezone.now() + timedelta(hours=24),
+        ip_address=request.META.get("REMOTE_ADDR") or None, code_hash=_code_digest(code),
+    )
+    context = {"user": customer, "verify_url": verify_url, "valid_hours": 24, "verification_code": code}
     body = render_to_string("registration/email_verification_email.txt", context)
     html_body = render_to_string("registration/email_verification_email.html", context)
     send_mail(
@@ -114,6 +127,10 @@ def _send_verification_email(request, customer):
         html_message=html_body,
         fail_silently=False,
     )
+    log.status = AccountEmailLog.Status.SENT
+    log.sent_at = timezone.now()
+    log.error_message = ""
+    log.save(update_fields=["status", "sent_at", "error_message"])
     return True
 
 
@@ -152,3 +169,140 @@ def resend_verification(request):
                 logger.exception("Could not send requested account verification email")
         return render(request, "accounts/verification_resend_done.html")
     return render(request, "accounts/verification_resend.html", {"form": form})
+
+
+def _new_email_code():
+    return f"{secrets.randbelow(1_000_000):06d}"
+
+
+def _code_digest(code):
+    return salted_hmac("accounts.email_code", str(code), algorithm="sha256").hexdigest()
+
+
+def _supersede_codes(customer, purpose):
+    AccountEmailLog.objects.filter(
+        customer=customer, purpose=purpose, status=AccountEmailLog.Status.SENT,
+        consumed_at__isnull=True,
+    ).update(status=AccountEmailLog.Status.SUPERSEDED)
+
+
+def _record_failed_email(customer, purpose, recipient, request, exc):
+    AccountEmailLog.objects.create(
+        customer=customer, recipient=recipient, purpose=purpose,
+        status=AccountEmailLog.Status.FAILED,
+        ip_address=request.META.get("REMOTE_ADDR") or None,
+        error_message=str(exc)[:1000],
+    )
+
+
+@require_http_methods(["GET", "POST"])
+def verify_email_code(request):
+    if request.user.is_authenticated:
+        return redirect("portal:dashboard")
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip()
+        code = request.POST.get("code", "").strip()
+        customer = Customer.objects.filter(email__iexact=email, is_active=False).first()
+        entry = None
+        if customer and len(code) == 6 and code.isdigit():
+            entry = AccountEmailLog.objects.filter(
+                customer=customer, purpose=AccountEmailLog.Purpose.VERIFICATION,
+                status=AccountEmailLog.Status.SENT, consumed_at__isnull=True,
+                expires_at__gt=timezone.now(),
+            ).order_by("-created_at").first()
+        if entry and entry.failed_attempts < 5 and hmac.compare_digest(entry.code_hash, _code_digest(code)):
+            entry.status = AccountEmailLog.Status.USED
+            entry.consumed_at = timezone.now()
+            entry.save(update_fields=["status", "consumed_at"])
+            customer.is_active = True
+            customer.save(update_fields=["is_active"])
+            messages.success(request, "Your email has been verified. You can now sign in.")
+            return redirect("login")
+        if entry:
+            entry.failed_attempts += 1
+            if entry.failed_attempts >= 5:
+                entry.status = AccountEmailLog.Status.EXPIRED
+            entry.save(update_fields=["failed_attempts", "status"])
+        return render(request, "accounts/email_code_form.html", {
+            "purpose": "verification", "email": email,
+            "error": "The code is invalid, expired, or has reached its attempt limit.",
+        }, status=400)
+    return render(request, "accounts/email_code_form.html", {"purpose": "verification"})
+
+
+@require_http_methods(["GET", "POST"])
+def password_reset_request(request):
+    if request.user.is_authenticated:
+        return redirect("portal:dashboard")
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip()
+        customer = Customer.objects.filter(email__iexact=email, is_active=True).first()
+        if customer and customer.has_usable_password():
+            code = _new_email_code()
+            _supersede_codes(customer, AccountEmailLog.Purpose.PASSWORD_RESET)
+            log = AccountEmailLog.objects.create(
+                customer=customer, recipient=customer.email, purpose=AccountEmailLog.Purpose.PASSWORD_RESET,
+                status=AccountEmailLog.Status.FAILED, expires_at=timezone.now() + timedelta(minutes=15),
+                ip_address=request.META.get("REMOTE_ADDR") or None, code_hash=_code_digest(code),
+            )
+            uid = urlsafe_base64_encode(force_bytes(customer.pk))
+            token = PasswordResetTokenGenerator().make_token(customer)
+            reset_url = request.build_absolute_uri(reverse(
+                "accounts:password_reset_confirm", kwargs={"uidb64": uid, "token": token}
+            ))
+            context = {"user": customer, "email": customer.email, "reset_url": reset_url,
+                       "protocol": request.scheme, "domain": request.get_host(),
+                       "password_reset_code": code, "valid_minutes": 15}
+            try:
+                send_mail(
+                    "Reset your Nebula Vault password",
+                    render_to_string("registration/password_reset_email.txt", context),
+                    settings.DEFAULT_FROM_EMAIL, [customer.email],
+                    html_message=render_to_string("registration/password_reset_email.html", context),
+                    fail_silently=False,
+                )
+                log.status = AccountEmailLog.Status.SENT
+                log.sent_at = timezone.now()
+                log.save(update_fields=["status", "sent_at"])
+            except Exception as exc:
+                log.error_message = str(exc)[:1000]
+                log.save(update_fields=["error_message"])
+                logger.exception("Could not send password recovery email for customer %s", customer.pk)
+        return redirect("accounts:password_reset_done")
+    return render(request, "accounts/password_reset_form.html")
+
+
+@require_http_methods(["GET", "POST"])
+def password_reset_code(request):
+    if request.user.is_authenticated:
+        return redirect("portal:dashboard")
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip()
+        code = request.POST.get("code", "").strip()
+        customer = Customer.objects.filter(email__iexact=email, is_active=True).first()
+        entry = None
+        if customer and len(code) == 6 and code.isdigit():
+            entry = AccountEmailLog.objects.filter(
+                customer=customer, purpose=AccountEmailLog.Purpose.PASSWORD_RESET,
+                status=AccountEmailLog.Status.SENT, consumed_at__isnull=True,
+                expires_at__gt=timezone.now(),
+            ).order_by("-created_at").first()
+        if entry and entry.failed_attempts < 5 and hmac.compare_digest(entry.code_hash, _code_digest(code)):
+            entry.status = AccountEmailLog.Status.USED
+            entry.consumed_at = timezone.now()
+            entry.save(update_fields=["status", "consumed_at"])
+            uid = urlsafe_base64_encode(force_bytes(customer.pk))
+            token = PasswordResetTokenGenerator().make_token(customer)
+            return redirect("accounts:password_reset_confirm", uidb64=uid, token=token)
+        if entry:
+            entry.failed_attempts += 1
+            if entry.failed_attempts >= 5:
+                entry.status = AccountEmailLog.Status.EXPIRED
+            entry.save(update_fields=["failed_attempts", "status"])
+        return render(request, "accounts/email_code_form.html", {
+            "purpose": "password_reset", "email": email,
+            "error": "The code is invalid, expired, or has reached its attempt limit.",
+        }, status=400)
+    return render(request, "accounts/email_code_form.html", {"purpose": "password_reset"})
+
+
