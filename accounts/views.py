@@ -313,7 +313,10 @@ def password_reset_request(request):
                     log.error_message = str(exc)[:1000]
                     log.save(update_fields=["error_message"])
                     logger.exception("Could not send password recovery email for customer %s", customer.pk)
-        return redirect("accounts:password_reset_done")
+        messages.info(request, "If an eligible account matches that email, a recovery message has been sent. Enter the six-digit code below or use the link in the email.")
+        return render(request, "accounts/email_code_form.html", {
+            "purpose": "password_reset", "email": email,
+        })
     return render(request, "accounts/password_reset_form.html", {"form": form})
 
 
