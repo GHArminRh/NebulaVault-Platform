@@ -161,8 +161,9 @@ def verify_email(request, uidb64, token):
     if customer is not None and not customer.is_banned and not customer.is_active and email_verification_token.check_token(customer, token):
         customer.is_active = True
         customer.save(update_fields=["is_active"])
-        messages.success(request, "Your email has been verified. You can now sign in.")
-        return redirect("login")
+        login(request, customer, backend="accounts.backends.CustomerAuthenticationBackend")
+        messages.success(request, "Your email has been verified successfully. Welcome!")
+        return redirect("portal:dashboard")
 
     if customer is not None and customer.is_active:
         return render(request, "accounts/verification_result.html", {"already_verified": True, "success": True})
@@ -253,8 +254,9 @@ def verify_email_code(request):
             entry.save(update_fields=["status", "consumed_at"])
             customer.is_active = True
             customer.save(update_fields=["is_active"])
-            messages.success(request, "Your email has been verified. You can now sign in.")
-            return redirect("login")
+            login(request, customer, backend="accounts.backends.CustomerAuthenticationBackend")
+            messages.success(request, "Your email has been verified successfully. Welcome!")
+            return redirect("portal:dashboard")
         if entry:
             entry.failed_attempts += 1
             if entry.failed_attempts >= 5:
