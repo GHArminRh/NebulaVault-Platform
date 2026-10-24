@@ -15,6 +15,10 @@ DB_USER = "nebula_vault_app"
 DB_HOST = "127.0.0.1"
 DB_PORT = "5432"
 SITE_URL = "http://127.0.0.1:8000/"
+PROJECT_APPS_WITHOUT_COMMITTED_MIGRATIONS = (
+    "accounts", "catalog", "subscriptions", "licensing",
+    "devices", "billing", "audit", "notifications", "portal",
+)
 
 
 def read_env(path: Path) -> dict[str, str]:
@@ -179,7 +183,18 @@ def main() -> int:
             "Check that PostgreSQL is running and verify DB_NAME, DB_USER, DB_PASSWORD, DB_HOST and DB_PORT in .env."
         )
 
-    print("\nChecking and applying pending Django migrations and creating tables for apps without migrations...")
+    # Several first-party apps currently have models but no committed initial migration files.
+    # Generate those migration files locally before applying them so their tables are not skipped.
+    print("\nPreparing initial migrations for Nebula Vault apps...")
+    result = subprocess.run(
+        [sys.executable, "manage.py", "makemigrations", *PROJECT_APPS_WITHOUT_COMMITTED_MIGRATIONS],
+        cwd=BASE_DIR,
+    )
+    if result.returncode:
+        print("\nMigration generation failed. Fix the error above, then run START_NEBULA_VAULT.bat again.")
+        return result.returncode
+
+    print("\nApplying Django migrations and creating required database tables...")
     result = subprocess.run(
         [sys.executable, "manage.py", "migrate", "--run-syncdb", "--noinput"],
         cwd=BASE_DIR,
