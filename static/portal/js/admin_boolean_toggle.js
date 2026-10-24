@@ -104,9 +104,8 @@
 
   function addRecordActions(row, context) {
     if (row.querySelector("." + actionCellClass)) return;
-    const changeLink = row.querySelector('th a[href$="/change/"], td a[href$="/change/"]');
     const objectId = objectIdForRow(row);
-    if (!changeLink || !objectId) return;
+    if (!objectId) return;
 
     const cell = document.createElement("td");
     cell.className = actionCellClass;
@@ -115,7 +114,8 @@
     cell.style.verticalAlign = "middle";
 
     const deleteLink = document.createElement("a");
-    deleteLink.href = changeLink.getAttribute("href").replace(/\/change\/$/, "/delete/");
+    deleteLink.href = "/admin/" + encodeURIComponent(context.app_label) + "/" +
+      encodeURIComponent(context.model_name) + "/" + encodeURIComponent(objectId) + "/delete/";
     deleteLink.className = "nv-record-action nv-record-delete";
     deleteLink.title = "Delete this record";
     deleteLink.setAttribute("aria-label", "Delete this record");
