@@ -36,11 +36,13 @@ class LicenseServiceTests(LicenseFixtures, TestCase):
     def setUp(self):
         self.license, self.plaintext_key = issue_license(self.subscription)
 
-    def test_only_digest_is_stored_and_prefix_is_searchable(self):
+    def test_only_digest_and_encrypted_recoverable_key_are_stored(self):
         self.license.refresh_from_db()
         self.assertNotEqual(self.license.key_digest, self.plaintext_key)
         self.assertEqual(self.license.key_prefix, self.plaintext_key[:8])
         self.assertEqual(len(self.license.key_digest), 64)
+        self.assertNotIn(self.plaintext_key, self.license.notes)
+        self.assertEqual(self.license.display_key, self.plaintext_key)
 
     def test_activation_validation_and_deactivation(self):
         result = activate_license(self.plaintext_key, "device-fingerprint-0001", "Desktop", "1.0.0")
