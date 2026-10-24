@@ -55,7 +55,17 @@ class LicenseAdmin(admin.ModelAdmin):
 
     @admin.display(description="Devices")
     def activation_usage(self, obj):
+        if obj is None:
+            return "—"
         return f"{obj.activations.filter(is_active=True).count()} / {obj.activation_limit}"
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = super().get_readonly_fields(request, obj)
+        return fields + ("subscription",) if obj else fields
+
+    def has_delete_permission(self, request, obj=None):
+        # Revoke a license instead of deleting its audit trail.
+        return False
 
     def save_model(self, request, obj, form, change):
         if not change:
