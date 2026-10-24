@@ -1,8 +1,9 @@
 Welcome to Nebula Vault, {{ user.username }}!
 
-Please verify your email address to activate your account:
+Verify your email using this secure link:
 {{ verify_url }}
 
-For your security, this link expires in {{ valid_hours }} hours. If you did not create this account, you can ignore this message.
+Or enter this six-digit verification code on the verification page:
+{{ verification_code }}
 
-— Nebula Vault
+The link and code expire in {{ valid_hours }} hours. If you did not create this account, you can ignore this email.
