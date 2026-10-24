@@ -1,5 +1,6 @@
 """Force a consistent Persian interface across the public site."""
 from django.utils.deprecation import MiddlewareMixin
+from django.utils import translation
 
 LANGUAGE_COOKIE = "nv_language"
 COOKIE_MAX_AGE = 60 * 60 * 24 * 180
@@ -7,7 +8,11 @@ COOKIE_MAX_AGE = 60 * 60 * 24 * 180
 
 class InterfaceLanguageMiddleware(MiddlewareMixin):
     def process_request(self, request):
-        # Nebula Vault is Persian-only; do not infer language from IP or browser cookies.
+        # Keep Django admin in English while the public-facing site stays Persian.
+        is_admin = request.path == "/admin" or request.path.startswith("/admin/")
+        language = "en" if is_admin else "fa"
+        translation.activate(language)
+        request.LANGUAGE_CODE = language
         request.site_language = "fa"
         request.language_was_selected = True
         return None
