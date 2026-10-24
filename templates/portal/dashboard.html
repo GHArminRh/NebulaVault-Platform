@@ -35,6 +35,41 @@
     </section>
   </div>
 
+  <section class="panel nv-panel" id="my-licenses" style="margin-top:24px">
+    <div class="panel-heading">
+      <div><h2>لایسنس‌های من</h2><p>کلیدهای لایسنس صادرشده برای خریدهای حساب شما</p></div>
+      <span class="status-pill status-active">{{ dashboard_licenses|length }} لایسنس</span>
+    </div>
+    {% if dashboard_licenses %}
+      <div class="table-list">
+      {% for license in dashboard_licenses %}
+        <article class="table-row roomy-row" style="align-items:flex-start">
+          <div class="table-symbol">🔑</div>
+          <div class="table-main" style="min-width:0;width:100%">
+            <strong>{{ license.subscription.product.name }}</strong>
+            <small>{% if license.subscription.plan %}{{ license.subscription.plan.name }}{% else %}دوره آزمایشی{% endif %} · صادرشده در {{ license.created_at|date:'Y/m/d' }}</small>
+            <small>انقضا: {{ license.subscription.expires_at|date:'Y/m/d' }}</small>
+            {% if license.display_key %}
+              <div style="margin-top:12px;padding:14px;border:1px solid rgba(100,210,160,.35);border-radius:12px;background:rgba(35,150,100,.08)">
+                <label for="license-key-{{ license.id }}" style="display:block;margin-bottom:8px;font-weight:700">کلید لایسنس</label>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                  <input id="license-key-{{ license.id }}" type="text" readonly dir="ltr" value="{{ license.display_key }}" style="flex:1;min-width:220px;padding:11px;border-radius:8px;border:1px solid #b8c9c2;background:var(--surface,#fff);font-family:monospace">
+                  <button class="button button-primary button-small" type="button" onclick="(function(){var e=document.getElementById('license-key-{{ license.id }}');e.select();if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(e.value)}else{document.execCommand('copy')}})()">کپی کلید</button>
+                </div>
+              </div>
+            {% else %}
+              <div class="notice-line" style="margin-top:12px">این لایسنس پیش از فعال‌شدن نمایش امن کلید صادر شده است؛ کلید اصلی در پایگاه داده ذخیره نشده و از روی هش قابل بازیابی نیست. کلید موجود در ایمیل زمان خرید را بررسی کنید.</div>
+            {% endif %}
+          </div>
+          <div class="row-end"><span class="status-pill status-{% if license.is_entitled %}active{% else %}expired{% endif %}">{% if license.is_entitled %}معتبر{% elif license.status == "suspended" %}تعلیق‌شده{% elif license.status == "revoked" %}لغوشده{% else %}منقضی یا غیرفعال{% endif %}</span></div>
+        </article>
+      {% endfor %}
+      </div>
+    {% else %}
+      <div class="panel-empty"><span>🔑</span><strong>هنوز لایسنسی صادر نشده</strong><p>پس از تکمیل خرید، لایسنس محصول در همین بخش نمایش داده می‌شود.</p><a class="text-link" href="{% url 'portal:pricing' %}">مشاهده طرح‌ها ↗</a></div>
+    {% endif %}
+  </section>
+
   <section class="nv-account-section" id="account-settings">
     <div class="nv-section-heading"><div><span class="nv-kicker">مدیریت حساب</span><h2>تنظیمات حساب</h2><p>مشخصات و امنیت حسابت را در هر زمان مدیریت کن.</p></div><div class="nv-secure-mark">◇ <span>حساب امن</span></div></div>
     <div class="nv-settings-grid">
