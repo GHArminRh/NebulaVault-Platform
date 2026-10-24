@@ -96,7 +96,7 @@
       extraPlugins: [NebulaUploadAdapterPlugin],
       toolbar: {
         items: [
-          "undo", "redo", "|", "importWord", "exportWord", "exportPdf", "showBlocks",
+          "undo", "redo", "|", "trackChanges", "importWord", "exportWord", "exportPdf", "showBlocks",
           "formatPainter", "caseChange", "findAndReplace", "textPartLanguage", "fullscreen",
           "|", "heading", "|", "fontSize", "fontFamily", "fontColor", "fontBackgroundColor",
           "|", "bold", "italic", "underline", "strikethrough", "subscript", "superscript",
