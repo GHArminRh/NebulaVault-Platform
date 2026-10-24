@@ -107,11 +107,11 @@ class PaymentAttempt(models.Model):
 
     class Status(models.TextChoices):
         CREATED = "created", "Created"
-        PENDING = "pending", "در انتظار"
+        PENDING = "pending", "Pending"
         SUCCEEDED = "succeeded", "Succeeded"
         FAILED = "failed", "Failed"
-        CANCELED = "canceled", "لغوشده"
-        REFUNDED = "refunded", "بازپرداخت‌شده"
+        CANCELED = "canceled", "Canceled"
+        REFUNDED = "refunded", "Refunded"
 
     order = models.ForeignKey(
         PaymentOrder,
