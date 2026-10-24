@@ -1,9 +1,9 @@
-Welcome to Nebula Vault, {{ user.username }}!
+به نبیولا والت خوش آمدید، {{ user.username }} عزیز!
 
-Verify your email using this secure link:
+برای تأیید نشانی ایمیل خود از پیوند امن زیر استفاده کنید:
 {{ verify_url }}
 
-Or enter this six-digit verification code on the verification page:
+همچنین می‌توانید کد شش‌رقمی زیر را در صفحه تأیید وارد کنید:
 {{ verification_code }}
 
-The link and code expire in {{ valid_hours }} hours. If you did not create this account, you can ignore this email.
+این پیوند و کد تا {{ valid_hours }} ساعت معتبر هستند. اگر این حساب را شما ایجاد نکرده‌اید، این پیام را نادیده بگیرید.
