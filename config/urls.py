@@ -5,10 +5,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from accounts.forms import NebulaAuthenticationForm
-from config.admin_toggle import toggle_boolean_field
+from config.admin_toggle import export_admin_object_json, import_admin_json, toggle_boolean_field
 
 urlpatterns = [
     path("admin/quick-toggle/", toggle_boolean_field, name="admin-quick-toggle"),
+    path("admin/json-export/<str:app_label>/<str:model_name>/<str:object_id>/", export_admin_object_json, name="admin-json-export"),
+    path("admin/json-import/<str:app_label>/<str:model_name>/", import_admin_json, name="admin-json-import"),
     path("admin/", admin.site.urls),
     path(
         "accounts/login/",
