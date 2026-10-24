@@ -9,7 +9,7 @@ class CustomerManager(BaseUserManager):
 
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("A customer email address is required.")
+            raise ValueError("نشانی ایمیل مشتری الزامی است.")
         email = self.normalize_email(email).strip().lower()
         customer = self.model(email=email, **extra_fields)
         customer.set_password(password)
@@ -17,7 +17,7 @@ class CustomerManager(BaseUserManager):
         return customer
 
     def create_superuser(self, email, password=None, **extra_fields):
-        raise ValueError("Customers cannot be superusers. Use StaffUser for staff accounts.")
+        raise ValueError("حساب مشتری نمی‌تواند دسترسی مدیرکل داشته باشد؛ برای حساب کارکنان از StaffUser استفاده کنید.")
 
 
 class Customer(AbstractBaseUser):
@@ -27,7 +27,7 @@ class Customer(AbstractBaseUser):
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     is_active = models.BooleanField(default=True)
-    is_banned = models.BooleanField(default=False, help_text="Blocked by an administrator; the customer cannot sign in.")
+    is_banned = models.BooleanField(default=False, help_text="حساب توسط مدیر مسدود شده و مشتری نمی‌تواند وارد شود.")
     date_joined = models.DateTimeField(auto_now_add=True)
 
     objects = CustomerManager()
