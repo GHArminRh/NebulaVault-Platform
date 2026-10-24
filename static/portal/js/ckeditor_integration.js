@@ -95,9 +95,8 @@
     textarea.insertAdjacentElement("afterend", host);
     const form = textarea.form;
 
-    // Builder-inspired configuration, restricted to features supported by the
-    // existing license. AI, collaboration, CKBox, Word import, and excluded
-    // premium/free-plan features are deliberately not registered.
+    // Configuration follows the supplied CKEditor Builder sample. Only features
+    // excluded by the existing license are omitted; the existing license itself is unchanged.
     const pluginNames = [
       "Essentials", "Paragraph", "Alignment", "AutoImage", "Autoformat", "AutoLink",
       "BlockQuote", "Bold", "Code", "CodeBlock", "Emoji", "ExportPdf", "ExportWord",
@@ -112,37 +111,30 @@
     const plugins = [...new Set(pluginNames.map(name => allPlugins[name]).filter(Boolean))];
     plugins.push(NebulaUploadAdapterPlugin);
 
-    const toolbarCandidates = [
-      "undo", "redo", "|", "heading", "|", "fontSize", "fontFamily", "fontColor",
-      "fontBackgroundColor", "|", "bold", "italic", "underline", "strikethrough",
-      "subscript", "superscript", "code", "|", "emoji", "horizontalLine", "link",
-      "uploadImage", "insertImage", "insertImageViaUrl", "mediaEmbed", "insertTable",
-      "highlight", "blockQuote", "codeBlock", "|", "alignment", "|",
-      "bulletedList", "numberedList", "todoList", "outdent", "indent", "|",
-      "showBlocks", "exportWord", "exportPdf"
+    const toolbar = [
+      "undo", "redo", "|", "exportWord", "exportPdf", "showBlocks", "|",
+      "heading", "|", "fontSize", "fontFamily", "fontColor", "fontBackgroundColor", "|",
+      "bold", "italic", "underline", "strikethrough", "subscript", "superscript", "code", "|",
+      "emoji", "horizontalLine", "link", "uploadImage", "insertImage", "insertImageViaUrl",
+      "mediaEmbed", "insertTable", "highlight", "blockQuote", "codeBlock", "|",
+      "alignment", "|", "bulletedList", "numberedList", "todoList", "outdent", "indent"
     ];
-    const toolbarMap = [
-      ["Essentials", ["undo", "redo"]], ["Heading", ["heading"]],
-      ["FontSize", ["fontSize"]], ["FontFamily", ["fontFamily"]],
-      ["FontColor", ["fontColor"]], ["FontBackgroundColor", ["fontBackgroundColor"]],
-      ["Bold", ["bold"]], ["Italic", ["italic"]], ["Underline", ["underline"]],
-      ["Strikethrough", ["strikethrough"]], ["Subscript", ["subscript"]],
-      ["Superscript", ["superscript"]], ["Code", ["code"]], ["Emoji", ["emoji"]],
-      ["HorizontalLine", ["horizontalLine"]], ["Link", ["link"]],
-      ["ImageUpload", ["uploadImage"]], ["ImageInsert", ["insertImage"]],
-      ["ImageInsertViaUrl", ["insertImageViaUrl"]], ["MediaEmbed", ["mediaEmbed"]],
-      ["Table", ["insertTable"]], ["Highlight", ["highlight"]],
-      ["BlockQuote", ["blockQuote"]], ["CodeBlock", ["codeBlock"]],
-      ["Alignment", ["alignment"]], ["List", ["bulletedList", "numberedList"]],
-      ["TodoList", ["todoList"]], ["Indent", ["outdent", "indent"]],
-      ["ShowBlocks", ["showBlocks"]], ["ExportWord", ["exportWord"]],
-      ["ExportPdf", ["exportPdf"]]
-    ];
-    const available = new Set();
-    toolbarMap.forEach(([pluginName, items]) => {
-      if (plugins.includes(allPlugins[pluginName])) items.forEach(item => available.add(item));
-    });
-    const toolbarItems = toolbarCandidates.filter(item => item === "|" || available.has(item));
+    const toolbarPluginMap = {
+      undo: "Essentials", redo: "Essentials", exportWord: "ExportWord", exportPdf: "ExportPdf",
+      showBlocks: "ShowBlocks", heading: "Heading", fontSize: "FontSize", fontFamily: "FontFamily",
+      fontColor: "FontColor", fontBackgroundColor: "FontBackgroundColor", bold: "Bold",
+      italic: "Italic", underline: "Underline", strikethrough: "Strikethrough",
+      subscript: "Subscript", superscript: "Superscript", code: "Code", emoji: "Emoji",
+      horizontalLine: "HorizontalLine", link: "Link", uploadImage: "ImageUpload",
+      insertImage: "ImageInsert", insertImageViaUrl: "ImageInsertViaUrl", mediaEmbed: "MediaEmbed",
+      insertTable: "Table", highlight: "Highlight", blockQuote: "BlockQuote",
+      codeBlock: "CodeBlock", alignment: "Alignment", bulletedList: "List",
+      numberedList: "List", todoList: "TodoList", outdent: "Indent", indent: "Indent"
+    };
+    const availablePlugins = new Set(plugins);
+    const toolbarItems = toolbar.filter(item =>
+      item === "|" || availablePlugins.has(allPlugins[toolbarPluginMap[item]])
+    );
     while (toolbarItems[0] === "|") toolbarItems.shift();
     while (toolbarItems[toolbarItems.length - 1] === "|") toolbarItems.pop();
     for (let i = toolbarItems.length - 1; i > 0; i--) {
@@ -151,26 +143,39 @@
 
     const config = {
       licenseKey: runtimeConfig.licenseKey,
-      placeholder: textarea.getAttribute("placeholder") || "Type or paste your content here…",
+      placeholder: textarea.getAttribute("placeholder") || "Type or paste your content here!",
       plugins,
       toolbar: { items: toolbarItems, shouldNotGroupWhenFull: false },
       alignment: { options: ["left", "center", "right", "justify"] },
       fontFamily: { supportAllValues: true },
       fontSize: { options: [10, 12, 14, "default", 18, 20, 22], supportAllValues: true },
       image: {
-        toolbar: ["toggleImageCaption", "imageTextAlternative", "|", "imageStyle:inline", "imageStyle:wrapText", "imageStyle:breakText"]
+        toolbar: [
+          "toggleImageCaption", "imageTextAlternative", "|",
+          "imageStyle:inline", "imageStyle:wrapText", "imageStyle:breakText"
+        ]
       },
       table: { contentToolbar: ["tableColumn", "tableRow", "mergeTableCells"] },
       exportPdf: {
         stylesheets: [CORE_CSS],
         fileName: "nebula-vault-document.pdf",
-        converterOptions: { format: "A4", margin_top: "15mm", margin_bottom: "15mm", margin_right: "15mm", margin_left: "15mm", page_orientation: "portrait" }
+        converterOptions: {
+          format: "Tabloid", margin_top: "20mm", margin_bottom: "20mm",
+          margin_right: "24mm", margin_left: "24mm", page_orientation: "portrait"
+        }
       },
       exportWord: {
         stylesheets: [CORE_CSS],
         fileName: "nebula-vault-document.docx",
-        converterOptions: { document: { orientation: "portrait", size: "A4", margins: { top: "15mm", bottom: "15mm", right: "15mm", left: "15mm" } } }
+        converterOptions: {
+          document: {
+            orientation: "portrait", size: "Tabloid",
+            margins: { top: "20mm", bottom: "20mm", right: "24mm", left: "24mm" }
+          }
+        }
       },
+      fontColor: { columns: 5, documentColors: 10 },
+      fontBackgroundColor: { columns: 5, documentColors: 10 },
       heading: {
         options: [
           { model: "paragraph", title: "Paragraph", class: "ck-heading_paragraph" },
@@ -182,18 +187,19 @@
           { model: "heading6", view: "h6", title: "Heading 6", class: "ck-heading_heading6" }
         ]
       },
-      menuBar: { isVisible: true },
+      htmlSupport: {
+        allow: [{ name: /^.*$/, styles: true, attributes: true, classes: true }]
+      },
       link: {
         addTargetToExternalLinks: true,
         defaultProtocol: "https://",
         decorators: {
           toggleDownloadable: {
-            mode: "manual",
-            label: "Downloadable",
-            attributes: { download: "file" }
+            mode: "manual", label: "Downloadable", attributes: { download: "file" }
           }
         }
       },
+      menuBar: { isVisible: true },
       autosave: {
         save: editor => { textarea.value = editor.getData(); return Promise.resolve(); },
         waitingTime: 1500
@@ -206,33 +212,6 @@
       textarea._nebulaCkeditor = editor;
       textarea.value = editor.getData();
       editor.model.document.on("change:data", () => { textarea.value = editor.getData(); });
-
-      // Fullscreen is implemented locally so it works without CKEditor's paid Fullscreen add-on.
-      const fullscreenButton = document.createElement("button");
-      fullscreenButton.type = "button";
-      fullscreenButton.className = "nv-ckeditor-fullscreen-button";
-      fullscreenButton.textContent = "⛶";
-      fullscreenButton.title = "Expand editor";
-      fullscreenButton.setAttribute("aria-label", "Expand editor");
-      fullscreenButton.setAttribute("aria-pressed", "false");
-      const toolbarItemsElement = editor.ui.view.toolbar.element.querySelector(".ck-toolbar__items");
-      if (toolbarItemsElement) toolbarItemsElement.appendChild(fullscreenButton);
-      const setFullscreen = enabled => {
-        host.classList.toggle("nv-ckeditor-fullscreen", enabled);
-        fullscreenButton.setAttribute("aria-pressed", String(enabled));
-        fullscreenButton.setAttribute("aria-label", enabled ? "Exit fullscreen" : "Expand editor");
-        fullscreenButton.title = enabled ? "Exit fullscreen (Esc)" : "Expand editor";
-        fullscreenButton.textContent = enabled ? "×" : "⛶";
-        document.body.classList.toggle("nv-ckeditor-fullscreen-active", enabled);
-        if (enabled) editor.editing.view.focus();
-      };
-      fullscreenButton.addEventListener("click", () => {
-        setFullscreen(!host.classList.contains("nv-ckeditor-fullscreen"));
-      });
-      const handleFullscreenEscape = event => {
-        if (event.key === "Escape" && host.classList.contains("nv-ckeditor-fullscreen")) setFullscreen(false);
-      };
-      document.addEventListener("keydown", handleFullscreenEscape);
       if (form) form.addEventListener("submit", () => {
         if (!editor.isReadOnly) textarea.value = editor.getData();
       }, true);
