@@ -74,16 +74,12 @@ def toggle_boolean_field(request):
 
 
 # Reusable per-object JSON tools for every model registered in Django Admin.
-import os
-from datetime import datetime
-from uuid import UUID
-
+from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseBadRequest
-from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib import messages
+from django.http import HttpResponse
+from django.shortcuts import redirect, render
 from django.utils.text import slugify
 
 
@@ -98,7 +94,10 @@ JSON_EXCLUDED_FIELDS = {
 
 
 def _admin_model(app_label, model_name):
-    model = apps.get_model(app_label, model_name, require_ready=True)
+    try:
+        model = apps.get_model(app_label, model_name, require_ready=True)
+    except LookupError:
+        return None, None
     if model is None or model not in admin.site._registry:
         return None, None
     return model, admin.site._registry[model]
@@ -173,6 +172,9 @@ def _import_admin_record(request, model, model_admin, record):
         except (ValidationError, ValueError, TypeError) as exc:
             raise ValueError("شناسه رکورد در فایل JSON معتبر نیست.") from exc
         obj = model_admin.get_queryset(request).filter(pk=typed_pk).first()
+        if obj is None and model._default_manager.filter(pk=typed_pk).exists():
+            # Do not treat an existing but admin-hidden object as a new record.
+            raise PermissionDenied("به این رکورد دسترسی ندارید.")
 
     if obj is not None:
         if not model_admin.has_change_permission(request, obj):
