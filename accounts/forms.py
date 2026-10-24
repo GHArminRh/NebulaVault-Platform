@@ -86,6 +86,8 @@ class RegisterForm(HumanCheckMixin, forms.ModelForm):
 
 
 class AccountProfileForm(forms.ModelForm):
+    username = forms.CharField(required=False, max_length=150, widget=forms.TextInput(attrs={"autocomplete": "username"}))
+
     class Meta:
         model = Customer
         fields = ("username", "first_name", "last_name", "email")
@@ -95,7 +97,7 @@ class AccountProfileForm(forms.ModelForm):
         }
 
     def clean_username(self):
-        username = self.cleaned_data["username"].strip()
+        username = self.cleaned_data["username"].strip() or self.instance.username
         if Customer.objects.filter(username__iexact=username).exclude(pk=self.instance.pk).exists():
             raise ValidationError("This username is already in use. Please choose another.")
         return username
