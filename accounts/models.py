@@ -9,7 +9,7 @@ class CustomerManager(BaseUserManager):
 
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("نشانی ایمیل مشتری الزامی است.")
+            raise ValueError("A customer email address is required.")
         email = self.normalize_email(email).strip().lower()
         customer = self.model(email=email, **extra_fields)
         customer.set_password(password)
@@ -17,7 +17,7 @@ class CustomerManager(BaseUserManager):
         return customer
 
     def create_superuser(self, email, password=None, **extra_fields):
-        raise ValueError("حساب مشتری نمی‌تواند دسترسی مدیرکل داشته باشد؛ برای حساب کارکنان از StaffUser استفاده کنید.")
+        raise ValueError("Customers cannot be superusers. Use StaffUser for staff accounts.")
 
 
 class Customer(AbstractBaseUser):
