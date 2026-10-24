@@ -37,7 +37,19 @@ Several existing apps in this branch do not yet have checked-in initial migratio
 python manage.py migrate --run-syncdb
 ```
 
-For a production release, the recommended next repository-maintenance task is to generate and review initial migrations for all currently unmigrated apps in one coordinated change, then deploy with the normal `python manage.py migrate` process. Do not generate a migration for `licensing` in isolation while its dependency apps remain unmigrated; Django must build a consistent migration graph across the related customer, catalog, subscription, and licensing models.
+Before a production release, generate initial migrations for all currently unmigrated apps together from the repository root:
+
+```powershell
+python manage.py makemigrations
+```
+
+Review and commit the generated migration files, then apply them with:
+
+```powershell
+python manage.py migrate
+```
+
+Do not generate a migration for `licensing` in isolation while its dependency apps remain unmigrated; Django must build a consistent migration graph across the related customer, catalog, subscription, and licensing models. The current execution environment does not have this repository checked out with its Python dependencies, so those generated migration files and a passing test run have not been verified here.
 
 ## Important limitation
 
