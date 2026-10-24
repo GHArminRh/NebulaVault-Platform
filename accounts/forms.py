@@ -9,30 +9,41 @@ from .models import Customer
 class HumanCheckMixin:
     human_check = forms.BooleanField(
         required=True,
-        error_messages={"required": "Please confirm that you are not a robot."},
-        label="I'm not a robot",
+        error_messages={"required": "لطفاً تأیید کنید که ربات نیستید."},
+        label="من ربات نیستم",
     )
 
 
 class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
     username = forms.EmailField(
-        label="Email address",
+        label="نشانی ایمیل",
         widget=forms.EmailInput(attrs={"autocomplete": "username", "autofocus": True}),
     )
 
     def clean(self):
-        # Keep Django's AuthenticationForm validation and authentication flow.
-        # The configured CustomerAuthenticationBackend handles customer emails.
-        return super().clean()
+        try:
+            # Keep Django's normal authentication flow for active customers.
+            return super().clean()
+        except ValidationError:
+            # Only reveal account state after both the password and human check pass.
+            email = (self.data.get(self.add_prefix("username")) or "").strip()
+            password = self.data.get(self.add_prefix("password")) or ""
+            customer = Customer.objects.filter(email__iexact=email).first()
+            if self.cleaned_data.get("human_check") and customer and password and customer.check_password(password):
+                if customer.is_banned:
+                    self.banned_account = True
+                elif not customer.is_active:
+                    self.inactive_email = customer.email
+            raise
 
 
 class RegisterForm(HumanCheckMixin, forms.ModelForm):
     password1 = forms.CharField(
-        label="Password",
+        label="رمز عبور",
         widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
     )
     password2 = forms.CharField(
-        label="Confirm password",
+        label="تکرار رمز عبور",
         widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
     )
 
@@ -47,14 +58,14 @@ class RegisterForm(HumanCheckMixin, forms.ModelForm):
         if separator:
             email = f"{local_part}@{domain.lower()}"
         if Customer.objects.filter(email__iexact=email).exists():
-            raise ValidationError("An account with this email already exists.")
+            raise ValidationError("حسابی با این نشانی ایمیل از قبل وجود دارد.")
         return email
 
     @staticmethod
     def _username_from_email(email):
         base = email.rsplit("@", 1)[0].strip()
         if not base:
-            raise ValidationError({"email": "The email address must have a username before @."})
+            raise ValidationError({"email": "نشانی ایمیل باید پیش از علامت @ نام کاربری داشته باشد."})
 
         # Preserve the email's local-part exactly when available. If it is
         # already taken, add a numeric suffix without asking the user to choose.
@@ -70,7 +81,7 @@ class RegisterForm(HumanCheckMixin, forms.ModelForm):
         cleaned = super().clean()
         p1, p2 = cleaned.get("password1"), cleaned.get("password2")
         if p1 and p2 and p1 != p2:
-            self.add_error("password2", "The two password fields didn't match.")
+            self.add_error("password2", "رمزهای عبور واردشده یکسان نیستند.")
         if p1:
             try:
                 validate_password(p1, self.instance)
@@ -89,11 +100,17 @@ class RegisterForm(HumanCheckMixin, forms.ModelForm):
 
 
 class AccountProfileForm(forms.ModelForm):
-    username = forms.CharField(required=False, max_length=150, widget=forms.TextInput(attrs={"autocomplete": "username"}))
+    username = forms.CharField(label="نام کاربری", required=False, max_length=150, widget=forms.TextInput(attrs={"autocomplete": "username"}))
 
     class Meta:
         model = Customer
         fields = ("username", "first_name", "last_name", "email")
+        labels = {
+            "username": "نام کاربری",
+            "first_name": "نام",
+            "last_name": "نام خانوادگی",
+            "email": "نشانی ایمیل",
+        }
         widgets = {
             "username": forms.TextInput(attrs={"autocomplete": "username"}),
             "email": forms.EmailInput(attrs={"autocomplete": "email"}),
@@ -102,13 +119,13 @@ class AccountProfileForm(forms.ModelForm):
     def clean_username(self):
         username = self.cleaned_data["username"].strip() or self.instance.username
         if Customer.objects.filter(username__iexact=username).exclude(pk=self.instance.pk).exists():
-            raise ValidationError("This username is already in use. Please choose another.")
+            raise ValidationError("این نام کاربری قبلاً استفاده شده است. نام دیگری انتخاب کنید.")
         return username
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
         if Customer.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
-            raise ValidationError("An account with this email already exists.")
+            raise ValidationError("حسابی با این نشانی ایمیل از قبل وجود دارد.")
         return email
 
 
@@ -130,6 +147,6 @@ class AccountPasswordResetForm(PasswordResetForm):
 
 class VerificationResendForm(forms.Form):
     email = forms.EmailField(
-        label="Email address",
+        label="نشانی ایمیل",
         widget=forms.EmailInput(attrs={"autocomplete": "email", "placeholder": "you@example.com"}),
     )

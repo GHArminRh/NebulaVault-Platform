@@ -83,8 +83,8 @@ class PaymentOrder(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        verbose_name = "Payment order"
-        verbose_name_plural = "Payment orders"
+        verbose_name = "payment order"
+        verbose_name_plural = "payment orders"
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(amount_minor_units__gt=0),
@@ -165,8 +165,8 @@ class PaymentAttempt(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        verbose_name = "Payment attempt"
-        verbose_name_plural = "Payment attempts"
+        verbose_name = "payment attempt"
+        verbose_name_plural = "payment attempts"
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(amount_minor_units__gt=0),

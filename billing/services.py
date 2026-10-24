@@ -51,27 +51,27 @@ def _is_provider_reference_integrity_error(exc):
 
 
 class OrderCreationError(Exception):
-    """The requested payment order cannot be created."""
+    """امکان ایجاد سفارش پرداخت درخواستی وجود ندارد."""
 
 
 class IdempotencyConflict(OrderCreationError):
-    """An idempotency key was reused for a different request."""
+    """کلید جلوگیری از ثبت تکراری برای درخواست دیگری استفاده شده است."""
 
 
 class PaymentAttemptCreationError(Exception):
-    """The requested payment attempt cannot be created."""
+    """امکان ایجاد تلاش پرداخت درخواستی وجود ندارد."""
 
 
 class PaymentAttemptIdempotencyConflict(PaymentAttemptCreationError):
-    """An idempotency key was reused for a different request."""
+    """کلید جلوگیری از ثبت تکراری برای درخواست دیگری استفاده شده است."""
 
 
 class PaymentFinalizationError(Exception):
-    """A verified payment cannot be finalized."""
+    """امکان نهایی‌کردن پرداخت تأییدشده وجود ندارد."""
 
 
 class PaymentReferenceConflict(PaymentFinalizationError):
-    """A provider payment reference was reused inconsistently."""
+    """شناسه پرداخت ارائه‌دهنده به‌صورت ناسازگار دوباره استفاده شده است."""
 
 
 def create_payment_order(
@@ -92,19 +92,19 @@ def create_payment_order(
     for the same initial purchase or subscription renewal.
     """
     if not user.pk or not user.is_active:
-        raise OrderCreationError("An active, saved user is required.")
+        raise OrderCreationError("برای ادامه، حساب کاربری فعال و ذخیره‌شده لازم است.")
 
     try:
         key = UUID(str(idempotency_key))
     except (TypeError, ValueError, AttributeError):
         raise OrderCreationError(
-            "A valid idempotency key is required."
+            "کلید معتبر برای جلوگیری از ثبت تکراری الزامی است."
         ) from None
 
     try:
         plan_pk = UUID(str(plan_id))
     except (TypeError, ValueError, AttributeError):
-        raise OrderCreationError("A valid plan is required.") from None
+        raise OrderCreationError("انتخاب طرح معتبر الزامی است.") from None
 
     subscription_pk = None
     if subscription_id is not None:
@@ -112,7 +112,7 @@ def create_payment_order(
             subscription_pk = UUID(str(subscription_id))
         except (TypeError, ValueError, AttributeError):
             raise OrderCreationError(
-                "A valid subscription is required."
+                "اشتراک معتبر الزامی است."
             ) from None
 
     subscription_was_explicit = subscription_pk is not None
@@ -131,7 +131,7 @@ def create_payment_order(
             )
             if locked_user is None:
                 raise OrderCreationError(
-                    "An active, saved user is required."
+                    "برای ادامه، حساب کاربری فعال و ذخیره‌شده لازم است."
                 )
 
             existing = (
@@ -144,7 +144,7 @@ def create_payment_order(
             if existing:
                 if existing.plan_id != plan_pk:
                     raise IdempotencyConflict(
-                        "This idempotency key was used for a different order."
+                        "این کلید جلوگیری از ثبت تکراری برای سفارش دیگری استفاده شده است."
                     )
 
                 if (
@@ -153,7 +153,7 @@ def create_payment_order(
                     != subscription_was_explicit
                 ):
                     raise IdempotencyConflict(
-                        "This idempotency key was used for a different request."
+                        "این کلید جلوگیری از ثبت تکراری برای درخواست دیگری استفاده شده است."
                     )
 
                 if (
@@ -161,7 +161,7 @@ def create_payment_order(
                     and existing.subscription_id != subscription_pk
                 ):
                     raise IdempotencyConflict(
-                        "This idempotency key was used for a different order."
+                        "این کلید جلوگیری از ثبت تکراری برای سفارش دیگری استفاده شده است."
                     )
 
                 return existing
@@ -180,12 +180,12 @@ def create_payment_order(
 
             if plan is None:
                 raise OrderCreationError(
-                    "The selected plan is unavailable."
+                    "طرح انتخاب‌شده در دسترس نیست."
                 )
 
             if plan.price_minor_units <= 0:
                 raise OrderCreationError(
-                    "The selected plan has an invalid price."
+                    "قیمت طرح انتخاب‌شده معتبر نیست."
                 )
 
             if subscription_pk is not None:
@@ -198,17 +198,17 @@ def create_payment_order(
 
                 if subscription is None:
                     raise OrderCreationError(
-                        "The subscription was not found for this user."
+                        "اشتراک مربوط به این کاربر پیدا نشد."
                     )
 
                 if subscription.kind != Subscription.Kind.PAID:
                     raise OrderCreationError(
-                        "Trial subscriptions cannot be renewed."
+                        "اشتراک آزمایشی قابل تمدید نیست."
                     )
 
                 if subscription.status == Subscription.Status.CANCELED:
                     raise OrderCreationError(
-                        "Canceled subscriptions cannot be renewed."
+                        "اشتراک لغوشده قابل تمدید نیست."
                     )
 
                 if (
@@ -216,7 +216,7 @@ def create_payment_order(
                     or subscription.plan_id != plan.pk
                 ):
                     raise OrderCreationError(
-                        "The plan does not match the subscription."
+                        "طرح انتخاب‌شده با اشتراک مطابقت ندارد."
                     )
             else:
                 candidates = list(
@@ -260,9 +260,9 @@ def create_payment_order(
 
             if pending_orders.exists():
                 raise OrderCreationError(
-                    "A pending payment order already exists for this purchase. "
-                    "Continue with the existing order or wait until it is "
-                    "canceled or expired."
+                    "برای این خرید از قبل سفارش پرداخت در انتظار وجود دارد. "
+                    "سفارش فعلی را ادامه دهید یا تا زمان "
+                    "لغو یا منقضی‌شدن آن صبر کنید."
                 )
 
             return PaymentOrder.objects.create(
@@ -285,7 +285,7 @@ def create_payment_order(
         if existing:
             if existing.plan_id != plan_pk:
                 raise IdempotencyConflict(
-                    "This idempotency key was used for a different order."
+                    "این کلید جلوگیری از ثبت تکراری برای سفارش دیگری استفاده شده است."
                 ) from None
 
             if (
@@ -294,7 +294,7 @@ def create_payment_order(
                 != subscription_was_explicit
             ):
                 raise IdempotencyConflict(
-                    "This idempotency key was used for a different request."
+                    "این کلید جلوگیری از ثبت تکراری برای درخواست دیگری استفاده شده است."
                 ) from None
 
             if (
@@ -302,7 +302,7 @@ def create_payment_order(
                 and existing.subscription_id != subscription_pk
             ):
                 raise IdempotencyConflict(
-                    "This idempotency key was used for a different order."
+                    "این کلید جلوگیری از ثبت تکراری برای سفارش دیگری استفاده شده است."
                 ) from None
 
             return existing
@@ -326,29 +326,29 @@ def create_payment_attempt(
     """
     if not user.pk or not user.is_active:
         raise PaymentAttemptCreationError(
-            "An active, saved user is required."
+            "برای ادامه، حساب کاربری فعال و ذخیره‌شده لازم است."
         )
 
     if not isinstance(provider, str):
-        raise PaymentAttemptCreationError("A valid provider is required.")
+        raise PaymentAttemptCreationError("ارائه‌دهنده پرداخت معتبر الزامی است.")
 
     provider = provider.strip().lower()
 
     if not provider or len(provider) > 40:
-        raise PaymentAttemptCreationError("A valid provider is required.")
+        raise PaymentAttemptCreationError("ارائه‌دهنده پرداخت معتبر الزامی است.")
 
     try:
         key = UUID(str(idempotency_key))
     except (TypeError, ValueError, AttributeError):
         raise PaymentAttemptCreationError(
-            "A valid idempotency key is required."
+            "کلید معتبر برای جلوگیری از ثبت تکراری الزامی است."
         ) from None
 
     try:
         order_pk = UUID(str(order_id))
     except (TypeError, ValueError, AttributeError):
         raise PaymentAttemptCreationError(
-            "A valid order is required."
+            "سفارش معتبر الزامی است."
         ) from None
 
     try:
@@ -362,7 +362,7 @@ def create_payment_attempt(
 
             if order is None:
                 raise PaymentAttemptCreationError(
-                    "The order was not found for this user."
+                    "سفارش مربوط به این کاربر پیدا نشد."
                 )
 
             existing = PaymentAttempt.objects.filter(
@@ -373,13 +373,13 @@ def create_payment_attempt(
             if existing:
                 if existing.provider != provider:
                     raise PaymentAttemptIdempotencyConflict(
-                        "This request key was used with another provider."
+                        "این کلید درخواست برای ارائه‌دهنده دیگری استفاده شده است."
                     )
                 return existing
 
             if order.status != PaymentOrder.Status.PENDING:
                 raise PaymentAttemptCreationError(
-                    "Only pending orders can start a payment attempt."
+                    "فقط برای سفارش‌های در انتظار می‌توان تلاش پرداخت ایجاد کرد."
                 )
 
             return PaymentAttempt.objects.create(
@@ -402,7 +402,7 @@ def create_payment_attempt(
         if existing:
             if existing.provider != provider:
                 raise PaymentAttemptIdempotencyConflict(
-                    "This request key was used with another provider."
+                    "این کلید درخواست برای ارائه‌دهنده دیگری استفاده شده است."
                 ) from None
             return existing
 
@@ -423,13 +423,13 @@ def finalize_payment(
     """
     if not isinstance(provider_reference, str):
         raise PaymentFinalizationError(
-            "A valid provider reference is required."
+            "شناسه معتبر پرداخت از طرف ارائه‌دهنده الزامی است."
         )
 
     provider_reference = provider_reference.strip()
     if not provider_reference or len(provider_reference) > 255:
         raise PaymentFinalizationError(
-            "A valid provider reference is required."
+            "شناسه معتبر پرداخت از طرف ارائه‌دهنده الزامی است."
         )
 
     if (
@@ -437,10 +437,10 @@ def finalize_payment(
         or not isinstance(confirmed_amount_minor_units, int)
         or confirmed_amount_minor_units <= 0
     ):
-        raise PaymentFinalizationError("The confirmed amount is invalid.")
+        raise PaymentFinalizationError("مبلغ تأییدشده معتبر نیست.")
 
     if not isinstance(confirmed_currency, str):
-        raise PaymentFinalizationError("The confirmed currency is invalid.")
+        raise PaymentFinalizationError("واحد پول تأییدشده معتبر نیست.")
 
     confirmed_currency = confirmed_currency.strip().upper()
     if (
@@ -448,13 +448,13 @@ def finalize_payment(
         or not confirmed_currency.isascii()
         or not confirmed_currency.isalpha()
     ):
-        raise PaymentFinalizationError("The confirmed currency is invalid.")
+        raise PaymentFinalizationError("واحد پول تأییدشده معتبر نیست.")
 
     try:
         attempt_pk = UUID(str(attempt_id))
     except (TypeError, ValueError, AttributeError):
         raise PaymentFinalizationError(
-            "A valid payment attempt is required."
+            "تلاش پرداخت معتبر الزامی است."
         ) from None
 
     order_id = (
@@ -466,7 +466,7 @@ def finalize_payment(
 
     if order_id is None:
         raise PaymentFinalizationError(
-            "The payment attempt was not found."
+            "تلاش پرداخت پیدا نشد."
         )
 
     try:
@@ -500,7 +500,7 @@ def finalize_payment(
                     return attempt
 
                 raise PaymentReferenceConflict(
-                    "This payment was already finalized with different details."
+                    "این پرداخت قبلاً با جزئیات متفاوت نهایی شده است."
                 )
 
             if attempt.status not in {
@@ -508,12 +508,12 @@ def finalize_payment(
                 PaymentAttempt.Status.PENDING,
             }:
                 raise PaymentFinalizationError(
-                    "This payment attempt cannot be finalized."
+                    "این تلاش پرداخت قابل نهایی‌کردن نیست."
                 )
 
             if order.status != PaymentOrder.Status.PENDING:
                 raise PaymentFinalizationError(
-                    "Only pending orders can be finalized."
+                    "فقط سفارش‌های در انتظار قابل نهایی‌کردن هستند."
                 )
 
             if (
@@ -521,7 +521,7 @@ def finalize_payment(
                 or attempt.currency != order.currency
             ):
                 raise PaymentFinalizationError(
-                    "The payment attempt does not match its order."
+                    "تلاش پرداخت با سفارش مربوط به آن مطابقت ندارد."
                 )
 
             if (
@@ -529,12 +529,12 @@ def finalize_payment(
                 or confirmed_currency != order.currency
             ):
                 raise PaymentFinalizationError(
-                    "The confirmed payment does not match the order."
+                    "پرداخت تأییدشده با سفارش مطابقت ندارد."
                 )
 
             if attempt.provider_reference not in (None, provider_reference):
                 raise PaymentReferenceConflict(
-                    "This attempt already has another provider reference."
+                    "این تلاش پرداخت از قبل شناسه دیگری از ارائه‌دهنده دارد."
                 )
 
             now = timezone.now()
@@ -563,17 +563,17 @@ def finalize_payment(
 
                 if subscription.user_id != order.user_id:
                     raise PaymentFinalizationError(
-                        "The subscription does not belong to this customer."
+                        "این اشتراک متعلق به این مشتری نیست."
                     )
 
                 if subscription.kind != Subscription.Kind.PAID:
                     raise PaymentFinalizationError(
-                        "Trial subscriptions cannot be renewed."
+                        "اشتراک آزمایشی قابل تمدید نیست."
                     )
 
                 if subscription.status == Subscription.Status.CANCELED:
                     raise PaymentFinalizationError(
-                        "Canceled subscriptions cannot be renewed."
+                        "اشتراک لغوشده قابل تمدید نیست."
                     )
 
                 if (
@@ -581,7 +581,7 @@ def finalize_payment(
                     or subscription.product_id != plan.product_id
                 ):
                     raise PaymentFinalizationError(
-                        "The order plan does not match the subscription."
+                        "طرح سفارش با اشتراک مطابقت ندارد."
                     )
 
                 previous_expiry = subscription.expires_at
@@ -630,15 +630,15 @@ def finalize_payment(
 
     except PaymentAttempt.DoesNotExist:
         raise PaymentFinalizationError(
-            "The payment attempt was not found."
+            "تلاش پرداخت پیدا نشد."
         ) from None
     except PaymentOrder.DoesNotExist:
         raise PaymentFinalizationError(
-            "The payment order was not found."
+            "سفارش پرداخت پیدا نشد."
         ) from None
     except Subscription.DoesNotExist:
         raise PaymentFinalizationError(
-            "The subscription was not found."
+            "اشتراک پیدا نشد."
         ) from None
     except IntegrityError as exc:
         # Do not mask unrelated check, foreign-key, or uniqueness failures.
@@ -654,7 +654,7 @@ def finalize_payment(
 
         if existing is not None and existing.pk != attempt_pk:
             raise PaymentReferenceConflict(
-                "This provider reference has already been used."
+                "این شناسه ارائه‌دهنده قبلاً استفاده شده است."
             ) from None
 
         # A concurrent retry may have completed this exact attempt.
@@ -679,7 +679,7 @@ def finalize_payment(
 
         if renewal_exists:
             raise PaymentReferenceConflict(
-                "This provider reference has already been used."
+                "این شناسه ارائه‌دهنده قبلاً استفاده شده است."
             ) from None
 
         # The unique violation was not attributable to an existing reference.

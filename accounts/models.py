@@ -27,6 +27,7 @@ class Customer(AbstractBaseUser):
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     is_active = models.BooleanField(default=True)
+    is_banned = models.BooleanField(default=False, help_text="Blocked by an administrator; the customer cannot sign in.")
     date_joined = models.DateTimeField(auto_now_add=True)
 
     objects = CustomerManager()
@@ -63,3 +64,39 @@ class Customer(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return False
+
+
+class AccountEmailLog(models.Model):
+    """Audit metadata for account verification and password recovery emails."""
+    class Purpose(models.TextChoices):
+        VERIFICATION = "verification", "Email verification"
+        PASSWORD_RESET = "password_reset", "Password recovery"
+
+    class Status(models.TextChoices):
+        SENT = "sent", "Sent"
+        FAILED = "failed", "Failed"
+        THROTTLED = "throttled", "Rate limited"
+        USED = "used", "Code used"
+        EXPIRED = "expired", "Expired"
+        SUPERSEDED = "superseded", "Replaced by a newer email"
+
+    customer = models.ForeignKey(Customer, null=True, blank=True, on_delete=models.SET_NULL, related_name="email_history")
+    recipient = models.EmailField(db_index=True)
+    purpose = models.CharField(max_length=24, choices=Purpose.choices, db_index=True)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.SENT, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    code_hash = models.CharField(max_length=64, blank=True, editable=False)
+    failed_attempts = models.PositiveSmallIntegerField(default=0)
+    consumed_at = models.DateTimeField(null=True, blank=True)
+    error_message = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "account email history"
+        verbose_name_plural = "account email history"
+
+    def __str__(self):
+        return f"{self.get_purpose_display()} to {self.recipient} ({self.get_status_display()})"

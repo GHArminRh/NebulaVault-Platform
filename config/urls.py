@@ -5,6 +5,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from accounts.forms import NebulaAuthenticationForm
+from accounts.views import CustomerLoginView
 from config.admin_toggle import export_admin_object_json, import_admin_json, toggle_boolean_field
 from portal.editor_uploads import editor_image_upload
 
@@ -17,7 +18,7 @@ urlpatterns = [
     path("api/licensing/", include("licensing.urls")),
     path(
         "accounts/login/",
-        auth_views.LoginView.as_view(
+        CustomerLoginView.as_view(
             template_name="portal/login.html",
             authentication_form=NebulaAuthenticationForm,
         ),

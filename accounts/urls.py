@@ -10,20 +10,15 @@ urlpatterns = [
     path("register/", views.register, name="register"),
     path("verify/<str:uidb64>/<str:token>/", views.verify_email, name="verify_email"),
     path("verify/resend/", views.resend_verification, name="resend_verification"),
+    path("verify/code/", views.verify_email_code, name="verify_email_code"),
     path("profile/", views.profile, name="profile"),
     path("password/change/", views.password_change, name="password_change"),
     path(
         "password/reset/",
-        auth_views.PasswordResetView.as_view(
-            template_name="accounts/password_reset_form.html",
-            email_template_name="registration/password_reset_email.txt",
-            html_email_template_name="registration/password_reset_email.html",
-            subject_template_name="registration/password_reset_subject.txt",
-            form_class=AccountPasswordResetForm,
-            success_url="/accounts/password/reset/done/",
-        ),
+        views.password_reset_request,
         name="password_reset",
     ),
+    path("password/reset/code/", views.password_reset_code, name="password_reset_code"),
     path(
         "password/reset/done/",
         auth_views.PasswordResetDoneView.as_view(
@@ -33,11 +28,7 @@ urlpatterns = [
     ),
     path(
         "password/reset/<uidb64>/<token>/",
-        auth_views.PasswordResetConfirmView.as_view(
-            template_name="accounts/password_reset_confirm.html",
-            form_class=AccountSetPasswordForm,
-            success_url="/accounts/password/reset/complete/",
-        ),
+        views.password_reset_confirm,
         name="password_reset_confirm",
     ),
     path(

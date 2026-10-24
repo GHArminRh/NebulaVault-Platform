@@ -12,7 +12,7 @@ from .rich_text import clean_rich_text
 
 currency_code_validator = RegexValidator(
     regex=r"^[A-Z]{3}$",
-    message="Use a three-letter uppercase currency code, such as USD.",
+    message="Enter a three-letter uppercase currency code, such as USD.",
 )
 
 sha256_validator = RegexValidator(
@@ -36,8 +36,8 @@ class Product(models.Model):
 
     class Meta:
         ordering = ["name"]
-        verbose_name = "Software product"
-        verbose_name_plural = "Software products"
+        verbose_name = "software product"
+        verbose_name_plural = "software products"
 
     def save(self, *args, **kwargs):
         base_slug = slugify(self.name) or "product"
@@ -70,7 +70,7 @@ class Release(models.Model):
     class Architecture(models.TextChoices):
         X64 = "x64", "x64"
         ARM64 = "arm64", "ARM64"
-        UNIVERSAL = "universal", "Universal"
+        UNIVERSAL = "universal", "All architectures"
 
     product = models.ForeignKey(
         Product,
@@ -99,8 +99,8 @@ class Release(models.Model):
 
     class Meta:
         ordering = ["-published_at", "version"]
-        verbose_name = "Software release"
-        verbose_name_plural = "Software releases"
+        verbose_name = "software release"
+        verbose_name_plural = "software releases"
         constraints = [
             models.UniqueConstraint(
                 fields=[
@@ -194,8 +194,8 @@ class Plan(models.Model):
 
     class Meta:
         ordering = ["sort_order", "price_minor_units", "name"]
-        verbose_name = "Paid subscription plan"
-        verbose_name_plural = "Paid subscription plans"
+        verbose_name = "subscription plan"
+        verbose_name_plural = "subscription plans"
         constraints = [
             models.UniqueConstraint(
                 fields=["product", "slug"],

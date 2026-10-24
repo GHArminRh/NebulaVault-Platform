@@ -158,14 +158,14 @@ def export_admin_object_json(request, app_label, model_name, object_id):
 
 def _import_admin_record(request, model, model_admin, record):
     if not isinstance(record, dict):
-        raise ValueError("هر رکورد JSON باید یک شیء باشد.")
+        raise ValueError("Each JSON record must be an object.")
     if record.get("format") != JSON_EXPORT_FORMAT or record.get("version") != JSON_EXPORT_VERSION:
-        raise ValueError("فرمت JSON پشتیبانی نمی‌شود یا نسخه فایل معتبر نیست.")
+        raise ValueError("The JSON format is unsupported or the file version is invalid.")
     if record.get("model") != model._meta.label_lower:
-        raise ValueError(f"فایل متعلق به مدل {model._meta.label_lower} نیست.")
+        raise ValueError(f"The file does not belong to model {model._meta.label_lower}.")
     data = record.get("fields")
     if not isinstance(data, dict):
-        raise ValueError("بخش fields در فایل JSON معتبر نیست.")
+        raise ValueError("The fields section in the JSON file is invalid.")
 
     pk_field = model._meta.pk
     raw_pk = record.get("pk")
@@ -174,24 +174,24 @@ def _import_admin_record(request, model, model_admin, record):
         try:
             typed_pk = pk_field.to_python(raw_pk)
         except (ValidationError, ValueError, TypeError) as exc:
-            raise ValueError("شناسه رکورد در فایل JSON معتبر نیست.") from exc
+            raise ValueError("The record ID in the JSON file is invalid.") from exc
         obj = model_admin.get_queryset(request).filter(pk=typed_pk).first()
         if obj is None and model._default_manager.filter(pk=typed_pk).exists():
             # Do not treat an existing but admin-hidden object as a new record.
-            raise PermissionDenied("به این رکورد دسترسی ندارید.")
+            raise PermissionDenied("You do not have access to this record.")
 
     if obj is not None:
         if not model_admin.has_change_permission(request, obj):
-            raise PermissionDenied("اجازه ویرایش این رکورد را ندارید.")
+            raise PermissionDenied("You do not have permission to edit this record.")
     elif not model_admin.has_add_permission(request):
-        raise PermissionDenied("اجازه افزودن رکورد جدید را ندارید.")
+        raise PermissionDenied("You do not have permission to add a new record.")
 
     allowed = {}
     model_fields = {field.name: field for field in model._meta.concrete_fields}
     for name, value in data.items():
         field = model_fields.get(name)
         if field is None:
-            raise ValueError(f"فیلد ناشناخته در فایل JSON: {name}")
+            raise ValueError(f"Unknown field in JSON file: {name}")
         if (
             field.primary_key or field.auto_created or not field.editable
             or field.get_internal_type() in {"FileField", "ImageField"}
@@ -203,7 +203,7 @@ def _import_admin_record(request, model, model_admin, record):
         try:
             allowed[field.attname] = field.to_python(value)
         except (ValidationError, ValueError, TypeError) as exc:
-            raise ValueError(f"مقدار فیلد {name} معتبر نیست.") from exc
+            raise ValueError(f"The value for field {name} is invalid.") from exc
 
     creating = obj is None
     if creating:
@@ -247,9 +247,9 @@ def import_admin_json(request, app_label, model_name):
     if request.method == "POST":
         uploads = request.FILES.getlist("json_files") or request.FILES.getlist("json_file")
         if not uploads:
-            messages.error(request, "یک یا چند فایل JSON انتخاب کنید.")
+            messages.error(request, "Select one or more JSON files.")
         elif sum(upload.size for upload in uploads) > JSON_IMPORT_MAX_BYTES:
-            messages.error(request, "مجموع اندازه فایل‌های JSON نباید از ۵ مگابایت بیشتر باشد.")
+            messages.error(request, "The combined size of JSON files must not exceed 5 MB.")
         else:
             try:
                 records = []
@@ -258,9 +258,9 @@ def import_admin_json(request, app_label, model_name):
                     parsed = json.loads(decoded)
                     records.extend(parsed if isinstance(parsed, list) else [parsed])
                     if len(records) > JSON_IMPORT_MAX_RECORDS:
-                        raise ValueError("حداکثر ۱۰۰۰ رکورد را می‌توان در یک عملیات وارد کرد.")
+                        raise ValueError("A maximum of 1,000 records can be imported in one operation.")
                 if not records:
-                    raise ValueError("فایل‌ها هیچ رکوردی ندارند.")
+                    raise ValueError("The files do not contain any records.")
                 created = updated = 0
                 with transaction.atomic():
                     for record in records:
@@ -271,11 +271,11 @@ def import_admin_json(request, app_label, model_name):
                             updated += 1
                 messages.success(
                     request,
-                    f"واردسازی انجام شد؛ {created} رکورد جدید و {updated} رکورد به‌روزرسانی شد.",
+                    f"Import completed: {created} new records created and {updated} records updated.",
                 )
                 return redirect(f"/admin/{opts.app_label}/{opts.model_name}/")
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError, ValidationError, IntegrityError) as exc:
-                messages.error(request, f"واردسازی انجام نشد: {exc}")
+                messages.error(request, f"Import failed: {exc}")
             except PermissionDenied:
                 raise
     return render(request, "admin/json_import.html", context)

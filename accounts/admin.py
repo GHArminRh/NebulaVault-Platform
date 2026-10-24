@@ -2,7 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 
-from .models import Customer
+from .models import AccountEmailLog, Customer
 
 
 class CustomerAdminForm(forms.ModelForm):
@@ -61,11 +61,35 @@ class CustomerAdminForm(forms.ModelForm):
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
     form = CustomerAdminForm
-    list_display = ("email", "username", "first_name", "last_name", "is_active", "date_joined")
-    list_filter = ("is_active", "date_joined")
+    list_display = ("email", "username", "first_name", "last_name", "is_active", "is_banned", "date_joined")
+    list_filter = ("is_active", "is_banned", "date_joined")
     search_fields = ("email", "username", "first_name", "last_name")
-    readonly_fields = ("last_login", "date_joined")
     ordering = ("-date_joined",)
+
+    # Customer profile data is private and cannot be edited by staff. Only the
+    # account activation and ban flags remain writable on existing customers.
+    def get_readonly_fields(self, request, obj=None):
+        if obj is None:
+            return tuple(field.name for field in self.model._meta.fields)
+        return tuple(
+            field.name for field in self.model._meta.fields
+            if field.name not in {"is_active", "is_banned"}
+        )
+
+    def has_add_permission(self, request):
+        # Customer accounts are created through the public registration flow.
+        return False
 
     class Media:
         js = ("accounts/admin_customer_username.js",)
+
+
+@admin.register(AccountEmailLog)
+class AccountEmailLogAdmin(admin.ModelAdmin):
+    list_display = ("created_at", "recipient", "purpose", "status", "sent_at", "expires_at", "failed_attempts")
+    list_filter = ("purpose", "status", "created_at")
+    search_fields = ("recipient", "customer__email", "customer__username")
+    date_hierarchy = "created_at"
+    ordering = ("-created_at",)
+    readonly_fields = tuple(field.name for field in AccountEmailLog._meta.fields if field.name != "code_hash")
+    exclude = ("code_hash",)

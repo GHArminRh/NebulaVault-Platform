@@ -1,12 +1,12 @@
 {% extends 'portal/base.html' %}
 {% load money %}
-{% block title %}داشبورد — Nebula Vault{% endblock %}
+{% block title %}پیشخوان — نبیولا والت{% endblock %}
 {% block content %}
 <section class="dashboard page-wrap nv-dashboard">
   <div class="dashboard-welcome nv-welcome">
     <div>
       <div class="eyebrow"><i class="pulse"></i> فضای شخصی شما</div>
-      <h1>خوش برگشتی، <span class="gradient-text">{{ user.first_name|default:user.username }}.</span></h1>
+      <h1>خوش آمدید، <span class="gradient-text">{{ user.first_name|default:user.username }}.</span></h1>
       <p>همه‌چیز مرتب و امن؛ از اشتراک‌ها تا تنظیمات حساب کاربری.</p>
     </div>
     <a class="button button-primary" href="{% url 'portal:products' %}">کاوش محصولات <span aria-hidden="true">↗</span></a>
@@ -14,29 +14,29 @@
 
   <div class="nv-dashboard-banner">
     <div class="nv-banner-orb" aria-hidden="true"><span>✦</span></div>
-    <div class="nv-banner-copy"><span class="nv-kicker">NEBULA VAULT · YOUR SPACE</span><h2>کنترل بیشتر، با خیال آسوده‌تر.</h2><p>اطلاعات حسابت را به‌روز نگه دار و دسترسی‌هایت را از یک نقطه مدیریت کن.</p></div>
-    <div class="nv-banner-version">SECURE<br><strong>SPACE</strong></div>
+    <div class="nv-banner-copy"><span class="nv-kicker">نبیولا والت · فضای شما</span><h2>کنترل بیشتر، با خیال آسوده‌تر.</h2><p>اطلاعات حسابت را به‌روز نگه دار و دسترسی‌هایت را از یک نقطه مدیریت کن.</p></div>
+    <div class="nv-banner-version"><strong>فضای امن</strong></div>
   </div>
 
   <div class="stats-grid nv-stats">
     <article class="stat-card"><span class="stat-icon">◈</span><span class="stat-label">دسترسی‌های فعال</span><strong>{{ active_count }}</strong><small>اشتراک‌های معتبر شما</small></article>
     <article class="stat-card"><span class="stat-icon">◷</span><span class="stat-label">سفارش‌های در انتظار</span><strong>{{ pending_count }}</strong><small>سفارش‌هایی که هنوز نهایی نشده‌اند</small></article>
-    <article class="stat-card"><span class="stat-icon">✳</span><span class="stat-label">وضعیت حساب</span><strong class="stat-word">آماده</strong><small>ورود با نام کاربری {{ user.username }}</small></article>
+    <article class="stat-card"><span class="stat-icon">✳</span><span class="stat-label">وضعیت حساب</span><strong class="stat-word">آماده</strong><small>نام کاربری: {{ user.username }}</small></article>
   </div>
 
   <div class="dashboard-columns nv-main-columns">
     <section class="panel nv-panel">
       <div class="panel-heading"><div><h2>اشتراک‌های شما</h2><p>وضعیت دسترسی و تاریخ انقضا</p></div><a class="text-link" href="{% url 'portal:subscriptions' %}">مشاهده همه ↗</a></div>
-      {% if subscriptions %}<div class="table-list">{% for item in subscriptions %}<div class="table-row"><div class="table-symbol">◈</div><div class="table-main"><strong>{{ item.product.name }}</strong><small>{% if item.plan %}{{ item.plan.name }}{% else %}دوره آزمایشی ۷ روزه{% endif %} · انقضا {{ item.expires_at|date:'Y/m/d' }}</small></div><span class="status-pill status-{{ item.status }}">{{ item.get_status_display }}</span></div>{% endfor %}</div>{% else %}<div class="panel-empty"><span>◈</span><strong>هنوز اشتراکی نداری</strong><p>یک محصول انتخاب کن تا دسترسی‌هایت را اینجا ببینی.</p><a class="text-link" href="{% url 'portal:products' %}">دیدن محصولات ↗</a></div>{% endif %}
+      {% if subscriptions %}<div class="table-list">{% for item in subscriptions %}<div class="table-row"><div class="table-symbol">◈</div><div class="table-main"><strong>{{ item.product.name }}</strong><small>{% if item.plan %}{{ item.plan.name }}{% else %}دوره آزمایشی ۷ روزه{% endif %} · انقضا {{ item.expires_at|date:'Y/m/d' }}</small></div><span class="status-pill status-{{ item.status }}">{% if item.status == "trialing" %}دوره آزمایشی فعال{% elif item.status == "active" %}فعال{% elif item.status == "past_due" %}سررسید گذشته{% elif item.status == "expired" %}منقضی‌شده{% elif item.status == "canceled" %}لغوشده{% else %}{{ item.status }}{% endif %}</span></div>{% endfor %}</div>{% else %}<div class="panel-empty"><span>◈</span><strong>هنوز اشتراکی نداری</strong><p>یک محصول انتخاب کن تا دسترسی‌هایت را اینجا ببینی.</p><a class="text-link" href="{% url 'portal:products' %}">دیدن محصولات ↗</a></div>{% endif %}
     </section>
     <section class="panel nv-panel">
       <div class="panel-heading"><div><h2>سفارش‌های اخیر</h2><p>تاریخچه خریدهای شما</p></div><a class="text-link" href="{% url 'portal:orders' %}">مشاهده همه ↗</a></div>
-      {% if orders %}<div class="table-list">{% for order in orders %}<div class="table-row"><div class="table-symbol order-symbol">↗</div><div class="table-main"><strong>{{ order.plan.product.name }}</strong><small>{{ order.order_number|truncatechars:18 }} · {{ order.created_at|date:'Y/m/d' }}</small></div><div class="row-end"><span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span><small class="money">{{ order.amount_minor_units|money }} {{ order.currency }}</small></div></div>{% endfor %}</div>{% else %}<div class="panel-empty"><span>◷</span><strong>هنوز سفارشی ثبت نشده</strong><p>سفارش‌ها پس از ثبت در این بخش نمایش داده می‌شوند.</p><a class="text-link" href="{% url 'portal:pricing' %}">مشاهده پلن‌ها ↗</a></div>{% endif %}
+      {% if orders %}<div class="table-list">{% for order in orders %}<div class="table-row"><div class="table-symbol order-symbol">↗</div><div class="table-main"><strong>{{ order.plan.product.name }}</strong><small>{{ order.order_number|truncatechars:18 }} · {{ order.created_at|date:'Y/m/d' }}</small></div><div class="row-end"><span class="status-pill status-{{ order.status }}">{% if order.status == "pending" %}در انتظار{% elif order.status == "paid" %}پرداخت‌شده{% elif order.status == "canceled" %}لغوشده{% elif order.status == "expired" %}منقضی‌شده{% elif order.status == "refunded" %}بازپرداخت‌شده{% else %}{{ order.status }}{% endif %}</span><small class="money">{{ order.amount_minor_units|money }} {{ order.currency }}</small></div></div>{% endfor %}</div>{% else %}<div class="panel-empty"><span>◷</span><strong>هنوز سفارشی ثبت نشده</strong><p>سفارش‌ها پس از ثبت در این بخش نمایش داده می‌شوند.</p><a class="text-link" href="{% url 'portal:pricing' %}">مشاهده طرح‌ها ↗</a></div>{% endif %}
     </section>
   </div>
 
   <section class="nv-account-section" id="account-settings">
-    <div class="nv-section-heading"><div><span class="nv-kicker">ACCOUNT CONTROL</span><h2>تنظیمات حساب</h2><p>مشخصات و امنیت حسابت را در هر زمان مدیریت کن.</p></div><div class="nv-secure-mark">◇ <span>حساب امن</span></div></div>
+    <div class="nv-section-heading"><div><span class="nv-kicker">مدیریت حساب</span><h2>تنظیمات حساب</h2><p>مشخصات و امنیت حسابت را در هر زمان مدیریت کن.</p></div><div class="nv-secure-mark">◇ <span>حساب امن</span></div></div>
     <div class="nv-settings-grid">
       <article class="panel nv-settings-card">
         <div class="nv-settings-title"><span class="nv-settings-icon">♙</span><div><h3>اطلاعات شخصی</h3><p>نام و نام خانوادگی و ایمیل حسابت را ثبت یا ویرایش کن.</p></div></div>

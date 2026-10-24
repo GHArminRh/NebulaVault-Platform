@@ -1,0 +1,76 @@
+{% extends 'portal/base.html' %}
+{% block title %}کد حساب — نبیولا والت{% endblock %}
+{% block content %}
+<section class="auth-layout page-wrap auth-layout-premium">
+  <div class="auth-art auth-art-premium">
+    <div class="eyebrow">دسترسی امن به حساب</div>
+    <h2>یک کد،<br><span class="gradient-text">یک گام.</span></h2>
+    <p>کدها پس از مدتی منقضی می‌شوند و فقط یک‌بار قابل استفاده‌اند.</p>
+  </div>
+  <div class="auth-card auth-card-premium">
+    <div class="eyebrow">{% if purpose == "verification" %}تأیید ایمیل{% else %}بازیابی رمز عبور{% endif %}</div>
+    <h1>{% if purpose == "verification" %}تأیید نشانی ایمیل{% else %}بازنشانی رمز عبور{% endif %}</h1>
+    <p class="auth-subtitle">{% if purpose == "verification" %}نشانی ایمیل و کد شش‌رقمی پیام تأیید را وارد کنید. همچنین می‌توانید از پیوند موجود در ایمیل استفاده کنید.{% else %}نشانی ایمیل و کد شش‌رقمی پیام بازیابی را وارد کنید.{% endif %}</p>
+    {% if error %}<p class="field-error" role="alert">{{ error }}</p>{% endif %}
+    <form method="post" action="{% if purpose == 'verification' %}{% url 'accounts:verify_email_code' %}{% else %}{% url 'accounts:password_reset_code' %}{% endif %}" class="form-stack auth-form-premium">
+      {% csrf_token %}
+      <div class="email-field-heading">
+        <label for="id_email">نشانی ایمیل</label>
+        {% if purpose != "verification" %}<a class="auth-inline-link" href="{% url 'accounts:password_reset' %}">ویرایش</a>{% endif %}
+      </div>
+      <input id="id_email" type="email" name="email" value="{{ email|default:'' }}" readonly aria-readonly="true" required autocomplete="email">
+      <label for="id_code">کد شش‌رقمی</label>
+      <input id="id_code" type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" required autocomplete="one-time-code">
+      <button class="button button-primary button-full button-large" type="submit">ادامه ↗</button>
+    </form>
+    {% if purpose == "verification" %}
+      <form method="post" action="{% url 'accounts:resend_verification' %}" class="form-stack auth-form-premium resend-form" data-resend-form data-email="{{ email|escape }}">
+        {% csrf_token %}
+        <input type="hidden" name="email" value="{{ email|default:'' }}">
+        <button class="button button-quiet button-full" type="submit" data-resend-button {% if not email %}disabled{% endif %}>ارسال دوباره ایمیل تأیید <span data-countdown></span></button>
+        {% if not email %}<p class="auth-switch">ابتدا نشانی ایمیل خود را وارد کنید و سپس درخواست ارسال دوباره بدهید.</p>{% endif %}
+      </form>
+    {% else %}
+      <form method="post" action="{% url 'accounts:password_reset' %}" class="form-stack auth-form-premium resend-form" data-resend-form data-email="{{ email|escape }}">
+        {% csrf_token %}
+        <input type="hidden" name="email" value="{{ email|default:'' }}">
+        <button class="button button-quiet button-full" type="submit" data-resend-button {% if not email %}disabled{% endif %}>ارسال دوباره ایمیل بازیابی <span data-countdown></span></button>
+      </form>
+    {% endif %}
+  </div>
+</section>
+{% if email and purpose == "verification" or email and purpose == "password_reset" %}
+<script>
+(function () {
+  const form = document.querySelector("[data-resend-form]");
+  const button = form && form.querySelector("[data-resend-button]");
+  const label = form && form.querySelector("[data-countdown]");
+  if (!button || !label) return;
+  const purpose = "{{ purpose|escapejs }}";
+  const key = "nv-" + purpose + "-resend:" + (form.dataset.email || "").toLowerCase();
+  let until = 0;
+  try {
+    until = Number(sessionStorage.getItem(key) || 0);
+    if (!until) {
+      until = Date.now() + 30000;
+      sessionStorage.setItem(key, String(until));
+    }
+  } catch (_) {
+    until = Date.now() + 30000;
+  }
+  function render() {
+    const remaining = Math.max(0, Math.ceil((until - Date.now()) / 1000));
+    button.disabled = remaining > 0;
+    label.textContent = remaining > 0 ? "(" + remaining + " ثانیه)" : "";
+    if (remaining > 0) window.setTimeout(render, 250);
+  }
+  form.addEventListener("submit", function () {
+    until = Date.now() + 30000;
+    try { sessionStorage.setItem(key, String(until)); } catch (_) {}
+    render();
+  });
+  render();
+})();
+</script>
+{% endif %}
+{% endblock %}

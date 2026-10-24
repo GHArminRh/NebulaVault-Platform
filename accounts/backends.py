@@ -19,7 +19,7 @@ class CustomerAuthenticationBackend(BaseBackend):
             make_password(password)
             return None
 
-        if customer.check_password(password) and customer.is_active:
+        if customer.check_password(password) and customer.is_active and not customer.is_banned:
             return customer
         return None
 
@@ -27,6 +27,6 @@ class CustomerAuthenticationBackend(BaseBackend):
         # Customer primary keys are UUIDs. A malformed or legacy session ID must
         # be treated as an anonymous session, not allowed to raise a 500 error.
         try:
-            return Customer.objects.get(pk=user_id, is_active=True)
+            return Customer.objects.get(pk=user_id, is_active=True, is_banned=False)
         except (Customer.DoesNotExist, ValidationError, ValueError, TypeError):
             return None

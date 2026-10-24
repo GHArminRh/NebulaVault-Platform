@@ -266,3 +266,59 @@ class AccountBackendTests(TestCase):
 
         self.assertNotIn(DjangoAuthGroup, admin.site._registry)
         self.assertIn(Group, admin.site._registry)
+
+
+    def test_verification_code_activates_account(self):
+        self.user.is_active = False
+        self.user.save(update_fields=["is_active"])
+        response = self.client.post(
+            reverse("accounts:resend_verification"), {"email": self.user.email}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        import re
+        code_match = re.search(r"(?m)^([0-9]{6})$", mail.outbox[0].body)
+        self.assertIsNotNone(code_match)
+        response = self.client.post(
+            reverse("accounts:verify_email_code"),
+            {"email": self.user.email, "code": code_match.group(1)},
+        )
+        self.assertRedirects(response, reverse("login"))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_active)
+
+    def test_password_reset_email_contains_link_and_six_digit_code(self):
+        response = self.client.post(
+            reverse("accounts:password_reset"), {"email": self.user.email}
+        )
+        self.assertRedirects(response, reverse("accounts:password_reset_done"))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("accounts/password/reset/", mail.outbox[0].body)
+        import re
+        self.assertRegex(mail.outbox[0].body, r"(?m)^([0-9]{6})$")
+
+    def test_password_reset_code_generates_customer_reset_link(self):
+        from accounts.models import AccountEmailLog
+        from accounts.views import _code_digest
+        from django.utils import timezone
+        from datetime import timedelta
+        entry = AccountEmailLog.objects.create(
+            customer=self.user, recipient=self.user.email,
+            purpose=AccountEmailLog.Purpose.PASSWORD_RESET,
+            status=AccountEmailLog.Status.SENT,
+            sent_at=timezone.now(), expires_at=timezone.now() + timedelta(minutes=15),
+            code_hash=_code_digest("482916"),
+        )
+        response = self.client.post(
+            reverse("accounts:password_reset_code"),
+            {"email": self.user.email, "code": "482916"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/password/reset/", response.url)
+        entry.refresh_from_db()
+        self.assertEqual(entry.status, AccountEmailLog.Status.USED)
+
+    def test_email_history_is_registered_in_admin(self):
+        from django.contrib import admin
+        from accounts.models import AccountEmailLog
+        self.assertIn(AccountEmailLog, admin.site._registry)
