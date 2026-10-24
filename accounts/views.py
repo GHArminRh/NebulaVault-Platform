@@ -234,8 +234,9 @@ def verify_email_code(request):
 def password_reset_request(request):
     if request.user.is_authenticated:
         return redirect("portal:dashboard")
-    if request.method == "POST":
-        email = request.POST.get("email", "").strip()
+    form = AccountPasswordResetForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        email = form.cleaned_data["email"].strip()
         throttle_key = "account-password-reset:" + hashlib.sha256(f"{email.casefold()}|{request.META.get('REMOTE_ADDR', '')}".encode()).hexdigest()
         cache.add(throttle_key, 0, timeout=3600)
         try:
@@ -243,42 +244,41 @@ def password_reset_request(request):
         except ValueError:
             cache.set(throttle_key, 1, timeout=3600)
             requests_this_hour = 1
-        if requests_this_hour > 5:
-            return redirect("accounts:password_reset_done")
-        customer = Customer.objects.filter(email__iexact=email, is_active=True).first()
-        if customer and customer.has_usable_password():
-            code = _new_email_code()
-            _supersede_codes(customer, AccountEmailLog.Purpose.PASSWORD_RESET)
-            log = AccountEmailLog.objects.create(
-                customer=customer, recipient=customer.email, purpose=AccountEmailLog.Purpose.PASSWORD_RESET,
-                status=AccountEmailLog.Status.FAILED, expires_at=timezone.now() + timedelta(minutes=15),
-                ip_address=request.META.get("REMOTE_ADDR") or None, code_hash=_code_digest(code),
-            )
-            uid = urlsafe_base64_encode(force_bytes(customer.pk))
-            token = PasswordResetTokenGenerator().make_token(customer)
-            reset_url = request.build_absolute_uri(reverse(
-                "accounts:password_reset_confirm", kwargs={"uidb64": uid, "token": token}
-            ))
-            context = {"user": customer, "email": customer.email, "reset_url": reset_url,
-                       "protocol": request.scheme, "domain": request.get_host(),
-                       "password_reset_code": code, "valid_minutes": 15}
-            try:
-                send_mail(
-                    "Reset your Nebula Vault password",
-                    render_to_string("registration/password_reset_email.txt", context),
-                    settings.DEFAULT_FROM_EMAIL, [customer.email],
-                    html_message=render_to_string("registration/password_reset_email.html", context),
-                    fail_silently=False,
+        if requests_this_hour <= 5:
+            customer = Customer.objects.filter(email__iexact=email, is_active=True).first()
+            if customer and customer.has_usable_password():
+                code = _new_email_code()
+                _supersede_codes(customer, AccountEmailLog.Purpose.PASSWORD_RESET)
+                log = AccountEmailLog.objects.create(
+                    customer=customer, recipient=customer.email, purpose=AccountEmailLog.Purpose.PASSWORD_RESET,
+                    status=AccountEmailLog.Status.FAILED, expires_at=timezone.now() + timedelta(minutes=15),
+                    ip_address=request.META.get("REMOTE_ADDR") or None, code_hash=_code_digest(code),
                 )
-                log.status = AccountEmailLog.Status.SENT
-                log.sent_at = timezone.now()
-                log.save(update_fields=["status", "sent_at"])
-            except Exception as exc:
-                log.error_message = str(exc)[:1000]
-                log.save(update_fields=["error_message"])
-                logger.exception("Could not send password recovery email for customer %s", customer.pk)
+                uid = urlsafe_base64_encode(force_bytes(customer.pk))
+                token = PasswordResetTokenGenerator().make_token(customer)
+                reset_url = request.build_absolute_uri(reverse(
+                    "accounts:password_reset_confirm", kwargs={"uidb64": uid, "token": token}
+                ))
+                context = {"user": customer, "email": customer.email, "reset_url": reset_url,
+                           "protocol": request.scheme, "domain": request.get_host(),
+                           "password_reset_code": code, "valid_minutes": 15}
+                try:
+                    send_mail(
+                        "Reset your Nebula Vault password",
+                        render_to_string("registration/password_reset_email.txt", context),
+                        settings.DEFAULT_FROM_EMAIL, [customer.email],
+                        html_message=render_to_string("registration/password_reset_email.html", context),
+                        fail_silently=False,
+                    )
+                    log.status = AccountEmailLog.Status.SENT
+                    log.sent_at = timezone.now()
+                    log.save(update_fields=["status", "sent_at"])
+                except Exception as exc:
+                    log.error_message = str(exc)[:1000]
+                    log.save(update_fields=["error_message"])
+                    logger.exception("Could not send password recovery email for customer %s", customer.pk)
         return redirect("accounts:password_reset_done")
-    return render(request, "accounts/password_reset_form.html")
+    return render(request, "accounts/password_reset_form.html", {"form": form})
 
 
 @require_http_methods(["GET", "POST"])
