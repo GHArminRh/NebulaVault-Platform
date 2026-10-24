@@ -381,10 +381,23 @@ def password_reset_confirm(request, uidb64, token):
 
 
 class CustomerLoginView(LoginView):
-    """Route customers with valid credentials but unverified email to verification."""
+    """Route inactive and banned customers accurately without masking bad credentials."""
 
     def form_invalid(self, form):
-        if getattr(form, "banned_account", False):
+        # Resolve the account state here as well as in the form. This keeps the
+        # verification route reliable when AuthenticationForm rejects an inactive
+        # customer before Django assigns form.get_user().
+        email = (self.request.POST.get("username") or "").strip()
+        password = self.request.POST.get("password") or ""
+        human_check_passed = self.request.POST.get("human_check") in {"on", "true", "1"}
+
+        customer = None
+        if email and password and human_check_passed:
+            candidate = Customer.objects.filter(email__iexact=email).first()
+            if candidate and candidate.check_password(password):
+                customer = candidate
+
+        if customer and customer.is_banned:
             messages.error(self.request, "You have been banned by an administrator.")
             return render(
                 self.request,
@@ -392,7 +405,11 @@ class CustomerLoginView(LoginView):
                 self.get_context_data(form=form, banned_account=True),
                 status=200,
             )
-        inactive_email = getattr(form, "inactive_email", None)
+
+        inactive_email = (
+            customer.email if customer and not customer.is_active
+            else getattr(form, "inactive_email", None)
+        )
         if inactive_email:
             messages.info(
                 self.request,
@@ -403,4 +420,5 @@ class CustomerLoginView(LoginView):
                 "accounts/email_code_form.html",
                 {"purpose": "verification", "email": inactive_email},
             )
+
         return super().form_invalid(form)
