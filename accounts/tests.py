@@ -70,6 +70,54 @@ class AccountBackendTests(TestCase):
         self.assertRedirects(response, reverse("accounts:password_reset_done"))
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("accounts/password/reset/", mail.outbox[0].body)
+    def test_registration_generates_username_from_email_local_part(self):
+        response = self.client.post(
+            reverse("accounts:register"),
+            {
+                "email": "GArminRh@gmail.com",
+                "password1": "Secure-registration-password-2026!",
+                "password2": "Secure-registration-password-2026!",
+                "human_check": "on",
+            },
+        )
+        self.assertRedirects(response, reverse("portal:dashboard"))
+        customer = Customer.objects.get(email__iexact="GArminRh@gmail.com")
+        self.assertEqual(customer.username, "GArminRh")
+
+    def test_registration_adds_suffix_when_generated_username_is_taken(self):
+        Customer.objects.create_user(
+            username="GArminRh",
+            email="existing@example.com",
+            password="Secure-existing-password-2026!",
+        )
+        response = self.client.post(
+            reverse("accounts:register"),
+            {
+                "email": "GArminRh@gmail.com",
+                "password1": "Secure-registration-password-2026!",
+                "password2": "Secure-registration-password-2026!",
+                "human_check": "on",
+            },
+        )
+        self.assertRedirects(response, reverse("portal:dashboard"))
+        customer = Customer.objects.get(email__iexact="GArminRh@gmail.com")
+        self.assertEqual(customer.username, "GArminRh2")
+
+    def test_profile_allows_customer_to_change_username(self):
+        self.client.force_login(self.user, backend="accounts.backends.CustomerAuthenticationBackend")
+        response = self.client.post(
+            reverse("accounts:profile"),
+            {
+                "username": "new_account_name",
+                "first_name": "Test",
+                "last_name": "User",
+                "email": self.user.email,
+            },
+        )
+        self.assertRedirects(response, reverse("accounts:profile"))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, "new_account_name")
+
     def test_admin_login_clears_existing_customer_uuid_session(self):
         from django.contrib.auth import get_user_model
 
