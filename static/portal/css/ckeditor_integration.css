@@ -19,3 +19,8 @@
 .nv-ckeditor-host.nv-ckeditor-fullscreen .ck-editor__editable{height:100%;min-height:0;max-height:none!important;overflow:auto}
 body.nv-ckeditor-fullscreen-active{overflow:hidden!important}
 @media(max-width:800px){.nv-ckeditor-host.nv-ckeditor-fullscreen{padding:6px!important}}
+
+/* Visual styles offered by the Free-plan Styles dropdown. */
+.nv-ckeditor-host .ck-content .nv-lead{font-size:1.15em;font-weight:500;line-height:1.65}
+.nv-ckeditor-host .ck-content .nv-highlight{background:#fff1a8;border-radius:2px}
+.nv-ckeditor-host .ck-content .nv-small{font-size:.85em}
