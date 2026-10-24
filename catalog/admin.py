@@ -1,6 +1,7 @@
 
 from django.contrib import admin
 
+from .forms import ProductAdminForm, ReleaseAdminForm
 from .models import Plan, Product, Release
 
 
@@ -13,6 +14,7 @@ class ReleaseInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    form = ProductAdminForm
     list_display = ("name", "slug", "is_active", "created_at")
     list_filter = ("is_active",)
     search_fields = ("name", "slug")
@@ -22,6 +24,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Release)
 class ReleaseAdmin(admin.ModelAdmin):
+    form = ReleaseAdminForm
     list_display = (
         "product",
         "version",
