@@ -33,9 +33,9 @@ This branch adds a server-rendered Django frontend for the existing catalog, sub
 
 ## Rich-text editor
 
-- The editor uses CKEditor 5 version 48.5.1 from the official CDN and the **Free commercial plan**. The production license key is read from `CKEDITOR_LICENSE_KEY`; do not commit account-specific values to Git.
+- The editor uses CKEditor 5 version 48.5.1 from the official CDN and the **Free commercial plan**. For this private repository, the supplied production license key is bundled as a fallback in `static/portal/js/ckeditor_integration.js`, so a fresh ZIP download works without creating a local `.env` entry. The browser necessarily receives this key as part of CKEditor client configuration; do not make this repository public unless you intend to expose it.
 - The Free plan is cloud-hosted, includes up to 1,000 editor loads per month, and includes 5 Word exports and 5 PDF exports per month. It displays the CKEditor watermark. Usage beyond the included allowance may cause read-only behavior when no payment method is on file; review current plan terms in the CKEditor Customer Portal.
-- Configure `CKEDITOR_LICENSE_KEY` in the server environment using the production key shown under **CKEditor 5 Free** in the Customer Portal. The `.env.example` file documents the variable names; do not paste the actual key into tracked files.
+- The bundled key is used automatically when no runtime CKEditor configuration is present or when its `licenseKey` is blank. An explicit non-empty runtime `licenseKey` can override the bundled fallback.
 - The basic editor does not load premium-only controls such as Track Changes, Import from Word, Format Painter, multi-level lists, footnotes, bookmarks, page breaks, HTML Embed, table of contents, templates, or inline-style export.
 - Export to Word/PDF is part of the Free plan but uses Cloud Services. Those buttons are shown only when `CKEDITOR_CLOUD_SERVICES_TOKEN_URL` is configured with the appropriate **production** token URL from the Customer Portal's **Cloud environments / Access credentials** section. The previous Builder `/token/dev/` URL is deliberately not reused. Without this URL, the core editor still works and the export buttons are hidden.
 - The editor is attached only to the existing rich-text allowlist: `description`, `release_notes`, and explicitly opted-in fields via `data-rich-editor` or `.rich-text`. JSON, credentials, code, and other non-prose fields remain plain text.
@@ -58,5 +58,5 @@ The branch was authored against the existing project structure; run these checks
 
 ### CKEditor troubleshooting
 
-- If the editor remains a plain textarea and a notice says the editor is not enabled, this is expected until the project-root `.env` contains `CKEDITOR_LICENSE_KEY=<your CKEditor 5 Free production key>`. `.env.example` is documentation only; Django does not automatically read values from that file. Restart the Django process after editing `.env`.
+- The bundled production license is supplied by `static/portal/js/ckeditor_integration.js`; no local `.env` edit is required for the core editor. If the editor remains a plain textarea, inspect the browser Console and Network panels for CDN, licensing, CSP, or script errors.
 - If the key is present but the editor does not load, inspect the browser Console and Network panels for CDN, licensing, CSP, or script errors. The integration now shows an on-page notice for missing configuration and a visible error if CDN loading fails.
