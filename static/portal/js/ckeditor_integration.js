@@ -106,94 +106,28 @@
     const tokenUrl = (runtimeConfig.cloudServicesTokenUrl || "").trim();
 
     const plugins = [
-      CK.Alignment, CK.Autoformat, CK.AutoImage, CK.AutoLink, CK.Autosave, CK.BalloonToolbar,
-      CK.BlockQuote, CK.Bold, CK.Code, CK.CodeBlock, CK.Essentials, CK.FindAndReplace,
-      CK.FontBackgroundColor, CK.FontColor, CK.FontFamily, CK.FontSize, CK.Fullscreen,
-      CK.GeneralHtmlSupport, CK.Heading, CK.Highlight, CK.HorizontalLine, CK.ImageBlock,
-      CK.ImageCaption, CK.ImageEditing, CK.ImageInline, CK.ImageInsert, CK.ImageInsertViaUrl,
-      CK.ImageResize, CK.ImageStyle, CK.ImageTextAlternative, CK.ImageToolbar, CK.ImageUpload,
-      CK.ImageUtils, CK.Indent, CK.IndentBlock, CK.Italic, CK.Link, CK.LinkImage, CK.List,
-      CK.ListProperties, CK.MediaEmbed, CK.Paragraph, CK.PasteFromOffice, CK.PictureEditing,
-      CK.RemoveFormat, CK.ShowBlocks, CK.SpecialCharacters, CK.SpecialCharactersArrows,
-      CK.SpecialCharactersCurrency, CK.SpecialCharactersEssentials, CK.SpecialCharactersLatin,
-      CK.SpecialCharactersMathematical, CK.SpecialCharactersText, CK.Strikethrough, CK.Subscript,
-      CK.Superscript, CK.Table, CK.TableCaption, CK.TableCellProperties, CK.TableColumnResize,
-      CK.TableProperties, CK.TableToolbar, CK.TextTransformation, CK.TodoList, CK.Underline, CK.WordCount
+      CK.Essentials, CK.Paragraph, CK.Bold, CK.Italic, CK.Font
     ];
     const toolbarItems = [
-      "undo", "redo", "|", "showBlocks", "findAndReplace", "|", "heading", "|",
-      "fontSize", "fontFamily", "fontColor", "fontBackgroundColor", "|",
-      "bold", "italic", "underline", "strikethrough", "subscript", "superscript",
-      "code", "removeFormat", "|", "specialCharacters", "horizontalLine", "link",
-      "insertImage", "insertImageViaUrl", "mediaEmbed", "insertTable", "highlight",
-      "blockQuote", "codeBlock", "|", "alignment", "bulletedList", "numberedList",
-      "todoList", "outdent", "indent"
+      "undo", "redo", "|", "bold", "italic", "|",
+      "fontSize", "fontFamily", "fontColor", "fontBackgroundColor"
     ];
     const config = {
       licenseKey: runtimeConfig.licenseKey,
       placeholder: textarea.getAttribute("placeholder") || "Type or paste your content here…",
       plugins: plugins,
-      extraPlugins: [NebulaUploadAdapterPlugin],
       toolbar: { items: toolbarItems, shouldNotGroupWhenFull: false },
-      balloonToolbar: ["bold", "italic", "|", "link", "insertImage", "|", "bulletedList", "numberedList"],
-      menuBar: { isVisible: true },
       autosave: {
         save: editor => { textarea.value = editor.getData(); return Promise.resolve(); },
         waitingTime: 1500
       },
-      alignment: { options: ["left", "center", "right", "justify"] },
-      fontFamily: { supportAllValues: true },
-      fontSize: { options: [10, 12, 14, "default", 18, 20, 22], supportAllValues: true },
-      heading: { options: [
-        { model: "paragraph", title: "Paragraph", class: "ck-heading_paragraph" },
-        { model: "heading1", view: "h1", title: "Heading 1", class: "ck-heading_heading1" },
-        { model: "heading2", view: "h2", title: "Heading 2", class: "ck-heading_heading2" },
-        { model: "heading3", view: "h3", title: "Heading 3", class: "ck-heading_heading3" },
-        { model: "heading4", view: "h4", title: "Heading 4", class: "ck-heading_heading4" },
-        { model: "heading5", view: "h5", title: "Heading 5", class: "ck-heading_heading5" },
-        { model: "heading6", view: "h6", title: "Heading 6", class: "ck-heading_heading6" }
-      ]},
-      htmlSupport: { allow: [{ name: /^.*$/, styles: true, attributes: true, classes: true }] },
-      image: { toolbar: [
-        "toggleImageCaption", "imageTextAlternative", "|", "imageStyle:inline",
-        "imageStyle:wrapText", "imageStyle:breakText", "|", "resizeImage"
-      ]},
-      link: {
-        addTargetToExternalLinks: true, defaultProtocol: "https://",
-        decorators: { toggleDownloadable: { mode: "manual", label: "Downloadable", attributes: { download: "file" } } }
-      },
-      list: { properties: { styles: true, startIndex: true, reversed: true } },
-      table: { contentToolbar: ["tableColumn", "tableRow", "mergeTableCells", "tableProperties", "tableCellProperties"] },
       initialData: initialValue
     };
-
-    // Free plan includes a small monthly quota for PDF/Word exports; the cloud token is required.
-    if (tokenUrl && Premium && Premium.ExportPdf && Premium.ExportWord && CK.CloudServices) {
-      plugins.push(CK.CloudServices, Premium.ExportPdf, Premium.ExportWord);
-      toolbarItems.splice(3, 0, "exportWord", "exportPdf", "|");
-      config.cloudServices = { tokenUrl: tokenUrl };
-      config.exportPdf = {
-        stylesheets: [CORE_CSS, PREMIUM_CSS], fileName: "nebula-vault-document.pdf",
-        converterOptions: { format: "A4", margin_top: "20mm", margin_bottom: "20mm",
-          margin_right: "20mm", margin_left: "20mm", page_orientation: "portrait" }
-      };
-      config.exportWord = {
-        stylesheets: [CORE_CSS, PREMIUM_CSS], fileName: "nebula-vault-document.docx",
-        converterOptions: { document: { orientation: "portrait", size: "A4",
-          margins: { top: "20mm", bottom: "20mm", right: "20mm", left: "20mm" } } }
-      };
-      addStylesheet(PREMIUM_CSS);
-    }
 
     CK.ClassicEditor.create(host, config).then(editor => {
       textarea.dataset.ckeditorReady = "true";
       textarea._nebulaCkeditor = editor;
       textarea.value = editor.getData();
-      const wordCount = editor.plugins.get("WordCount");
-      const count = document.createElement("div");
-      count.className = "nv-ckeditor-word-count";
-      count.appendChild(wordCount.wordCountContainer);
-      host.appendChild(count);
       editor.model.document.on("change:data", () => { textarea.value = editor.getData(); });
       if (form) form.addEventListener("submit", () => {
         if (!editor.isReadOnly) textarea.value = editor.getData();
@@ -251,14 +185,7 @@
     try {
       await loadScript(CDN_BASE + "ckeditor5.umd.js");
       const CK = window.CKEDITOR || {};
-      const tokenUrl = (runtimeConfig.cloudServicesTokenUrl || "").trim();
-      if (tokenUrl) {
-        await loadScript(PREMIUM_BASE + "ckeditor5-premium-features.umd.js");
-        const Premium = window.CKEDITOR_PREMIUM_FEATURES || {};
-        fields.forEach(field => init(field, CK, Premium, runtimeConfig));
-      } else {
-        fields.forEach(field => init(field, CK, {}, runtimeConfig));
-      }
+      fields.forEach(field => init(field, CK, {}, runtimeConfig));
     } catch (error) {
       console.error("Unable to load CKEditor 5 from the configured CDN:", error);
       const message = document.createElement("p");
