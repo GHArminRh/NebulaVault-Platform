@@ -13,6 +13,7 @@ urlpatterns = [
     path("admin/json-export/<str:app_label>/<str:model_name>/<str:object_id>/", export_admin_object_json, name="admin-json-export"),
     path("admin/json-import/<str:app_label>/<str:model_name>/", import_admin_json, name="admin-json-import"),
     path("admin/editor-upload/", editor_image_upload, name="editor-image-upload"),
+    path("tinymce/", include("tinymce.urls")),
     path("admin/", admin.site.urls),
     path(
         "accounts/login/",
