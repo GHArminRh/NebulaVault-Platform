@@ -1,5 +1,6 @@
-
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
 
 from .forms import ProductAdminForm, ReleaseAdminForm
 from .models import Plan, Product, Release
@@ -15,11 +16,17 @@ class ReleaseInline(admin.TabularInline):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
-    list_display = ("name", "slug", "is_active", "created_at")
+    list_display = ("name", "slug_link", "is_active", "created_at")
     list_filter = ("is_active",)
     search_fields = ("name", "slug")
     prepopulated_fields = {"slug": ("name",)}
     inlines = [ReleaseInline]
+
+    @admin.display(description="Slug", ordering="slug")
+    def slug_link(self, obj):
+        """Open the public product page from the slug column."""
+        url = reverse("portal:product_detail", kwargs={"slug": obj.slug})
+        return format_html('<a href="{}" target="_blank" rel="noopener noreferrer">{}</a>', url, obj.slug)
 
 
 @admin.register(Release)
