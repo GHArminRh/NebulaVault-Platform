@@ -39,12 +39,16 @@ def profile(request):
         customer.save()
         if email_changed:
             try:
-                _send_verification_email(request, customer)
+                sent = _send_verification_email(request, customer)
+                if sent:
+                    messages.info(request, "A verification email has been sent. Enter the six-digit code below or use the link in the email.")
+                else:
+                    messages.warning(request, "The verification email limit has been reached. Please try again later.")
             except Exception:
                 logger.exception("Could not send email-change verification for customer %s", customer.pk)
+                messages.error(request, "We couldn’t send the verification email right now. Please try again later.")
             logout(request)
-            messages.info(request, "We’ve sent a verification email if delivery is configured. Enter the six-digit code below; the same email also contains a verification link.")
-        return render(request, "accounts/email_code_form.html", {"purpose": "verification", "email": customer.email})
+            return render(request, "accounts/email_code_form.html", {"purpose": "verification", "email": customer.email})
         messages.success(request, "Your account details have been updated.")
         return redirect("accounts:profile")
     return render(request, "accounts/profile.html", {"form": form})
@@ -72,10 +76,15 @@ def register(request):
         customer.is_active = False
         customer.save()
         try:
-            _send_verification_email(request, customer)
+            sent = _send_verification_email(request, customer)
+            if sent:
+                messages.info(request, "A verification email has been sent. Enter the six-digit code below or use the link in the email.")
+            else:
+                messages.warning(request, "The verification email limit has been reached. Please try again later.")
         except Exception:
             logger.exception("Could not send verification email for newly registered customer %s", customer.pk)
-        return render(request, "accounts/verification_sent.html", {"email": customer.email})
+            messages.error(request, "We couldn’t send the verification email right now. You can request another one below.")
+        return render(request, "accounts/email_code_form.html", {"purpose": "verification", "email": customer.email})
     return render(request, "portal/register.html", {"form": form})
 
 
@@ -132,6 +141,11 @@ def _send_verification_email(request, customer):
     log.sent_at = timezone.now()
     log.error_message = ""
     log.save(update_fields=["status", "sent_at", "error_message"])
+    cache.set(
+        _verification_resend_cooldown_key(customer.email, request.META.get("REMOTE_ADDR", "")),
+        1,
+        timeout=30,
+    )
     return True
 
 
