@@ -106,13 +106,11 @@ class AccountProfileForm(forms.ModelForm):
         return username
 
     def clean_email(self):
-        email = self.cleaned_data["email"].strip()
-        local_part, separator, domain = email.rpartition("@")
-        if separator:
-            email = f"{local_part}@{domain.lower()}"
+        email = self.cleaned_data["email"].strip().lower()
         if Customer.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
             raise ValidationError("An account with this email already exists.")
         return email
+
 
 
 class AccountPasswordChangeForm(PasswordChangeForm):
