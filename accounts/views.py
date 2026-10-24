@@ -10,7 +10,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.contrib.auth import login, update_session_auth_hash
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
@@ -36,6 +36,7 @@ def profile(request):
                 _send_verification_email(request, customer)
             except Exception:
                 logger.exception("Could not send email-change verification for customer %s", customer.pk)
+            logout(request)
             return render(request, "accounts/verification_sent.html", {"email": customer.email})
         messages.success(request, "Your account details have been updated.")
         return redirect("accounts:profile")
