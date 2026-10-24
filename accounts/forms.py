@@ -100,11 +100,17 @@ class RegisterForm(HumanCheckMixin, forms.ModelForm):
 
 
 class AccountProfileForm(forms.ModelForm):
-    username = forms.CharField(required=False, max_length=150, widget=forms.TextInput(attrs={"autocomplete": "username"}))
+    username = forms.CharField(label="نام کاربری", required=False, max_length=150, widget=forms.TextInput(attrs={"autocomplete": "username"}))
 
     class Meta:
         model = Customer
         fields = ("username", "first_name", "last_name", "email")
+        labels = {
+            "username": "نام کاربری",
+            "first_name": "نام",
+            "last_name": "نام خانوادگی",
+            "email": "نشانی ایمیل",
+        }
         widgets = {
             "username": forms.TextInput(attrs={"autocomplete": "username"}),
             "email": forms.EmailInput(attrs={"autocomplete": "email"}),
