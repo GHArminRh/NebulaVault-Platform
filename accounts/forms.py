@@ -30,7 +30,7 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
             email = (self.data.get(self.add_prefix("username")) or "").strip()
             password = self.data.get(self.add_prefix("password")) or ""
             customer = Customer.objects.filter(email__iexact=email, is_active=False).first()
-            if customer and password and customer.check_password(password):
+            if self.cleaned_data.get("human_check") and customer and password and customer.check_password(password):
                 self.inactive_email = customer.email
             raise
 
