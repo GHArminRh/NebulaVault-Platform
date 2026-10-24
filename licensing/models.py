@@ -20,7 +20,7 @@ class License(models.Model):
         related_name="license",
     )
     key_prefix = models.CharField(max_length=16, blank=True, editable=False, db_index=True)
-    key_digest = models.CharField(max_length=64, unique=True, blank=True, editable=False)
+    key_digest = models.CharField(max_length=64, unique=True, editable=False)
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.ACTIVE, db_index=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -31,6 +31,11 @@ class License(models.Model):
         ordering = ["-created_at"]
         verbose_name = "Application license"
         verbose_name_plural = "Application licenses"
+
+    def save(self, *args, **kwargs):
+        if not self.key_digest or len(self.key_digest) != 64:
+            raise ValidationError("A license must be issued with a key digest.")
+        super().save(*args, **kwargs)
 
     def clean(self):
         super().clean()
