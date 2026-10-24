@@ -328,7 +328,7 @@ def password_reset_code(request):
     if request.method == "POST":
         email = request.POST.get("email", "").strip()
         code = request.POST.get("code", "").strip()
-        customer = Customer.objects.filter(email__iexact=email, is_active=True).first()
+        customer = Customer.objects.filter(email__iexact=email, is_active=True, is_banned=False).first()
         entry = None
         if customer and len(code) == 6 and code.isdigit():
             entry = AccountEmailLog.objects.filter(
