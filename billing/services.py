@@ -7,6 +7,10 @@ from django.utils import timezone
 from catalog.models import Plan
 from subscriptions.models import Subscription, SubscriptionRenewal
 from subscriptions.services import _add_plan_duration
+from licensing.models import License
+from licensing.services import issue_license
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 
 from .models import PaymentAttempt, PaymentOrder
 
@@ -539,6 +543,8 @@ def finalize_payment(
 
             now = timezone.now()
             plan = order.plan
+            issued_license_key = None
+            issued_license_record = None
 
             if order.subscription_id is None:
                 # Initial purchase: create one paid subscription.
@@ -603,6 +609,14 @@ def finalize_payment(
                     update_fields=["expires_at", "status", "updated_at"]
                 )
 
+            # Every successfully paid subscription must have a license.
+            # Keep the raw key out of the database; expose it only for delivery.
+            existing_license = License.objects.filter(subscription=subscription).first()
+            if existing_license is None:
+                issued_license_record, issued_license_key = issue_license(subscription)
+            else:
+                issued_license_record = existing_license
+
             attempt.status = PaymentAttempt.Status.SUCCEEDED
             attempt.provider_reference = provider_reference
             attempt.confirmed_at = now
@@ -625,6 +639,44 @@ def finalize_payment(
                     "updated_at",
                 ]
             )
+
+            if issued_license_key:
+                # The caller may display this key once (e.g. immediately after checkout).
+                attempt.issued_license_key = issued_license_key
+
+                # Also deliver the key by email for gateway callbacks that have no
+                # browser session. Email failure must not undo a verified payment.
+                recipient = (subscription.user.email or "").strip()
+                if recipient:
+                    email_context = {
+                        "user": subscription.user,
+                        "subscription": subscription,
+                        "license": issued_license_record,
+                        "license_key": issued_license_key,
+                    }
+                    html_body = render_to_string(
+                        "registration/license_issued_email.html", email_context
+                    )
+                    text_body = (
+                        f"سلام {subscription.user.username} عزیز،\n\n"
+                        f"پرداخت طرح «{plan.name}» برای محصول «{plan.product.name}» "
+                        "با موفقیت تأیید شد و لایسنس شما صادر شد.\n\n"
+                        f"کلید لایسنس: {issued_license_key}\n\n"
+                        f"اعتبار اشتراک تا: {subscription.expires_at:%Y-%m-%d %H:%M}\n\n"
+                        "این کلید را در اختیار دیگران قرار ندهید. "
+                        "این پیام به‌صورت خودکار از طرف نبیولا والت ارسال شده است."
+                    )
+                    transaction.on_commit(
+                        lambda to=recipient, subject_product=plan.product.name,
+                        plain=text_body, html=html_body: send_mail(
+                            subject=f"لایسنس محصول {subject_product} صادر شد | نبیولا والت",
+                            message=plain,
+                            from_email=None,
+                            recipient_list=[to],
+                            html_message=html,
+                            fail_silently=True,
+                        )
+                    )
 
             return attempt
 
