@@ -36,7 +36,7 @@ def register(request):
     form = RegisterForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         customer = form.save()
-        login(request, customer, backend="customer_accounts.backends.CustomerAuthenticationBackend")
+        login(request, customer, backend="customer_customer_accounts.backends.CustomerAuthenticationBackend")
         messages.success(request, "Your account has been created.")
         return redirect("portal:dashboard")
     return render(request, "portal/register.html", {"form": form})
