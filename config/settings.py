@@ -12,7 +12,7 @@ ALLOWED_HOSTS = [host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS",
 INSTALLED_APPS = [
     "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
     "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
-    "staff_access.apps.StaffAccessConfig", "customer_accounts.apps.CustomerAccountsConfig", "catalog.apps.CatalogConfig", "subscriptions.apps.SubscriptionsConfig",
+    "staff_access.apps.StaffAccessConfig", "customer_accounts.apps.CustomerAccountsConfig", "accounts.apps.AccountsConfig", "catalog.apps.CatalogConfig", "subscriptions.apps.SubscriptionsConfig",
     "licensing.apps.LicensingConfig", "devices.apps.DevicesConfig",
     "billing.apps.BillingConfig", "audit.apps.AuditConfig",
     "notifications.apps.NotificationsConfig", "portal.apps.PortalConfig",
