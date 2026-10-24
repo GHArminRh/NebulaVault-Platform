@@ -195,7 +195,33 @@
       count.appendChild(wordCount.wordCountContainer);
       host.appendChild(count);
       editor.model.document.on("change:data", () => { textarea.value = editor.getData(); });
-      if (form) form.addEventListener("submit", () => { textarea.value = editor.getData(); }, true);
+      if (form) form.addEventListener("submit", () => {
+        if (!editor.isReadOnly) textarea.value = editor.getData();
+      }, true);
+
+      // A validly rendered editor can still be forced into read-only mode by
+      // CKEditor license validation/usage limits. Never leave the source field
+      // hidden in that state: expose a plain-text fallback and explain the cause.
+      let readOnlyNotice = null;
+      const handleReadOnlyState = () => {
+        if (!editor.isReadOnly) {
+          if (readOnlyNotice) readOnlyNotice.remove();
+          readOnlyNotice = null;
+          return;
+        }
+        textarea.value = editor.getData();
+        textarea.classList.remove("nv-ckeditor-source");
+        if (!readOnlyNotice) {
+          readOnlyNotice = document.createElement("p");
+          readOnlyNotice.className = "nv-ckeditor-error";
+          readOnlyNotice.setAttribute("role", "alert");
+          readOnlyNotice.textContent = "CKEditor is in read-only mode. The original text field is available below as a fallback. Check the browser Console for CKEditor license validation or usage-limit errors.";
+          host.insertAdjacentElement("beforebegin", readOnlyNotice);
+        }
+        console.error("CKEditor entered read-only mode. Check for license-key-usage-limit, license-key-domain-limit, license-key-validation-endpoint-not-reachable, or other CKEditor license errors.");
+      };
+      editor.on("change:isReadOnly", handleReadOnlyState);
+      handleReadOnlyState();
     }).catch(error => {
       console.error("CKEditor 5 failed to initialize:", error);
       host.remove();
