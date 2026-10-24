@@ -5,6 +5,9 @@
   const PREMIUM_BASE = "https://cdn.ckeditor.com/ckeditor5-premium-features/" + VERSION + "/";
   const CORE_CSS = CDN_BASE + "ckeditor5.css";
   const PREMIUM_CSS = PREMIUM_BASE + "ckeditor5-premium-features.css";
+  // Bundled CKEditor 5 Free production license for this private project.
+  // License keys are client-side configuration; rotate it in the CKEditor portal if exposed publicly.
+  const DEFAULT_LICENSE_KEY = "eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE4MjQ0MjIzOTksImp0aSI6ImVlYzcwOWUyLTgzMjAtNDljMS1hNzhjLWEyYzhmYTAzYTE0NyIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiXSwiZmVhdHVyZXMiOlsiRFJVUCIsIkUyUCIsIkUyVyJdLCJyZW1vdmVGZWF0dXJlcyI6WyJQQiIsIlJGIiwiU0NIIiwiVENQIiwiVEwiLCJUQ1IiLCJJUiIsIlNVQSIsIkI2NEEiLCJMUCIsIkhFIiwiUkVEIiwiUEZPIiwiV0MiLCJGQVIiLCJCS00iLCJGUEgiLCJNUkUiLCJNRVIiXSwidmMiOiI4NmRjMzFmMiJ9.8WUmcBGvM7Ud6vvleU1FGMtPM1BWoEnG3rV5OJsbAanaX6CDdNtZkwSRm97fuOoDZW8n49qTkw0ceplWSFPiQw";
   const EXCLUDED = [
     "textarea[data-no-rich-editor]", "textarea.no-rich-editor",
     "textarea[name*='json' i]", "textarea[name*='payload' i]",
@@ -21,12 +24,19 @@
   ].join(",");
 
   function getRuntimeConfig() {
+    const defaults = { licenseKey: DEFAULT_LICENSE_KEY, cloudServicesTokenUrl: "" };
     const node = document.getElementById("nebula-ckeditor-config");
-    if (!node) return {};
-    try { return JSON.parse(node.textContent || "{}"); }
-    catch (error) {
-      console.error("Unable to parse CKEditor configuration:", error);
-      return {};
+    if (!node) return defaults;
+    try {
+      const config = JSON.parse(node.textContent || "{}");
+      return {
+        ...config,
+        licenseKey: (config.licenseKey || "").trim() || DEFAULT_LICENSE_KEY,
+        cloudServicesTokenUrl: (config.cloudServicesTokenUrl || "").trim()
+      };
+    } catch (error) {
+      console.error("Unable to parse CKEditor configuration; using bundled license defaults:", error);
+      return defaults;
     }
   }
 
@@ -205,9 +215,9 @@
       const message = document.createElement("p");
       message.className = "nv-ckeditor-notice";
       message.setAttribute("role", "status");
-      message.textContent = "Rich-text editor is not enabled yet: configure CKEDITOR_LICENSE_KEY in the project .env file, then restart Django. The standard text field remains available.";
+      message.textContent = "CKEditor license configuration is missing. The standard text field remains available.";
       fields[0].insertAdjacentElement("beforebegin", message);
-      console.error("CKEditor is not initialized: CKEDITOR_LICENSE_KEY is missing. Set it in the project-root .env file and restart Django.");
+      console.error("CKEditor is not initialized: no license key is available.");
       return;
     }
     addStylesheet(CORE_CSS);
