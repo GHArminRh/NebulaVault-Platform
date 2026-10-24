@@ -36,20 +36,31 @@
     const fieldName = fieldClass.slice("field-".length);
     if (!fieldName || protectedFields.has(fieldName)) return;
 
+    // Keep Django's original status image, including its native src, alt and classes.
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "nv-boolean-toggle " + (currentValue ? "is-true" : "is-false");
-    const statusIcon = icon.cloneNode(true);
-    statusIcon.className = "nv-boolean-icon";
-    button.appendChild(statusIcon);
+    button.className = "nv-boolean-toggle";
+    button.style.appearance = "none";
+    button.style.webkitAppearance = "none";
+    button.style.border = "0";
+    button.style.background = "transparent";
+    button.style.padding = "0";
+    button.style.margin = "0";
+    button.style.font = "inherit";
+    button.style.lineHeight = "inherit";
+    button.style.color = "inherit";
+    button.style.cursor = "pointer";
+    button.style.verticalAlign = "middle";
+    button.appendChild(icon);
     button.setAttribute("aria-label", (currentValue ? "Enabled" : "Disabled") + "; click to toggle");
     button.title = "Click to " + (currentValue ? "disable" : "enable");
     button.dataset.value = String(currentValue);
+
     button.addEventListener("click", async () => {
       if (button.disabled) return;
       const nextValue = button.dataset.value !== "true";
       button.disabled = true;
-      button.classList.add("is-saving");
+      button.style.cursor = "wait";
       try {
         const response = await fetch(endpoint, {
           method: "POST",
@@ -68,18 +79,21 @@
         });
         const data = await response.json();
         if (!response.ok || !data.ok) throw new Error(data.error || "Could not save this change.");
-        button.dataset.value = String(data.value);
-        statusIcon.src = statusIcon.src.replace("icon-" + (data.value ? "no" : "yes") + ".svg", "icon-" + (data.value ? "yes" : "no") + ".svg");
-        statusIcon.alt = data.value ? "True" : "False";
-        button.classList.toggle("is-true", data.value);
-        button.classList.toggle("is-false", !data.value);
-        button.setAttribute("aria-label", (data.value ? "Enabled" : "Disabled") + "; click to toggle");
-        button.title = "Click to " + (data.value ? "disable" : "enable");
+
+        const next = Boolean(data.value);
+        button.dataset.value = String(next);
+        // Swap only the filename; preserve Django's native icon asset and styling.
+        const url = new URL(icon.getAttribute("src"), window.location.href);
+        url.pathname = url.pathname.replace(/icon-(yes|no)\.svg$/, next ? "icon-yes.svg" : "icon-no.svg");
+        icon.setAttribute("src", url.pathname + url.search + url.hash);
+        icon.alt = next ? "True" : "False";
+        button.setAttribute("aria-label", (next ? "Enabled" : "Disabled") + "; click to toggle");
+        button.title = "Click to " + (next ? "disable" : "enable");
       } catch (error) {
         window.alert(error.message || "Could not save this change.");
       } finally {
         button.disabled = false;
-        button.classList.remove("is-saving");
+        button.style.cursor = "pointer";
       }
     });
     cell.replaceChildren(button);
