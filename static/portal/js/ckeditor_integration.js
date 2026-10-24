@@ -95,54 +95,52 @@
     textarea.insertAdjacentElement("afterend", host);
     const form = textarea.form;
 
-    // Keep this list limited to standard editing plugins; premium and explicitly
-    // excluded free-plan features (e.g. Find & Replace, Remove Format and List
-    // Properties) are intentionally not registered.
-    // Only use features available in the commercial Free plan and allowed by the existing key.
-    // Premium-only collaboration, AI, CKBox, import, and paid editing tools are intentionally excluded.
+    // Builder-inspired configuration, restricted to features supported by the
+    // existing license. AI, collaboration, CKBox, Word import, and excluded
+    // premium/free-plan features are deliberately not registered.
     const pluginNames = [
-      "Essentials", "Paragraph", "Bold", "Italic", "Underline", "Strikethrough",
-      "Subscript", "Superscript", "Font", "Heading", "Style", "Alignment",
-      "Indent", "IndentBlock", "BlockQuote", "HorizontalLine", "Link", "AutoLink",
-      "List", "TodoList", "Autoformat", "CodeBlock", "Code", "SelectAll", "PasteFromPlainText",
-      "CaseChange", "Emoji", "Highlight", "TextTransformation", "Minimap",
-      "Table", "TableToolbar", "TableCaption", "MediaEmbed",
-      "Image", "ImageBlock", "ImageInline", "ImageInsert", "ImageInsertViaUrl", "ImageToolbar",
-      "ImageCaption", "ImageStyle", "ImageTextAlternative", "ImageUpload", "LinkImage", "AutoImage",
-      "GeneralHtmlSupport", "ShowBlocks", "SourceEditing", "ExportPdf", "ExportWord"
+      "Essentials", "Paragraph", "Alignment", "AutoImage", "Autoformat", "AutoLink",
+      "BlockQuote", "Bold", "Code", "CodeBlock", "Emoji", "ExportPdf", "ExportWord",
+      "FontBackgroundColor", "FontColor", "FontFamily", "FontSize", "GeneralHtmlSupport",
+      "Heading", "Highlight", "HorizontalLine", "ImageBlock", "ImageCaption",
+      "ImageEditing", "ImageInline", "ImageInsert", "ImageInsertViaUrl", "ImageStyle",
+      "ImageTextAlternative", "ImageToolbar", "ImageUpload", "ImageUtils",
+      "Indent", "IndentBlock", "Italic", "Link", "LinkImage", "List", "MediaEmbed",
+      "ShowBlocks", "Strikethrough", "Subscript", "Superscript", "Table",
+      "TableCaption", "TableToolbar", "TextTransformation", "TodoList", "Underline"
     ];
-    const plugins = pluginNames.map(name => allPlugins[name]).filter(Boolean);
+    const plugins = [...new Set(pluginNames.map(name => allPlugins[name]).filter(Boolean))];
     plugins.push(NebulaUploadAdapterPlugin);
 
     const toolbarCandidates = [
-      "undo", "redo", "|", "heading", "style", "|", "bold", "italic", "underline",
-      "strikethrough", "subscript", "superscript", "|", "fontSize", "fontFamily",
-      "fontColor", "fontBackgroundColor", "caseChange", "|", "alignment",
-      "|", "bulletedList", "numberedList", "todoList", "outdent", "indent", "|",
-      "link", "uploadImage", "insertImage", "insertImageViaUrl", "mediaEmbed", "insertTable", "|", "blockQuote",
-      "horizontalLine", "codeBlock", "code", "highlight", "emoji", "selectAll", "showBlocks", "sourceEditing", "minimap", "|", "exportWord", "exportPdf"
+      "undo", "redo", "|", "heading", "|", "fontSize", "fontFamily", "fontColor",
+      "fontBackgroundColor", "|", "bold", "italic", "underline", "strikethrough",
+      "subscript", "superscript", "code", "|", "emoji", "horizontalLine", "link",
+      "uploadImage", "insertImage", "insertImageViaUrl", "mediaEmbed", "insertTable",
+      "highlight", "blockQuote", "codeBlock", "|", "alignment", "|",
+      "bulletedList", "numberedList", "todoList", "outdent", "indent", "|",
+      "showBlocks", "exportWord", "exportPdf"
     ];
-    const available = new Set();
     const toolbarMap = [
-      ["Essentials", ["undo", "redo", "selectAll"]], ["Heading", ["heading"]],
-      ["Style", ["style"]], ["Bold", ["bold"]], ["Italic", ["italic"]],
-      ["Underline", ["underline"]], ["Strikethrough", ["strikethrough"]],
-      ["Subscript", ["subscript"]], ["Superscript", ["superscript"]],
-      ["Font", ["fontSize", "fontFamily", "fontColor", "fontBackgroundColor"]],
-      ["CaseChange", ["caseChange"]], ["Highlight", ["highlight"]],
+      ["Essentials", ["undo", "redo"]], ["Heading", ["heading"]],
+      ["FontSize", ["fontSize"]], ["FontFamily", ["fontFamily"]],
+      ["FontColor", ["fontColor"]], ["FontBackgroundColor", ["fontBackgroundColor"]],
+      ["Bold", ["bold"]], ["Italic", ["italic"]], ["Underline", ["underline"]],
+      ["Strikethrough", ["strikethrough"]], ["Subscript", ["subscript"]],
+      ["Superscript", ["superscript"]], ["Code", ["code"]], ["Emoji", ["emoji"]],
+      ["HorizontalLine", ["horizontalLine"]], ["Link", ["link"]],
+      ["ImageUpload", ["uploadImage"]], ["ImageInsert", ["insertImage"]],
+      ["ImageInsertViaUrl", ["insertImageViaUrl"]], ["MediaEmbed", ["mediaEmbed"]],
+      ["Table", ["insertTable"]], ["Highlight", ["highlight"]],
+      ["BlockQuote", ["blockQuote"]], ["CodeBlock", ["codeBlock"]],
       ["Alignment", ["alignment"]], ["List", ["bulletedList", "numberedList"]],
       ["TodoList", ["todoList"]], ["Indent", ["outdent", "indent"]],
-      ["Link", ["link"]], ["ImageUpload", ["uploadImage"]],
-      ["ImageInsert", ["insertImage"]], ["ImageInsertViaUrl", ["insertImageViaUrl"]],
-      ["MediaEmbed", ["mediaEmbed"]], ["Table", ["insertTable"]],
-      ["BlockQuote", ["blockQuote"]], ["HorizontalLine", ["horizontalLine"]],
-      ["CodeBlock", ["codeBlock"]], ["Code", ["code"]],
-      ["Emoji", ["emoji"]], ["Minimap", ["minimap"]],
-      ["ShowBlocks", ["showBlocks"]], ["SourceEditing", ["sourceEditing"]],
-      ["ExportPdf", ["exportPdf"]], ["ExportWord", ["exportWord"]]
+      ["ShowBlocks", ["showBlocks"]], ["ExportWord", ["exportWord"]],
+      ["ExportPdf", ["exportPdf"]]
     ];
+    const available = new Set();
     toolbarMap.forEach(([pluginName, items]) => {
-      if (allPlugins[pluginName]) items.forEach(item => available.add(item));
+      if (plugins.includes(allPlugins[pluginName])) items.forEach(item => available.add(item));
     });
     const toolbarItems = toolbarCandidates.filter(item => item === "|" || available.has(item));
     while (toolbarItems[0] === "|") toolbarItems.shift();
@@ -156,7 +154,12 @@
       placeholder: textarea.getAttribute("placeholder") || "Type or paste your content here…",
       plugins,
       toolbar: { items: toolbarItems, shouldNotGroupWhenFull: false },
-      image: { toolbar: ["imageTextAlternative", "toggleImageCaption", "imageStyle:inline", "imageStyle:block", "imageStyle:side"] },
+      alignment: { options: ["left", "center", "right", "justify"] },
+      fontFamily: { supportAllValues: true },
+      fontSize: { options: [10, 12, 14, "default", 18, 20, 22], supportAllValues: true },
+      image: {
+        toolbar: ["toggleImageCaption", "imageTextAlternative", "|", "imageStyle:inline", "imageStyle:wrapText", "imageStyle:breakText"]
+      },
       table: { contentToolbar: ["tableColumn", "tableRow", "mergeTableCells"] },
       exportPdf: {
         stylesheets: [CORE_CSS],
@@ -168,12 +171,28 @@
         fileName: "nebula-vault-document.docx",
         converterOptions: { document: { orientation: "portrait", size: "A4", margins: { top: "15mm", bottom: "15mm", right: "15mm", left: "15mm" } } }
       },
-      style: { definitions: [
-        { name: "Lead paragraph", element: "p", classes: ["nv-lead"] },
-        { name: "Highlighted text", element: "span", classes: ["nv-highlight"] },
-        { name: "Small text", element: "span", classes: ["nv-small"] }
-      ] },
-      link: { addTargetToExternalLinks: true, defaultProtocol: "https://" },
+      heading: {
+        options: [
+          { model: "paragraph", title: "Paragraph", class: "ck-heading_paragraph" },
+          { model: "heading1", view: "h1", title: "Heading 1", class: "ck-heading_heading1" },
+          { model: "heading2", view: "h2", title: "Heading 2", class: "ck-heading_heading2" },
+          { model: "heading3", view: "h3", title: "Heading 3", class: "ck-heading_heading3" },
+          { model: "heading4", view: "h4", title: "Heading 4", class: "ck-heading_heading4" },
+          { model: "heading5", view: "h5", title: "Heading 5", class: "ck-heading_heading5" },
+          { model: "heading6", view: "h6", title: "Heading 6", class: "ck-heading_heading6" }
+        ]
+      },
+      link: {
+        addTargetToExternalLinks: true,
+        defaultProtocol: "https://",
+        decorators: {
+          toggleDownloadable: {
+            mode: "manual",
+            label: "Downloadable",
+            attributes: { download: "file" }
+          }
+        }
+      },
       autosave: {
         save: editor => { textarea.value = editor.getData(); return Promise.resolve(); },
         waitingTime: 1500
