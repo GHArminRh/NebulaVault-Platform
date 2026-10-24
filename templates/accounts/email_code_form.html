@@ -41,7 +41,15 @@
   if (!button || !label) return;
   const key = "nv-verification-resend:" + (form.dataset.email || "").toLowerCase();
   let until = 0;
-  try { until = Number(sessionStorage.getItem(key) || 0); } catch (_) {}
+  try {
+    until = Number(sessionStorage.getItem(key) || 0);
+    if (!until) {
+      until = Date.now() + 30000;
+      sessionStorage.setItem(key, String(until));
+    }
+  } catch (_) {
+    until = Date.now() + 30000;
+  }
   function render() {
     const remaining = Math.max(0, Math.ceil((until - Date.now()) / 1000));
     button.disabled = remaining > 0;
