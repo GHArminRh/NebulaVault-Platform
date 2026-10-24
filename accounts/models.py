@@ -27,6 +27,7 @@ class Customer(AbstractBaseUser):
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     is_active = models.BooleanField(default=True)
+    is_banned = models.BooleanField(default=False, help_text="Blocked by an administrator; the customer cannot sign in.")
     date_joined = models.DateTimeField(auto_now_add=True)
 
     objects = CustomerManager()
