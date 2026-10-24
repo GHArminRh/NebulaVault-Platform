@@ -205,7 +205,9 @@
       textarea.classList.remove("nv-ckeditor-source");
       const host = textarea.nextElementSibling;
       if (host && host.classList.contains("nv-ckeditor-host")) host.remove();
-      textarea.required = textarea.dataset.nvCkeditorRequired === "true";
+      if (textarea.dataset.nvCkeditorRequired !== undefined) {
+        textarea.required = textarea.dataset.nvCkeditorRequired === "true";
+      }
       console.error("[Nebula Vault] CKEditor initialization failed:", error);
       const notice = document.createElement("div");
       notice.className = "nv-ckeditor-fallback-notice";
