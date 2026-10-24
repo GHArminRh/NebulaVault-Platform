@@ -104,7 +104,7 @@
       "Subscript", "Superscript", "Font", "Heading", "Style", "Alignment",
       "Indent", "IndentBlock", "BlockQuote", "HorizontalLine", "Link", "AutoLink",
       "List", "TodoList", "Autoformat", "CodeBlock", "SelectAll", "PasteFromPlainText",
-      "CaseChange", "Emoji", "LineHeight",
+      "CaseChange", "Emoji",
       // Tables and media. Paid table-property and image-resize features are deliberately omitted.
       "Table", "TableToolbar", "TableCaption", "MediaEmbed", "Image", "ImageInsert", "ImageToolbar",
       "ImageCaption", "ImageStyle", "ImageUpload", "LinkImage",
@@ -117,7 +117,7 @@
     const toolbarCandidates = [
       "undo", "redo", "|", "heading", "style", "|", "bold", "italic", "underline",
       "strikethrough", "subscript", "superscript", "|", "fontSize", "fontFamily",
-      "fontColor", "fontBackgroundColor", "caseChange", "lineHeight", "|", "alignment",
+      "fontColor", "fontBackgroundColor", "caseChange", "|", "alignment",
       "|", "bulletedList", "numberedList", "todoList", "outdent", "indent", "|",
       "link", "uploadImage", "insertImage", "mediaEmbed", "insertTable", "|", "blockQuote",
       "horizontalLine", "codeBlock", "emoji", "selectAll", "showBlocks", "sourceEditing"
@@ -129,7 +129,7 @@
       ["Underline", ["underline"]], ["Strikethrough", ["strikethrough"]],
       ["Subscript", ["subscript"]], ["Superscript", ["superscript"]],
       ["Font", ["fontSize", "fontFamily", "fontColor", "fontBackgroundColor"]],
-      ["CaseChange", ["caseChange"]], ["LineHeight", ["lineHeight"]],
+      ["CaseChange", ["caseChange"]],
       ["Alignment", ["alignment"]], ["List", ["bulletedList", "numberedList"]],
       ["TodoList", ["todoList"]], ["Indent", ["outdent", "indent"]],
       ["Link", ["link"]], ["ImageUpload", ["uploadImage"]], ["ImageInsert", ["insertImage"]], ["MediaEmbed", ["mediaEmbed"]],
@@ -154,6 +154,11 @@
       toolbar: { items: toolbarItems, shouldNotGroupWhenFull: false },
       image: { toolbar: ["imageTextAlternative", "toggleImageCaption", "imageStyle:inline", "imageStyle:block", "imageStyle:side"] },
       table: { contentToolbar: ["tableColumn", "tableRow", "mergeTableCells"] },
+      style: { definitions: [
+        { name: "Lead paragraph", element: "p", classes: ["nv-lead"] },
+        { name: "Highlighted text", element: "span", classes: ["nv-highlight"] },
+        { name: "Small text", element: "span", classes: ["nv-small"] }
+      ] },
       link: { addTargetToExternalLinks: true, defaultProtocol: "https://" },
       autosave: {
         save: editor => { textarea.value = editor.getData(); return Promise.resolve(); },
