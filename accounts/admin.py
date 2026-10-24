@@ -61,8 +61,8 @@ class CustomerAdminForm(forms.ModelForm):
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
     form = CustomerAdminForm
-    list_display = ("email", "username", "first_name", "last_name", "is_active", "date_joined")
-    list_filter = ("is_active", "date_joined")
+    list_display = ("email", "username", "first_name", "last_name", "is_active", "is_banned", "date_joined")
+    list_filter = ("is_active", "is_banned", "date_joined")
     search_fields = ("email", "username", "first_name", "last_name")
     readonly_fields = ("last_login", "date_joined")
     ordering = ("-date_joined",)
