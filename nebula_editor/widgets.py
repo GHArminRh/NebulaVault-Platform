@@ -6,7 +6,6 @@ configuration and upload integration are maintained by Nebula Vault itself.
 import json
 
 from django import forms
-from django.utils.html import json_script
 
 
 class NebulaTinyMCE(forms.Textarea):
