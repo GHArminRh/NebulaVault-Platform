@@ -21,12 +21,20 @@
   ].join(",");
 
   function loadStyles() {
-    if (document.querySelector('link[data-nv-ckeditor-css]')) return;
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = CKEDITOR_CSS;
-    link.dataset.nvCkeditorCss = "true";
-    document.head.appendChild(link);
+    if (!document.querySelector('link[data-nv-ckeditor-css]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = CKEDITOR_CSS;
+      link.dataset.nvCkeditorCss = "true";
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('link[data-nv-rich-text-css]')) {
+      const custom = document.createElement("link");
+      custom.rel = "stylesheet";
+      custom.href = "/static/portal/css/rich_text_editor.css";
+      custom.dataset.nvRichTextCss = "true";
+      document.head.appendChild(custom);
+    }
   }
 
   function loadScript() {
@@ -86,6 +94,7 @@
 
       const host = makeEditorHost(textarea);
       const required = textarea.required;
+      textarea.dataset.nvCkeditorRequired = String(required);
       const originalAriaRequired = textarea.getAttribute("aria-required");
       textarea.required = false;
 
@@ -159,14 +168,13 @@
           }
         }, true);
       }
-      if (required) textarea.dataset.nvCkeditorRequired = "true";
       textarea.dataset.nvCkeditorReady = "true";
     } catch (error) {
       textarea.dataset.nvCkeditorReady = "error";
       textarea.classList.remove("nv-ckeditor-source");
       const host = textarea.nextElementSibling;
       if (host && host.classList.contains("nv-ckeditor-host")) host.remove();
-      textarea.required = textarea.dataset.nvCkeditorRequired === "true" || textarea.hasAttribute("required");
+      textarea.required = textarea.dataset.nvCkeditorRequired === "true";
       console.error("[Nebula Vault] CKEditor initialization failed:", error);
       const notice = document.createElement("div");
       notice.className = "nv-ckeditor-fallback-notice";
