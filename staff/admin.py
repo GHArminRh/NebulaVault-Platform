@@ -1,22 +1,18 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.admin import GroupAdmin, UserAdmin
 from django.contrib.auth.models import Group as DjangoAuthGroup
 
 from .models import Group, StaffUser
 
+# Replace Django's built-in Group registration with the app-owned model.
 admin.site.unregister(DjangoAuthGroup)
 
 
 @admin.register(Group)
-class StaffGroupAdmin(admin.ModelAdmin):
-    list_display = ("name",)
-    search_fields = ("name",)
-    ordering = ("name",)
-    filter_horizontal = ("permissions",)
+class StaffGroupAdmin(GroupAdmin):
+    """Keep Django's full standard group-permissions admin experience."""
 
 
 @admin.register(StaffUser)
 class StaffUserAdmin(UserAdmin):
-    list_display = ("username", "email", "first_name", "last_name", "is_staff", "is_active")
-    ordering = ("username",)
-    readonly_fields = ("last_login", "date_joined")
+    """Keep Django's full standard user administration experience."""
