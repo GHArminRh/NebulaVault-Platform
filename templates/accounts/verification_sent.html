@@ -1,1 +1,12 @@
-{% extends 'portal/base.html' %}{% block title %}Verify your email — Nebula Vault{% endblock %}{% block content %}<section class="auth-layout page-wrap auth-layout-premium"><div class="auth-art auth-art-premium"><div class="auth-orbit" aria-hidden="true"><span>◇</span><i></i><b></b></div><div class="eyebrow"><i class="eyebrow-dot"></i> ONE LAST STEP</div><h2>Check your<br><span class="gradient-text">inbox.</span></h2><p>Verify that you own this email address before signing in. This helps keep your account and subscriptions safe.</p></div><div class="auth-card auth-card-premium auth-card-centered"><div class="auth-success-icon">✉</div><div class="eyebrow">VERIFICATION SENT</div><h1>Confirm your email</h1><p class="auth-subtitle">If email delivery is configured, a verification link has been sent to <strong>{{ email }}</strong>. The link and six-digit code expire after 24 hours. Check your spam folder if it doesn’t arrive.</p><a class="button button-primary button-full button-large" href="{% url 'accounts:resend_verification' %}">Resend verification email</a><p class="auth-switch"><a href="{% url 'accounts:verify_email_code' %}">Enter a six-digit code</a></p><p class="auth-switch"><a href="{% url 'login' %}">Back to sign in</a></p></div></section>{% endblock %}
+{% extends 'portal/base.html' %}
+{% block title %}Verify your email — Nebula Vault{% endblock %}
+{% block content %}
+<section class="auth-layout page-wrap auth-layout-premium">
+  <div class="auth-card auth-card-premium auth-card-centered">
+    <div class="eyebrow">EMAIL VERIFICATION</div>
+    <h1>Enter your verification code</h1>
+    <p class="auth-subtitle">We’ve sent a verification email to <strong>{{ email }}</strong>, if email delivery is configured. Enter the six-digit code below or use the verification link in the email.</p>
+    {% include "accounts/email_code_form.html" %}
+  </div>
+</section>
+{% endblock %}
