@@ -17,6 +17,15 @@ class PortalPageTests(TestCase):
             self.assertEqual(self.client.get(reverse(url)).status_code, 200)
         self.assertEqual(self.client.get(reverse("portal:product_detail", args=[self.product.slug])).status_code, 200)
 
+    def test_rich_product_description_is_sanitized_and_rendered(self):
+        self.product.description = '<p>Visible <strong>formatted</strong> text.</p><script>alert("xss")</script><img src="https://example.com/image.png" onerror="alert(1)">'
+        self.product.save()
+        response = self.client.get(reverse("portal:product_detail", args=[self.product.slug]))
+        self.assertContains(response, "<p>Visible <strong>formatted</strong> text.</p>", html=False)
+        self.assertNotContains(response, "<script")
+        self.assertNotContains(response, "onerror")
+        self.assertNotContains(response, "alert(")
+
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse("portal:dashboard"))
         self.assertEqual(response.status_code, 302)
