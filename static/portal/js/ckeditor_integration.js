@@ -99,33 +99,43 @@
     // excluded free-plan features (e.g. Find & Replace, Remove Format and List
     // Properties) are intentionally not registered.
     const pluginNames = [
+      // Core editing and text formatting available on the commercial Free plan.
       "Essentials", "Paragraph", "Bold", "Italic", "Underline", "Strikethrough",
-      "Subscript", "Superscript", "Font", "Heading", "Alignment", "Indent",
-      "BlockQuote", "HorizontalLine", "Link", "AutoLink", "List", "Autoformat",
-      "CodeBlock", "MediaEmbed", "Image", "ImageToolbar", "ImageCaption",
-      "ImageStyle", "ImageUpload", "LinkImage"
+      "Subscript", "Superscript", "Font", "Heading", "Style", "Alignment",
+      "Indent", "IndentBlock", "BlockQuote", "HorizontalLine", "Link", "AutoLink",
+      "List", "TodoList", "Autoformat", "CodeBlock", "SelectAll", "PasteFromPlainText",
+      "CaseChange", "Emoji", "Mention", "LineHeight",
+      // Tables and media. Paid table-property and image-resize features are deliberately omitted.
+      "Table", "TableToolbar", "TableCaption", "MediaEmbed", "Image", "ImageToolbar",
+      "ImageCaption", "ImageStyle", "ImageUpload", "LinkImage",
+      // Free-plan HTML and navigation tools. The toolbar entries are added only when available.
+      "GeneralHtmlSupport", "ShowBlocks", "SourceEditing", "Minimap", "Markdown"
     ];
     const plugins = pluginNames.map(name => CK[name]).filter(Boolean);
     plugins.push(NebulaUploadAdapterPlugin);
 
     const toolbarCandidates = [
-      "undo", "redo", "|", "heading", "|", "bold", "italic", "underline",
+      "undo", "redo", "|", "heading", "style", "|", "bold", "italic", "underline",
       "strikethrough", "subscript", "superscript", "|", "fontSize", "fontFamily",
-      "fontColor", "fontBackgroundColor", "|", "alignment", "|", "bulletedList",
-      "numberedList", "outdent", "indent", "|", "link", "uploadImage", "mediaEmbed",
-      "blockQuote", "horizontalLine", "codeBlock"
+      "fontColor", "fontBackgroundColor", "caseChange", "lineHeight", "|", "alignment",
+      "|", "bulletedList", "numberedList", "todoList", "outdent", "indent", "|",
+      "link", "uploadImage", "mediaEmbed", "insertTable", "|", "blockQuote",
+      "horizontalLine", "codeBlock", "emoji", "selectAll", "showBlocks", "sourceEditing"
     ];
     const available = new Set();
     const toolbarMap = [
-      ["Essentials", ["undo", "redo"]], ["Heading", ["heading"]], ["Bold", ["bold"]], ["Italic", ["italic"]],
+      ["Essentials", ["undo", "redo", "selectAll"]], ["Heading", ["heading"]],
+      ["Style", ["style"]], ["Bold", ["bold"]], ["Italic", ["italic"]],
       ["Underline", ["underline"]], ["Strikethrough", ["strikethrough"]],
       ["Subscript", ["subscript"]], ["Superscript", ["superscript"]],
       ["Font", ["fontSize", "fontFamily", "fontColor", "fontBackgroundColor"]],
+      ["CaseChange", ["caseChange"]], ["LineHeight", ["lineHeight"]],
       ["Alignment", ["alignment"]], ["List", ["bulletedList", "numberedList"]],
-      ["Indent", ["outdent", "indent"]], ["Link", ["link"]],
-      ["ImageUpload", ["uploadImage"]], ["MediaEmbed", ["mediaEmbed"]],
-      ["BlockQuote", ["blockQuote"]], ["HorizontalLine", ["horizontalLine"]],
-      ["CodeBlock", ["codeBlock"]]
+      ["TodoList", ["todoList"]], ["Indent", ["outdent", "indent"]],
+      ["Link", ["link"]], ["ImageUpload", ["uploadImage"]], ["MediaEmbed", ["mediaEmbed"]],
+      ["Table", ["insertTable"]], ["BlockQuote", ["blockQuote"]],
+      ["HorizontalLine", ["horizontalLine"]], ["CodeBlock", ["codeBlock"]],
+      ["Emoji", ["emoji"]], ["ShowBlocks", ["showBlocks"]], ["SourceEditing", ["sourceEditing"]]
     ];
     toolbarMap.forEach(([pluginName, items]) => {
       if (CK[pluginName]) items.forEach(item => available.add(item));
@@ -156,6 +166,33 @@
       textarea._nebulaCkeditor = editor;
       textarea.value = editor.getData();
       editor.model.document.on("change:data", () => { textarea.value = editor.getData(); });
+
+      // Fullscreen is implemented locally so it works without CKEditor's paid Fullscreen add-on.
+      const fullscreenButton = document.createElement("button");
+      fullscreenButton.type = "button";
+      fullscreenButton.className = "nv-ckeditor-fullscreen-button";
+      fullscreenButton.textContent = "⛶";
+      fullscreenButton.title = "Expand editor";
+      fullscreenButton.setAttribute("aria-label", "Expand editor");
+      fullscreenButton.setAttribute("aria-pressed", "false");
+      const toolbarItemsElement = editor.ui.view.toolbar.element.querySelector(".ck-toolbar__items");
+      if (toolbarItemsElement) toolbarItemsElement.appendChild(fullscreenButton);
+      const setFullscreen = enabled => {
+        host.classList.toggle("nv-ckeditor-fullscreen", enabled);
+        fullscreenButton.setAttribute("aria-pressed", String(enabled));
+        fullscreenButton.setAttribute("aria-label", enabled ? "Exit fullscreen" : "Expand editor");
+        fullscreenButton.title = enabled ? "Exit fullscreen (Esc)" : "Expand editor";
+        fullscreenButton.textContent = enabled ? "×" : "⛶";
+        document.body.classList.toggle("nv-ckeditor-fullscreen-active", enabled);
+        if (enabled) editor.editing.view.focus();
+      };
+      fullscreenButton.addEventListener("click", () => {
+        setFullscreen(!host.classList.contains("nv-ckeditor-fullscreen"));
+      });
+      const handleFullscreenEscape = event => {
+        if (event.key === "Escape" && host.classList.contains("nv-ckeditor-fullscreen")) setFullscreen(false);
+      };
+      document.addEventListener("keydown", handleFullscreenEscape);
       if (form) form.addEventListener("submit", () => {
         if (!editor.isReadOnly) textarea.value = editor.getData();
       }, true);
