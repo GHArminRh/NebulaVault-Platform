@@ -5,7 +5,10 @@
 
 {% block extrahead %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'portal/css/rich_text_editor.css' %}"><script src="{% static 'portal/js/rich_text_editor.js' %}" defer></script>
+  <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/48.5.1/ckeditor5.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5-premium-features/48.5.1/ckeditor5-premium-features.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="{% static 'portal/css/ckeditor_integration.css' %}">
+  <script src="{% static 'portal/js/ckeditor_integration.js' %}" defer></script>
 {% endblock %}
 
 {% block branding %}
