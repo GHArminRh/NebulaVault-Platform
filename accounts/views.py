@@ -128,16 +128,23 @@ def _send_verification_email(request, customer):
         ip_address=request.META.get("REMOTE_ADDR") or None, code_hash=_code_digest(code),
     )
     context = {"user": customer, "verify_url": verify_url, "valid_hours": 24, "verification_code": code}
-    body = render_to_string("registration/email_verification_email.txt", context)
-    html_body = render_to_string("registration/email_verification_email.html", context)
-    send_mail(
-        subject="Verify your Nebula Vault email",
-        message=body,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[customer.email],
-        html_message=html_body,
-        fail_silently=False,
-    )
+    try:
+        body = render_to_string("registration/email_verification_email.txt", context)
+        html_body = render_to_string("registration/email_verification_email.html", context)
+        send_mail(
+            subject="Verify your Nebula Vault email",
+            message=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[customer.email],
+            html_message=html_body,
+            fail_silently=False,
+        )
+    except Exception as exc:
+        log.status = AccountEmailLog.Status.FAILED
+        log.error_message = str(exc)[:1000]
+        log.save(update_fields=["status", "error_message"])
+        raise
+
     log.status = AccountEmailLog.Status.SENT
     log.sent_at = timezone.now()
     log.error_message = ""
@@ -435,15 +442,6 @@ class CustomerLoginView(LoginView):
                     self.request,
                     "We couldn't send the verification email right now. Check the email settings and try again.",
                 )
-                # Keep a diagnostic record when SMTP/template delivery fails.
-                if customer:
-                    _record_failed_email(
-                        customer,
-                        AccountEmailLog.Purpose.VERIFICATION,
-                        inactive_email,
-                        self.request,
-                        "Verification email sending failed during login; see server logs for the SMTP/template exception.",
-                    )
             return render(self.request, "accounts/email_code_form.html", context)
 
         return super().form_invalid(form)
