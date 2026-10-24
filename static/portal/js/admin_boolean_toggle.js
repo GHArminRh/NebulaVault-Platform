@@ -134,7 +134,7 @@
     exportLink.setAttribute("aria-label", "Export this record as JSON");
     exportLink.style.cssText = "display:inline-block;margin:0 4px;line-height:1;";
     const exportIcon = document.createElement("img");
-    exportIcon.src = "/static/admin/img/icon-viewlink.svg";
+    exportIcon.src = "/static/portal/img/icon-json-export.svg";
     exportIcon.alt = "";
     exportIcon.style.cssText = iconStyle;
     exportLink.appendChild(exportIcon);
