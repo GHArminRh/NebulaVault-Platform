@@ -121,6 +121,16 @@ class AccountBackendTests(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.username, "new_account_name")
 
+    def test_unverified_customer_cannot_sign_in(self):
+        self.user.is_active = False
+        self.user.save(update_fields=["is_active"])
+        response = self.client.post(
+            reverse("login"),
+            {"username": self.user.email, "password": "Secure-test-password-2026!", "human_check": "on"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
     def test_verification_link_activates_account_and_is_single_use(self):
         self.user.is_active = False
         self.user.save(update_fields=["is_active"])
