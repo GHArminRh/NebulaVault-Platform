@@ -15,8 +15,8 @@
     "textarea[name='content']", "textarea[name='body']",
     "textarea[name='terms']", "textarea[name='policy']"
   ].join(",");
-  const ALLOWED_TAGS = new Set(("P BR DIV H1 H2 H3 H4 H5 H6 STRONG B EM I U S STRIKE DEL INS MARK SUB SUP UL OL LI A BLOCKQUOTE PRE CODE HR TABLE CAPTION THEAD TBODY TFOOT TR TH TD SPAN SMALL FIGURE FIGCAPTION IMG DL DT DD").split(" "));
-  const DROP_CONTENT = new Set(["SCRIPT", "STYLE", "IFRAME", "OBJECT", "EMBED", "FORM", "INPUT", "BUTTON", "TEXTAREA", "SVG", "MATH", "VIDEO", "AUDIO", "LINK", "META", "TEMPLATE"]);
+  const ALLOWED_TAGS = new Set(("P BR DIV H1 H2 H3 H4 H5 H6 STRONG B EM I U S STRIKE DEL INS MARK SUB SUP UL OL LI A BLOCKQUOTE PRE CODE HR TABLE CAPTION THEAD TBODY TFOOT TR TH TD SPAN SMALL FIGURE FIGCAPTION IMG IFRAME DL DT DD").split(" "));
+  const DROP_CONTENT = new Set(["SCRIPT", "STYLE", "OBJECT", "EMBED", "FORM", "INPUT", "BUTTON", "TEXTAREA", "SVG", "MATH", "VIDEO", "AUDIO", "LINK", "META", "TEMPLATE"]);
   const SAFE_STYLES = new Set([
     "color", "background-color", "font-family", "font-size", "font-weight",
     "font-style", "text-decoration", "text-align", "vertical-align",
@@ -53,6 +53,7 @@
     plus:'<path d="M12 5v14M5 12h14"/>',
     minus:'<path d="M5 12h14"/>',
     close:'<path d="m6 6 12 12M18 6 6 18"/>',
+    video:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3z"/>',
     search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
     maximize:'<path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3M21 16v3a2 2 0 0 1-2 2h-3"/>',
     minimize:'<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>',
@@ -78,6 +79,17 @@
     if (/^[\w.-]+\.[a-z]{2,}(\/|$)/i.test(u)) return "https://" + u;
     return "";
   };
+  function safeEmbedUrl(value) {
+    try {
+      const u = new URL(String(value || ""), document.baseURI);
+      if (u.protocol !== "https:" || u.username || u.password || (u.port && u.port !== "443")) return "";
+      const host = u.hostname.toLowerCase();
+      if (["youtube.com", "www.youtube.com", "www.youtube-nocookie.com"].includes(host) &&
+          /^\/embed\/[A-Za-z0-9_-]{6,20}\/?$/.test(u.pathname)) return u.origin + u.pathname;
+      if (host === "player.vimeo.com" && /^\/video\/[0-9]{5,12}\/?$/.test(u.pathname)) return u.origin + u.pathname;
+    } catch (_) {}
+    return "";
+  }
   function clean(html) {
     const doc = new DOMParser().parseFromString(String(html || ""), "text/html");
     doc.querySelectorAll(Array.from(DROP_CONTENT).join(",")).forEach(n => n.remove());
@@ -103,6 +115,17 @@
           if(declarations.length) n.setAttribute("style",declarations.join(";")); else n.removeAttribute("style");
         }
       });
+      if (n.tagName === "IFRAME") {
+        const embed = safeEmbedUrl(n.getAttribute("src") || "");
+        if (!embed) { n.remove(); return; }
+        n.setAttribute("src", embed);
+        n.setAttribute("title", n.getAttribute("title") || "Embedded video");
+        n.setAttribute("loading", "lazy");
+        n.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+        n.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation");
+        n.setAttribute("allow", "autoplay; encrypted-media; fullscreen; picture-in-picture");
+        n.setAttribute("allowfullscreen", "allowfullscreen");
+      }
       if (n.tagName === "A" && n.target === "_blank") n.rel = "noopener noreferrer";
       if (n.tagName === "IMG") { n.loading = "lazy"; n.decoding = "async"; }
     });
@@ -217,6 +240,7 @@
       else if(command==="replace") openFindReplace(true);
       else if(command==="insertLink") openLinkDialog();
       else if(command==="insertImage") openImageDialog();
+      else if(command==="insertMedia") openMediaDialog();
       else if(command==="insertTable") openTableDialog();
       else if(command==="tableOps") openTableOps();
       else if(command==="special") openSpecialChars();
@@ -279,7 +303,7 @@
         {name:tr("File","فایل"),items:[["New content","new"],["Import HTML…","import"],["Export HTML…","download"],["Print…","print"],["—","sep"],["Fullscreen","fullscreen"]]},
         {name:tr("Edit","ویرایش"),items:[["Undo","undo"],["Redo","redo"],["—","sep"],["Cut / Copy / Paste","clipboard"],["Select all","selectAll"],["Find…","find"],["Find and replace…","replace"],["Remove formatting","removeFormat"]]},
         {name:tr("View","نما"),items:[["Show block boundaries","showBlocks"],["Right-to-left text","direction-rtl"],["Left-to-right text","direction-ltr"],["Word count…","wordCount"],["Fullscreen","fullscreen"]]},
-        {name:tr("Insert","درج"),items:[["Link…","insertLink"],["Image by URL…","insertImage"],["Table…","insertTable"],["Code block","pre"],["Block quote","blockquote"],["Horizontal line","hr"],["Page break","pageBreak"],["Special character…","special"],["Date and time","timestamp"]]},
+        {name:tr("Insert","درج"),items:[["Link…","insertLink"],["Image…","insertImage"],["Video/media…","insertMedia"],["Table…","insertTable"],["Code block","pre"],["Block quote","blockquote"],["Horizontal line","hr"],["Page break","pageBreak"],["Special character…","special"],["Date and time","timestamp"]]},
         {name:tr("Format","قالب‌بندی"),items:[["Paragraph","paragraph"],["Heading 1","h1"],["Heading 2","h2"],["Heading 3","h3"],["Heading 4","h4"],["—","sep"],["Bold","bold"],["Italic","italic"],["Underline","underline"],["Strikethrough","strikeThrough"],["Superscript","superscript"],["Subscript","subscript"],["Inline code","code"],["—","sep"],["Align left","justifyLeft"],["Center","justifyCenter"],["Align right","justifyRight"],["Justify","justifyFull"],["Increase indent","indent"],["Decrease indent","outdent"]]},
         {name:tr("Tools","ابزارها"),items:[["Table tools…","tableOps"],["Word count…","wordCount"],["Keyboard shortcuts","help"]]},
         {name:tr("Help","راهنما"),items:[["Keyboard shortcuts","help"],["About Nebula Editor","about"]]}
@@ -333,7 +357,8 @@
       separator(parent);
       makeButton(parent,"insertLink",tr("Link (Ctrl+K)","پیوند (Ctrl+K)"),"link");
       makeButton(parent,"unlink",tr("Remove link","حذف پیوند"),"unlink");
-      makeButton(parent,"insertImage",tr("Image by URL","تصویر با نشانی"),"image");
+      makeButton(parent,"insertImage",tr("Image / upload","تصویر / بارگذاری"),"image");
+      makeButton(parent,"insertMedia",tr("Embed video / media","درج ویدئو"),"video");
       makeButton(parent,"insertTable",tr("Insert table","درج جدول"),"table");
       makeButton(parent,"tableOps",tr("Table tools","ابزارهای جدول"),"more");
       separator(parent);
@@ -413,6 +438,43 @@
         const img='<img src="'+esc(url)+'" alt="'+esc(v.alt)+'"'+(width?' width="'+width+'"':'')+' loading="lazy">';
         insertHtml("<figure>"+img+(v.caption.trim()?"<figcaption>"+esc(v.caption.trim())+"</figcaption>":"")+"</figure><p><br></p>");
       },tr("Uploaded images are decoded and re-encoded on the server before storage.","تصاویر بارگذاری‌شده در سرور رمزگشایی و بازتولید می‌شوند."));
+    }
+    function normalizeMediaUrl(value) {
+      const raw=safeUrl(value,false);if(!raw)return "";
+      try {
+        const u=new URL(raw,document.baseURI);
+        if(u.protocol!=="https:"||u.username||u.password||(u.port&&u.port!=="443"))return "";
+        const host=u.hostname.toLowerCase();
+        if(["youtu.be","www.youtu.be"].includes(host)) {
+          const id=u.pathname.split("/").filter(Boolean)[0]||"";
+          return /^[A-Za-z0-9_-]{6,20}$/.test(id)?"https://www.youtube-nocookie.com/embed/"+id:"";
+        }
+        if(["youtube.com","www.youtube.com","m.youtube.com"].includes(host)) {
+          let id="";
+          if(u.pathname==="/watch")id=u.searchParams.get("v")||"";
+          else if(/^\/shorts\/[A-Za-z0-9_-]{6,20}\/?$/.test(u.pathname))id=u.pathname.split("/")[2];
+          else if(/^\/embed\/[A-Za-z0-9_-]{6,20}\/?$/.test(u.pathname))id=u.pathname.split("/")[2];
+          return /^[A-Za-z0-9_-]{6,20}$/.test(id)?"https://www.youtube-nocookie.com/embed/"+id:"";
+        }
+        if(host==="www.youtube-nocookie.com"&&/^\/embed\/[A-Za-z0-9_-]{6,20}\/?$/.test(u.pathname))return u.origin+u.pathname;
+        if(host==="vimeo.com"||host==="www.vimeo.com") {
+          const id=u.pathname.split("/").filter(Boolean)[0]||"";
+          return /^[0-9]{5,12}$/.test(id)?"https://player.vimeo.com/video/"+id:"";
+        }
+        if(host==="player.vimeo.com"&&/^\/video\/[0-9]{5,12}\/?$/.test(u.pathname))return u.origin+u.pathname;
+      } catch (_) {}
+      return "";
+    }
+    function openMediaDialog() {
+      rememberRange();
+      openDialog(tr("Embed video","درج ویدئو"),[
+        {name:"url",label:tr("YouTube or Vimeo URL","نشانی YouTube یا Vimeo"),type:"text",placeholder:"https://www.youtube.com/watch?v=…",required:true},
+        {name:"title",label:tr("Accessible title","عنوان قابل دسترس"),type:"text",value:tr("Embedded video","ویدئوی تعبیه‌شده"),required:true},
+        {name:"caption",label:tr("Caption (optional)","زیرنویس (اختیاری)"),type:"text",placeholder:tr("Video caption","زیرنویس ویدئو")}
+      ],v=>{
+        const url=normalizeMediaUrl(v.url);if(!url){showToast(tr("Only supported YouTube and Vimeo video URLs are allowed.","فقط نشانی معتبر و پشتیبانی‌شده YouTube یا Vimeo مجاز است."),"error");return false;}
+        insertHtml('<figure><iframe src="'+esc(url)+'" title="'+esc(v.title)+'" width="560" height="315" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen="allowfullscreen" sandbox="allow-scripts allow-same-origin allow-presentation" allow="autoplay; encrypted-media; fullscreen; picture-in-picture"></iframe>'+(v.caption.trim()?'<figcaption>'+esc(v.caption.trim())+'</figcaption>':'')+'</figure><p><br></p>');
+      },tr("Only HTTPS YouTube and Vimeo embeds are accepted; arbitrary iframe sources are blocked.","فقط تعبیه‌سازی HTTPS برای YouTube و Vimeo پذیرفته می‌شود و iframeهای ناشناس مسدود هستند."));
     }
     function openTableDialog() {
       rememberRange();
