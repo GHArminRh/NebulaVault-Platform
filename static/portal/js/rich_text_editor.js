@@ -15,14 +15,14 @@
     "textarea[name='content']", "textarea[name='body']",
     "textarea[name='terms']", "textarea[name='policy']"
   ].join(",");
-  const ALLOWED_TAGS = new Set(("P BR DIV H1 H2 H3 H4 H5 H6 STRONG B EM I U S DEL INS MARK SUB SUP UL OL LI A BLOCKQUOTE PRE CODE HR TABLE CAPTION THEAD TBODY TFOOT TR TH TD SPAN SMALL FIGURE FIGCAPTION IMG DL DT DD").split(" "));
+  const ALLOWED_TAGS = new Set(("P BR DIV H1 H2 H3 H4 H5 H6 STRONG B EM I U S STRIKE DEL INS MARK SUB SUP UL OL LI A BLOCKQUOTE PRE CODE HR TABLE CAPTION THEAD TBODY TFOOT TR TH TD SPAN SMALL FIGURE FIGCAPTION IMG DL DT DD").split(" "));
   const DROP_CONTENT = new Set(["SCRIPT", "STYLE", "IFRAME", "OBJECT", "EMBED", "FORM", "INPUT", "BUTTON", "TEXTAREA", "SVG", "MATH", "VIDEO", "AUDIO", "LINK", "META", "TEMPLATE"]);
   const SAFE_STYLES = new Set([
     "color", "background-color", "font-family", "font-size", "font-weight",
     "font-style", "text-decoration", "text-align", "vertical-align",
     "line-height", "white-space", "width", "height", "max-width",
     "border", "border-color", "border-width", "border-style", "border-collapse",
-    "padding", "padding-top", "padding-right", "padding-bottom", "padding-left",
+    "padding", "padding-top", "padding-right", "padding-bottom", "padding-left", "page-break-after",
     "margin", "margin-top", "margin-right", "margin-bottom", "margin-left"
   ]);
   const ICONS = {
@@ -183,6 +183,7 @@
         input.id="nv-cke-field-"+f.name; input.name=f.name;
         if(f.value!=null) {if(f.type==="checkbox")input.checked=!!f.value;else input.value=f.value;}
         if(f.placeholder)input.placeholder=f.placeholder;
+        if(f.accept)input.accept=f.accept;
         if(f.required)input.required=true;
         if(f.min!=null)input.min=f.min;
         if(f.max!=null)input.max=f.max;
@@ -195,7 +196,7 @@
       const apply=document.createElement("button");apply.type="submit";apply.className="nv-cke-btn nv-cke-btn-primary";apply.textContent=tr("Insert","درج");
       actions.append(cancel,apply);form.append(actions);box.append(form);shade.append(box);modalRoot.replaceChildren(shade);modalRoot.hidden=false;currentDialog=box;
       shade.addEventListener("mousedown",e=>{if(e.target===shade)hideDialog();});
-      form.addEventListener("submit",e=>{e.preventDefault();const values={};fields.forEach(f=>values[f.name]=f.type==="checkbox"?controls[f.name].checked:controls[f.name].value);if(onApply(values)===false)return;hideDialog();surface.focus();sync();});
+      form.addEventListener("submit",e=>{e.preventDefault();const values={};fields.forEach(f=>values[f.name]=f.type==="checkbox"?controls[f.name].checked:(f.type==="file"?(controls[f.name].files&&controls[f.name].files[0]||null):controls[f.name].value));if(onApply(values)===false)return;hideDialog();surface.focus();sync();});
       const first=fields.map(f=>controls[f.name]).find(el=>el.type!=="checkbox"); if(first)requestAnimationFrame(()=>first.focus());
       document.addEventListener("keydown",dialogEscape,{once:true});
     }
@@ -346,6 +347,8 @@
       closePopover();closeMenu();sourceMode=!sourceMode;
       if(sourceMode){source.value=surface.innerHTML;surface.hidden=true;source.hidden=false;wrap.classList.add("nv-cke-source-mode");}
       else{setSurface(source.value);source.hidden=true;surface.hidden=false;wrap.classList.remove("nv-cke-source-mode");}
+      toolbar.querySelectorAll("button,select").forEach(el=>{const action=el.dataset.action;el.disabled=sourceMode&&action!=="source"&&action!=="fullscreen";});
+      menuBar.querySelectorAll("button").forEach(el=>{el.disabled=sourceMode;});
       sync();updatePath();
     }
     function toggleFullscreen() {
@@ -376,19 +379,40 @@
         afterEdit();
       });
     }
+    async function uploadImage(file, alt, caption, width) {
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { showToast(tr("Images must be 5 MB or smaller.","حجم تصویر باید ۵ مگابایت یا کمتر باشد."),"error"); return; }
+      if (!["image/png","image/jpeg","image/webp","image/gif"].includes(file.type)) { showToast(tr("Use a PNG, JPEG, WebP, or GIF image.","فرمت تصویر باید PNG، JPEG، WebP یا GIF باشد."),"error"); return; }
+      const formData=new FormData();formData.append("upload",file,file.name);
+      const form=ta.form||wrap.closest("form");
+      const csrfField=form&&form.querySelector('input[name="csrfmiddlewaretoken"]');
+      const cookie=document.cookie.split("; ").find(item=>item.startsWith("csrftoken="));
+      const csrf=csrfField?csrfField.value:(cookie?decodeURIComponent(cookie.slice("csrftoken=".length)):"");
+      try {
+        const response=await fetch("/admin/editor-upload/",{method:"POST",body:formData,credentials:"same-origin",headers:csrf?{"X-CSRFToken":csrf}:{}});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok||!data.url)throw new Error(data.error||tr("The image could not be uploaded.","بارگذاری تصویر انجام نشد."));
+        const url=safeUrl(data.url,true);if(!url)throw new Error(tr("The server returned an invalid image URL.","نشانی تصویر دریافتی معتبر نیست."));
+        const img='<img src="'+esc(url)+'" alt="'+esc(alt)+'"'+(width?' width="'+width+'"':'')+' loading="lazy">';
+        insertHtml("<figure>"+img+(caption.trim()?"<figcaption>"+esc(caption.trim())+"</figcaption>":"")+"</figure><p><br></p>");
+        showToast(tr("Image uploaded and inserted.","تصویر بارگذاری و درج شد."),"info");
+      } catch(error) { showToast(error&&error.message?error.message:tr("The image upload failed.","بارگذاری تصویر ناموفق بود."),"error"); }
+    }
     function openImageDialog() {
       rememberRange();
       openDialog(tr("Insert image","درج تصویر"),[
-        {name:"url",label:tr("Image URL","نشانی تصویر"),type:"text",placeholder:"https://example.com/image.webp",required:true},
+        {name:"url",label:tr("Image URL (optional when uploading)","نشانی تصویر (در صورت بارگذاری اختیاری)"),type:"text",placeholder:"https://example.com/image.webp"},
+        {name:"file",label:tr("Upload an image","بارگذاری تصویر"),type:"file",accept:"image/png,image/jpeg,image/webp,image/gif",help:tr("PNG, JPEG, WebP, or GIF · 5 MB maximum","PNG، JPEG، WebP یا GIF · حداکثر ۵ مگابایت")},
         {name:"alt",label:tr("Alternative text (accessibility)","متن جایگزین (دسترس‌پذیری)"),type:"text",placeholder:tr("Describe the image","توضیح تصویر"),required:true},
         {name:"caption",label:tr("Caption","زیرنویس"),type:"text",placeholder:tr("Optional caption","زیرنویس اختیاری")},
         {name:"width",label:tr("Width in pixels (optional)","عرض به پیکسل (اختیاری)"),type:"number",min:50,max:2000,placeholder:"600"}
       ],v=>{
-        const url=safeUrl(v.url,true);if(!url){showToast(tr("Use an http(s) or relative image URL.","نشانی تصویر باید http(s) یا نسبی باشد."),"error");return false;}
         const width=Number(v.width);if(v.width&&(!Number.isFinite(width)||width<50||width>2000)){showToast(tr("Image width must be from 50 to 2000 pixels.","عرض تصویر باید بین ۵۰ تا ۲۰۰۰ پیکسل باشد."),"error");return false;}
+        if(v.file){uploadImage(v.file,v.alt,v.caption||"",v.width?width:0);return true;}
+        const url=safeUrl(v.url,true);if(!url){showToast(tr("Enter an image URL or choose a file to upload.","نشانی تصویر را وارد کنید یا فایلی برای بارگذاری انتخاب کنید."),"error");return false;}
         const img='<img src="'+esc(url)+'" alt="'+esc(v.alt)+'"'+(width?' width="'+width+'"':'')+' loading="lazy">';
         insertHtml("<figure>"+img+(v.caption.trim()?"<figcaption>"+esc(v.caption.trim())+"</figcaption>":"")+"</figure><p><br></p>");
-      },tr("Images are inserted by URL. File uploads can be connected to a secure server upload adapter.","تصویر از طریق نشانی درج می‌شود."));
+      },tr("Uploaded images are decoded and re-encoded on the server before storage.","تصاویر بارگذاری‌شده در سرور رمزگشایی و بازتولید می‌شوند."));
     }
     function openTableDialog() {
       rememberRange();
