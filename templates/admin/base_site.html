@@ -1,20 +1,7 @@
 {% extends "admin/base.html" %}
-{% load i18n static %}
+{% load i18n %}
 
 {% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
-
-{% block extrahead %}
-  {{ block.super }}
-  {% if tinymce_api_key and opts and opts.app_label == "catalog" %}
-    {% if opts.model_name == "product" or opts.model_name == "release" %}
-      <script
-        src="https://cdn.tiny.cloud/1/{{ tinymce_api_key }}/tinymce/8/tinymce.min.js"
-        referrerpolicy="origin"
-        crossorigin="anonymous"></script>
-      <script src="{% static 'portal/js/tinymce_admin.js' %}" defer></script>
-    {% endif %}
-  {% endif %}
-{% endblock %}
 
 {% block branding %}
   <h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
