@@ -53,12 +53,19 @@ def _respond(result):
     return response
 
 
+def _error_response(code, message, status):
+    response = JsonResponse({"ok": False, "code": code, "message": message}, status=status)
+    response["Cache-Control"] = "no-store"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
 def _read_payload_or_error(request):
     if _rate_limited(request):
-        return None, JsonResponse({"ok": False, "code": "rate_limited", "message": "Too many requests."}, status=429)
+        return None, _error_response("rate_limited", "Too many requests.", 429)
     payload = _payload(request)
     if payload is None:
-        return None, JsonResponse({"ok": False, "code": "invalid_request", "message": "Send a valid JSON object under 16 KB."}, status=400)
+        return None, _error_response("invalid_request", "Send a valid JSON object under 16 KB.", 400)
     return payload, None
 
 
