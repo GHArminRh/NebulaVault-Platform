@@ -86,7 +86,7 @@
     editor.plugins.get("FileRepository").createUploadAdapter = loader => new NebulaUploadAdapter(loader);
   }
 
-  function init(textarea, CK, runtimeConfig) {
+  function init(textarea, CK, runtimeConfig, allPlugins) {
     if (textarea.dataset.ckeditorInitialized === "true") return;
     textarea.dataset.ckeditorInitialized = "true";
     textarea.classList.add("nv-ckeditor-source");
@@ -98,20 +98,20 @@
     // Keep this list limited to standard editing plugins; premium and explicitly
     // excluded free-plan features (e.g. Find & Replace, Remove Format and List
     // Properties) are intentionally not registered.
+    // Only use features available in the commercial Free plan and allowed by the existing key.
+    // Premium-only collaboration, AI, CKBox, import, and paid editing tools are intentionally excluded.
     const pluginNames = [
-      // Core editing and text formatting available on the commercial Free plan.
       "Essentials", "Paragraph", "Bold", "Italic", "Underline", "Strikethrough",
       "Subscript", "Superscript", "Font", "Heading", "Style", "Alignment",
       "Indent", "IndentBlock", "BlockQuote", "HorizontalLine", "Link", "AutoLink",
-      "List", "TodoList", "Autoformat", "CodeBlock", "SelectAll", "PasteFromPlainText",
-      "CaseChange", "Emoji",
-      // Tables and media. Paid table-property and image-resize features are deliberately omitted.
-      "Table", "TableToolbar", "TableCaption", "MediaEmbed", "Image", "ImageInsert", "ImageToolbar",
-      "ImageCaption", "ImageStyle", "ImageUpload", "LinkImage",
-      // Free-plan HTML and navigation tools. The toolbar entries are added only when available.
-      "GeneralHtmlSupport", "ShowBlocks", "SourceEditing"
+      "List", "TodoList", "Autoformat", "CodeBlock", "Code", "SelectAll", "PasteFromPlainText",
+      "CaseChange", "Emoji", "Highlight", "TextTransformation", "Minimap",
+      "Table", "TableToolbar", "TableCaption", "MediaEmbed",
+      "Image", "ImageBlock", "ImageInline", "ImageInsert", "ImageInsertViaUrl", "ImageToolbar",
+      "ImageCaption", "ImageStyle", "ImageTextAlternative", "ImageUpload", "LinkImage", "AutoImage",
+      "GeneralHtmlSupport", "ShowBlocks", "SourceEditing", "ExportPdf", "ExportWord"
     ];
-    const plugins = pluginNames.map(name => CK[name]).filter(Boolean);
+    const plugins = pluginNames.map(name => allPlugins[name]).filter(Boolean);
     plugins.push(NebulaUploadAdapterPlugin);
 
     const toolbarCandidates = [
@@ -120,7 +120,7 @@
       "fontColor", "fontBackgroundColor", "caseChange", "|", "alignment",
       "|", "bulletedList", "numberedList", "todoList", "outdent", "indent", "|",
       "link", "uploadImage", "insertImage", "mediaEmbed", "insertTable", "|", "blockQuote",
-      "horizontalLine", "codeBlock", "emoji", "selectAll", "showBlocks", "sourceEditing"
+      "horizontalLine", "codeBlock", "code", "highlight", "emoji", "selectAll", "showBlocks", "sourceEditing", "minimap", "|", "exportWord", "exportPdf"
     ];
     const available = new Set();
     const toolbarMap = [
@@ -129,16 +129,20 @@
       ["Underline", ["underline"]], ["Strikethrough", ["strikethrough"]],
       ["Subscript", ["subscript"]], ["Superscript", ["superscript"]],
       ["Font", ["fontSize", "fontFamily", "fontColor", "fontBackgroundColor"]],
-      ["CaseChange", ["caseChange"]],
+      ["CaseChange", ["caseChange"]], ["Highlight", ["highlight"]],
       ["Alignment", ["alignment"]], ["List", ["bulletedList", "numberedList"]],
       ["TodoList", ["todoList"]], ["Indent", ["outdent", "indent"]],
-      ["Link", ["link"]], ["ImageUpload", ["uploadImage"]], ["ImageInsert", ["insertImage"]], ["MediaEmbed", ["mediaEmbed"]],
-      ["Table", ["insertTable"]], ["BlockQuote", ["blockQuote"]],
-      ["HorizontalLine", ["horizontalLine"]], ["CodeBlock", ["codeBlock"]],
-      ["Emoji", ["emoji"]], ["ShowBlocks", ["showBlocks"]], ["SourceEditing", ["sourceEditing"]]
+      ["Link", ["link"]], ["ImageUpload", ["uploadImage"]],
+      ["ImageInsert", ["insertImage"]], ["ImageInsertViaUrl", ["insertImageViaUrl"]],
+      ["MediaEmbed", ["mediaEmbed"]], ["Table", ["insertTable"]],
+      ["BlockQuote", ["blockQuote"]], ["HorizontalLine", ["horizontalLine"]],
+      ["CodeBlock", ["codeBlock"]], ["Code", ["code"]],
+      ["Emoji", ["emoji"]], ["Minimap", ["minimap"]],
+      ["ShowBlocks", ["showBlocks"]], ["SourceEditing", ["sourceEditing"]],
+      ["ExportPdf", ["exportPdf"]], ["ExportWord", ["exportWord"]]
     ];
     toolbarMap.forEach(([pluginName, items]) => {
-      if (CK[pluginName]) items.forEach(item => available.add(item));
+      if (allPlugins[pluginName]) items.forEach(item => available.add(item));
     });
     const toolbarItems = toolbarCandidates.filter(item => item === "|" || available.has(item));
     while (toolbarItems[0] === "|") toolbarItems.shift();
@@ -154,6 +158,16 @@
       toolbar: { items: toolbarItems, shouldNotGroupWhenFull: false },
       image: { toolbar: ["imageTextAlternative", "toggleImageCaption", "imageStyle:inline", "imageStyle:block", "imageStyle:side"] },
       table: { contentToolbar: ["tableColumn", "tableRow", "mergeTableCells"] },
+      exportPdf: {
+        stylesheets: [CORE_CSS],
+        fileName: "nebula-vault-document.pdf",
+        converterOptions: { format: "A4", margin_top: "15mm", margin_bottom: "15mm", margin_right: "15mm", margin_left: "15mm", page_orientation: "portrait" }
+      },
+      exportWord: {
+        stylesheets: [CORE_CSS],
+        fileName: "nebula-vault-document.docx",
+        converterOptions: { document: { orientation: "portrait", size: "A4", margins: { top: "15mm", bottom: "15mm", right: "15mm", left: "15mm" } } }
+      },
       style: { definitions: [
         { name: "Lead paragraph", element: "p", classes: ["nv-lead"] },
         { name: "Highlighted text", element: "span", classes: ["nv-highlight"] },
@@ -249,10 +263,13 @@
       return;
     }
     addStylesheet(CORE_CSS);
+    addStylesheet("https://cdn.ckeditor.com/ckeditor5-premium-features/" + VERSION + "/ckeditor5-premium-features.css");
     try {
       await loadScript(CDN_BASE + "ckeditor5.umd.js");
+      await loadScript("https://cdn.ckeditor.com/ckeditor5-premium-features/" + VERSION + "/ckeditor5-premium-features.umd.js");
       const CK = window.CKEDITOR || {};
-      fields.forEach(field => init(field, CK, runtimeConfig));
+      const allPlugins = { ...CK, ...(window.CKEDITOR_PREMIUM_FEATURES || {}) };
+      fields.forEach(field => init(field, CK, runtimeConfig, allPlugins));
     } catch (error) {
       console.error("Unable to load CKEditor 5 from the configured CDN:", error);
       const message = document.createElement("p");
