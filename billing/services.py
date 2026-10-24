@@ -260,9 +260,9 @@ def create_payment_order(
 
             if pending_orders.exists():
                 raise OrderCreationError(
-                    "A pending payment order already exists for this purchase. "
-                    "Continue with the existing order or wait until it is "
-                    "canceled or expired."
+                    "برای این خرید از قبل سفارش پرداخت در انتظار وجود دارد. "
+                    "سفارش فعلی را ادامه دهید یا تا زمان "
+                    "لغو یا منقضی‌شدن آن صبر کنید."
                 )
 
             return PaymentOrder.objects.create(
