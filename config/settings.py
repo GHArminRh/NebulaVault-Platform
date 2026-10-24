@@ -39,7 +39,6 @@ TEMPLATES = [{
     "OPTIONS": {"context_processors": [
         "django.template.context_processors.request", "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
-        "config.context_processors.ckeditor_config",
     ]},
 }]
 WSGI_APPLICATION = "config.wsgi.application"
@@ -73,9 +72,6 @@ EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "False").lower() == "true"
 LOGIN_REDIRECT_URL = "portal:dashboard"
 LOGOUT_REDIRECT_URL = "portal:home"
 
-# CKEditor 5 license: use "GPL" only if your distribution complies with CKEditor's GPL terms;
-# otherwise provide a valid commercial/cloud license key in the environment.
-CKEDITOR_LICENSE_KEY = os.environ.get("CKEDITOR_LICENSE_KEY", "GPL")
 
 # Uploaded release installers and archives.
 MEDIA_URL = "/media/"
