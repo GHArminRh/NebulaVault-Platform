@@ -36,11 +36,23 @@ TINYMCE_DEFAULT_CONFIG = {
         "removeformat | searchreplace | code fullscreen"
     ),
     "branding": False,
+    "promotion": False,
     "resize": True,
     "statusbar": True,
     "convert_urls": False,
     "relative_urls": False,
     "browser_spellcheck": True,
+    "paste_data_images": True,
+    "automatic_uploads": True,
+    "image_caption": True,
+    "images_file_types": "jpg,jpeg,png,gif,webp",
+    "block_formats": "Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3; Heading 4=h4; Preformatted=pre; Blockquote=blockquote",
+    "content_style": (
+        "body { font-family: Arial, Tahoma, sans-serif; font-size: 14px; } "
+        "img { max-width: 100%; height: auto; } "
+        "table { border-collapse: collapse; max-width: 100%; } "
+        "td, th { border: 1px solid #d1d5db; padding: 6px; }"
+    ),
 }
 
 # Both staff/admin accounts and site customers use UUID4 primary keys.
