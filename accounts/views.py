@@ -43,7 +43,8 @@ def profile(request):
             except Exception:
                 logger.exception("Could not send email-change verification for customer %s", customer.pk)
             logout(request)
-            return render(request, "accounts/verification_sent.html", {"email": customer.email})
+            messages.info(request, "We’ve sent a verification email if delivery is configured. Enter the six-digit code below; the same email also contains a verification link.")
+        return render(request, "accounts/email_code_form.html", {"purpose": "verification", "email": customer.email})
         messages.success(request, "Your account details have been updated.")
         return redirect("accounts:profile")
     return render(request, "accounts/profile.html", {"form": form})
@@ -153,6 +154,11 @@ def verify_email(request, uidb64, token):
     return render(request, "accounts/verification_result.html", {"already_verified": False, "success": False}, status=400)
 
 
+def _verification_resend_cooldown_key(email, ip):
+    raw = f"{email.strip().casefold()}|{ip or 'unknown'}".encode("utf-8")
+    return "account-verification-resend-cooldown:" + hashlib.sha256(raw).hexdigest()
+
+
 @require_http_methods(["GET", "POST"])
 def resend_verification(request):
     if request.user.is_authenticated:
@@ -160,14 +166,30 @@ def resend_verification(request):
     form = VerificationResendForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         email = form.cleaned_data["email"].strip()
+        ip = request.META.get("REMOTE_ADDR", "")
+        cooldown_key = _verification_resend_cooldown_key(email, ip)
+        if not cache.add(cooldown_key, 1, timeout=30):
+            messages.warning(request, "Please wait 30 seconds before requesting another verification email.")
+            return render(request, "accounts/email_code_form.html", {
+                "purpose": "verification", "email": email, "resend_cooldown": True,
+            })
         customer = Customer.objects.filter(email__iexact=email, is_active=False).first()
         if customer:
             try:
-                _send_verification_email(request, customer)
+                sent = _send_verification_email(request, customer)
+                if sent:
+                    messages.success(request, "If this account is awaiting verification, a new email has been sent.")
+                else:
+                    messages.warning(request, "The email request limit has been reached. Please try again later.")
             except Exception:
                 # Avoid disclosing account existence or SMTP delivery details.
                 logger.exception("Could not send requested account verification email")
-        return render(request, "accounts/verification_resend_done.html")
+                messages.error(request, "We couldn’t send the email right now. Please try again later.")
+        else:
+            messages.success(request, "If this account is awaiting verification, a new email has been sent.")
+        return render(request, "accounts/email_code_form.html", {
+            "purpose": "verification", "email": email, "resend_cooldown": True,
+        })
     return render(request, "accounts/verification_resend.html", {"form": form})
 
 
