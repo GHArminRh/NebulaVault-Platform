@@ -14,6 +14,7 @@ urlpatterns = [
     path("admin/json-import/<str:app_label>/<str:model_name>/", import_admin_json, name="admin-json-import"),
     path("admin/editor-upload/", editor_image_upload, name="editor-image-upload"),
     path("admin/", admin.site.urls),
+    path("api/licensing/", include("licensing.urls")),
     path(
         "accounts/login/",
         auth_views.LoginView.as_view(
