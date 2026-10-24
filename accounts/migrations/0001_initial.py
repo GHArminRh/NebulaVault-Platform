@@ -5,6 +5,33 @@ import uuid
 import accounts.models
 
 
+def ensure_account_tables_and_ban_field(apps, schema_editor):
+    # This app previously had no migration files, so existing installations may
+    # already have tables created by migrate --run-syncdb while fresh installs
+    # may not. Support both states without recreating existing customer data.
+    from accounts.models import Customer, AccountEmailLog
+
+    connection = schema_editor.connection
+    with connection.cursor() as cursor:
+        tables = set(connection.introspection.table_names(cursor))
+
+    if Customer._meta.db_table not in tables:
+        schema_editor.create_model(Customer)
+    else:
+        existing_columns = {
+            column.name for column in connection.introspection.get_table_description(
+                connection.cursor(), Customer._meta.db_table
+            )
+        }
+        if "is_banned" not in existing_columns:
+            schema_editor.add_field(Customer, Customer._meta.get_field("is_banned"))
+
+    with connection.cursor() as cursor:
+        tables = set(connection.introspection.table_names(cursor))
+    if AccountEmailLog._meta.db_table not in tables:
+        schema_editor.create_model(AccountEmailLog)
+
+
 class Migration(migrations.Migration):
     initial = True
 
@@ -13,9 +40,9 @@ class Migration(migrations.Migration):
     operations = [
         migrations.SeparateDatabaseAndState(
             database_operations=[
-                migrations.RunSQL(
-                    sql="ALTER TABLE accounts_customer ADD COLUMN is_banned boolean NOT NULL DEFAULT FALSE",
-                    reverse_sql=migrations.RunSQL.noop,
+                migrations.RunPython(
+                    ensure_account_tables_and_ban_field,
+                    reverse_code=migrations.RunPython.noop,
                 ),
             ],
             state_operations=[
