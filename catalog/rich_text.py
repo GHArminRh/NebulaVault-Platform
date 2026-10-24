@@ -19,7 +19,7 @@ DROP_CONTENT_TAGS = {
 }
 ALLOWED_ATTRIBUTES = {
     "*": {"dir", "style", "title"},
-    "a": {"href", "target", "rel"},
+    "a": {"href", "target"},
     "img": {"src", "alt", "width", "height", "loading"},
     "iframe": {"src", "width", "height", "allowfullscreen"},
     "ol": {"start", "reversed", "type"},
