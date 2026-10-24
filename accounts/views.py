@@ -20,7 +20,7 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
-from .forms import AccountPasswordChangeForm, AccountProfileForm, AccountSetPasswordForm, RegisterForm, VerificationResendForm
+from .forms import AccountPasswordChangeForm, AccountPasswordResetForm, AccountProfileForm, AccountSetPasswordForm, RegisterForm, VerificationResendForm
 from .models import AccountEmailLog, Customer
 
 logger = logging.getLogger(__name__)
