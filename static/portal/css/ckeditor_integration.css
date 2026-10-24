@@ -1,27 +1,76 @@
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-.nv-ckeditor-source{position:absolute!important;width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
-.nv-ckeditor-host{width:100%;min-width:0;margin:10px 0 20px;color:var(--ck-color-text,#283347);font-family:Arial,sans-serif;isolation:isolate}
-.nv-ckeditor-host .ck.ck-editor{width:100%;max-width:100%;min-width:0}
-.nv-ckeditor-host .ck-editor__editable{min-height:280px;max-height:70vh;overflow:auto}.nv-ckeditor-host .ck-content{font-family:Lato,Arial,sans-serif;line-height:1.65}
-.nv-ckeditor-host .ck.ck-toolbar{flex-wrap:wrap}
-.nv-ckeditor-host .ck-word-count{display:flex;justify-content:flex-end;gap:12px;padding:7px 10px;border:1px solid var(--ck-color-base-border);border-top:0;font-size:12px;color:var(--ck-color-text)}
-.nv-ckeditor-host .nv-ckeditor-word-count{width:100%}
-.nv-ckeditor-host .ck.ck-editor__editable_inline{padding:20px}
-.nv-ckeditor-error{padding:10px 12px;border-left:3px solid #c33;background:#fff1f0;color:#8b1a1a}
-@media(max-width:800px){.nv-ckeditor-host .ck.ck-toolbar{overflow-x:auto}.nv-ckeditor-host .ck-editor__editable{min-height:220px}.nv-ckeditor-host .ck.ck-toolbar>.ck-toolbar__items{flex-wrap:wrap}}
-.nv-ckeditor-notice{margin:8px 0 12px;padding:10px 12px;border-left:3px solid #b7791f;background:#fff8e6;color:#704b0b;font-size:13px;line-height:1.5}
 
-/* Local fullscreen control: expands the editor without requiring CKEditor's paid Fullscreen add-on. */
-.nv-ckeditor-fullscreen-button{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:30px;margin-inline-start:4px;padding:0 8px;border:0;border-radius:4px;background:transparent;color:var(--ck-color-text,#283347);font:600 21px/1 Arial,sans-serif;cursor:pointer}
-.nv-ckeditor-fullscreen-button:hover,.nv-ckeditor-fullscreen-button:focus-visible{background:var(--ck-color-button-default-hover-background,#eee);outline:2px solid var(--ck-color-focus-border,#6aa9ff);outline-offset:1px}
-.nv-ckeditor-host.nv-ckeditor-fullscreen{position:fixed!important;inset:0!important;z-index:2147483000!important;width:auto!important;max-width:none!important;margin:0!important;padding:12px!important;overflow:auto!important;background:var(--ck-color-base-background,#fff)!important;isolation:isolate;box-sizing:border-box}
-.nv-ckeditor-host.nv-ckeditor-fullscreen .ck.ck-editor{display:flex;flex-direction:column;width:100%;height:100%;max-width:none}
-.nv-ckeditor-host.nv-ckeditor-fullscreen .ck-editor__main{flex:1;min-height:0}
-.nv-ckeditor-host.nv-ckeditor-fullscreen .ck-editor__editable{height:100%;min-height:0;max-height:none!important;overflow:auto}
-body.nv-ckeditor-fullscreen-active{overflow:hidden!important}
-@media(max-width:800px){.nv-ckeditor-host.nv-ckeditor-fullscreen{padding:6px!important}}
+.nv-ckeditor-source {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
 
-/* Visual styles offered by the Free-plan Styles dropdown. */
-.nv-ckeditor-host .ck-content .nv-lead{font-size:1.15em;font-weight:500;line-height:1.65}
-.nv-ckeditor-host .ck-content .nv-highlight{background:#fff1a8;border-radius:2px}
-.nv-ckeditor-host .ck-content .nv-small{font-size:.85em}
+.nv-ckeditor-host {
+  width: 100%;
+  min-width: 0;
+  margin: 10px 0 20px;
+  font-family: Lato, sans-serif;
+}
+
+.nv-ckeditor-host .ck.ck-editor {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.nv-ckeditor-host .ck.ck-toolbar {
+  flex-wrap: wrap;
+}
+
+.nv-ckeditor-host .ck-content {
+  font-family: Lato, sans-serif;
+}
+
+.nv-ckeditor-host .ck-editor__editable {
+  min-height: 280px;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.nv-ckeditor-host .ck.ck-editor__editable_inline {
+  padding: 20px;
+}
+
+.nv-ckeditor-error {
+  padding: 10px 12px;
+  border-left: 3px solid #c33;
+  background: #fff1f0;
+  color: #8b1a1a;
+}
+
+.nv-ckeditor-notice {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border-left: 3px solid #b7791f;
+  background: #fff8e6;
+  color: #704b0b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 800px) {
+  .nv-ckeditor-host .ck.ck-toolbar {
+    overflow-x: auto;
+  }
+
+  .nv-ckeditor-host .ck-editor__editable {
+    min-height: 220px;
+  }
+
+  .nv-ckeditor-host .ck.ck-toolbar > .ck-toolbar__items {
+    flex-wrap: wrap;
+  }
+}
