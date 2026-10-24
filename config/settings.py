@@ -112,3 +112,6 @@ LOGOUT_REDIRECT_URL = "portal:home"
 # Uploaded release installers and archives.
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media/"
+
+# The mock checkout is for development/testing only. Enable explicitly via env when needed.
+NEBULA_MOCK_PAYMENTS = os.environ.get("NEBULA_MOCK_PAYMENTS", str(DEBUG)).lower() == "true"
