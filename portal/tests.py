@@ -26,6 +26,24 @@ class PortalPageTests(TestCase):
         self.assertNotContains(response, "onerror")
         self.assertNotContains(response, "alert(")
 
+    def test_rich_description_only_allows_sandboxed_video_providers(self):
+        self.product.description = (
+            '<p>Video</p>'
+            '<iframe src="https://www.youtube.com/embed/abcdefghijk" onload="alert(1)"></iframe>'
+            '<iframe src="https://evil.example/embed/abcdefghijk"></iframe>'
+        )
+        self.product.save()
+        response = self.client.get(reverse("portal:product_detail", args=[self.product.slug]))
+        self.assertContains(response, 'youtube.com/embed/abcdefghijk', html=False)
+        self.assertContains(response, 'sandbox=', html=False)
+        self.assertNotContains(response, 'evil.example')
+        self.assertNotContains(response, 'onload=')
+        self.assertNotContains(response, 'alert(')
+
+    def test_editor_image_upload_requires_staff(self):
+        response = self.client.post(reverse("editor-image-upload"), {})
+        self.assertEqual(response.status_code, 403)
+
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse("portal:dashboard"))
         self.assertEqual(response.status_code, 302)
