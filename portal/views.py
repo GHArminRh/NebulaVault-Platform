@@ -99,7 +99,7 @@ def create_order(request, plan_id):
     except OrderCreationError as exc:
         messages.error(request, str(exc))
         return redirect("portal:product_detail", slug=plan.product.slug)
-    messages.success(request, f"Order {order.order_number} was created. Payment processing is not connected yet.")
+    messages.success(request, f"سفارش {order.order_number} ثبت شد، اما پردازش پرداخت هنوز متصل نشده است.")
     return redirect("portal:orders")
 
 def _cart_plan_ids(request):
@@ -124,9 +124,9 @@ def cart_add(request, plan_id):
     if str(plan.pk) not in plan_ids:
         plan_ids.append(str(plan.pk))
         request.session["nebula_cart"] = plan_ids
-        messages.success(request, f"{plan.name} was added to your cart.")
+        messages.success(request, f"طرح «{plan.name}» به سبد خرید اضافه شد.")
     else:
-        messages.info(request, f"{plan.name} is already in your cart.")
+        messages.info(request, f"طرح «{plan.name}» از قبل در سبد خرید شماست.")
     return redirect("portal:cart")
 
 
@@ -166,7 +166,7 @@ def cart_remove(request, plan_id):
     request.session["nebula_cart"] = [
         value for value in _cart_plan_ids(request) if value != str(plan_id)
     ]
-    messages.success(request, "The item was removed from your cart.")
+    messages.success(request, "مورد انتخاب‌شده از سبد خرید حذف شد.")
     return redirect("portal:cart")
 
 
@@ -174,7 +174,7 @@ def cart_clear(request):
     if request.method != "POST":
         return redirect("portal:cart")
     request.session["nebula_cart"] = []
-    messages.success(request, "Your cart has been cleared.")
+    messages.success(request, "سبد خرید شما خالی شد.")
     return redirect("portal:cart")
 
 
@@ -184,12 +184,12 @@ def checkout(request):
         return redirect("portal:cart")
 
     if not getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG):
-        messages.error(request, "Demo checkout is disabled. Please try again when payment processing is available.")
+        messages.error(request, "پرداخت آزمایشی غیرفعال است. پس از فعال‌شدن درگاه پرداخت دوباره تلاش کنید.")
         return redirect("portal:cart")
 
     plan_ids = _cart_plan_ids(request)
     if not plan_ids:
-        messages.info(request, "Your cart is empty.")
+        messages.info(request, "سبد خرید شما خالی است.")
         return redirect("portal:cart")
 
     plans = list(
@@ -200,7 +200,7 @@ def checkout(request):
         ).select_related("product")
     )
     if len(plans) != len(plan_ids):
-        messages.error(request, "One or more items are no longer available. Please review your cart.")
+        messages.error(request, "یک یا چند مورد دیگر در دسترس نیستند. لطفاً سبد خرید را بررسی کنید.")
         request.session["nebula_cart"] = [str(plan.pk) for plan in plans]
         return redirect("portal:cart")
 
@@ -246,7 +246,7 @@ def checkout(request):
                 )
                 completed_orders.append(order)
     except (OrderCreationError, PaymentAttemptCreationError, PaymentFinalizationError) as exc:
-        messages.error(request, f"Checkout could not be completed: {exc}")
+        messages.error(request, f"تکمیل سفارش ممکن نشد: {exc}")
         return redirect("portal:cart")
 
     request.session["nebula_cart"] = []
@@ -267,7 +267,7 @@ def start_trial(request, slug):
     except (TrialAlreadyUsed, TrialUnavailable) as exc:
         messages.error(request, str(exc))
         return redirect("portal:product_detail", slug=slug)
-    messages.success(request, f"Your 7-day trial for {product.name} is ready.")
+    messages.success(request, f"دوره آزمایشی ۷ روزه محصول «{product.name}» آماده است.")
     return redirect("portal:subscriptions")
 
 
