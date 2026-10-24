@@ -28,7 +28,8 @@
     return { app_label: parts[adminIndex + 1], model_name: parts[adminIndex + 2] };
   }
 
-  function renderButton(cell, currentValue, context) {
+  function renderButton(cell, icon, context) {
+    const currentValue = icon.alt === "True";
     if (cell.querySelector(".nv-boolean-toggle")) return;
     const fieldClass = Array.from(cell.classList).find((name) => name.startsWith("field-"));
     if (!fieldClass) return;
@@ -38,7 +39,9 @@
     const button = document.createElement("button");
     button.type = "button";
     button.className = "nv-boolean-toggle " + (currentValue ? "is-true" : "is-false");
-    button.textContent = currentValue ? "✓" : "✕";
+    const statusIcon = icon.cloneNode(true);
+    statusIcon.className = "nv-boolean-icon";
+    button.appendChild(statusIcon);
     button.setAttribute("aria-label", (currentValue ? "Enabled" : "Disabled") + "; click to toggle");
     button.title = "Click to " + (currentValue ? "disable" : "enable");
     button.dataset.value = String(currentValue);
@@ -66,7 +69,8 @@
         const data = await response.json();
         if (!response.ok || !data.ok) throw new Error(data.error || "Could not save this change.");
         button.dataset.value = String(data.value);
-        button.textContent = data.value ? "✓" : "✕";
+        statusIcon.src = statusIcon.src.replace("icon-" + (data.value ? "no" : "yes") + ".svg", "icon-" + (data.value ? "yes" : "no") + ".svg");
+        statusIcon.alt = data.value ? "True" : "False";
         button.classList.toggle("is-true", data.value);
         button.classList.toggle("is-false", !data.value);
         button.setAttribute("aria-label", (data.value ? "Enabled" : "Disabled") + "; click to toggle");
@@ -89,7 +93,7 @@
       cells.forEach((cell) => {
         const icon = cell.querySelector('img[alt="True"], img[alt="False"]');
         if (!icon) return;
-        renderButton(cell, icon.alt === "True", context);
+        renderButton(cell, icon, context);
       });
     });
   }
