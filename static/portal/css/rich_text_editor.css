@@ -37,3 +37,6 @@
   .nv-ckeditor-host .ck-editor__editable_inline { min-height: 180px; }
   .nv-ckeditor-host .ck.ck-toolbar { flex-wrap: wrap; }
 }
+
+.nv-ckeditor-validation-error { margin-top: .5rem; color: #dc2626; font-size: .875rem; }
+.nv-ckeditor-host [aria-invalid="true"] { border-color: #dc2626 !important; }
