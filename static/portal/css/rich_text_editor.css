@@ -1,0 +1,39 @@
+/* Shared CKEditor 5 presentation for Django Admin and the Nebula Vault portal. */
+.nv-ckeditor-source {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.nv-ckeditor-host { width: 100%; min-width: 0; margin-block: .35rem 1rem; }
+.nv-ckeditor-host .ck-editor { width: 100%; max-width: 100%; }
+.nv-ckeditor-host .ck-editor__editable_inline { min-height: 220px; max-height: 65vh; overflow-y: auto; }
+.nv-ckeditor-host .ck.ck-toolbar { border-radius: 10px 10px 0 0; }
+.nv-ckeditor-host .ck.ck-editor__main > .ck-editor__editable { border-radius: 0 0 10px 10px; }
+.nv-ckeditor-host .ck-content { line-height: 1.7; }
+.nv-ckeditor-fallback-notice { margin: .35rem 0 .75rem; color: #b45309; font-size: .85rem; }
+.nv-ckeditor-host .ck.ck-editor__editable[aria-required="true"] { border-inline-start: 3px solid #7c9cff; }
+.nv-portal .nv-ckeditor-host .ck.ck-toolbar,
+.nv-portal .nv-ckeditor-host .ck.ck-editor__main > .ck-editor__editable {
+  background: #10182a;
+  color: #e9edff;
+  border-color: rgba(174, 191, 236, .22);
+}
+.nv-portal .nv-ckeditor-host .ck.ck-toolbar .ck-button,
+.nv-portal .nv-ckeditor-host .ck.ck-toolbar .ck-dropdown__button { color: #e9edff; }
+.nv-portal .nv-ckeditor-host .ck.ck-toolbar .ck-button:hover,
+.nv-portal .nv-ckeditor-host .ck.ck-toolbar .ck-dropdown__button:hover { background: rgba(169, 154, 255, .14); }
+.nv-portal .nv-ckeditor-host .ck.ck-editor__editable_inline:focus { border-color: #a99aff; box-shadow: 0 0 0 1px #a99aff; }
+.nv-portal .nv-ckeditor-host .ck-content { color: #e9edff; }
+.nv-portal .nv-ckeditor-host .ck.ck-toolbar .ck-toolbar__separator { background: rgba(174, 191, 236, .22); }
+@media (max-width: 720px) {
+  .nv-ckeditor-host .ck-editor__editable_inline { min-height: 180px; }
+  .nv-ckeditor-host .ck.ck-toolbar { flex-wrap: wrap; }
+}
