@@ -2,12 +2,8 @@
   "use strict";
   const VERSION = "48.5.1";
   const CDN_BASE = "https://cdn.ckeditor.com/ckeditor5/" + VERSION + "/";
-  const PREMIUM_BASE = "https://cdn.ckeditor.com/ckeditor5-premium-features/" + VERSION + "/";
   const CORE_CSS = CDN_BASE + "ckeditor5.css";
-  const PREMIUM_CSS = PREMIUM_BASE + "ckeditor5-premium-features.css";
-  // Bundled CKEditor 5 Free production license for this private project.
-  // License keys are client-side configuration; rotate it in the CKEditor portal if exposed publicly.
-  // Commercial free-production key supplied by the project owner. This key is host-restricted to 127.0.0.1.
+  // Commercial free-plan key is browser-visible by design. Restrict it to approved hosts in the CKEditor portal.
   const DEFAULT_LICENSE_KEY = "eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE4MjQ0MjIzOTksImp0aSI6IjI0ZDQ0ZjFmLTFmMDgtNGQyNS05ZWRjLWFjZDc2OGRjNzdkMiIsImxpY2Vuc2VkSG9zdHMiOlsiMTI3LjAuMC4xIl0sInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiXSwiZmVhdHVyZXMiOlsiRFJVUCIsIkUyUCIsIkUyVyJdLCJyZW1vdmVGZWF0dXJlcyI6WyJQQiIsIlJGIiwiU0NIIiwiVENQIiwiVEwiLCJUQ1IiLCJJUiIsIlNVQSIsIkI2NEEiLCJMUCIsIkhFIiwiUkVEIiwiUEZPIiwiV0MiLCJGQVIiLCJCS00iLCJGUEgiLCJNUkUiLCJNRVIiXSwidmMiOiJmYjA1YTU3OCJ9.U7s7YoQbpfpPhMidJTjPg6Xf0LyF8I2SYFp-iySYGaCHY2dkXVLRHoUL3yuo2HqCRozpSgl3Odq6Z0z9hQgTqg";
   const EXCLUDED = [
     "textarea[data-no-rich-editor]", "textarea.no-rich-editor",
@@ -25,16 +21,12 @@
   ].join(",");
 
   function getRuntimeConfig() {
-    const defaults = { licenseKey: DEFAULT_LICENSE_KEY, cloudServicesTokenUrl: "" };
+    const defaults = { licenseKey: DEFAULT_LICENSE_KEY };
     const node = document.getElementById("nebula-ckeditor-config");
     if (!node) return defaults;
     try {
       const config = JSON.parse(node.textContent || "{}");
-      return {
-        ...config,
-        licenseKey: (config.licenseKey || "").trim() || DEFAULT_LICENSE_KEY,
-        cloudServicesTokenUrl: (config.cloudServicesTokenUrl || "").trim()
-      };
+      return { ...config, licenseKey: (config.licenseKey || "").trim() || DEFAULT_LICENSE_KEY };
     } catch (error) {
       console.error("Unable to parse CKEditor configuration; using bundled license defaults:", error);
       return defaults;
@@ -94,34 +86,70 @@
     editor.plugins.get("FileRepository").createUploadAdapter = loader => new NebulaUploadAdapter(loader);
   }
 
-  function init(textarea, CK, Premium, runtimeConfig) {
+  function init(textarea, CK, runtimeConfig) {
     if (textarea.dataset.ckeditorInitialized === "true") return;
     textarea.dataset.ckeditorInitialized = "true";
     textarea.classList.add("nv-ckeditor-source");
     const host = document.createElement("div");
     host.className = "nv-ckeditor-host";
     textarea.insertAdjacentElement("afterend", host);
-    const initialValue = textarea.value || "";
     const form = textarea.form;
-    const tokenUrl = (runtimeConfig.cloudServicesTokenUrl || "").trim();
 
-    const plugins = [
-      CK.Essentials, CK.Paragraph, CK.Bold, CK.Italic, CK.Font
+    // Keep this list limited to standard editing plugins; premium and explicitly
+    // excluded free-plan features (e.g. Find & Replace, Remove Format and List
+    // Properties) are intentionally not registered.
+    const pluginNames = [
+      "Essentials", "Paragraph", "Bold", "Italic", "Underline", "Strikethrough",
+      "Subscript", "Superscript", "Font", "Heading", "Alignment", "Indent",
+      "BlockQuote", "HorizontalLine", "Link", "AutoLink", "List", "Autoformat",
+      "CodeBlock", "MediaEmbed", "Image", "ImageToolbar", "ImageCaption",
+      "ImageStyle", "ImageUpload", "LinkImage", "GeneralHtmlSupport", "SourceEditing"
     ];
-    const toolbarItems = [
-      "undo", "redo", "|", "bold", "italic", "|",
-      "fontSize", "fontFamily", "fontColor", "fontBackgroundColor"
+    const plugins = pluginNames.map(name => CK[name]).filter(Boolean);
+    plugins.push(NebulaUploadAdapterPlugin);
+
+    const toolbarCandidates = [
+      "undo", "redo", "|", "heading", "|", "bold", "italic", "underline",
+      "strikethrough", "subscript", "superscript", "|", "fontSize", "fontFamily",
+      "fontColor", "fontBackgroundColor", "|", "alignment", "|", "bulletedList",
+      "numberedList", "outdent", "indent", "|", "link", "uploadImage", "mediaEmbed",
+      "blockQuote", "horizontalLine", "codeBlock", "sourceEditing"
     ];
+    const available = new Set();
+    const toolbarMap = [
+      ["Heading", ["heading"]], ["Bold", ["bold"]], ["Italic", ["italic"]],
+      ["Underline", ["underline"]], ["Strikethrough", ["strikethrough"]],
+      ["Subscript", ["subscript"]], ["Superscript", ["superscript"]],
+      ["Font", ["fontSize", "fontFamily", "fontColor", "fontBackgroundColor"]],
+      ["Alignment", ["alignment"]], ["List", ["bulletedList", "numberedList"]],
+      ["Indent", ["outdent", "indent"]], ["Link", ["link"]],
+      ["ImageUpload", ["uploadImage"]], ["MediaEmbed", ["mediaEmbed"]],
+      ["BlockQuote", ["blockQuote"]], ["HorizontalLine", ["horizontalLine"]],
+      ["CodeBlock", ["codeBlock"]], ["SourceEditing", ["sourceEditing"]]
+    ];
+    toolbarMap.forEach(([pluginName, items]) => {
+      if (CK[pluginName]) items.forEach(item => available.add(item));
+    });
+    const toolbarItems = toolbarCandidates.filter(item => item === "|" || available.has(item));
+    while (toolbarItems[0] === "|") toolbarItems.shift();
+    while (toolbarItems[toolbarItems.length - 1] === "|") toolbarItems.pop();
+    for (let i = toolbarItems.length - 1; i > 0; i--) {
+      if (toolbarItems[i] === "|" && toolbarItems[i - 1] === "|") toolbarItems.splice(i, 1);
+    }
+
     const config = {
       licenseKey: runtimeConfig.licenseKey,
       placeholder: textarea.getAttribute("placeholder") || "Type or paste your content here…",
-      plugins: plugins,
+      plugins,
       toolbar: { items: toolbarItems, shouldNotGroupWhenFull: false },
+      image: { toolbar: ["imageTextAlternative", "toggleImageCaption", "imageStyle:inline", "imageStyle:block", "imageStyle:side"] },
+      link: { addTargetToExternalLinks: true, defaultProtocol: "https://" },
+      htmlSupport: { allow: [{ name: /.*/, attributes: true, classes: true, styles: true }] },
       autosave: {
         save: editor => { textarea.value = editor.getData(); return Promise.resolve(); },
         waitingTime: 1500
       },
-      initialData: initialValue
+      initialData: textarea.value || ""
     };
 
     CK.ClassicEditor.create(host, config).then(editor => {
@@ -133,9 +161,6 @@
         if (!editor.isReadOnly) textarea.value = editor.getData();
       }, true);
 
-      // A validly rendered editor can still be forced into read-only mode by
-      // CKEditor license validation/usage limits. Never leave the source field
-      // hidden in that state: expose a plain-text fallback and explain the cause.
       let readOnlyNotice = null;
       const handleReadOnlyState = () => {
         if (!editor.isReadOnly) {
@@ -185,7 +210,7 @@
     try {
       await loadScript(CDN_BASE + "ckeditor5.umd.js");
       const CK = window.CKEDITOR || {};
-      fields.forEach(field => init(field, CK, {}, runtimeConfig));
+      fields.forEach(field => init(field, CK, runtimeConfig));
     } catch (error) {
       console.error("Unable to load CKEditor 5 from the configured CDN:", error);
       const message = document.createElement("p");
