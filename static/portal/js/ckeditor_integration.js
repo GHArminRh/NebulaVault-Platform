@@ -119,7 +119,7 @@
       "strikethrough", "subscript", "superscript", "|", "fontSize", "fontFamily",
       "fontColor", "fontBackgroundColor", "caseChange", "|", "alignment",
       "|", "bulletedList", "numberedList", "todoList", "outdent", "indent", "|",
-      "link", "uploadImage", "insertImage", "mediaEmbed", "insertTable", "|", "blockQuote",
+      "link", "uploadImage", "insertImage", "insertImageViaUrl", "mediaEmbed", "insertTable", "|", "blockQuote",
       "horizontalLine", "codeBlock", "code", "highlight", "emoji", "selectAll", "showBlocks", "sourceEditing", "minimap", "|", "exportWord", "exportPdf"
     ];
     const available = new Set();
