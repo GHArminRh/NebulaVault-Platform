@@ -103,7 +103,7 @@
       "Subscript", "Superscript", "Font", "Heading", "Alignment", "Indent",
       "BlockQuote", "HorizontalLine", "Link", "AutoLink", "List", "Autoformat",
       "CodeBlock", "MediaEmbed", "Image", "ImageToolbar", "ImageCaption",
-      "ImageStyle", "ImageUpload", "LinkImage", "GeneralHtmlSupport", "SourceEditing"
+      "ImageStyle", "ImageUpload", "LinkImage"
     ];
     const plugins = pluginNames.map(name => CK[name]).filter(Boolean);
     plugins.push(NebulaUploadAdapterPlugin);
@@ -113,11 +113,11 @@
       "strikethrough", "subscript", "superscript", "|", "fontSize", "fontFamily",
       "fontColor", "fontBackgroundColor", "|", "alignment", "|", "bulletedList",
       "numberedList", "outdent", "indent", "|", "link", "uploadImage", "mediaEmbed",
-      "blockQuote", "horizontalLine", "codeBlock", "sourceEditing"
+      "blockQuote", "horizontalLine", "codeBlock"
     ];
     const available = new Set();
     const toolbarMap = [
-      ["Heading", ["heading"]], ["Bold", ["bold"]], ["Italic", ["italic"]],
+      ["Essentials", ["undo", "redo"]], ["Heading", ["heading"]], ["Bold", ["bold"]], ["Italic", ["italic"]],
       ["Underline", ["underline"]], ["Strikethrough", ["strikethrough"]],
       ["Subscript", ["subscript"]], ["Superscript", ["superscript"]],
       ["Font", ["fontSize", "fontFamily", "fontColor", "fontBackgroundColor"]],
@@ -125,7 +125,7 @@
       ["Indent", ["outdent", "indent"]], ["Link", ["link"]],
       ["ImageUpload", ["uploadImage"]], ["MediaEmbed", ["mediaEmbed"]],
       ["BlockQuote", ["blockQuote"]], ["HorizontalLine", ["horizontalLine"]],
-      ["CodeBlock", ["codeBlock"]], ["SourceEditing", ["sourceEditing"]]
+      ["CodeBlock", ["codeBlock"]]
     ];
     toolbarMap.forEach(([pluginName, items]) => {
       if (CK[pluginName]) items.forEach(item => available.add(item));
@@ -144,7 +144,6 @@
       toolbar: { items: toolbarItems, shouldNotGroupWhenFull: false },
       image: { toolbar: ["imageTextAlternative", "toggleImageCaption", "imageStyle:inline", "imageStyle:block", "imageStyle:side"] },
       link: { addTargetToExternalLinks: true, defaultProtocol: "https://" },
-      htmlSupport: { allow: [{ name: /.*/, attributes: true, classes: true, styles: true }] },
       autosave: {
         save: editor => { textarea.value = editor.getData(); return Promise.resolve(); },
         waitingTime: 1500
