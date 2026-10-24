@@ -104,12 +104,12 @@
       "Subscript", "Superscript", "Font", "Heading", "Style", "Alignment",
       "Indent", "IndentBlock", "BlockQuote", "HorizontalLine", "Link", "AutoLink",
       "List", "TodoList", "Autoformat", "CodeBlock", "SelectAll", "PasteFromPlainText",
-      "CaseChange", "Emoji", "Mention", "LineHeight",
+      "CaseChange", "Emoji", "LineHeight",
       // Tables and media. Paid table-property and image-resize features are deliberately omitted.
-      "Table", "TableToolbar", "TableCaption", "MediaEmbed", "Image", "ImageToolbar",
+      "Table", "TableToolbar", "TableCaption", "MediaEmbed", "Image", "ImageInsert", "ImageToolbar",
       "ImageCaption", "ImageStyle", "ImageUpload", "LinkImage",
       // Free-plan HTML and navigation tools. The toolbar entries are added only when available.
-      "GeneralHtmlSupport", "ShowBlocks", "SourceEditing", "Minimap", "Markdown"
+      "GeneralHtmlSupport", "ShowBlocks", "SourceEditing"
     ];
     const plugins = pluginNames.map(name => CK[name]).filter(Boolean);
     plugins.push(NebulaUploadAdapterPlugin);
@@ -119,7 +119,7 @@
       "strikethrough", "subscript", "superscript", "|", "fontSize", "fontFamily",
       "fontColor", "fontBackgroundColor", "caseChange", "lineHeight", "|", "alignment",
       "|", "bulletedList", "numberedList", "todoList", "outdent", "indent", "|",
-      "link", "uploadImage", "mediaEmbed", "insertTable", "|", "blockQuote",
+      "link", "uploadImage", "insertImage", "mediaEmbed", "insertTable", "|", "blockQuote",
       "horizontalLine", "codeBlock", "emoji", "selectAll", "showBlocks", "sourceEditing"
     ];
     const available = new Set();
@@ -132,7 +132,7 @@
       ["CaseChange", ["caseChange"]], ["LineHeight", ["lineHeight"]],
       ["Alignment", ["alignment"]], ["List", ["bulletedList", "numberedList"]],
       ["TodoList", ["todoList"]], ["Indent", ["outdent", "indent"]],
-      ["Link", ["link"]], ["ImageUpload", ["uploadImage"]], ["MediaEmbed", ["mediaEmbed"]],
+      ["Link", ["link"]], ["ImageUpload", ["uploadImage"]], ["ImageInsert", ["insertImage"]], ["MediaEmbed", ["mediaEmbed"]],
       ["Table", ["insertTable"]], ["BlockQuote", ["blockQuote"]],
       ["HorizontalLine", ["horizontalLine"]], ["CodeBlock", ["codeBlock"]],
       ["Emoji", ["emoji"]], ["ShowBlocks", ["showBlocks"]], ["SourceEditing", ["sourceEditing"]]
@@ -153,6 +153,7 @@
       plugins,
       toolbar: { items: toolbarItems, shouldNotGroupWhenFull: false },
       image: { toolbar: ["imageTextAlternative", "toggleImageCaption", "imageStyle:inline", "imageStyle:block", "imageStyle:side"] },
+      table: { contentToolbar: ["tableColumn", "tableRow", "mergeTableCells"] },
       link: { addTargetToExternalLinks: true, defaultProtocol: "https://" },
       autosave: {
         save: editor => { textarea.value = editor.getData(); return Promise.resolve(); },
