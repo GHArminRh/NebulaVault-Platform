@@ -1,9 +1,10 @@
 from datetime import timedelta
 from accounts.models import Customer
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from catalog.models import Plan, Product
+from billing.models import PaymentAttempt, PaymentOrder
 from subscriptions.models import Subscription
 
 class PortalPageTests(TestCase):
@@ -62,6 +63,39 @@ class PortalPageTests(TestCase):
         sub = Subscription.objects.get(user=self.user, product=self.product)
         self.assertEqual(sub.kind, Subscription.Kind.TRIAL)
         self.assertLessEqual(sub.expires_at - sub.starts_at, timedelta(days=7))
+
+    def test_cart_can_be_used_before_sign_in(self):
+        response = self.client.post(reverse("portal:cart_add", args=[self.plan.pk]))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.client.session.get("nebula_cart"), [str(self.plan.pk)])
+        cart_response = self.client.get(reverse("portal:cart"))
+        self.assertEqual(cart_response.status_code, 200)
+        self.assertContains(cart_response, self.plan.name)
+        self.assertContains(cart_response, "Pay &amp; complete order")
+
+    @override_settings(NEBULA_MOCK_PAYMENTS=True)
+    def test_demo_checkout_marks_order_paid_and_activates_subscription(self):
+        self.client.force_login(
+            self.user,
+            backend="accounts.backends.CustomerAuthenticationBackend",
+        )
+        self.client.post(reverse("portal:cart_add", args=[self.plan.pk]))
+        response = self.client.post(reverse("portal:checkout"))
+        self.assertRedirects(response, reverse("portal:orders"))
+
+        order = PaymentOrder.objects.get(user=self.user, plan=self.plan)
+        self.assertEqual(order.status, PaymentOrder.Status.PAID)
+        self.assertIsNotNone(order.paid_at)
+
+        attempt = PaymentAttempt.objects.get(order=order)
+        self.assertEqual(attempt.provider, "mock")
+        self.assertEqual(attempt.status, PaymentAttempt.Status.SUCCEEDED)
+
+        subscription = Subscription.objects.get(user=self.user, plan=self.plan)
+        self.assertEqual(subscription.status, Subscription.Status.ACTIVE)
+        self.assertEqual(subscription.kind, Subscription.Kind.PAID)
+        self.assertGreater(subscription.expires_at, subscription.starts_at)
+        self.assertEqual(self.client.session.get("nebula_cart"), [])
 
     def test_order_remains_pending_without_payment_provider(self):
         from billing.models import PaymentOrder
