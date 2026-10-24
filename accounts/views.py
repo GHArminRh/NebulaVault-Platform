@@ -20,7 +20,7 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
-from .forms import AccountPasswordChangeForm, AccountProfileForm, RegisterForm, VerificationResendForm
+from .forms import AccountPasswordChangeForm, AccountProfileForm, AccountSetPasswordForm, RegisterForm, VerificationResendForm
 from .models import AccountEmailLog, Customer
 
 logger = logging.getLogger(__name__)
@@ -306,3 +306,23 @@ def password_reset_code(request):
     return render(request, "accounts/email_code_form.html", {"purpose": "password_reset"})
 
 
+
+
+@require_http_methods(["GET", "POST"])
+def password_reset_confirm(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        customer = Customer.objects.get(pk=uid, is_active=True)
+    except (TypeError, ValueError, OverflowError, Customer.DoesNotExist):
+        customer = None
+
+    token_generator = PasswordResetTokenGenerator()
+    validlink = bool(customer and token_generator.check_token(customer, token))
+    form = AccountSetPasswordForm(customer, request.POST or None) if validlink else None
+    if request.method == "POST" and validlink and form and form.is_valid():
+        form.save()
+        messages.success(request, "Your password has been reset. You can now sign in.")
+        return redirect("accounts:password_reset_complete")
+    return render(request, "accounts/password_reset_confirm.html", {
+        "form": form, "validlink": validlink, "title": "Set a new password",
+    }, status=200 if validlink else 400)
