@@ -2,7 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 
-from .models import Customer
+from .models import AccountEmailLog, Customer
 
 
 class CustomerAdminForm(forms.ModelForm):
@@ -69,3 +69,14 @@ class CustomerAdmin(admin.ModelAdmin):
 
     class Media:
         js = ("accounts/admin_customer_username.js",)
+
+
+@admin.register(AccountEmailLog)
+class AccountEmailLogAdmin(admin.ModelAdmin):
+    list_display = ("created_at", "recipient", "purpose", "status", "sent_at", "expires_at", "failed_attempts")
+    list_filter = ("purpose", "status", "created_at")
+    search_fields = ("recipient", "customer__email", "customer__username")
+    date_hierarchy = "created_at"
+    ordering = ("-created_at",)
+    readonly_fields = tuple(field.name for field in AccountEmailLog._meta.fields)
+    exclude = ("code_hash",)
