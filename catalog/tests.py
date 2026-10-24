@@ -29,6 +29,7 @@ class StaffTinyMCEAdminTests(TestCase):
         self.assertContains(response, "tinymce/tinymce.min.js")
         self.assertContains(response, "tinymce/init_tinymce.js")
         self.assertContains(response, "portal/js/tinymce_upload.js")
+        self.assertContains(response, 'data-upload-url="/admin/editor-upload/"')
         self.assertContains(response, "id_description")
         self.assertNotContains(response, "cdn.tiny.cloud")
 
