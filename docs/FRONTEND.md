@@ -28,17 +28,16 @@ This branch adds a server-rendered Django frontend for the existing catalog, sub
 
 - `static/portal/css/site.css`: responsive dark, space-inspired design
 - `static/portal/js/site.js`: mobile navigation, password visibility, dismissible messages, and subtle reveal transitions
-- `static/portal/js/rich_text_editor.js` and `static/portal/css/rich_text_editor.css`: reusable custom dependency-free Nebula Vault rich text editor
-- `templates/portal/`: server-rendered pages
+- `static/portal/js/ckeditor_integration.js` and `static/portal/css/ckeditor_integration.css`: CKEditor 5 integration based on the supplied CKEditor Builder configuration; CKEditor 5 core and premium bundles are loaded from the CKEditor CDN.
+- `templates/portal/`: server-rendered pages.
 
 ## Rich-text editor
 
-- A custom in-house editor with a CKEditor-inspired classic editing layout: menu bar, grouped multi-row toolbar, color palettes, contextual selection toolbar, dialogs, element path, word/character counts, and fullscreen/source views. It does not load CKEditor or a third-party editor runtime.
-- Core tools include undo/redo, paragraph styles and headings, bold/italic/underline/strikethrough, subscript/superscript, font family/size, text/highlight colors, alignment, lists, indentation, links, image URLs and secure image-file uploads with alternative text/captions, sandboxed YouTube/Vimeo embeds, table insertion and row/column operations, block quotes, code blocks, horizontal/page breaks, special characters, find/replace, import/export HTML, block boundaries, direction controls, print, and keyboard shortcuts.
-- Uses an explicit field allowlist instead of turning every textarea into HTML. The current model fields enabled by default are `description` and `release_notes`; other forms can opt in with `data-rich-editor` or `.rich-text`. JSON, credentials, code, and other non-prose fields remain plain text.
-- Textareas remain the submitted form fields. Source mode and visual mode are synchronized before form submission; HTML is cleaned before it leaves the editor.
-- A server-side `nh3` allow-list sanitizer is applied when product descriptions/release notes are saved and again when product-description HTML is rendered. Scripts, event-handler attributes, arbitrary iframe sources, and unapproved CSS are not allowed. Only HTTPS YouTube/Vimeo embed URLs are allowed, with a fixed sandbox/referrer policy. The client-side sanitizer is not treated as a security boundary.
-- Office/PDF conversion, track changes, comments, revision history, and real-time multi-user collaboration are not implemented in this custom editor yet; those require additional document/conversion and collaboration infrastructure. AI features are intentionally excluded.
+- The previous in-house editor assets have been removed from the page templates and replaced with CKEditor 5 (version 48.5.1), using the supplied Builder-style classic editor and menu bar. AI tools, CKBox, presence, cloud comments, real-time collaboration, and revision-history UI are not enabled because they require separate services/configuration.
+- The editor is attached only to the existing rich-text allowlist: `description`, `release_notes`, and explicitly opted-in fields via `data-rich-editor` or `.rich-text`. JSON, credentials, code, and other non-prose fields remain plain text.
+- The underlying textarea remains the submitted form field. Editor changes are synchronized back to it, including immediately before form submission.
+- Image upload uses the existing staff-only `/admin/editor-upload/` endpoint, which validates and re-encodes uploaded images. The server-side `nh3` allow-list sanitizer remains active when product descriptions/release notes are saved and rendered; client-side editing is not treated as a security boundary.
+- The provided Builder license key is a temporary trial key and will expire; replace it with a valid key appropriate for your CKEditor plan before production use. CDN availability is required for the editor to load. Import/export Word/PDF and other premium features may also depend on CKEditor Cloud Services credentials and account entitlements.
 
 ## Validation
 
