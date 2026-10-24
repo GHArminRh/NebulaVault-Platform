@@ -79,7 +79,7 @@ class LicenseActivationAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "first_activated_at", "license__status")
     search_fields = ("license__key_prefix", "license__subscription__user__email", "device_label", "app_version")
     list_select_related = ("license", "license__subscription", "license__subscription__user")
-    readonly_fields = ("license", "fingerprint_digest", "device_label", "app_version", "first_activated_at", "last_seen_at", "last_seen_at", "deactivated_at", "is_active")
+    readonly_fields = ("license", "fingerprint_digest", "device_label", "app_version", "first_activated_at", "last_seen_at", "deactivated_at", "is_active")
 
     def has_add_permission(self, request):
         return False
