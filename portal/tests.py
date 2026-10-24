@@ -71,7 +71,7 @@ class PortalPageTests(TestCase):
         cart_response = self.client.get(reverse("portal:cart"))
         self.assertEqual(cart_response.status_code, 200)
         self.assertContains(cart_response, self.plan.name)
-        self.assertContains(cart_response, "Pay &amp; complete order")
+        self.assertContains(cart_response, "ORDER SUMMARY")
 
     @override_settings(NEBULA_MOCK_PAYMENTS=True)
     def test_demo_checkout_marks_order_paid_and_activates_subscription(self):
@@ -79,22 +79,35 @@ class PortalPageTests(TestCase):
             self.user,
             backend="accounts.backends.CustomerAuthenticationBackend",
         )
+        annual_plan = Plan.objects.create(
+            product=self.product,
+            name="Annual",
+            slug="annual",
+            duration_unit=Plan.DurationUnit.YEARS,
+            duration_value=1,
+            price_minor_units=19999,
+            currency="USD",
+            device_limit=2,
+        )
         self.client.post(reverse("portal:cart_add", args=[self.plan.pk]))
+        self.client.post(reverse("portal:cart_add", args=[annual_plan.pk]))
         response = self.client.post(reverse("portal:checkout"))
         self.assertRedirects(response, reverse("portal:orders"))
 
-        order = PaymentOrder.objects.get(user=self.user, plan=self.plan)
-        self.assertEqual(order.status, PaymentOrder.Status.PAID)
-        self.assertIsNotNone(order.paid_at)
+        orders = list(PaymentOrder.objects.filter(user=self.user).order_by("plan__name"))
+        self.assertEqual(len(orders), 2)
+        for order in orders:
+            self.assertEqual(order.status, PaymentOrder.Status.PAID)
+            self.assertIsNotNone(order.paid_at)
+            attempt = PaymentAttempt.objects.get(order=order)
+            self.assertEqual(attempt.provider, "mock")
+            self.assertEqual(attempt.status, PaymentAttempt.Status.SUCCEEDED)
 
-        attempt = PaymentAttempt.objects.get(order=order)
-        self.assertEqual(attempt.provider, "mock")
-        self.assertEqual(attempt.status, PaymentAttempt.Status.SUCCEEDED)
-
-        subscription = Subscription.objects.get(user=self.user, plan=self.plan)
-        self.assertEqual(subscription.status, Subscription.Status.ACTIVE)
-        self.assertEqual(subscription.kind, Subscription.Kind.PAID)
-        self.assertGreater(subscription.expires_at, subscription.starts_at)
+        subscriptions = Subscription.objects.filter(user=self.user, kind=Subscription.Kind.PAID)
+        self.assertEqual(subscriptions.count(), 2)
+        for subscription in subscriptions:
+            self.assertEqual(subscription.status, Subscription.Status.ACTIVE)
+            self.assertGreater(subscription.expires_at, subscription.starts_at)
         self.assertEqual(self.client.session.get("nebula_cart"), [])
 
     def test_order_remains_pending_without_payment_provider(self):
