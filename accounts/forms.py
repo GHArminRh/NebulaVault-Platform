@@ -126,3 +126,10 @@ class AccountPasswordResetForm(PasswordResetForm):
         for customer in Customer.objects.filter(email__iexact=email.strip().lower(), is_active=True):
             if customer.has_usable_password():
                 yield customer
+
+
+class VerificationResendForm(forms.Form):
+    email = forms.EmailField(
+        label="Email address",
+        widget=forms.EmailInput(attrs={"autocomplete": "email", "placeholder": "you@example.com"}),
+    )
