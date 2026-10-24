@@ -92,6 +92,20 @@
   }
   function clean(html) {
     const doc = new DOMParser().parseFromString(String(html || ""), "text/html");
+    const legacySizes = {"1":"10px","2":"13px","3":"16px","4":"18px","5":"24px","6":"32px","7":"48px"};
+    doc.querySelectorAll("font").forEach(font => {
+      const span = doc.createElement("span");
+      const style = [];
+      const color = font.getAttribute("color");
+      const face = font.getAttribute("face");
+      const size = font.getAttribute("size");
+      if (color && color.length <= 40 && !/[;{}<>]/.test(color)) style.push("color:" + color);
+      if (face && face.length <= 80 && !/[;{}<>]/.test(face)) style.push("font-family:" + face);
+      if (size && legacySizes[size]) style.push("font-size:" + legacySizes[size]);
+      if (style.length) span.setAttribute("style", style.join(";"));
+      span.innerHTML = font.innerHTML;
+      font.replaceWith(span);
+    });
     doc.querySelectorAll(Array.from(DROP_CONTENT).join(",")).forEach(n => n.remove());
     const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT), nodes = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
@@ -263,7 +277,7 @@
       else document.execCommand(command,false,value||null);
       afterEdit();
     }
-    function afterEdit() { if(!sourceMode){html=clean(surface.innerHTML);if(surface.innerHTML!==html){const sel=window.getSelection();surface.innerHTML=html; if(sel)sel.removeAllRanges();}} sync(); updatePath(); updateActiveButtons(); }
+    function afterEdit() { if(!sourceMode) html=clean(surface.innerHTML); sync(); updatePath(); updateActiveButtons(); }
     function makeButton(parent,action,label,glyph,options) {
       const b=document.createElement("button");b.type="button";b.className="nv-cke-tool";b.dataset.action=action;b.title=label;b.setAttribute("aria-label",label);
       if(options&&options.text)b.classList.add("nv-cke-tool-text");
