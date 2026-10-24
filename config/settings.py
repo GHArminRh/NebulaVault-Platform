@@ -8,18 +8,40 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() == "true"
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if host.strip()]
-# TinyMCE Cloud keys are browser-visible; restrict this key to your own domains in TinyMCE.
-# Environment configuration overrides the project fallback.
-TINYMCE_API_KEY = os.environ.get("TINYMCE_API_KEY", "6ifsmg8d223l1m5h3j222s3n9bkt4cnx3w4x6wdtupyutx4d").strip()
 
 INSTALLED_APPS = [
     "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
     "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
+    "tinymce",
     "accounts", "staff.apps.StaffConfig", "catalog.apps.CatalogConfig", "subscriptions.apps.SubscriptionsConfig",
     "licensing.apps.LicensingConfig", "devices.apps.DevicesConfig",
     "billing.apps.BillingConfig", "audit.apps.AuditConfig",
     "notifications.apps.NotificationsConfig", "portal.apps.PortalConfig",
 ]
+
+TINYMCE_DEFAULT_CONFIG = {
+    "height": 420,
+    "menubar": "file edit view insert format tools table help",
+    "plugins": (
+        "advlist autolink lists link image charmap preview anchor "
+        "searchreplace visualblocks code fullscreen insertdatetime media "
+        "table wordcount"
+    ),
+    "toolbar": (
+        "undo redo | blocks | fontfamily fontsize | "
+        "bold italic underline strikethrough | "
+        "alignleft aligncenter alignright alignjustify | "
+        "bullist numlist outdent indent | "
+        "forecolor backcolor | link image media table | "
+        "removeformat | searchreplace | code fullscreen"
+    ),
+    "branding": False,
+    "resize": True,
+    "statusbar": True,
+    "convert_urls": False,
+    "relative_urls": False,
+    "browser_spellcheck": True,
+}
 
 # Both staff/admin accounts and site customers use UUID4 primary keys.
 # Keep the two account types separate: StaffUser owns Django permissions and admin access.
@@ -42,7 +64,6 @@ TEMPLATES = [{
     "OPTIONS": {"context_processors": [
         "django.template.context_processors.request", "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
-        "config.context_processors.tinymce_admin_config",
     ]},
 }]
 WSGI_APPLICATION = "config.wsgi.application"
@@ -75,7 +96,6 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "False").lower() == "true"
 LOGIN_REDIRECT_URL = "portal:dashboard"
 LOGOUT_REDIRECT_URL = "portal:home"
-
 
 # Uploaded release installers and archives.
 MEDIA_URL = "/media/"
