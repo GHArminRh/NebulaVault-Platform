@@ -4,7 +4,7 @@ from django.apps import AppConfig
 class StaffConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "staff"
-    verbose_name = "Staff & Permissions"
+    verbose_name = "کاربران و دسترسی‌ها"
 
     def ready(self):
         from django.db.models.signals import pre_migrate
