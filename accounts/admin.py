@@ -78,5 +78,5 @@ class AccountEmailLogAdmin(admin.ModelAdmin):
     search_fields = ("recipient", "customer__email", "customer__username")
     date_hierarchy = "created_at"
     ordering = ("-created_at",)
-    readonly_fields = tuple(field.name for field in AccountEmailLog._meta.fields)
+    readonly_fields = tuple(field.name for field in AccountEmailLog._meta.fields if field.name != "code_hash")
     exclude = ("code_hash",)
