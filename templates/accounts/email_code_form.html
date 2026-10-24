@@ -1,1 +1,60 @@
-{% extends 'portal/base.html' %}{% block title %}Account code — Nebula Vault{% endblock %}{% block content %}<section class="auth-layout page-wrap auth-layout-premium"><div class="auth-art auth-art-premium"><div class="eyebrow">SECURE ACCOUNT ACCESS</div><h2>One code.<br><span class="gradient-text">One step.</span></h2><p>Codes expire automatically and can only be used once.</p></div><div class="auth-card auth-card-premium"><div class="eyebrow">{% if purpose == "verification" %}EMAIL VERIFICATION{% else %}PASSWORD RECOVERY{% endif %}</div><h1>{% if purpose == "verification" %}Verify your email{% else %}Reset your password{% endif %}</h1><p class="auth-subtitle">Enter the email address and six-digit code from your Nebula Vault email.</p>{% if error %}<p class="field-error" role="alert">{{ error }}</p>{% endif %}<form method="post" class="form-stack auth-form-premium">{% csrf_token %}<label for="id_email">Email address</label><input id="id_email" type="email" name="email" value="{{ email|default:'' }}" required autocomplete="email"><label for="id_code">Six-digit code</label><input id="id_code" type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" required autocomplete="one-time-code"><button class="button button-primary button-full button-large" type="submit">Continue ↗</button></form>{% if purpose == "verification" %}<p class="auth-switch"><a href="{% url 'accounts:resend_verification' %}">Request another verification email</a></p>{% else %}<p class="auth-switch"><a href="{% url 'accounts:password_reset' %}">Send another recovery email</a></p>{% endif %}</div></section>{% endblock %}
+{% extends 'portal/base.html' %}
+{% block title %}Account code — Nebula Vault{% endblock %}
+{% block content %}
+<section class="auth-layout page-wrap auth-layout-premium">
+  <div class="auth-art auth-art-premium">
+    <div class="eyebrow">SECURE ACCOUNT ACCESS</div>
+    <h2>One code.<br><span class="gradient-text">One step.</span></h2>
+    <p>Codes expire automatically and can only be used once.</p>
+  </div>
+  <div class="auth-card auth-card-premium">
+    <div class="eyebrow">{% if purpose == "verification" %}EMAIL VERIFICATION{% else %}PASSWORD RECOVERY{% endif %}</div>
+    <h1>{% if purpose == "verification" %}Verify your email{% else %}Reset your password{% endif %}</h1>
+    <p class="auth-subtitle">{% if purpose == "verification" %}Enter the email address and six-digit code from your verification email. You can also verify using the link in that email.{% else %}Enter the email address and six-digit code from your recovery email.{% endif %}</p>
+    {% if error %}<p class="field-error" role="alert">{{ error }}</p>{% endif %}
+    <form method="post" class="form-stack auth-form-premium">
+      {% csrf_token %}
+      <label for="id_email">Email address</label>
+      <input id="id_email" type="email" name="email" value="{{ email|default:'' }}" required autocomplete="email">
+      <label for="id_code">Six-digit code</label>
+      <input id="id_code" type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" required autocomplete="one-time-code">
+      <button class="button button-primary button-full button-large" type="submit">Continue ↗</button>
+    </form>
+    {% if purpose == "verification" %}
+      <form method="post" action="{% url 'accounts:resend_verification' %}" class="form-stack auth-form-premium resend-form" data-resend-form>
+        {% csrf_token %}
+        <input type="hidden" name="email" value="{{ email|default:'' }}">
+        <button class="button button-quiet button-full" type="submit" data-resend-button {% if not email %}disabled{% endif %}>Resend verification email <span data-countdown></span></button>
+        {% if not email %}<p class="auth-switch">Enter your email above, then use the resend option after submitting a request.</p>{% endif %}
+      </form>
+    {% else %}
+      <p class="auth-switch"><a href="{% url 'accounts:password_reset' %}">Send another recovery email</a></p>
+    {% endif %}
+  </div>
+</section>
+{% if purpose == "verification" and email %}
+<script>
+(function () {
+  const form = document.querySelector("[data-resend-form]");
+  const button = form && form.querySelector("[data-resend-button]");
+  const label = form && form.querySelector("[data-countdown]");
+  if (!button || !label) return;
+  const key = "nv-verification-resend:" + {{ email|lower|escapejs|json_script:"resend-email" }};
+  let until = 0;
+  try { until = Number(sessionStorage.getItem(key) || 0); } catch (_) {}
+  function render() {
+    const remaining = Math.max(0, Math.ceil((until - Date.now()) / 1000));
+    button.disabled = remaining > 0;
+    label.textContent = remaining > 0 ? "(" + remaining + "s)" : "";
+    if (remaining > 0) window.setTimeout(render, 250);
+  }
+  form.addEventListener("submit", function () {
+    until = Date.now() + 30000;
+    try { sessionStorage.setItem(key, String(until)); } catch (_) {}
+    render();
+  });
+  render();
+})();
+</script>
+{% endif %}
+{% endblock %}
