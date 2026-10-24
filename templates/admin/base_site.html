@@ -5,7 +5,7 @@
 
 {% block extrahead %}
   {{ block.super }}
-  <script src="{% static 'portal/js/rich_text_editor.js' %}" data-license-key="{{ ckeditor_license_key|default:'GPL'|escape }}" defer></script>
+  <link rel="stylesheet" href="{% static 'portal/css/rich_text_editor.css' %}"><script src="{% static 'portal/js/rich_text_editor.js' %}" defer></script>
 {% endblock %}
 
 {% block branding %}
