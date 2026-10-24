@@ -102,28 +102,18 @@ def create_payment_order(
         ) from None
 
     try:
-        if isinstance(plan_id, bool):
-            raise ValueError
-        plan_pk = int(plan_id)
-    except (TypeError, ValueError, OverflowError):
+        plan_pk = UUID(str(plan_id))
+    except (TypeError, ValueError, AttributeError):
         raise OrderCreationError("A valid plan is required.") from None
-
-    if plan_pk <= 0:
-        raise OrderCreationError("A valid plan is required.")
 
     subscription_pk = None
     if subscription_id is not None:
         try:
-            if isinstance(subscription_id, bool):
-                raise ValueError
-            subscription_pk = int(subscription_id)
-        except (TypeError, ValueError, OverflowError):
+            subscription_pk = UUID(str(subscription_id))
+        except (TypeError, ValueError, AttributeError):
             raise OrderCreationError(
                 "A valid subscription is required."
             ) from None
-
-        if subscription_pk <= 0:
-            raise OrderCreationError("A valid subscription is required.")
 
     subscription_was_explicit = subscription_pk is not None
 
@@ -355,16 +345,11 @@ def create_payment_attempt(
         ) from None
 
     try:
-        if isinstance(order_id, bool):
-            raise ValueError
-        order_pk = int(order_id)
-    except (TypeError, ValueError, OverflowError):
+        order_pk = UUID(str(order_id))
+    except (TypeError, ValueError, AttributeError):
         raise PaymentAttemptCreationError(
             "A valid order is required."
         ) from None
-
-    if order_pk <= 0:
-        raise PaymentAttemptCreationError("A valid order is required.")
 
     try:
         with transaction.atomic():
@@ -466,18 +451,11 @@ def finalize_payment(
         raise PaymentFinalizationError("The confirmed currency is invalid.")
 
     try:
-        if isinstance(attempt_id, bool):
-            raise ValueError
-        attempt_pk = int(attempt_id)
-    except (TypeError, ValueError, OverflowError):
+        attempt_pk = UUID(str(attempt_id))
+    except (TypeError, ValueError, AttributeError):
         raise PaymentFinalizationError(
             "A valid payment attempt is required."
         ) from None
-
-    if attempt_pk <= 0:
-        raise PaymentFinalizationError(
-            "A valid payment attempt is required."
-        )
 
     order_id = (
         PaymentAttempt.objects
