@@ -7,6 +7,7 @@ from catalog.models import Plan, Product
 from billing.models import PaymentAttempt, PaymentOrder
 from subscriptions.models import Subscription
 
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 class PortalPageTests(TestCase):
     def setUp(self):
         self.user = Customer.objects.create_user(username="portal_user", email="portal@example.com", password="a-secure-test-password")
@@ -50,7 +51,7 @@ class PortalPageTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse("login"), response.url)
 
-    def test_registration_creates_account_and_signs_in(self):
+    def test_registration_creates_inactive_account_pending_email_verification(self):
         response = self.client.post(reverse("accounts:register"), {"username":"new_portal_user","email":"new@example.com","password1":"Sufficiently-long-pass-947!","password2":"Sufficiently-long-pass-947!", "human_check":"on"})
         self.assertEqual(response.status_code, 200)
         customer = Customer.objects.get(email="new@example.com")
