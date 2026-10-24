@@ -29,6 +29,20 @@ class AccountBackendTests(TestCase):
         self.assertEqual(self.user.first_name, "Test")
         self.assertEqual(self.user.email, "account@example.com")
 
+    def test_changing_email_requires_reverification(self):
+        self.client.force_login(self.user, backend="accounts.backends.CustomerAuthenticationBackend")
+        response = self.client.post(
+            reverse("accounts:profile"),
+            {"username": self.user.username, "first_name": "", "last_name": "", "email": "new-address@example.com"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, "new-address@example.com")
+        self.assertFalse(self.user.is_active)
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("accounts/verify/", mail.outbox[0].body)
+
     def test_profile_rejects_email_used_by_another_user(self):
         Customer.objects.create_user(
             username="another_user", email="other@example.com", password="Secure-test-password-2026!"
