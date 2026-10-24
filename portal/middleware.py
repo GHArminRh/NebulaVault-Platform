@@ -10,14 +10,17 @@ class InterfaceLanguageMiddleware(MiddlewareMixin):
     def process_request(self, request):
         # Keep Django admin in English while the public-facing site stays Persian.
         is_admin = request.path == "/admin" or request.path.startswith("/admin/")
-        language = "en" if is_admin else "fa"
+        language = "en-us" if is_admin else "fa"
         translation.activate(language)
         request.LANGUAGE_CODE = language
-        request.site_language = "fa"
+        request.site_language = "en" if is_admin else "fa"
         request.language_was_selected = True
         return None
 
     def process_response(self, request, response):
+        # Never persist the public Persian preference on admin responses.
+        if request.path == "/admin" or request.path.startswith("/admin/"):
+            return response
         response.set_cookie(
             LANGUAGE_COOKIE, "fa", max_age=COOKIE_MAX_AGE,
             samesite="Lax", secure=request.is_secure(), httponly=False,
