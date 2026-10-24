@@ -52,9 +52,11 @@ class PortalPageTests(TestCase):
 
     def test_registration_creates_account_and_signs_in(self):
         response = self.client.post(reverse("accounts:register"), {"username":"new_portal_user","email":"new@example.com","password1":"Sufficiently-long-pass-947!","password2":"Sufficiently-long-pass-947!", "human_check":"on"})
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(Customer.objects.filter(username="new_portal_user", email="new@example.com").exists())
-        self.assertIn("_auth_user_id", self.client.session)
+        self.assertEqual(response.status_code, 200)
+        customer = Customer.objects.get(email="new@example.com")
+        self.assertEqual(customer.username, "new")
+        self.assertFalse(customer.is_active)
+        self.assertNotIn("_auth_user_id", self.client.session)
 
     def test_trial_starts_for_signed_in_user(self):
         self.client.force_login(self.user, backend='accounts.backends.CustomerAuthenticationBackend')
