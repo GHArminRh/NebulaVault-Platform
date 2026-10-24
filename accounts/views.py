@@ -17,6 +17,7 @@ from django.urls import reverse
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth import login, logout, update_session_auth_hash
+from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
@@ -374,3 +375,22 @@ def password_reset_confirm(request, uidb64, token):
     return render(request, "accounts/password_reset_confirm.html", {
         "form": form, "validlink": validlink, "title": "Set a new password",
     }, status=200 if validlink else 400)
+
+
+
+class CustomerLoginView(LoginView):
+    """Route customers with valid credentials but unverified email to verification."""
+
+    def form_invalid(self, form):
+        inactive_email = getattr(form, "inactive_email", None)
+        if inactive_email:
+            messages.info(
+                self.request,
+                "Your account email has not been verified yet. Enter the code from your email or request a new verification message.",
+            )
+            return render(
+                self.request,
+                "accounts/email_code_form.html",
+                {"purpose": "verification", "email": inactive_email},
+            )
+        return super().form_invalid(form)
