@@ -182,6 +182,7 @@
           { model: "heading6", view: "h6", title: "Heading 6", class: "ck-heading_heading6" }
         ]
       },
+      menuBar: { isVisible: true },
       link: {
         addTargetToExternalLinks: true,
         defaultProtocol: "https://",
