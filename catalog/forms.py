@@ -24,9 +24,12 @@ def _staff_editor():
 
 
 class StaffTinyMCE(TinyMCE):
-    """TinyMCE widget with a CSRF-aware, staff-only image upload adapter."""
+    """TinyMCE widget with a silver UI and a staff-only image upload adapter."""
 
     class Media:
+        css = {
+            "all": ("portal/css/tinymce-silver.css",),
+        }
         js = (
             "tinymce/tinymce.min.js",
             "portal/js/tinymce_upload.js",
