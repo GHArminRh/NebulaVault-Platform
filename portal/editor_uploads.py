@@ -20,8 +20,25 @@ ALLOWED_FORMATS = {"PNG", "JPEG", "WEBP", "GIF"}
 def editor_image_upload(request):
     """Validate, decode, and re-encode an image before storing it."""
     user = getattr(request, "user", None)
-    if not user or not user.is_authenticated or not user.is_staff:
-        return JsonResponse({"error": "Staff authentication is required."}, status=403)
+    if (
+        not user
+        or not user.is_authenticated
+        or not user.is_active
+        or not user.is_staff
+    ):
+        return JsonResponse({"error": "Active staff authentication is required."}, status=403)
+
+    editor_permissions = (
+        "catalog.add_product",
+        "catalog.change_product",
+        "catalog.add_release",
+        "catalog.change_release",
+    )
+    if not any(user.has_perm(permission) for permission in editor_permissions):
+        return JsonResponse(
+            {"error": "You do not have permission to upload catalog editor images."},
+            status=403,
+        )
 
     uploaded = request.FILES.get("upload") or request.FILES.get("file")
     if uploaded is None:
