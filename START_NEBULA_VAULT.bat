@@ -1,11 +1,11 @@
 @echo off
-setlocal
-title Nebula Vault - Local Setup
+setlocal EnableExtensions EnableDelayedExpansion
+title Nebula Vault - Launcher
 
 cd /d "%~dp0"
 echo.
 echo ==========================================
-echo      Nebula Vault - Local Launcher
+echo      Nebula Vault - Launcher
 echo ==========================================
 echo.
 
@@ -26,43 +26,68 @@ if not defined PYTHON_CMD (
 
 if not defined PYTHON_CMD (
   echo ERROR: Python 3.11 or newer could not be found.
-  echo Python is installed, but no supported version was detected.
-  echo Open PowerShell and run: py --list
+  echo Install a supported Python version and try again.
   pause
   exit /b 1
 )
 
-echo Detected Python version:
-%PYTHON_CMD% --version
-echo.
-
 if not exist ".venv\Scripts\python.exe" (
-  echo [1/4] Creating Python virtual environment...
+  echo [1/3] Creating Python virtual environment for the first time...
   %PYTHON_CMD% -m venv .venv
   if errorlevel 1 (
     echo ERROR: Could not create virtual environment.
     pause
     exit /b 1
   )
+  set "NEW_VENV=1"
 ) else (
-  echo [1/4] Virtual environment already exists.
+  echo [1/3] Virtual environment found.
+  set "NEW_VENV=0"
 )
 
-echo [2/4] Installing/updating Python dependencies...
-".venv\Scripts\python.exe" -m pip install --upgrade pip
-if errorlevel 1 (
-  echo ERROR: pip upgrade failed. Check your internet connection.
-  pause
-  exit /b 1
-)
-".venv\Scripts\python.exe" -m pip install -r requirements.txt
-if errorlevel 1 (
-  echo ERROR: Dependency installation failed.
+if not exist "requirements.txt" (
+  echo ERROR: requirements.txt was not found.
   pause
   exit /b 1
 )
 
-echo [3/4] Preparing PostgreSQL and Django...
+set "REQ_HASH="
+for /f "delims=" %%H in ('".venv\Scripts\python.exe" -c "import hashlib;print(hashlib.sha256(open('requirements.txt','rb').read()).hexdigest())"') do set "REQ_HASH=%%H"
+if not defined REQ_HASH (
+  echo ERROR: Could not check the dependency list.
+  pause
+  exit /b 1
+)
+
+set "INSTALL_DEPS=0"
+if "!NEW_VENV!"=="1" set "INSTALL_DEPS=1"
+if not exist ".venv\requirements.sha256" set "INSTALL_DEPS=1"
+if exist ".venv\requirements.sha256" (
+  set "OLD_REQ_HASH="
+  set /p "OLD_REQ_HASH="<".venv\requirements.sha256"
+  if not "!OLD_REQ_HASH!"=="!REQ_HASH!" set "INSTALL_DEPS=1"
+)
+
+if "!INSTALL_DEPS!"=="1" (
+  echo [2/3] Installing dependencies because this is the first setup or requirements.txt changed...
+  ".venv\Scripts\python.exe" -m pip install --upgrade pip
+  if errorlevel 1 (
+    echo ERROR: pip upgrade failed. Check your internet connection.
+    pause
+    exit /b 1
+  )
+  ".venv\Scripts\python.exe" -m pip install -r requirements.txt
+  if errorlevel 1 (
+    echo ERROR: Dependency installation failed.
+    pause
+    exit /b 1
+  )
+  >".venv\requirements.sha256" echo !REQ_HASH!
+) else (
+  echo [2/3] Dependencies are up to date. Skipping installation.
+)
+
+echo [3/3] Checking configuration and starting Nebula Vault...
 ".venv\Scripts\python.exe" run_local.py
 if errorlevel 1 (
   echo.
