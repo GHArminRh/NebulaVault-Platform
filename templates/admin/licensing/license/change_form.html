@@ -1,0 +1,12 @@
+{% extends "admin/change_form.html" %}
+
+{% block form_top %}
+  {{ block.super }}
+  {% if one_time_license_key %}
+    <div class="module" style="border-left: 4px solid #16803d; padding: 16px; margin-bottom: 18px;">
+      <h2 style="margin-top: 0;">New license key — copy it now</h2>
+      <p>This key is shown only once. Nebula Vault stores only its digest, so the full key cannot be retrieved later.</p>
+      <p><code style="font-size: 1.15em; user-select: all; overflow-wrap: anywhere;">{{ one_time_license_key }}</code></p>
+    </div>
+  {% endif %}
+{% endblock %}
