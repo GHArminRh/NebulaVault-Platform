@@ -28,9 +28,15 @@ Successful responses include `license_id`, `status`, `expires_at`, `product`, `d
 3. Copy the key from the one-time notice above the form. It cannot be recovered later because only its digest is stored.
 4. Suspend or revoke the license from its admin record. The API rejects it on the next online check. Deactivating a device frees one activation slot.\n5. If a key is lost or compromised, select exactly one license in the admin list and run **Rotate the selected license key**. The old key becomes invalid immediately and the replacement is shown once.
 
-## Migrations and rollout
+## Database setup and migrations
 
-This repository currently has several apps whose initial migrations are not checked in. Generate and review migrations for all unmigrated apps before deploying, then apply them in the normal release process. Do not deploy the new models before their database tables exist.
+Several existing apps in this branch do not yet have checked-in initial migrations. For a development database, the current models can be synchronized with:
+
+```powershell
+python manage.py migrate --run-syncdb
+```
+
+For a production release, the recommended next repository-maintenance task is to generate and review initial migrations for all currently unmigrated apps in one coordinated change, then deploy with the normal `python manage.py migrate` process. Do not generate a migration for `licensing` in isolation while its dependency apps remain unmigrated; Django must build a consistent migration graph across the related customer, catalog, subscription, and licensing models.
 
 ## Important limitation
 
