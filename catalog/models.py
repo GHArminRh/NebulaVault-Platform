@@ -36,8 +36,8 @@ class Product(models.Model):
 
     class Meta:
         ordering = ["name"]
-        verbose_name = "Software product"
-        verbose_name_plural = "Software products"
+        verbose_name = "محصول نرم‌افزاری"
+        verbose_name_plural = "محصولات نرم‌افزاری"
 
     def save(self, *args, **kwargs):
         base_slug = slugify(self.name) or "product"
@@ -63,14 +63,14 @@ class Release(models.Model):
     """A freely downloadable published version of a product."""
 
     class Platform(models.TextChoices):
-        WINDOWS = "windows", "Windows"
-        MACOS = "macos", "macOS"
-        LINUX = "linux", "Linux"
+        WINDOWS = "windows", "ویندوز"
+        MACOS = "macos", "مک‌اواس"
+        LINUX = "linux", "لینوکس"
 
     class Architecture(models.TextChoices):
         X64 = "x64", "x64"
         ARM64 = "arm64", "ARM64"
-        UNIVERSAL = "universal", "Universal"
+        UNIVERSAL = "universal", "همه معماری‌ها"
 
     product = models.ForeignKey(
         Product,
@@ -99,8 +99,8 @@ class Release(models.Model):
 
     class Meta:
         ordering = ["-published_at", "version"]
-        verbose_name = "Software release"
-        verbose_name_plural = "Software releases"
+        verbose_name = "نسخه نرم‌افزار"
+        verbose_name_plural = "نسخه‌های نرم‌افزار"
         constraints = [
             models.UniqueConstraint(
                 fields=[
@@ -157,9 +157,9 @@ class Plan(models.Model):
     """A paid subscription offer for a software product."""
 
     class DurationUnit(models.TextChoices):
-        DAYS = "days", "Days"
-        MONTHS = "months", "Months"
-        YEARS = "years", "Years"
+        DAYS = "days", "روز"
+        MONTHS = "months", "ماه"
+        YEARS = "years", "سال"
 
     product = models.ForeignKey(
         Product,
@@ -194,8 +194,8 @@ class Plan(models.Model):
 
     class Meta:
         ordering = ["sort_order", "price_minor_units", "name"]
-        verbose_name = "Paid subscription plan"
-        verbose_name_plural = "Paid subscription plans"
+        verbose_name = "طرح اشتراک پولی"
+        verbose_name_plural = "طرح‌های اشتراک پولی"
         constraints = [
             models.UniqueConstraint(
                 fields=["product", "slug"],
