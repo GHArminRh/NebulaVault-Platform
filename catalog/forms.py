@@ -1,37 +1,26 @@
-"""Admin forms using the project's centralized django-tinymce configuration."""
+"""Admin forms using Nebula Vault's in-project rich-text editor widget."""
 
 from django import forms
 from django.conf import settings
 from django.urls import reverse_lazy
-from tinymce.widgets import TinyMCE
 
+from nebula_editor.widgets import NebulaTinyMCE
 from .models import Product, Release
 
 
-EDITOR_CONFIG = settings.TINYMCE_DEFAULT_CONFIG
+EDITOR_CONFIG = settings.NEBULA_EDITOR_CONFIG
 
 
 def _staff_editor():
-    """Build a fresh widget config and use Django's URL resolver for uploads."""
-    return StaffTinyMCE(
+    """Create an editor configured for the staff-only image upload endpoint."""
+    return NebulaTinyMCE(
         attrs={
             "cols": 80,
             "rows": 24,
             "data-upload-url": reverse_lazy("editor-image-upload"),
         },
-        mce_attrs=dict(EDITOR_CONFIG),
+        config=dict(EDITOR_CONFIG),
     )
-
-
-class StaffTinyMCE(TinyMCE):
-    """TinyMCE widget with a CSRF-aware, staff-only image upload adapter."""
-
-    class Media:
-        js = (
-            "tinymce/tinymce.min.js",
-            "portal/js/tinymce_upload.js",
-            "tinymce/init_tinymce.js",
-        )
 
 
 class ProductAdminForm(forms.ModelForm):
