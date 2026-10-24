@@ -10,11 +10,11 @@ TRIAL_DAYS = 7
 
 
 class TrialAlreadyUsed(Exception):
-    """The customer has already redeemed the trial for this product."""
+    """این مشتری قبلاً از دوره آزمایشی این محصول استفاده کرده است."""
 
 
 class TrialUnavailable(Exception):
-    """The trial cannot be started for this customer or product."""
+    """امکان شروع دوره آزمایشی برای این مشتری یا محصول وجود ندارد."""
 
 
 def start_trial(*, user, product):
@@ -26,10 +26,10 @@ def start_trial(*, user, product):
     """
 
     if not user.pk or not user.is_active:
-        raise TrialUnavailable("An active, saved user account is required.")
+        raise TrialUnavailable("برای ادامه، حساب کاربری فعال و ذخیره‌شده لازم است.")
 
     if not product.pk or not product.is_active:
-        raise TrialUnavailable("This product is not available for trial.")
+        raise TrialUnavailable("این محصول دوره آزمایشی ندارد.")
 
     try:
         with transaction.atomic():
@@ -40,7 +40,7 @@ def start_trial(*, user, product):
 
             if already_used:
                 raise TrialAlreadyUsed(
-                    "The trial has already been used for this product."
+                    "دوره آزمایشی این محصول قبلاً استفاده شده است."
                 )
 
             starts_at = timezone.now()
@@ -73,7 +73,7 @@ def start_trial(*, user, product):
             product=product,
         ).exists():
             raise TrialAlreadyUsed(
-                "The trial has already been used for this product."
+                "دوره آزمایشی این محصول قبلاً استفاده شده است."
             ) from None
 
         # Do not hide unrelated database integrity errors.
@@ -89,11 +89,11 @@ def start_trial(*, user, product):
 
 
 class RenewalNotAllowed(Exception):
-    """The subscription is not eligible for renewal."""
+    """این اشتراک واجد شرایط تمدید نیست."""
 
 
 class PaymentReferenceConflict(Exception):
-    """A payment reference was reused with different details."""
+    """شناسه پرداخت با جزئیات متفاوت دوباره استفاده شده است."""
 
 
 def _add_plan_duration(start, plan):
@@ -105,7 +105,7 @@ def _add_plan_duration(start, plan):
         return start + timedelta(days=plan.duration_value)
 
     if plan.duration_unit not in {"months", "years"}:
-        raise RenewalNotAllowed("Unsupported subscription duration.")
+        raise RenewalNotAllowed("مدت اشتراک پشتیبانی نمی‌شود.")
 
     months_to_add = plan.duration_value
 
@@ -138,13 +138,13 @@ def renew_subscription(
     """
 
     if not payment_reference or not payment_reference.strip():
-        raise RenewalNotAllowed("A payment reference is required.")
+        raise RenewalNotAllowed("شناسه پرداخت الزامی است.")
 
     if confirmed_amount_minor_units <= 0:
-        raise RenewalNotAllowed("The confirmed payment amount is invalid.")
+        raise RenewalNotAllowed("مبلغ پرداخت تأییدشده معتبر نیست.")
 
     if not confirmed_currency:
-        raise RenewalNotAllowed("The confirmed currency is required.")
+        raise RenewalNotAllowed("واحد پول تأییدشده الزامی است.")
 
     try:
         with transaction.atomic():
@@ -171,34 +171,34 @@ def renew_subscription(
                     return existing
 
                 raise PaymentReferenceConflict(
-                    "This payment reference has already been used."
+                    "این شناسه پرداخت قبلاً استفاده شده است."
                 )
 
             if subscription.kind != Subscription.Kind.PAID:
                 raise RenewalNotAllowed(
-                    "Trial subscriptions cannot use paid renewal."
+                    "تمدید پولی برای اشتراک آزمایشی امکان‌پذیر نیست."
                 )
 
             if subscription.status == Subscription.Status.CANCELED:
                 raise RenewalNotAllowed(
-                    "Canceled subscriptions cannot be renewed."
+                    "اشتراک لغوشده قابل تمدید نیست."
                 )
 
             plan = subscription.plan
 
             if plan is None:
                 raise RenewalNotAllowed(
-                    "A paid subscription must have a plan."
+                    "اشتراک پولی باید طرح داشته باشد."
                 )
 
             if confirmed_amount_minor_units != plan.price_minor_units:
                 raise RenewalNotAllowed(
-                    "The confirmed amount does not match the plan price."
+                    "مبلغ تأییدشده با قیمت طرح مطابقت ندارد."
                 )
 
             if confirmed_currency != plan.currency:
                 raise RenewalNotAllowed(
-                    "The confirmed currency does not match the plan."
+                    "واحد پول تأییدشده با طرح مطابقت ندارد."
                 )
 
             now = timezone.now()
@@ -246,7 +246,7 @@ def renew_subscription(
                 return existing
 
             raise PaymentReferenceConflict(
-                "This payment reference has already been used."
+                "این شناسه پرداخت قبلاً استفاده شده است."
             ) from None
 
         raise
