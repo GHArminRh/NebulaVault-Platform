@@ -7,7 +7,7 @@ from django.db import models
 
 currency_code_validator = RegexValidator(
     regex=r"^[A-Z]{3}$",
-    message="کد ارز باید شامل سه حرف انگلیسی بزرگ باشد؛ مانند USD.",
+    message="Use a three-letter uppercase currency code, such as USD.",
 )
 
 
