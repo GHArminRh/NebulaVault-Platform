@@ -236,6 +236,15 @@ def password_reset_request(request):
         return redirect("portal:dashboard")
     if request.method == "POST":
         email = request.POST.get("email", "").strip()
+        throttle_key = "account-password-reset:" + hashlib.sha256(f"{email.casefold()}|{request.META.get('REMOTE_ADDR', '')}".encode()).hexdigest()
+        cache.add(throttle_key, 0, timeout=3600)
+        try:
+            requests_this_hour = cache.incr(throttle_key)
+        except ValueError:
+            cache.set(throttle_key, 1, timeout=3600)
+            requests_this_hour = 1
+        if requests_this_hour > 5:
+            return redirect("accounts:password_reset_done")
         customer = Customer.objects.filter(email__iexact=email, is_active=True).first()
         if customer and customer.has_usable_password():
             code = _new_email_code()
