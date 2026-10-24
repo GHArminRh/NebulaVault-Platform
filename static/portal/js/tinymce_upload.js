@@ -1,4 +1,4 @@
-/* CSRF-safe image upload adapter for django-tinymce's bundled editor. */
+/* CSRF-safe image upload adapter for Nebula Vault's rich-text editor. */
 (function () {
   "use strict";
 
