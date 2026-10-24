@@ -75,6 +75,7 @@ TEMPLATES = [{
     "OPTIONS": {"context_processors": [
         "django.template.context_processors.request", "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
+        "portal.context_processors.cart_context",
     ]},
 }]
 WSGI_APPLICATION = "config.wsgi.application"
