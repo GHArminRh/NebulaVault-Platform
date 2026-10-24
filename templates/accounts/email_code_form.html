@@ -21,7 +21,7 @@
       <button class="button button-primary button-full button-large" type="submit">Continue ↗</button>
     </form>
     {% if purpose == "verification" %}
-      <form method="post" action="{% url 'accounts:resend_verification' %}" class="form-stack auth-form-premium resend-form" data-resend-form>
+      <form method="post" action="{% url 'accounts:resend_verification' %}" class="form-stack auth-form-premium resend-form" data-resend-form data-email="{{ email|escape }}">
         {% csrf_token %}
         <input type="hidden" name="email" value="{{ email|default:'' }}">
         <button class="button button-quiet button-full" type="submit" data-resend-button {% if not email %}disabled{% endif %}>Resend verification email <span data-countdown></span></button>
@@ -39,7 +39,7 @@
   const button = form && form.querySelector("[data-resend-button]");
   const label = form && form.querySelector("[data-countdown]");
   if (!button || !label) return;
-  const key = "nv-verification-resend:" + {{ email|lower|escapejs|json_script:"resend-email" }};
+  const key = "nv-verification-resend:" + (form.dataset.email || "").toLowerCase();
   let until = 0;
   try { until = Number(sessionStorage.getItem(key) || 0); } catch (_) {}
   function render() {
