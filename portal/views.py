@@ -1,4 +1,8 @@
 import uuid
+from collections import defaultdict
+
+from django.conf import settings
+from django.db import transaction
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -6,8 +10,15 @@ from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from accounts.forms import AccountPasswordChangeForm, AccountProfileForm
-from billing.models import PaymentOrder
-from billing.services import OrderCreationError, create_payment_order
+from billing.models import PaymentAttempt, PaymentOrder
+from billing.services import (
+    OrderCreationError,
+    PaymentAttemptCreationError,
+    PaymentFinalizationError,
+    create_payment_attempt,
+    create_payment_order,
+    finalize_payment,
+)
 from catalog.models import Plan, Product, Release
 from subscriptions.models import Subscription
 from subscriptions.services import TrialAlreadyUsed, TrialUnavailable, start_trial
@@ -90,6 +101,160 @@ def create_order(request, plan_id):
         return redirect("portal:product_detail", slug=plan.product.slug)
     messages.success(request, f"Order {order.order_number} was created. Payment processing is not connected yet.")
     return redirect("portal:orders")
+
+def _cart_plan_ids(request):
+    """Return unique, stringified plan UUIDs stored in the user's session."""
+    raw_ids = request.session.get("nebula_cart", [])
+    if not isinstance(raw_ids, list):
+        return []
+    return list(dict.fromkeys(str(value) for value in raw_ids if value))
+
+
+def cart_add(request, plan_id):
+    if request.method != "POST":
+        return redirect("portal:pricing")
+
+    plan = get_object_or_404(
+        Plan.objects.select_related("product"),
+        pk=plan_id,
+        is_active=True,
+        product__is_active=True,
+    )
+    plan_ids = _cart_plan_ids(request)
+    if str(plan.pk) not in plan_ids:
+        plan_ids.append(str(plan.pk))
+        request.session["nebula_cart"] = plan_ids
+        messages.success(request, f"{plan.name} was added to your cart.")
+    else:
+        messages.info(request, f"{plan.name} is already in your cart.")
+    return redirect(request.POST.get("next") or "portal:cart")
+
+
+def cart(request):
+    plan_ids = _cart_plan_ids(request)
+    plans = list(
+        Plan.objects.filter(
+            pk__in=plan_ids,
+            is_active=True,
+            product__is_active=True,
+        ).select_related("product")
+    )
+    valid_ids = {str(plan.pk) for plan in plans}
+    if valid_ids != set(plan_ids):
+        request.session["nebula_cart"] = [
+            plan_id for plan_id in plan_ids if plan_id in valid_ids
+        ]
+
+    totals = defaultdict(int)
+    for plan in plans:
+        totals[plan.currency] += plan.price_minor_units
+    currency_totals = [
+        {"currency": currency, "amount_minor_units": amount}
+        for currency, amount in sorted(totals.items())
+    ]
+    return render(request, "portal/cart.html", {
+        "cart_plans": plans,
+        "cart_totals": currency_totals,
+        "cart_count": len(plans),
+        "mock_payments_enabled": getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG),
+    })
+
+
+def cart_remove(request, plan_id):
+    if request.method != "POST":
+        return redirect("portal:cart")
+    request.session["nebula_cart"] = [
+        value for value in _cart_plan_ids(request) if value != str(plan_id)
+    ]
+    messages.success(request, "The item was removed from your cart.")
+    return redirect("portal:cart")
+
+
+def cart_clear(request):
+    if request.method != "POST":
+        return redirect("portal:cart")
+    request.session["nebula_cart"] = []
+    messages.success(request, "Your cart has been cleared.")
+    return redirect("portal:cart")
+
+
+@login_required
+def checkout(request):
+    if request.method != "POST":
+        return redirect("portal:cart")
+
+    if not getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG):
+        messages.error(request, "Demo checkout is disabled. Please try again when payment processing is available.")
+        return redirect("portal:cart")
+
+    plan_ids = _cart_plan_ids(request)
+    if not plan_ids:
+        messages.info(request, "Your cart is empty.")
+        return redirect("portal:cart")
+
+    plans = list(
+        Plan.objects.filter(
+            pk__in=plan_ids,
+            is_active=True,
+            product__is_active=True,
+        ).select_related("product")
+    )
+    if len(plans) != len(plan_ids):
+        messages.error(request, "One or more items are no longer available. Please review your cart.")
+        request.session["nebula_cart"] = [str(plan.pk) for plan in plans]
+        return redirect("portal:cart")
+
+    completed_orders = []
+    try:
+        # Keep the mock checkout all-or-nothing: a failure must not leave
+        # only part of a multi-item cart marked as paid.
+        with transaction.atomic():
+            for plan in plans:
+                order = (
+                    PaymentOrder.objects
+                    .filter(
+                        user=request.user,
+                        plan=plan,
+                        status=PaymentOrder.Status.PENDING,
+                    )
+                    .order_by("-created_at")
+                    .first()
+                )
+                if order is None:
+                    order = create_payment_order(
+                        user=request.user,
+                        plan_id=plan.pk,
+                        idempotency_key=uuid.uuid4(),
+                    )
+
+                if order.status == PaymentOrder.Status.PAID:
+                    completed_orders.append(order)
+                    continue
+
+                attempt = create_payment_attempt(
+                    user=request.user,
+                    order_id=order.pk,
+                    provider="mock",
+                    idempotency_key=uuid.uuid4(),
+                )
+                finalize_payment(
+                    attempt_id=attempt.pk,
+                    provider_reference=f"mock-{order.order_number}",
+                    confirmed_amount_minor_units=order.amount_minor_units,
+                    confirmed_currency=order.currency,
+                )
+                completed_orders.append(order)
+    except (OrderCreationError, PaymentAttemptCreationError, PaymentFinalizationError) as exc:
+        messages.error(request, f"Checkout could not be completed: {exc}")
+        return redirect("portal:cart")
+
+    request.session["nebula_cart"] = []
+    messages.success(
+        request,
+        f"Demo payment successful. {len(completed_orders)} order(s) completed and your access has been activated.",
+    )
+    return redirect("portal:orders")
+
 
 @login_required
 def start_trial(request, slug):
