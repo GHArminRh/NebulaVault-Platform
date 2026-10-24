@@ -63,9 +63,9 @@ class LicenseAdmin(admin.ModelAdmin):
             obj.key_prefix = plaintext_key[:8]
             obj.key_digest = _key_digest(plaintext_key)
             # Keep the one-time secret in the server-side session, not a signed cookie message.
-            request.session["licensing_one_time_key"] = plaintext_key
         super().save_model(request, obj, form, change)
         if not change:
+            request.session["licensing_one_time_key"] = plaintext_key
             messages.success(request, "License created. Copy the one-time key from the notice above the form.")
 
     def render_change_form(self, request, context, *args, **kwargs):
