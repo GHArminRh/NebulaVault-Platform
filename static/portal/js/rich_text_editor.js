@@ -75,7 +75,7 @@
     const u = String(value || "").trim();
     if (!u || /[\u0000-\u001f]/.test(u) || /^javascript:|^data:|^vbscript:/i.test(u)) return "";
     if (/^(https?:|mailto:|tel:|\/|#)/i.test(u)) return image && !/^https?:|^\//i.test(u) ? "" : u;
-    if (!image && /^[\w.-]+\.[a-z]{2,}(\/|$)/i.test(u)) return "https://" + u;
+    if (/^[\w.-]+\.[a-z]{2,}(\/|$)/i.test(u)) return "https://" + u;
     return "";
   };
   function clean(html) {
@@ -230,6 +230,8 @@
       else if(command==="unlink") document.execCommand("unlink",false,null);
       else if(command==="removeFormat") document.execCommand("removeFormat",false,null);
       else if(command==="hr") document.execCommand("insertHorizontalRule",false,null);
+      else if(command==="fontSize") { document.execCommand("fontSize",false,value||null); const sizes={"1":"10px","2":"13px","3":"16px","4":"18px","5":"24px","6":"32px","7":"48px"}; surface.querySelectorAll('font[size]').forEach(f=>{const span=document.createElement("span");span.style.fontSize=sizes[f.getAttribute("size")]||"16px";span.innerHTML=f.innerHTML;f.replaceWith(span);}); }
+      else if(command==="fontName") { document.execCommand("fontName",false,value||null); surface.querySelectorAll("font[face]").forEach(f=>{const span=document.createElement("span");span.style.fontFamily=f.getAttribute("face");span.innerHTML=f.innerHTML;f.replaceWith(span);}); }
       else if(command==="undo"||command==="redo") document.execCommand(command,false,null);
       else if(command==="imageFromFile") { const inp=document.createElement("input");inp.type="file";inp.accept="image/png,image/jpeg,image/gif,image/webp";inp.addEventListener("change",()=>{if(inp.files&&inp.files[0])showToast(tr("Image uploads need a server upload adapter; use an image URL for now.","برای بارگذاری تصویر باید سرویس آپلود سرور وصل شود؛ فعلاً از نشانی تصویر استفاده کنید."),"info");});inp.click(); }
       else if(command==="insertBullet"||command==="insertNumber") document.execCommand(command==="insertBullet"?"insertUnorderedList":"insertOrderedList",false,null);
@@ -360,7 +362,7 @@
       rememberRange();const sel=window.getSelection();const selected=sel?sel.toString():"";let existing=null;
       if(sel&&sel.anchorNode){let n=sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentElement;existing=n&&n.closest?n.closest("a"):null;if(existing&&!surface.contains(existing))existing=null;}
       openDialog(existing?tr("Edit link","ویرایش پیوند"):tr("Insert link","درج پیوند"),[
-        {name:"url",label:tr("URL or email","نشانی یا ایمیل"),type:"url",value:existing?existing.getAttribute("href"):"",placeholder:"https://example.com",required:true},
+        {name:"url",label:tr("URL or email","نشانی یا ایمیل"),type:"text",value:existing?existing.getAttribute("href"):"",placeholder:"https://example.com",required:true},
         {name:"text",label:tr("Link text","متن پیوند"),type:"text",value:existing?existing.textContent:selected,placeholder:tr("Describe this link","عنوان پیوند")},
         {name:"newTab",label:tr("Open in new tab","باز شدن در زبانه جدید"),type:"checkbox",value:existing?existing.target==="_blank":true}
       ],v=>{
@@ -377,7 +379,7 @@
     function openImageDialog() {
       rememberRange();
       openDialog(tr("Insert image","درج تصویر"),[
-        {name:"url",label:tr("Image URL","نشانی تصویر"),type:"url",placeholder:"https://example.com/image.webp",required:true},
+        {name:"url",label:tr("Image URL","نشانی تصویر"),type:"text",placeholder:"https://example.com/image.webp",required:true},
         {name:"alt",label:tr("Alternative text (accessibility)","متن جایگزین (دسترس‌پذیری)"),type:"text",placeholder:tr("Describe the image","توضیح تصویر"),required:true},
         {name:"caption",label:tr("Caption","زیرنویس"),type:"text",placeholder:tr("Optional caption","زیرنویس اختیاری")},
         {name:"width",label:tr("Width in pixels (optional)","عرض به پیکسل (اختیاری)"),type:"number",min:50,max:2000,placeholder:"600"}
