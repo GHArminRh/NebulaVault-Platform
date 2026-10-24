@@ -54,6 +54,7 @@
 
   function installUploadAdapter() {
     if (!window.tinymce || window.tinymce.__nebulaUploadAdapterInstalled) return;
+
     const originalInit = window.tinymce.init.bind(window.tinymce);
     window.tinymce.init = function (options) {
       const config = Object.assign({}, options || {});
@@ -63,9 +64,10 @@
     window.tinymce.__nebulaUploadAdapterInstalled = true;
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", installUploadAdapter);
-  } else {
-    installUploadAdapter();
-  }
+  /*
+   * This script is loaded after tinymce.min.js and before init_tinymce.js.
+   * Install synchronously: waiting for DOMContentLoaded lets the initializer
+   * run first, so the editor misses our images_upload_handler.
+   */
+  installUploadAdapter();
 })();
