@@ -31,13 +31,14 @@ This branch adds a server-rendered Django frontend for the existing catalog, sub
 - `static/portal/js/rich_text_editor.js` and `static/portal/css/rich_text_editor.css`: reusable custom dependency-free Nebula Vault rich text editor
 - `templates/portal/`: server-rendered pages
 
-## Native rich-text editing
+## Rich-text editor
 
-- Implemented in-house with vanilla JavaScript, HTML, and CSS. It does not load CKEditor, another editor runtime, or third-party editor scripts.
-- Enhances eligible portal and Django Admin textareas while preserving the original submitted field; observes dynamically added form fields.
-- Includes undo/redo, emphasis, headings, font size, text/highlight colors, alignment, lists, links, block quotes, horizontal rules, tables, and HTML source mode.
-- JSON, payload, metadata, config, query, code, and SQL fields are excluded; individual fields can opt out with `data-no-rich-editor`.
-- Client-side cleanup is not a security boundary. Sanitize stored rich HTML server-side before rendering it to other users; never mark arbitrary database content as safe.
+- A custom in-house editor with a CKEditor-inspired classic editing layout: menu bar, grouped multi-row toolbar, color palettes, contextual selection toolbar, dialogs, element path, word/character counts, and fullscreen/source views. It does not load CKEditor or a third-party editor runtime.
+- Core tools include undo/redo, paragraph styles and headings, bold/italic/underline/strikethrough, subscript/superscript, font family/size, text/highlight colors, alignment, lists, indentation, links, image URLs with alternative text and captions, table insertion and row/column operations, block quotes, code blocks, horizontal/page breaks, special characters, find/replace, import/export HTML, block boundaries, direction controls, print, and keyboard shortcuts.
+- Uses an explicit field allowlist instead of turning every textarea into HTML. The current model fields enabled by default are `description` and `release_notes`; other forms can opt in with `data-rich-editor` or `.rich-text`. JSON, credentials, code, and other non-prose fields remain plain text.
+- Textareas remain the submitted form fields. Source mode and visual mode are synchronized before form submission; HTML is cleaned before it leaves the editor.
+- A server-side `nh3` allow-list sanitizer is applied when product descriptions/release notes are saved and again when product-description HTML is rendered. Scripts, event-handler attributes, embedded frames, and unapproved CSS are not allowed. The client-side sanitizer is not treated as a security boundary.
+- Direct image-file upload, media player embeds, Office/PDF conversion, track changes, comments, revision history, and real-time multi-user collaboration are not implemented in this custom editor yet; those require additional server-side storage, document/conversion, and collaboration infrastructure. AI features are intentionally excluded.
 
 ## Validation
 
