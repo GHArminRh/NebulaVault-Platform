@@ -16,11 +16,11 @@ class PaymentOrder(models.Model):
     """A customer's immutable-at-purchase price snapshot and order."""
 
     class Status(models.TextChoices):
-        PENDING = "pending", "Pending"
-        PAID = "paid", "Paid"
-        CANCELED = "canceled", "Canceled"
-        EXPIRED = "expired", "Expired"
-        REFUNDED = "refunded", "Refunded"
+        PENDING = "pending", "در انتظار"
+        PAID = "paid", "پرداخت‌شده"
+        CANCELED = "canceled", "لغوشده"
+        EXPIRED = "expired", "منقضی‌شده"
+        REFUNDED = "refunded", "بازپرداخت‌شده"
 
     order_number = models.UUIDField(
         default=uuid.uuid4,
@@ -83,8 +83,8 @@ class PaymentOrder(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        verbose_name = "Payment order"
-        verbose_name_plural = "Payment orders"
+        verbose_name = "سفارش پرداخت"
+        verbose_name_plural = "سفارش‌های پرداخت"
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(amount_minor_units__gt=0),
@@ -106,12 +106,12 @@ class PaymentAttempt(models.Model):
     """A single attempt to pay for an order."""
 
     class Status(models.TextChoices):
-        CREATED = "created", "Created"
-        PENDING = "pending", "Pending"
-        SUCCEEDED = "succeeded", "Succeeded"
-        FAILED = "failed", "Failed"
-        CANCELED = "canceled", "Canceled"
-        REFUNDED = "refunded", "Refunded"
+        CREATED = "created", "ایجادشده"
+        PENDING = "pending", "در انتظار"
+        SUCCEEDED = "succeeded", "موفق"
+        FAILED = "failed", "ناموفق"
+        CANCELED = "canceled", "لغوشده"
+        REFUNDED = "refunded", "بازپرداخت‌شده"
 
     order = models.ForeignKey(
         PaymentOrder,
@@ -165,8 +165,8 @@ class PaymentAttempt(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        verbose_name = "Payment attempt"
-        verbose_name_plural = "Payment attempts"
+        verbose_name = "تلاش پرداخت"
+        verbose_name_plural = "تلاش‌های پرداخت"
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(amount_minor_units__gt=0),
