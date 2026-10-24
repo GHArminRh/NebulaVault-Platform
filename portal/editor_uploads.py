@@ -1,4 +1,4 @@
-"""Secure, staff-only image upload endpoint for the custom rich-text editor."""
+"""Secure, staff-only image upload endpoint for the catalog rich-text editor."""
 
 from io import BytesIO
 from uuid import uuid4
@@ -62,8 +62,9 @@ def editor_image_upload(request):
         "editor_uploads/" + uuid4().hex + ".png",
         ContentFile(payload),
     )
+    url = default_storage.url(name)
     response = JsonResponse(
-        {"uploaded": 1, "fileName": name.rsplit("/", 1)[-1], "url": default_storage.url(name)}
+        {"location": url, "uploaded": 1, "fileName": name.rsplit("/", 1)[-1], "url": url}
     )
     response["Cache-Control"] = "no-store"
     return response
