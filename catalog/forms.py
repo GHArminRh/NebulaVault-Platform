@@ -1,39 +1,30 @@
-"""Admin forms using django-tinymce for staff-managed rich content."""
+"""Admin forms using the project's centralized django-tinymce configuration."""
 
 from django import forms
+from django.conf import settings
+from django.urls import reverse_lazy
 from tinymce.widgets import TinyMCE
 
 from .models import Product, Release
 
 
-EDITOR_CONFIG = {
-    "height": 420,
-    "menubar": "file edit view insert format tools table help",
-    "plugins": (
-        "advlist autolink lists link image charmap preview anchor "
-        "searchreplace visualblocks code fullscreen insertdatetime media "
-        "table wordcount"
-    ),
-    "toolbar": (
-        "undo redo | blocks | fontfamily fontsize | "
-        "bold italic underline strikethrough | "
-        "alignleft aligncenter alignright alignjustify | "
-        "bullist numlist outdent indent | "
-        "forecolor backcolor | link image media table | "
-        "removeformat | searchreplace | code fullscreen"
-    ),
-    "branding": False,
-    "promotion": False,
-    "resize": True,
-    "statusbar": True,
-    "convert_urls": False,
-    "relative_urls": False,
-    "browser_spellcheck": True,
-}
+EDITOR_CONFIG = settings.TINYMCE_DEFAULT_CONFIG
+
+
+def _staff_editor():
+    """Build a fresh widget config and use Django's URL resolver for uploads."""
+    return StaffTinyMCE(
+        attrs={
+            "cols": 80,
+            "rows": 24,
+            "data-upload-url": reverse_lazy("editor-image-upload"),
+        },
+        mce_attrs=dict(EDITOR_CONFIG),
+    )
 
 
 class StaffTinyMCE(TinyMCE):
-    """Use django-tinymce's editor, with a small CSRF-aware image-upload adapter."""
+    """TinyMCE widget with a CSRF-aware, staff-only image upload adapter."""
 
     class Media:
         js = (
@@ -44,13 +35,7 @@ class StaffTinyMCE(TinyMCE):
 
 
 class ProductAdminForm(forms.ModelForm):
-    description = forms.CharField(
-        required=False,
-        widget=StaffTinyMCE(
-            attrs={"cols": 80, "rows": 24},
-            mce_attrs=EDITOR_CONFIG,
-        ),
-    )
+    description = forms.CharField(required=False, widget=_staff_editor())
 
     class Meta:
         model = Product
@@ -58,13 +43,7 @@ class ProductAdminForm(forms.ModelForm):
 
 
 class ReleaseAdminForm(forms.ModelForm):
-    release_notes = forms.CharField(
-        required=False,
-        widget=StaffTinyMCE(
-            attrs={"cols": 80, "rows": 24},
-            mce_attrs=EDITOR_CONFIG,
-        ),
-    )
+    release_notes = forms.CharField(required=False, widget=_staff_editor())
 
     class Meta:
         model = Release
