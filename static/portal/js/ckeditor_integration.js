@@ -7,7 +7,7 @@
   const PREMIUM_CSS = PREMIUM_BASE + "ckeditor5-premium-features.css";
   // Bundled CKEditor 5 Free production license for this private project.
   // License keys are client-side configuration; rotate it in the CKEditor portal if exposed publicly.
-  const DEFAULT_LICENSE_KEY = "eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE4MjQ0MjIzOTksImp0aSI6IjI0ZDQ0ZjFmLTFmMDgtNGQyNS05ZWRjLWFjZDc2OGRjNzdkMiIsImxpY2Vuc2VkSG9zdHMiOlsiMTI3LjAuMC4xIl0sInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiXSwiZmVhdHVyZXMiOlsiRFJVUCIsIkUyUCIsIkUyVyJdLCJyZW1vdmVGZWF0dXJlcyI6WyJQQiIsIlJGIiwiU0NIIiwiVENQIiwiVEwiLCJUQ1IiLCJJUiIsIlNVQSIsIkI2NEEiLCJMUCIsIkhFIiwiUkVEIiwiUEZPIiwiV0MiLCJGQVIiLCJCS00iLCJGUEgiLCJNUkUiLCJNRVIiXSwidmMiOiJmYjA1YTU3OCJ9.U7s7YoQbpfpPhMidJTjPg6Xf0LyF8I2SYFp-iySYGaCHY2dkXVLRHoUL3yuo2HqCRozpSgl3Odq6Z0z9hQgTqg";
+  const DEFAULT_LICENSE_KEY = "eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3OTQwOTU5OTksImp0aSI6Ijc5YWM3NWE5LTE1N2YtNGU4Ny05MjJkLTBmMTc3YmI3M2Q2ZiIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiLCJzaCJdLCJ3aGl0ZV9sYWJlbCI6dHJ1ZSwibGljZW5zZVR5cGUiOiJ0cmlhbCIsImZlYXR1cmVzIjpbIioiXSwidmMiOiI1NWMxY2Q0NSJ9.P1VTX61ujcIQggCFNyrv8DpH1VL-Zbl1eMcwXtw2vxD0Fs82ZopKeoafBEJUagaQY_yeZ8IUkrnJOJ6iLT17Sw";
   const EXCLUDED = [
     "textarea[data-no-rich-editor]", "textarea.no-rich-editor",
     "textarea[name*='json' i]", "textarea[name*='payload' i]",
