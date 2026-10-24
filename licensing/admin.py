@@ -1,4 +1,6 @@
 from django.contrib import admin, messages
+from django.shortcuts import redirect
+from django.urls import reverse
 
 from .models import License, LicenseActivation
 from .services import generate_license_key, _key_digest
@@ -18,6 +20,7 @@ class LicenseActivationInline(admin.TabularInline):
 @admin.register(License)
 class LicenseAdmin(admin.ModelAdmin):
     change_form_template = "admin/licensing/license/change_form.html"
+    actions = ("rotate_license_key",)
     list_display = (
         "key_prefix", "customer_email", "product_name", "status",
         "subscription_status", "expires_at", "activation_usage", "created_at",
@@ -66,6 +69,23 @@ class LicenseAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         # Revoke a license instead of deleting its audit trail.
         return False
+
+    @admin.action(description="Rotate the selected license key (select exactly one)")
+    def rotate_license_key(self, request, queryset):
+        if queryset.count() != 1:
+            self.message_user(request, "Select exactly one license to rotate its key.", level=messages.ERROR)
+            return None
+        obj = queryset.first()
+        if not self.has_change_permission(request, obj):
+            self.message_user(request, "You do not have permission to rotate this license.", level=messages.ERROR)
+            return None
+        plaintext_key = generate_license_key()
+        obj.key_prefix = plaintext_key[:8]
+        obj.key_digest = _key_digest(plaintext_key)
+        obj.save(update_fields=("key_prefix", "key_digest", "updated_at"))
+        request.session["licensing_one_time_key"] = plaintext_key
+        messages.success(request, "License key rotated. The previous key is now invalid; copy the new key from the notice.")
+        return redirect(reverse("admin:licensing_license_change", args=(obj.pk,)))
 
     def save_model(self, request, obj, form, change):
         if not change:
