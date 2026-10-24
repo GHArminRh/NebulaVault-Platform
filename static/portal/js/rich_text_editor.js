@@ -510,11 +510,12 @@
     const host=document.createElement("div");host.className="nv-cke-main";host.append(surface,source);
     wrap.append(menuBar,toolbar,host,status,popover,modalRoot);
     ta.insertAdjacentElement("afterend",wrap);ta.classList.add("nv-cke-original");ta.setAttribute("aria-hidden","true");ta.tabIndex=-1;
+    const wasRequired=ta.required;ta.required=false;
     const form=ta.form||ta.closest("form");
     if(form) {
       form.addEventListener("submit",e=>{
         sync();
-        if(ta.required&&!textOf(ta.value)){e.preventDefault();surface.hidden=false;source.hidden=true;sourceMode=false;surface.focus();surface.setAttribute("aria-invalid","true");showToast(tr("This field is required.","این فیلد الزامی است."),"error");}
+        if(wasRequired&&!textOf(ta.value)){e.preventDefault();surface.hidden=false;source.hidden=true;sourceMode=false;surface.focus();surface.setAttribute("aria-invalid","true");showToast(tr("This field is required.","این فیلد الزامی است."),"error");}
       });
     }
     surface.addEventListener("input",()=>{if(sourceMode)return;afterEdit();surface.removeAttribute("aria-invalid");});
