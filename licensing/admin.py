@@ -1,7 +1,7 @@
 from django.contrib import admin, messages
 
 from .models import License, LicenseActivation
-from .services import generate_license_key, _key_digest
+from .services import generate_license_key, _key_digest, _save_encrypted_key
 
 
 class LicenseActivationInline(admin.TabularInline):
@@ -17,22 +17,20 @@ class LicenseActivationInline(admin.TabularInline):
 
 @admin.register(License)
 class LicenseAdmin(admin.ModelAdmin):
-    change_form_template = "admin/licensing/license/change_form.html"
     list_display = (
-        "key_prefix", "customer_email", "product_name", "status",
+        "customer_email", "product_name", "status",
         "subscription_status", "expires_at", "activation_usage", "created_at",
     )
     list_filter = ("status", "subscription__kind", "subscription__status", "subscription__product")
     search_fields = (
-        "key_prefix", "subscription__user__email", "subscription__user__username",
+        "subscription__user__email", "subscription__user__username",
         "subscription__product__name", "subscription__plan__name",
     )
     autocomplete_fields = ("subscription",)
-    readonly_fields = ("key_prefix", "key_digest", "created_at", "updated_at", "last_validated_at", "activation_usage")
+    readonly_fields = ("created_at", "updated_at", "last_validated_at", "activation_usage")
     inlines = (LicenseActivationInline,)
     fieldsets = (
-        ("License", {"fields": ("subscription", "status", "notes")}),
-        ("Key security", {"fields": ("key_prefix", "key_digest"), "classes": ("collapse",)}),
+        ("License", {"fields": ("subscription", "status")}),
         ("Activity", {"fields": ("created_at", "updated_at", "last_validated_at", "activation_usage")}),
     )
     list_select_related = ("subscription", "subscription__user", "subscription__product", "subscription__plan")
@@ -63,7 +61,7 @@ class LicenseAdmin(admin.ModelAdmin):
         fields = super().get_readonly_fields(request, obj)
         # Once issued, a license's identifying data and stored key material must not be editable.
         if obj:
-            return tuple(dict.fromkeys((*fields, "subscription", "notes")))
+            return tuple(dict.fromkeys((*fields, "subscription")))
         return fields
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -80,22 +78,17 @@ class LicenseAdmin(admin.ModelAdmin):
             plaintext_key = generate_license_key()
             obj.key_prefix = plaintext_key[:8]
             obj.key_digest = _key_digest(plaintext_key)
-            # Keep the one-time secret in the server-side session, not a signed cookie message.
         super().save_model(request, obj, form, change)
         if not change:
-            request.session["licensing_one_time_key"] = plaintext_key
-            messages.success(request, "License created. Copy the one-time key from the notice above the form.")
-
-    def render_change_form(self, request, context, *args, **kwargs):
-        context["one_time_license_key"] = request.session.pop("licensing_one_time_key", None)
-        return super().render_change_form(request, context, *args, **kwargs)
+            # Store only the digest and an encrypted copy; never display the key in admin.
+            _save_encrypted_key(obj, plaintext_key)
 
 
 @admin.register(LicenseActivation)
 class LicenseActivationAdmin(admin.ModelAdmin):
     list_display = ("license", "device_label", "app_version", "is_active", "first_activated_at", "last_seen_at", "deactivated_at")
     list_filter = ("is_active", "first_activated_at", "license__status")
-    search_fields = ("license__key_prefix", "license__subscription__user__email", "device_label", "app_version")
+    search_fields = ("license__subscription__user__email", "device_label", "app_version")
     list_select_related = ("license", "license__subscription", "license__subscription__user")
     readonly_fields = ("license", "fingerprint_digest", "device_label", "app_version", "first_activated_at", "last_seen_at", "deactivated_at", "is_active")
 
