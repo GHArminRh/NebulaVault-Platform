@@ -12,7 +12,7 @@ from .rich_text import clean_rich_text
 
 currency_code_validator = RegexValidator(
     regex=r"^[A-Z]{3}$",
-    message="Use a three-letter uppercase currency code, such as USD.",
+    message="Enter a three-letter uppercase currency code, such as USD.",
 )
 
 sha256_validator = RegexValidator(
@@ -36,8 +36,8 @@ class Product(models.Model):
 
     class Meta:
         ordering = ["name"]
-        verbose_name = "محصول نرم‌افزاری"
-        verbose_name_plural = "محصولات نرم‌افزاری"
+        verbose_name = "software product"
+        verbose_name_plural = "software products"
 
     def save(self, *args, **kwargs):
         base_slug = slugify(self.name) or "product"
@@ -63,14 +63,14 @@ class Release(models.Model):
     """A freely downloadable published version of a product."""
 
     class Platform(models.TextChoices):
-        WINDOWS = "windows", "ویندوز"
-        MACOS = "macos", "مک‌اواس"
-        LINUX = "linux", "لینوکس"
+        WINDOWS = "windows", "Windows"
+        MACOS = "macos", "macOS"
+        LINUX = "linux", "Linux"
 
     class Architecture(models.TextChoices):
         X64 = "x64", "x64"
         ARM64 = "arm64", "ARM64"
-        UNIVERSAL = "universal", "همه معماری‌ها"
+        UNIVERSAL = "universal", "All architectures"
 
     product = models.ForeignKey(
         Product,
@@ -99,8 +99,8 @@ class Release(models.Model):
 
     class Meta:
         ordering = ["-published_at", "version"]
-        verbose_name = "نسخه نرم‌افزار"
-        verbose_name_plural = "نسخه‌های نرم‌افزار"
+        verbose_name = "software release"
+        verbose_name_plural = "software releases"
         constraints = [
             models.UniqueConstraint(
                 fields=[
@@ -157,9 +157,9 @@ class Plan(models.Model):
     """A paid subscription offer for a software product."""
 
     class DurationUnit(models.TextChoices):
-        DAYS = "days", "روز"
-        MONTHS = "months", "ماه"
-        YEARS = "years", "سال"
+        DAYS = "days", "Days"
+        MONTHS = "months", "Months"
+        YEARS = "years", "Years"
 
     product = models.ForeignKey(
         Product,
@@ -194,8 +194,8 @@ class Plan(models.Model):
 
     class Meta:
         ordering = ["sort_order", "price_minor_units", "name"]
-        verbose_name = "طرح اشتراک پولی"
-        verbose_name_plural = "طرح‌های اشتراک پولی"
+        verbose_name = "subscription plan"
+        verbose_name_plural = "subscription plans"
         constraints = [
             models.UniqueConstraint(
                 fields=["product", "slug"],
