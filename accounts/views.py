@@ -42,15 +42,15 @@ def profile(request):
             try:
                 sent = _send_verification_email(request, customer)
                 if sent:
-                    messages.info(request, "A verification email has been sent. Enter the six-digit code below or use the link in the email.")
+                    messages.info(request, "ایمیل تأیید برای شما ارسال شد. کد شش‌رقمی زیر را وارد کنید یا از پیوند داخل ایمیل استفاده کنید.")
                 else:
-                    messages.warning(request, "The verification email limit has been reached. Please try again later.")
+                    messages.warning(request, "به سقف مجاز ارسال ایمیل تأیید رسیده‌اید. لطفاً بعداً دوباره تلاش کنید.")
             except Exception:
                 logger.exception("Could not send email-change verification for customer %s", customer.pk)
-                messages.error(request, "We couldn’t send the verification email right now. Please try again later.")
+                messages.error(request, "در حال حاضر ارسال ایمیل تأیید ممکن نشد. لطفاً بعداً دوباره تلاش کنید.")
             logout(request)
             return render(request, "accounts/email_code_form.html", {"purpose": "verification", "email": customer.email})
-        messages.success(request, "Your account details have been updated.")
+        messages.success(request, "اطلاعات حساب شما به‌روزرسانی شد.")
         return redirect("accounts:profile")
     return render(request, "accounts/profile.html", {"form": form})
 
@@ -62,7 +62,7 @@ def password_change(request):
     if request.method == "POST" and form.is_valid():
         user = form.save()
         update_session_auth_hash(request, user)
-        messages.success(request, "Your password has been changed.")
+        messages.success(request, "رمز عبور شما تغییر کرد.")
         return redirect("accounts:profile")
     return render(request, "accounts/password_change.html", {"form": form})
 
@@ -79,12 +79,12 @@ def register(request):
         try:
             sent = _send_verification_email(request, customer)
             if sent:
-                messages.info(request, "A verification email has been sent. Enter the six-digit code below or use the link in the email.")
+                messages.info(request, "ایمیل تأیید برای شما ارسال شد. کد شش‌رقمی زیر را وارد کنید یا از پیوند داخل ایمیل استفاده کنید.")
             else:
-                messages.warning(request, "The verification email limit has been reached. Please try again later.")
+                messages.warning(request, "به سقف مجاز ارسال ایمیل تأیید رسیده‌اید. لطفاً بعداً دوباره تلاش کنید.")
         except Exception:
             logger.exception("Could not send verification email for newly registered customer %s", customer.pk)
-            messages.error(request, "We couldn’t send the verification email right now. You can request another one below.")
+            messages.error(request, "در حال حاضر ارسال ایمیل تأیید ممکن نشد. می‌توانید از گزینه زیر دوباره درخواست دهید.")
         return render(request, "accounts/email_code_form.html", {"purpose": "verification", "email": customer.email})
     return render(request, "portal/register.html", {"form": form})
 
@@ -132,7 +132,7 @@ def _send_verification_email(request, customer):
         body = render_to_string("registration/email_verification_email.txt", context)
         html_body = render_to_string("registration/email_verification_email.html", context)
         send_mail(
-            subject="Verify your Nebula Vault email",
+            subject="تأیید نشانی ایمیل نبیولا والت",
             message=body,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[customer.email],
@@ -169,7 +169,7 @@ def verify_email(request, uidb64, token):
         customer.is_active = True
         customer.save(update_fields=["is_active"])
         login(request, customer, backend="accounts.backends.CustomerAuthenticationBackend")
-        messages.success(request, "Your email has been verified successfully. Welcome!")
+        messages.success(request, "نشانی ایمیل شما با موفقیت تأیید شد. خوش آمدید!")
         return redirect("portal:dashboard")
 
     if customer is not None and customer.is_active:
@@ -192,7 +192,7 @@ def resend_verification(request):
         ip = request.META.get("REMOTE_ADDR", "")
         cooldown_key = _verification_resend_cooldown_key(email, ip)
         if not cache.add(cooldown_key, 1, timeout=30):
-            messages.warning(request, "Please wait 30 seconds before requesting another verification email.")
+            messages.warning(request, "برای درخواست ایمیل تأیید بعدی، ۳۰ ثانیه صبر کنید.")
             return render(request, "accounts/email_code_form.html", {
                 "purpose": "verification", "email": email, "resend_cooldown": True,
             })
@@ -201,15 +201,15 @@ def resend_verification(request):
             try:
                 sent = _send_verification_email(request, customer)
                 if sent:
-                    messages.success(request, "If this account is awaiting verification, a new email has been sent.")
+                    messages.success(request, "اگر حسابی با این نشانی در انتظار تأیید باشد، ایمیل جدیدی ارسال شده است.")
                 else:
-                    messages.warning(request, "The email request limit has been reached. Please try again later.")
+                    messages.warning(request, "به سقف مجاز درخواست ایمیل رسیده‌اید. لطفاً بعداً دوباره تلاش کنید.")
             except Exception:
                 # Avoid disclosing account existence or SMTP delivery details.
                 logger.exception("Could not send requested account verification email")
-                messages.error(request, "We couldn’t send the email right now. Please try again later.")
+                messages.error(request, "در حال حاضر ارسال ایمیل ممکن نشد. لطفاً بعداً دوباره تلاش کنید.")
         else:
-            messages.success(request, "If this account is awaiting verification, a new email has been sent.")
+            messages.success(request, "اگر حسابی با این نشانی در انتظار تأیید باشد، ایمیل جدیدی ارسال شده است.")
         return render(request, "accounts/email_code_form.html", {
             "purpose": "verification", "email": email, "resend_cooldown": True,
         })
@@ -262,7 +262,7 @@ def verify_email_code(request):
             customer.is_active = True
             customer.save(update_fields=["is_active"])
             login(request, customer, backend="accounts.backends.CustomerAuthenticationBackend")
-            messages.success(request, "Your email has been verified successfully. Welcome!")
+            messages.success(request, "نشانی ایمیل شما با موفقیت تأیید شد. خوش آمدید!")
             return redirect("portal:dashboard")
         if entry:
             entry.failed_attempts += 1
@@ -271,7 +271,7 @@ def verify_email_code(request):
             entry.save(update_fields=["failed_attempts", "status"])
         return render(request, "accounts/email_code_form.html", {
             "purpose": "verification", "email": email,
-            "error": "The code is invalid, expired, or has reached its attempt limit.",
+            "error": "کد واردشده نامعتبر است، منقضی شده یا تعداد تلاش‌های مجاز به پایان رسیده است.",
         }, status=400)
     return render(request, "accounts/email_code_form.html", {"purpose": "verification"})
 
@@ -291,7 +291,7 @@ def password_reset_request(request):
         ip = request.META.get("REMOTE_ADDR", "")
         cooldown_key = _password_reset_resend_cooldown_key(email, ip)
         if not cache.add(cooldown_key, 1, timeout=30):
-            messages.warning(request, "Please wait 30 seconds before requesting another recovery email.")
+            messages.warning(request, "برای درخواست ایمیل بازیابی بعدی، ۳۰ ثانیه صبر کنید.")
             return render(request, "accounts/email_code_form.html", {
                 "purpose": "password_reset", "email": email, "resend_cooldown": True,
             })
@@ -322,7 +322,7 @@ def password_reset_request(request):
                            "password_reset_code": code, "valid_minutes": 15}
                 try:
                     send_mail(
-                        "Reset your Nebula Vault password",
+                        "بازیابی رمز عبور نبیولا والت",
                         render_to_string("registration/password_reset_email.txt", context),
                         settings.DEFAULT_FROM_EMAIL, [customer.email],
                         html_message=render_to_string("registration/password_reset_email.html", context),
@@ -335,7 +335,7 @@ def password_reset_request(request):
                     log.error_message = str(exc)[:1000]
                     log.save(update_fields=["error_message"])
                     logger.exception("Could not send password recovery email for customer %s", customer.pk)
-        messages.info(request, "If an eligible account matches that email, a recovery message has been sent. Enter the six-digit code below or use the link in the email.")
+        messages.info(request, "اگر حساب واجد شرایطی با این نشانی وجود داشته باشد، پیام بازیابی ارسال شده است. کد شش‌رقمی را وارد کنید یا از پیوند داخل ایمیل استفاده کنید.")
         return render(request, "accounts/email_code_form.html", {
             "purpose": "password_reset", "email": email,
         })
@@ -371,7 +371,7 @@ def password_reset_code(request):
             entry.save(update_fields=["failed_attempts", "status"])
         return render(request, "accounts/email_code_form.html", {
             "purpose": "password_reset", "email": email,
-            "error": "The code is invalid, expired, or has reached its attempt limit.",
+            "error": "کد واردشده نامعتبر است، منقضی شده یا تعداد تلاش‌های مجاز به پایان رسیده است.",
         }, status=400)
     return render(request, "accounts/email_code_form.html", {"purpose": "password_reset"})
 
@@ -391,10 +391,10 @@ def password_reset_confirm(request, uidb64, token):
     form = AccountSetPasswordForm(customer, request.POST or None) if validlink else None
     if request.method == "POST" and validlink and form and form.is_valid():
         form.save()
-        messages.success(request, "Your password has been reset. You can now sign in.")
+        messages.success(request, "رمز عبور شما بازنشانی شد. اکنون می‌توانید وارد شوید.")
         return redirect("accounts:password_reset_complete")
     return render(request, "accounts/password_reset_confirm.html", {
-        "form": form, "validlink": validlink, "title": "Set a new password",
+        "form": form, "validlink": validlink, "title": "تنظیم رمز عبور جدید",
     }, status=200 if validlink else 400)
 
 
@@ -417,7 +417,7 @@ class CustomerLoginView(LoginView):
                 customer = candidate
 
         if customer and customer.is_banned:
-            messages.error(self.request, "You have been banned by an administrator.")
+            messages.error(self.request, "دسترسی حساب شما توسط مدیر مسدود شده است.")
             return render(
                 self.request,
                 self.template_name,
@@ -438,12 +438,12 @@ class CustomerLoginView(LoginView):
                 if sent:
                     messages.success(
                         self.request,
-                        "A verification code has been sent to your email address. Check your inbox and spam folder.",
+                        "کد تأیید به نشانی ایمیل شما ارسال شد. صندوق ورودی و پوشه هرزنامه را بررسی کنید.",
                     )
                 else:
                     messages.warning(
                         self.request,
-                        "The verification email limit has been reached. Please wait before requesting another email.",
+                        "به سقف مجاز ارسال ایمیل تأیید رسیده‌اید. پیش از درخواست دوباره، کمی صبر کنید.",
                     )
             except Exception:
                 logger.exception(
@@ -452,7 +452,7 @@ class CustomerLoginView(LoginView):
                 )
                 messages.error(
                     self.request,
-                    "We couldn't send the verification email right now. Check the email settings and try again.",
+                    "در حال حاضر ارسال ایمیل تأیید ممکن نشد. تنظیمات ایمیل را بررسی و دوباره تلاش کنید.",
                 )
             return render(self.request, "accounts/email_code_form.html", context)
 
