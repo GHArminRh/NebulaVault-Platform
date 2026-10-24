@@ -4,7 +4,10 @@ from django.contrib.auth.models import Group as DjangoAuthGroup
 
 from .models import Group, StaffUser
 
-# Replace Django's built-in Group registration with the app-owned model.
+# جایگزینی گروه پیش‌فرض جنگو با مدل اختصاصی برنامه.
+admin.site.site_header = "مدیریت نبیولا والت"
+admin.site.site_title = "مدیریت نبیولا والت"
+admin.site.index_title = "مدیریت سامانه"
 admin.site.unregister(DjangoAuthGroup)
 
 
