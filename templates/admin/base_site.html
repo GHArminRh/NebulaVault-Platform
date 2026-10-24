@@ -5,7 +5,8 @@
 
 {% block extrahead %}
   {{ block.super }}
-  {{ ckeditor_config|json_script:"nebula-ckeditor-config" }}
+  <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/48.5.1/ckeditor5.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5-premium-features/48.5.1/ckeditor5-premium-features.css" crossorigin="anonymous">
   <link rel="stylesheet" href="{% static 'portal/css/ckeditor_integration.css' %}">
   <script src="{% static 'portal/js/ckeditor_integration.js' %}" defer></script>
 {% endblock %}

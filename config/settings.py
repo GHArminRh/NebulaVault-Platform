@@ -38,7 +38,7 @@ TEMPLATES = [{
     "APP_DIRS": True,
     "OPTIONS": {"context_processors": [
         "django.template.context_processors.request", "django.contrib.auth.context_processors.auth",
-        "django.contrib.messages.context_processors.messages", "config.context_processors.ckeditor_config",
+        "django.contrib.messages.context_processors.messages",
     ]},
 }]
 WSGI_APPLICATION = "config.wsgi.application"
@@ -76,8 +76,3 @@ LOGOUT_REDIRECT_URL = "portal:home"
 # Uploaded release installers and archives.
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media/"
-
-
-# CKEditor 5 Free commercial plan; keep account-specific values in the deployment environment.
-CKEDITOR_LICENSE_KEY = os.environ.get("CKEDITOR_LICENSE_KEY", "").strip()
-CKEDITOR_CLOUD_SERVICES_TOKEN_URL = os.environ.get("CKEDITOR_CLOUD_SERVICES_TOKEN_URL", "").strip()

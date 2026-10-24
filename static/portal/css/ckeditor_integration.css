@@ -8,3 +8,4 @@
 .nv-ckeditor-host .ck.ck-editor__editable_inline{padding:20px}
 .nv-ckeditor-error{padding:10px 12px;border-left:3px solid #c33;background:#fff1f0;color:#8b1a1a}
 @media(max-width:800px){.nv-ckeditor-host .ck.ck-toolbar{overflow-x:auto}.nv-ckeditor-host .ck-editor__editable{min-height:220px}.nv-ckeditor-host .ck.ck-toolbar>.ck-toolbar__items{flex-wrap:wrap}}
+.nv-ckeditor-notice{margin:8px 0 12px;padding:10px 12px;border-left:3px solid #b7791f;background:#fff8e6;color:#704b0b;font-size:13px;line-height:1.5}

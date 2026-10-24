@@ -202,7 +202,12 @@
     if (!fields.length) return;
     const runtimeConfig = getRuntimeConfig();
     if (!runtimeConfig.licenseKey) {
-      console.warn("CKEditor is not initialized: set CKEDITOR_LICENSE_KEY in the server environment.");
+      const message = document.createElement("p");
+      message.className = "nv-ckeditor-notice";
+      message.setAttribute("role", "status");
+      message.textContent = "Rich-text editor is not enabled yet: configure CKEDITOR_LICENSE_KEY in the project .env file, then restart Django. The standard text field remains available.";
+      fields[0].insertAdjacentElement("beforebegin", message);
+      console.error("CKEditor is not initialized: CKEDITOR_LICENSE_KEY is missing. Set it in the project-root .env file and restart Django.");
       return;
     }
     addStylesheet(CORE_CSS);
@@ -219,6 +224,11 @@
       }
     } catch (error) {
       console.error("Unable to load CKEditor 5 from the configured CDN:", error);
+      const message = document.createElement("p");
+      message.className = "nv-ckeditor-error";
+      message.setAttribute("role", "alert");
+      message.textContent = "Rich-text editor could not load from the CKEditor CDN. Check the internet connection, browser extensions, Content Security Policy, and the browser Console/Network panels.";
+      fields.forEach(field => field.insertAdjacentElement("beforebegin", message.cloneNode(true)));
     }
   }
 

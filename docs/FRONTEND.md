@@ -55,3 +55,8 @@ python manage.py makemigrations --check --dry-run
 ```
 
 The branch was authored against the existing project structure; run these checks in the repository's configured environment before merging.
+
+### CKEditor troubleshooting
+
+- If the editor remains a plain textarea and a notice says the editor is not enabled, this is expected until the project-root `.env` contains `CKEDITOR_LICENSE_KEY=<your CKEditor 5 Free production key>`. `.env.example` is documentation only; Django does not automatically read values from that file. Restart the Django process after editing `.env`.
+- If the key is present but the editor does not load, inspect the browser Console and Network panels for CDN, licensing, CSP, or script errors. The integration now shows an on-page notice for missing configuration and a visible error if CDN loading fails.
