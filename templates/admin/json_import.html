@@ -1,0 +1,25 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+  <div id="content-main">
+    <p>
+      Upload a JSON file exported from this model's Django Admin page.
+      Single-record exports and JSON arrays of exports are supported.
+      Existing records with the same primary key will be updated; records not
+      found in this database will be created when your permissions allow it.
+    </p>
+    <p>Maximum file size: 5 MB. Passwords, staff/superuser privileges, and secret/token fields are not imported.</p>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      <div class="form-row">
+        <label for="id_json_file">JSON file</label>
+        <input id="id_json_file" name="json_file" type="file" accept=".json,application/json" required>
+      </div>
+      <div class="submit-row">
+        <input type="submit" value="Import JSON" class="default">
+        <a href="../" class="closelink">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
