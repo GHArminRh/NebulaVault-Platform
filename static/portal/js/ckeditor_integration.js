@@ -1,8 +1,10 @@
 (() => {
   "use strict";
   const VERSION = "48.5.1";
-  const CORE_CSS = "https://cdn.ckeditor.com/ckeditor5/" + VERSION + "/ckeditor5.css";
-  const PREMIUM_CSS = "https://cdn.ckeditor.com/ckeditor5-premium-features/" + VERSION + "/ckeditor5-premium-features.css";
+  const CDN_BASE = "https://cdn.ckeditor.com/ckeditor5/" + VERSION + "/";
+  const PREMIUM_BASE = "https://cdn.ckeditor.com/ckeditor5-premium-features/" + VERSION + "/";
+  const CORE_CSS = CDN_BASE + "ckeditor5.css";
+  const PREMIUM_CSS = PREMIUM_BASE + "ckeditor5-premium-features.css";
   const EXCLUDED = [
     "textarea[data-no-rich-editor]", "textarea.no-rich-editor",
     "textarea[name*='json' i]", "textarea[name*='payload' i]",
@@ -18,13 +20,34 @@
     "textarea[name='terms']", "textarea[name='policy']"
   ].join(",");
 
+  function getRuntimeConfig() {
+    const node = document.getElementById("nebula-ckeditor-config");
+    if (!node) return {};
+    try { return JSON.parse(node.textContent || "{}"); }
+    catch (error) {
+      console.error("Unable to parse CKEditor configuration:", error);
+      return {};
+    }
+  }
+
   function addStylesheet(href) {
-    if ([...document.styleSheets].some(sheet => sheet.href === href)) return;
+    if ([...document.querySelectorAll('link[rel="stylesheet"]')].some(link => link.href === href)) return;
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = href;
     link.crossOrigin = "anonymous";
     document.head.appendChild(link);
+  }
+
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.crossOrigin = "anonymous";
+      script.onload = resolve;
+      script.onerror = () => reject(new Error("Unable to load script: " + src));
+      document.head.appendChild(script);
+    });
   }
 
   function getCookie(name) {
@@ -60,7 +83,7 @@
     editor.plugins.get("FileRepository").createUploadAdapter = loader => new NebulaUploadAdapter(loader);
   }
 
-  function init(textarea, CK, Premium) {
+  function init(textarea, CK, Premium, runtimeConfig) {
     if (textarea.dataset.ckeditorInitialized === "true") return;
     textarea.dataset.ckeditorInitialized = "true";
     textarea.classList.add("nv-ckeditor-source");
@@ -69,50 +92,40 @@
     textarea.insertAdjacentElement("afterend", host);
     const initialValue = textarea.value || "";
     const form = textarea.form;
+    const tokenUrl = (runtimeConfig.cloudServicesTokenUrl || "").trim();
+
+    const plugins = [
+      CK.Alignment, CK.Autoformat, CK.AutoImage, CK.AutoLink, CK.Autosave, CK.BalloonToolbar,
+      CK.BlockQuote, CK.Bold, CK.Code, CK.CodeBlock, CK.Essentials, CK.FindAndReplace,
+      CK.FontBackgroundColor, CK.FontColor, CK.FontFamily, CK.FontSize, CK.Fullscreen,
+      CK.GeneralHtmlSupport, CK.Heading, CK.Highlight, CK.HorizontalLine, CK.ImageBlock,
+      CK.ImageCaption, CK.ImageEditing, CK.ImageInline, CK.ImageInsert, CK.ImageInsertViaUrl,
+      CK.ImageResize, CK.ImageStyle, CK.ImageTextAlternative, CK.ImageToolbar, CK.ImageUpload,
+      CK.ImageUtils, CK.Indent, CK.IndentBlock, CK.Italic, CK.Link, CK.LinkImage, CK.List,
+      CK.ListProperties, CK.MediaEmbed, CK.Paragraph, CK.PasteFromOffice, CK.PictureEditing,
+      CK.RemoveFormat, CK.ShowBlocks, CK.SpecialCharacters, CK.SpecialCharactersArrows,
+      CK.SpecialCharactersCurrency, CK.SpecialCharactersEssentials, CK.SpecialCharactersLatin,
+      CK.SpecialCharactersMathematical, CK.SpecialCharactersText, CK.Strikethrough, CK.Subscript,
+      CK.Superscript, CK.Table, CK.TableCaption, CK.TableCellProperties, CK.TableColumnResize,
+      CK.TableProperties, CK.TableToolbar, CK.TextTransformation, CK.TodoList, CK.Underline, CK.WordCount
+    ];
+    const toolbarItems = [
+      "undo", "redo", "|", "showBlocks", "findAndReplace", "|", "heading", "|",
+      "fontSize", "fontFamily", "fontColor", "fontBackgroundColor", "|",
+      "bold", "italic", "underline", "strikethrough", "subscript", "superscript",
+      "code", "removeFormat", "|", "specialCharacters", "horizontalLine", "link",
+      "insertImage", "insertImageViaUrl", "mediaEmbed", "insertTable", "highlight",
+      "blockQuote", "codeBlock", "|", "alignment", "bulletedList", "numberedList",
+      "todoList", "outdent", "indent"
+    ];
     const config = {
-      licenseKey: "eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3OTQwOTU5OTksImp0aSI6IjY5ZTM2ZjlkLThjYmQtNGZmZC1hM2VlLWJkY2I4YWVhYTE1OSIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiLCJzaCJdLCJ3aGl0ZUxhYmVsIjp0cnVlLCJsaWNlbnNlVHlwZSI6InRyaWFsIiwiZmVhdHVyZXMiOlsiKiJdLCJ2YyI6ImE4N2NiZTJlIn0.DkPmttkEjTz41CkQ1JQVMUwt91_xbIYqilw_Sngcl3b9smAgzvYsnuL7vHvFBJi9pUYdoSDlh5Exxr5KaPrp4A",
+      licenseKey: runtimeConfig.licenseKey,
       placeholder: textarea.getAttribute("placeholder") || "Type or paste your content here…",
-      plugins: [
-        CK.Alignment, CK.Autoformat, CK.AutoImage, CK.AutoLink, CK.Autosave, CK.BalloonToolbar,
-        CK.BlockQuote, CK.Bold, CK.Bookmark, Premium.CaseChange, CK.Code, CK.CodeBlock, CK.CloudServices,
-        CK.Essentials, Premium.ExportInlineStyles, Premium.ExportPdf, Premium.ExportWord,
-        CK.FindAndReplace, CK.FontBackgroundColor, CK.FontColor, CK.FontFamily, CK.FontSize,
-        Premium.Footnotes, Premium.FormatPainter, CK.Fullscreen, CK.GeneralHtmlSupport,
-        CK.Heading, CK.Highlight, CK.HorizontalLine, CK.HtmlEmbed, CK.ImageBlock, CK.ImageCaption,
-        CK.ImageEditing, CK.ImageInline, CK.ImageInsert, CK.ImageInsertViaUrl, CK.ImageResize,
-        CK.ImageStyle, CK.ImageTextAlternative, CK.ImageToolbar, CK.ImageUpload, CK.ImageUtils,
-        Premium.ImportWord, CK.Indent, CK.IndentBlock, CK.Italic, Premium.LineHeight, CK.Link,
-        CK.LinkImage, CK.List, CK.ListProperties, CK.MediaEmbed, Premium.MultiLevelList, CK.PageBreak,
-        CK.Paragraph, CK.PasteFromOffice, Premium.PasteFromOfficeEnhanced, CK.PictureEditing,
-        CK.PlainTableOutput, CK.RemoveFormat, CK.ShowBlocks, Premium.SlashCommand, CK.SpecialCharacters,
-        CK.SpecialCharactersArrows, CK.SpecialCharactersCurrency, CK.SpecialCharactersEssentials,
-        CK.SpecialCharactersLatin, CK.SpecialCharactersMathematical, CK.SpecialCharactersText,
-        CK.Strikethrough, CK.Subscript, CK.Superscript, CK.Table, CK.TableCaption,
-        CK.TableCellProperties, CK.TableColumnResize, CK.TableLayout, Premium.TableOfContents,
-        CK.TableProperties, CK.TableToolbar, Premium.Template, CK.TextPartLanguage,
-        CK.TextTransformation, CK.TodoList, Premium.TrackChanges, Premium.TrackChangesData,
-        Premium.TrackChangesPreview, CK.Underline, CK.WordCount
-      ],
+      plugins: plugins,
       extraPlugins: [NebulaUploadAdapterPlugin],
-      toolbar: {
-        items: [
-          "undo", "redo", "|", "trackChanges", "importWord", "exportWord", "exportPdf", "showBlocks",
-          "formatPainter", "caseChange", "findAndReplace", "textPartLanguage", "fullscreen",
-          "|", "heading", "|", "fontSize", "fontFamily", "fontColor", "fontBackgroundColor",
-          "|", "bold", "italic", "underline", "strikethrough", "subscript", "superscript",
-          "code", "removeFormat", "|", "specialCharacters", "horizontalLine", "pageBreak",
-          "link", "insertFootnote", "bookmark", "insertImage", "insertImageViaUrl", "mediaEmbed",
-          "insertTable", "insertTableLayout", "tableOfContents", "insertTemplate", "highlight",
-          "blockQuote", "codeBlock", "htmlEmbed", "|", "alignment", "lineHeight", "|",
-          "bulletedList", "numberedList", "multiLevelList", "todoList", "outdent", "indent"
-        ],
-        shouldNotGroupWhenFull: false
-      },
+      toolbar: { items: toolbarItems, shouldNotGroupWhenFull: false },
       balloonToolbar: ["bold", "italic", "|", "link", "insertImage", "|", "bulletedList", "numberedList"],
       menuBar: { isVisible: true },
-      cloudServices: {
-        tokenUrl: "https://833jqwz9jvuv.cke-cs.com/token/dev/ca1133d877981fae173000ec02734891bccc4c00942eaadfc5eae66364b7?limit=10"
-      },
       autosave: {
         save: editor => { textarea.value = editor.getData(); return Promise.resolve(); },
         waitingTime: 1500
@@ -120,7 +133,6 @@
       alignment: { options: ["left", "center", "right", "justify"] },
       fontFamily: { supportAllValues: true },
       fontSize: { options: [10, 12, 14, "default", 18, 20, 22], supportAllValues: true },
-      lineHeight: { supportAllValues: true },
       heading: { options: [
         { model: "paragraph", title: "Paragraph", class: "ck-heading_paragraph" },
         { model: "heading1", view: "h1", title: "Heading 1", class: "ck-heading_heading1" },
@@ -135,26 +147,32 @@
         "toggleImageCaption", "imageTextAlternative", "|", "imageStyle:inline",
         "imageStyle:wrapText", "imageStyle:breakText", "|", "resizeImage"
       ]},
-      exportInlineStyles: { stylesheets: [CORE_CSS, PREMIUM_CSS] },
-      exportPdf: {
-        stylesheets: [CORE_CSS, PREMIUM_CSS], fileName: "nebula-vault-document.pdf",
-        converterOptions: { format: "A4", margin_top: "20mm", margin_bottom: "20mm",
-          margin_right: "20mm", margin_left: "20mm", page_orientation: "portrait" }
-      },
-      exportWord: {
-        stylesheets: [CORE_CSS, PREMIUM_CSS], fileName: "nebula-vault-document.docx",
-        converterOptions: { document: { orientation: "portrait", size: "A4",
-          margins: { top: "20mm", bottom: "20mm", right: "20mm", left: "20mm" } } }
-      },
       link: {
         addTargetToExternalLinks: true, defaultProtocol: "https://",
         decorators: { toggleDownloadable: { mode: "manual", label: "Downloadable", attributes: { download: "file" } } }
       },
       list: { properties: { styles: true, startIndex: true, reversed: true } },
       table: { contentToolbar: ["tableColumn", "tableRow", "mergeTableCells", "tableProperties", "tableCellProperties"] },
-      template: { definitions: [] },
       initialData: initialValue
     };
+
+    // Free plan includes a small monthly quota for PDF/Word exports; the cloud token is required.
+    if (tokenUrl && Premium && Premium.ExportPdf && Premium.ExportWord && CK.CloudServices) {
+      plugins.push(CK.CloudServices, Premium.ExportPdf, Premium.ExportWord);
+      toolbarItems.splice(3, 0, "exportWord", "exportPdf", "|");
+      config.cloudServices = { tokenUrl: tokenUrl };
+      config.exportPdf = {
+        stylesheets: [CORE_CSS, PREMIUM_CSS], fileName: "nebula-vault-document.pdf",
+        converterOptions: { format: "A4", margin_top: "20mm", margin_bottom: "20mm",
+          margin_right: "20mm", margin_left: "20mm", page_orientation: "portrait" }
+      };
+      config.exportWord = {
+        stylesheets: [CORE_CSS, PREMIUM_CSS], fileName: "nebula-vault-document.docx",
+        converterOptions: { document: { orientation: "portrait", size: "A4",
+          margins: { top: "20mm", bottom: "20mm", right: "20mm", left: "20mm" } } }
+      };
+      addStylesheet(PREMIUM_CSS);
+    }
 
     CK.ClassicEditor.create(host, config).then(editor => {
       textarea.dataset.ckeditorReady = "true";
@@ -179,25 +197,31 @@
     });
   }
 
-  function start() {
+  async function start() {
     const fields = [...document.querySelectorAll(ELIGIBLE)].filter(el => !el.matches(EXCLUDED));
     if (!fields.length) return;
+    const runtimeConfig = getRuntimeConfig();
+    if (!runtimeConfig.licenseKey) {
+      console.warn("CKEditor is not initialized: set CKEDITOR_LICENSE_KEY in the server environment.");
+      return;
+    }
     addStylesheet(CORE_CSS);
-    addStylesheet(PREMIUM_CSS);
-    const core = document.createElement("script");
-    core.src = "https://cdn.ckeditor.com/ckeditor5/" + VERSION + "/ckeditor5.umd.js";
-    core.crossOrigin = "anonymous";
-    core.onload = () => {
-      const premium = document.createElement("script");
-      premium.src = "https://cdn.ckeditor.com/ckeditor5-premium-features/" + VERSION + "/ckeditor5-premium-features.umd.js";
-      premium.crossOrigin = "anonymous";
-      premium.onload = () => fields.forEach(field => init(field, window.CKEDITOR || {}, window.CKEDITOR_PREMIUM_FEATURES || {}));
-      premium.onerror = () => console.error("Unable to load CKEditor premium features.");
-      document.head.appendChild(premium);
-    };
-    core.onerror = () => console.error("Unable to load CKEditor 5 from the configured CDN.");
-    document.head.appendChild(core);
+    try {
+      await loadScript(CDN_BASE + "ckeditor5.umd.js");
+      const CK = window.CKEDITOR || {};
+      const tokenUrl = (runtimeConfig.cloudServicesTokenUrl || "").trim();
+      if (tokenUrl) {
+        await loadScript(PREMIUM_BASE + "ckeditor5-premium-features.umd.js");
+        const Premium = window.CKEDITOR_PREMIUM_FEATURES || {};
+        fields.forEach(field => init(field, CK, Premium, runtimeConfig));
+      } else {
+        fields.forEach(field => init(field, CK, {}, runtimeConfig));
+      }
+    } catch (error) {
+      console.error("Unable to load CKEditor 5 from the configured CDN:", error);
+    }
   }
+
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
   else start();
 })();

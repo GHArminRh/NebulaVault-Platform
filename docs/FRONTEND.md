@@ -28,16 +28,21 @@ This branch adds a server-rendered Django frontend for the existing catalog, sub
 
 - `static/portal/css/site.css`: responsive dark, space-inspired design
 - `static/portal/js/site.js`: mobile navigation, password visibility, dismissible messages, and subtle reveal transitions
-- `static/portal/js/ckeditor_integration.js` and `static/portal/css/ckeditor_integration.css`: CKEditor 5 integration based on the supplied CKEditor Builder configuration; CKEditor 5 core and premium bundles are loaded from the CKEditor CDN.
+- `static/portal/js/ckeditor_integration.js` and `static/portal/css/ckeditor_integration.css`: CKEditor 5 Free-plan integration; the core bundle is loaded from the CKEditor CDN, and the premium bundle is loaded only when Cloud Services document export is explicitly configured.
 - `templates/portal/`: server-rendered pages.
 
 ## Rich-text editor
 
-- The previous in-house editor assets have been removed from the page templates and replaced with CKEditor 5 (version 48.5.1), using the supplied Builder-style classic editor and menu bar. AI tools, CKBox, presence, cloud comments, real-time collaboration, and revision-history UI are not enabled because they require separate services/configuration.
+- The editor uses CKEditor 5 version 48.5.1 from the official CDN and the **Free commercial plan**. The production license key is read from `CKEDITOR_LICENSE_KEY`; do not commit account-specific values to Git.
+- The Free plan is cloud-hosted, includes up to 1,000 editor loads per month, and includes 5 Word exports and 5 PDF exports per month. It displays the CKEditor watermark. Usage beyond the included allowance may cause read-only behavior when no payment method is on file; review current plan terms in the CKEditor Customer Portal.
+- Configure `CKEDITOR_LICENSE_KEY` in the server environment using the production key shown under **CKEditor 5 Free** in the Customer Portal. The `.env.example` file documents the variable names; do not paste the actual key into tracked files.
+- The basic editor does not load premium-only controls such as Track Changes, Import from Word, Format Painter, multi-level lists, footnotes, bookmarks, page breaks, HTML Embed, table of contents, templates, or inline-style export.
+- Export to Word/PDF is part of the Free plan but uses Cloud Services. Those buttons are shown only when `CKEDITOR_CLOUD_SERVICES_TOKEN_URL` is configured with the appropriate **production** token URL from the Customer Portal's **Cloud environments / Access credentials** section. The previous Builder `/token/dev/` URL is deliberately not reused. Without this URL, the core editor still works and the export buttons are hidden.
 - The editor is attached only to the existing rich-text allowlist: `description`, `release_notes`, and explicitly opted-in fields via `data-rich-editor` or `.rich-text`. JSON, credentials, code, and other non-prose fields remain plain text.
 - The underlying textarea remains the submitted form field. Editor changes are synchronized back to it, including immediately before form submission.
 - Image upload uses the existing staff-only `/admin/editor-upload/` endpoint, which validates and re-encodes uploaded images. The server-side `nh3` allow-list sanitizer remains active when product descriptions/release notes are saved and rendered; client-side editing is not treated as a security boundary.
-- The provided Builder license key is a temporary trial key and will expire; replace it with a valid key appropriate for your CKEditor plan before production use. CDN availability is required for the editor to load. Import/export Word/PDF and other premium features may also depend on CKEditor Cloud Services credentials and account entitlements.
+- CDN availability is required for the editor to load. Consult the official [CKEditor pricing page](https://ckeditor.com/pricing/) and [license activation guide](https://ckeditor.com/docs/ckeditor5/latest/getting-started/licensing/license-key-and-activation.html) before changing the plan.
+
 
 ## Validation
 
