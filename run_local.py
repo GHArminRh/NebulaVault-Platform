@@ -122,12 +122,14 @@ def prepare_database(values: dict[str, str]) -> dict[str, str]:
                         sql.Identifier(DB_NAME), sql.Identifier(DB_USER)
                     )
                 )
+                print(f"Created a new PostgreSQL database: {DB_NAME}")
             else:
                 cur.execute(
                     sql.SQL("ALTER DATABASE {} OWNER TO {}").format(
                         sql.Identifier(DB_NAME), sql.Identifier(DB_USER)
                     )
                 )
+                print(f"Using the existing PostgreSQL database: {DB_NAME}")
     finally:
         conn.close()
 
@@ -143,7 +145,6 @@ def prepare_database(values: dict[str, str]) -> dict[str, str]:
     })
     write_env(values)
     return values
-
 
 
 def main() -> int:
@@ -178,9 +179,9 @@ def main() -> int:
             "Check that PostgreSQL is running and verify DB_NAME, DB_USER, DB_PASSWORD, DB_HOST and DB_PORT in .env."
         )
 
-    print("\nChecking and applying pending Django migrations...")
+    print("\nChecking and applying pending Django migrations and creating tables for apps without migrations...")
     result = subprocess.run(
-        [sys.executable, "manage.py", "migrate", "--noinput"],
+        [sys.executable, "manage.py", "migrate", "--run-syncdb", "--noinput"],
         cwd=BASE_DIR,
     )
     if result.returncode:
