@@ -3,6 +3,9 @@
 
   const endpoint = "/admin/quick-toggle/";
   const protectedFields = new Set(["is_staff", "is_superuser"]);
+  const actionCellClass = "nv-record-actions";
+  const iconStyle = "width:10px;height:10px;display:inline-block;vertical-align:middle;border:0;";
+
 
   function csrfToken() {
     const entry = document.cookie.split("; ").find((part) => part.startsWith("csrftoken="));
@@ -99,10 +102,80 @@
     cell.replaceChildren(button);
   }
 
+  function addRecordActions(row, context) {
+    if (row.querySelector("." + actionCellClass)) return;
+    const changeLink = row.querySelector('th a[href$="/change/"], td a[href$="/change/"]');
+    const objectId = objectIdForRow(row);
+    if (!changeLink || !objectId) return;
+
+    const cell = document.createElement("td");
+    cell.className = actionCellClass;
+    cell.style.whiteSpace = "nowrap";
+    cell.style.textAlign = "center";
+    cell.style.verticalAlign = "middle";
+
+    const deleteLink = document.createElement("a");
+    deleteLink.href = changeLink.getAttribute("href").replace(/\/change\/$/, "/delete/");
+    deleteLink.className = "nv-record-action nv-record-delete";
+    deleteLink.title = "Delete this record";
+    deleteLink.setAttribute("aria-label", "Delete this record");
+    deleteLink.style.cssText = "display:inline-block;margin:0 4px;line-height:1;";
+    const deleteIcon = document.createElement("img");
+    deleteIcon.src = "/static/admin/img/icon-deletelink.svg";
+    deleteIcon.alt = "";
+    deleteIcon.style.cssText = iconStyle;
+    deleteLink.appendChild(deleteIcon);
+
+    const exportLink = document.createElement("a");
+    exportLink.href = "/admin/json-export/" + encodeURIComponent(context.app_label) + "/" +
+      encodeURIComponent(context.model_name) + "/" + encodeURIComponent(objectId) + "/";
+    exportLink.className = "nv-record-action nv-record-export";
+    exportLink.title = "Export this record as JSON";
+    exportLink.setAttribute("aria-label", "Export this record as JSON");
+    exportLink.style.cssText = "display:inline-block;margin:0 4px;line-height:1;";
+    const exportIcon = document.createElement("img");
+    exportIcon.src = "/static/admin/img/icon-viewlink.svg";
+    exportIcon.alt = "";
+    exportIcon.style.cssText = iconStyle;
+    exportLink.appendChild(exportIcon);
+
+    cell.append(deleteLink, exportLink);
+    row.appendChild(cell);
+  }
+
+  function addActionsHeader() {
+    const table = document.querySelector("#result_list");
+    const headerRow = table && table.querySelector("thead tr");
+    if (!headerRow || headerRow.querySelector("." + actionCellClass + "-header")) return;
+    const header = document.createElement("th");
+    header.className = actionCellClass + "-header";
+    header.scope = "col";
+    header.textContent = "Tools";
+    header.style.textAlign = "center";
+    headerRow.appendChild(header);
+  }
+
+  function addImportLink(context) {
+    const objectTools = document.querySelector(".object-tools");
+    if (!objectTools || objectTools.querySelector(".nv-json-import-link")) return;
+    const item = document.createElement("li");
+    const link = document.createElement("a");
+    link.href = "/admin/json-import/" + encodeURIComponent(context.app_label) + "/" +
+      encodeURIComponent(context.model_name) + "/";
+    link.className = "nv-json-import-link";
+    link.textContent = "Import JSON";
+    link.title = "Import one or more JSON exports for this model";
+    item.appendChild(link);
+    objectTools.appendChild(item);
+  }
+
   function enhanceBooleanCells() {
     const context = appAndModel();
     if (!context) return;
+    addActionsHeader();
+    addImportLink(context);
     document.querySelectorAll("#result_list tbody tr").forEach((row) => {
+      addRecordActions(row, context);
       const cells = row.querySelectorAll("td[class*='field-']");
       cells.forEach((cell) => {
         const icon = cell.querySelector('img[alt="True"], img[alt="False"]');
