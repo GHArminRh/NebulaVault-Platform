@@ -134,7 +134,11 @@ def export_admin_object_json(request, app_label, model_name, object_id):
 
     fields = {}
     for field in model._meta.concrete_fields:
-        if field.primary_key or field.auto_created or not _json_safe_field_name(field.name):
+        if (
+            field.primary_key or field.auto_created
+            or field.get_internal_type() in {"FileField", "ImageField"}
+            or not _json_safe_field_name(field.name)
+        ):
             continue
         fields[field.name] = getattr(obj, field.attname)
     payload = {
@@ -190,6 +194,7 @@ def _import_admin_record(request, model, model_admin, record):
             raise ValueError(f"فیلد ناشناخته در فایل JSON: {name}")
         if (
             field.primary_key or field.auto_created or not field.editable
+            or field.get_internal_type() in {"FileField", "ImageField"}
             or field.name in JSON_EXCLUDED_FIELDS
             or not _json_safe_field_name(field.name)
         ):
