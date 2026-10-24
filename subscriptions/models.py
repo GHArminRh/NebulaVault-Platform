@@ -37,8 +37,8 @@ class TrialRedemption(models.Model):
 
     class Meta:
         ordering = ["-started_at"]
-        verbose_name = "Trial redemption"
-        verbose_name_plural = "Trial redemptions"
+        verbose_name = "استفاده از دوره آزمایشی"
+        verbose_name_plural = "استفاده‌های دوره آزمایشی"
         constraints = [
             models.UniqueConstraint(
                 fields=["user", "product"],
@@ -73,15 +73,15 @@ class Subscription(models.Model):
     """A customer's trial or paid subscription."""
 
     class Kind(models.TextChoices):
-        TRIAL = "trial", "Trial"
-        PAID = "paid", "Paid"
+        TRIAL = "trial", "آزمایشی"
+        PAID = "paid", "خریداری‌شده"
 
     class Status(models.TextChoices):
-        TRIALING = "trialing", "Trialing"
-        ACTIVE = "active", "Active"
-        PAST_DUE = "past_due", "Past due"
-        EXPIRED = "expired", "Expired"
-        CANCELED = "canceled", "Canceled"
+        TRIALING = "trialing", "دوره آزمایشی فعال"
+        ACTIVE = "active", "فعال"
+        PAST_DUE = "past_due", "سررسید گذشته"
+        EXPIRED = "expired", "منقضی‌شده"
+        CANCELED = "canceled", "لغوشده"
 
     user = models.ForeignKey(
         "accounts.Customer",
@@ -129,8 +129,8 @@ class Subscription(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        verbose_name = "Subscription"
-        verbose_name_plural = "Subscriptions"
+        verbose_name = "اشتراک"
+        verbose_name_plural = "اشتراک‌ها"
         constraints = [
             models.CheckConstraint(
                 condition=Q(expires_at__gt=models.F("starts_at")),
