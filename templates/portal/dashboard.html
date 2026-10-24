@@ -53,7 +53,7 @@
               <div style="margin-top:12px;padding:14px;border:1px solid rgba(100,210,160,.35);border-radius:12px;background:rgba(35,150,100,.08)">
                 <label for="license-key-{{ license.id }}" style="display:block;margin-bottom:8px;font-weight:700">کلید لایسنس</label>
                 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                  <input id="license-key-{{ license.id }}" type="text" readonly dir="ltr" value="{{ license.display_key }}" style="flex:1;min-width:220px;padding:11px;border-radius:8px;border:1px solid #b8c9c2;background:var(--surface,#fff);font-family:monospace">
+                  <input id="license-key-{{ license.id }}" type="text" readonly dir="ltr" value="{{ license.display_key }}" style="flex:1;min-width:260px;max-width:100%;padding:13px 15px;border-radius:10px;border:1px solid rgba(95,230,170,.55);background:#101827 !important;color:#d9ffeb !important;-webkit-text-fill-color:#d9ffeb;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.94rem;font-weight:600;letter-spacing:.035em;direction:ltr;text-align:left;box-shadow:inset 0 1px 4px rgba(0,0,0,.28),0 0 0 1px rgba(95,230,170,.06);outline:none;color-scheme:dark">
                   <button class="button button-primary button-small" type="button" onclick="(function(){var e=document.getElementById('license-key-{{ license.id }}');e.select();if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(e.value)}else{document.execCommand('copy')}})()">کپی کلید</button>
                 </div>
               </div>
