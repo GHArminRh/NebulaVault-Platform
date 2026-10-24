@@ -10,7 +10,7 @@ from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from accounts.forms import AccountPasswordChangeForm, AccountProfileForm
-from billing.models import PaymentAttempt, PaymentOrder
+from billing.models import PaymentOrder
 from billing.services import (
     OrderCreationError,
     PaymentAttemptCreationError,
@@ -127,7 +127,7 @@ def cart_add(request, plan_id):
         messages.success(request, f"{plan.name} was added to your cart.")
     else:
         messages.info(request, f"{plan.name} is already in your cart.")
-    return redirect(request.POST.get("next") or "portal:cart")
+    return redirect("portal:cart")
 
 
 def cart(request):
