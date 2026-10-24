@@ -16,11 +16,11 @@ class PaymentOrder(models.Model):
     """A customer's immutable-at-purchase price snapshot and order."""
 
     class Status(models.TextChoices):
-        PENDING = "pending", "در انتظار"
-        PAID = "paid", "پرداخت‌شده"
-        CANCELED = "canceled", "لغوشده"
-        EXPIRED = "expired", "منقضی‌شده"
-        REFUNDED = "refunded", "بازپرداخت‌شده"
+        PENDING = "pending", "Pending"
+        PAID = "paid", "Paid"
+        CANCELED = "canceled", "Canceled"
+        EXPIRED = "expired", "Expired"
+        REFUNDED = "refunded", "Refunded"
 
     order_number = models.UUIDField(
         default=uuid.uuid4,
@@ -83,8 +83,8 @@ class PaymentOrder(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        verbose_name = "سفارش پرداخت"
-        verbose_name_plural = "سفارش‌های پرداخت"
+        verbose_name = "payment order"
+        verbose_name_plural = "payment orders"
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(amount_minor_units__gt=0),
@@ -106,10 +106,10 @@ class PaymentAttempt(models.Model):
     """A single attempt to pay for an order."""
 
     class Status(models.TextChoices):
-        CREATED = "created", "ایجادشده"
+        CREATED = "created", "Created"
         PENDING = "pending", "در انتظار"
-        SUCCEEDED = "succeeded", "موفق"
-        FAILED = "failed", "ناموفق"
+        SUCCEEDED = "succeeded", "Succeeded"
+        FAILED = "failed", "Failed"
         CANCELED = "canceled", "لغوشده"
         REFUNDED = "refunded", "بازپرداخت‌شده"
 
@@ -165,8 +165,8 @@ class PaymentAttempt(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        verbose_name = "تلاش پرداخت"
-        verbose_name_plural = "تلاش‌های پرداخت"
+        verbose_name = "payment attempt"
+        verbose_name_plural = "payment attempts"
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(amount_minor_units__gt=0),
