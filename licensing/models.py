@@ -54,6 +54,12 @@ class License(models.Model):
         )
 
     @property
+    def display_key(self):
+        # Import lazily to avoid a model/service import cycle.
+        from .services import get_stored_license_key
+        return get_stored_license_key(self)
+
+    @property
     def activation_limit(self):
         return self.subscription.plan.device_limit if self.subscription.plan_id else 1
 
