@@ -4,7 +4,8 @@
   const CKEDITOR_VERSION = "49.0.0";
   const CKEDITOR_CSS = `https://cdn.ckeditor.com/ckeditor5/${CKEDITOR_VERSION}/ckeditor5.css`;
   const CKEDITOR_JS = `https://cdn.ckeditor.com/ckeditor5/${CKEDITOR_VERSION}/ckeditor5.umd.js`;
-  const LICENSE_KEY = "GPL";
+  const bootstrapScript = document.currentScript;
+  const LICENSE_KEY = (bootstrapScript && bootstrapScript.dataset.licenseKey) || "GPL";
   const editorInstances = new Map();
   let bootPromise;
 
@@ -83,6 +84,22 @@
     return (container.textContent || container.innerText || "").replace(/\u00a0/g, " ").trim();
   }
 
+  function escapeHtml(value) {
+    return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function normalizeInitialData(value) {
+    if (!value) return "";
+    // Keep existing rich HTML, but safely convert legacy plain-text values to paragraphs.
+    if (/<\/?(p|h[1-6]|ul|ol|li|strong|b|em|i|u|a|blockquote|table|thead|tbody|tr|td|th|br|hr)\b/i.test(value)) {
+      return value;
+    }
+    return value.replace(/\r\n?/g, "\n").split("\n")
+      .map((line) => line ? `<p>${escapeHtml(line)}</p>` : "<p>&nbsp;</p>")
+      .join("");
+  }
+
   async function enhanceTextarea(textarea) {
     if (!shouldEnhance(textarea)) return;
     textarea.dataset.nvCkeditorReady = "pending";
@@ -116,7 +133,7 @@
         licenseKey: LICENSE_KEY,
         plugins,
         toolbar: { items: toolbar, shouldNotGroupWhenFull: true },
-        initialData: textarea.value || "",
+        initialData: normalizeInitialData(textarea.value || ""),
         placeholder: textarea.getAttribute("placeholder") || "Start writing…",
         language: "en",
         table: { contentToolbar: ["tableColumn", "tableRow", "mergeTableCells"] },
@@ -135,7 +152,13 @@
           textarea.dispatchEvent(new Event("change", { bubbles: true }));
         }
       };
-      editor.model.document.on("change:data", sync);
+      editor.model.document.on("change:data", () => {
+        sync();
+        const error = host.querySelector(".nv-ckeditor-validation-error");
+        if (error && plainTextFromHtml(editor.getData())) error.remove();
+        const editable = editor.ui.getEditableElement();
+        if (editable && plainTextFromHtml(editor.getData())) editable.removeAttribute("aria-invalid");
+      });
 
       if (required) {
         editor.editing.view.change((writer) => {
@@ -161,8 +184,16 @@
             if (field.dataset.nvCkeditorRequired === "true" && !plainTextFromHtml(field.value)) {
               event.preventDefault();
               instance.editing.view.focus();
-              field.setCustomValidity("This field is required.");
-              field.reportValidity();
+              const host = field.nextElementSibling;
+              if (host && !host.querySelector(".nv-ckeditor-validation-error")) {
+                const message = document.createElement("div");
+                message.className = "nv-ckeditor-validation-error";
+                message.setAttribute("role", "alert");
+                message.textContent = "This field is required.";
+                host.appendChild(message);
+              }
+              const editable = instance.ui.getEditableElement();
+              if (editable) editable.setAttribute("aria-invalid", "true");
               return;
             }
           }
