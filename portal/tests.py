@@ -5,6 +5,8 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from catalog.models import Plan, Product
 from billing.models import PaymentAttempt, PaymentOrder
+from licensing.models import License
+from django.core import mail
 from subscriptions.models import Subscription
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
@@ -94,8 +96,16 @@ class PortalPageTests(TestCase):
         )
         self.client.post(reverse("portal:cart_add", args=[self.plan.pk]))
         self.client.post(reverse("portal:cart_add", args=[annual_plan.pk]))
-        response = self.client.post(reverse("portal:checkout"))
+        with self.captureOnCommitCallbacks(execute=True) as callbacks:
+            response = self.client.post(reverse("portal:checkout"))
         self.assertRedirects(response, reverse("portal:orders"))
+        self.assertEqual(len(callbacks), 2)
+        self.assertEqual(len(mail.outbox), 2)
+        for message in mail.outbox:
+            self.assertIn("لایسنس", message.subject)
+            self.assertIn("کلید لایسنس", message.body)
+            self.assertTrue(message.alternatives)
+            self.assertIn("لایسنس شما صادر شد", message.alternatives[0][0])
 
         orders = list(PaymentOrder.objects.filter(user=self.user).order_by("plan__name"))
         self.assertEqual(len(orders), 2)
@@ -111,7 +121,16 @@ class PortalPageTests(TestCase):
         for subscription in subscriptions:
             self.assertEqual(subscription.status, Subscription.Status.ACTIVE)
             self.assertGreater(subscription.expires_at, subscription.starts_at)
+        self.assertEqual(License.objects.filter(subscription__in=subscriptions).count(), 2)
         self.assertEqual(self.client.session.get("nebula_cart"), [])
+
+        orders_page = self.client.get(reverse("portal:orders"))
+        self.assertContains(orders_page, "لایسنس شما صادر شد")
+        self.assertRegex(
+            orders_page.content.decode(),
+            r"NVL-(?:[A-Z0-9]{4}-){7}[A-Z0-9]{4}",
+        )
+        self.assertNotIn("nebula_new_license_keys", self.client.session)
 
     def test_order_remains_pending_without_payment_provider(self):
         from billing.models import PaymentOrder

@@ -84,7 +84,18 @@ def subscriptions(request):
 
 @login_required
 def orders(request):
-    items = PaymentOrder.objects.filter(user=request.user).select_related("plan", "plan__product", "subscription")
+    items = list(
+        PaymentOrder.objects.filter(user=request.user)
+        .select_related("plan", "plan__product", "subscription")
+    )
+    # Newly issued plaintext keys are held in the session only until the
+    # post-checkout orders page can show them once. They are never stored on
+    # the order or license model.
+    pending_keys = request.session.pop("nebula_new_license_keys", {})
+    if not isinstance(pending_keys, dict):
+        pending_keys = {}
+    for item in items:
+        item.issued_license_key = pending_keys.get(str(item.order_number))
     return render(request, "portal/orders.html", {"orders": items})
 
 @login_required
@@ -174,6 +185,15 @@ def cart_clear(request):
     if request.method != "POST":
         return redirect("portal:cart")
     request.session["nebula_cart"] = []
+    if newly_issued_license_keys:
+        # Merge keys if an earlier successful checkout key has not yet been shown.
+        existing_keys = request.session.get("nebula_new_license_keys", {})
+        if not isinstance(existing_keys, dict):
+            existing_keys = {}
+        request.session["nebula_new_license_keys"] = {
+            **existing_keys,
+            **newly_issued_license_keys,
+        }
     messages.success(request, "سبد خرید شما خالی شد.")
     return redirect("portal:cart")
 
@@ -205,6 +225,7 @@ def checkout(request):
         return redirect("portal:cart")
 
     completed_orders = []
+    newly_issued_license_keys = {}
     try:
         # Keep the mock checkout all-or-nothing: a failure must not leave
         # only part of a multi-item cart marked as paid.
@@ -238,12 +259,15 @@ def checkout(request):
                     provider="mock",
                     idempotency_key=uuid.uuid4(),
                 )
-                finalize_payment(
+                finalized_attempt = finalize_payment(
                     attempt_id=attempt.pk,
                     provider_reference=f"mock-{order.order_number}",
                     confirmed_amount_minor_units=order.amount_minor_units,
                     confirmed_currency=order.currency,
                 )
+                issued_key = getattr(finalized_attempt, "issued_license_key", None)
+                if issued_key:
+                    newly_issued_license_keys[str(order.order_number)] = issued_key
                 completed_orders.append(order)
     except (OrderCreationError, PaymentAttemptCreationError, PaymentFinalizationError) as exc:
         messages.error(request, f"تکمیل سفارش ممکن نشد: {exc}")

@@ -12,6 +12,7 @@ from accounts.models import Customer
 User = Customer
 from catalog.models import Plan, Product
 from subscriptions.models import Subscription, SubscriptionRenewal
+from licensing.models import License
 
 from .models import PaymentAttempt, PaymentOrder
 from .services import (
@@ -655,6 +656,11 @@ class FinalizePaymentTests(BillingServiceTestCase):
             Subscription.objects.filter(user=self.user, plan=self.plan).count(),
             1,
         )
+        license_record = License.objects.get(subscription=subscription)
+        self.assertTrue(attempt.issued_license_key.startswith("NVL-"))
+        self.assertNotEqual(license_record.key_digest, attempt.issued_license_key)
+        self.assertEqual(license_record.key_prefix, attempt.issued_license_key[:8])
+        self.assertEqual(License.objects.filter(subscription=subscription).count(), 1)
 
     def test_wrong_amount_is_rejected_without_mutation(self):
         with self.assertRaises(PaymentFinalizationError):
@@ -683,10 +689,13 @@ class FinalizePaymentTests(BillingServiceTestCase):
         second = self.finalize()
 
         self.assertEqual(first.pk, second.pk)
+        self.assertTrue(first.issued_license_key)
+        self.assertFalse(hasattr(second, "issued_license_key"))
         self.assertEqual(
             Subscription.objects.filter(user=self.user, plan=self.plan).count(),
             1,
         )
+        self.assertEqual(License.objects.count(), 1)
 
     def test_changed_plan_price_does_not_change_existing_order_amount(self):
         original_amount = self.order.amount_minor_units
@@ -786,6 +795,9 @@ class FinalizePaymentTests(BillingServiceTestCase):
         self.assertEqual(renewal.subscription, subscription)
         self.assertEqual(renewal.amount_minor_units, renewal_order.amount_minor_units)
         self.assertEqual(renewal.currency, renewal_order.currency)
+        self.assertTrue(hasattr(renewal_attempt, "issued_license_key"))
+        self.assertTrue(renewal_attempt.issued_license_key)
+        self.assertEqual(License.objects.filter(subscription=subscription).count(), 1)
 
     def test_duplicate_renewal_callback_does_not_extend_twice(self):
         subscription = Subscription.objects.create(

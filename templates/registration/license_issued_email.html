@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body dir="rtl" style="margin:0;padding:0;background:#f3f5f9;color:#172033;font-family:Tahoma,Arial,sans-serif;text-align:right">
+  <table role="presentation" dir="rtl" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f5f9;padding:28px 12px">
+    <tr><td align="center">
+      <table role="presentation" dir="rtl" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fff;border:1px solid #e2e7f0;border-radius:18px;overflow:hidden;text-align:right">
+        <tr><td style="padding:24px 30px;background:#111b31;color:#fff">
+          <p style="margin:0;font-size:12px;color:#a9bddf">نبیولا والت</p>
+          <h1 style="margin:12px 0 0;font-size:24px;line-height:1.8">لایسنس شما صادر شد</h1>
+        </td></tr>
+        <tr><td style="padding:28px 30px">
+          <p style="margin:0 0 14px;font-size:15px;line-height:2">سلام {{ user.username }} عزیز،</p>
+          <p style="margin:0 0 18px;font-size:15px;line-height:2;color:#4b5568">پرداخت شما برای محصول «{{ subscription.product.name }}» و طرح «{{ subscription.plan.name }}» تأیید شد. لایسنس اختصاصی شما با موفقیت ایجاد شده است.</p>
+          <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#68758b">کلید لایسنس</p>
+          <div dir="ltr" style="padding:17px 12px;border:1px solid #dbe5f5;border-radius:12px;background:#f7f9fd;text-align:center;font-family:Arial,sans-serif;font-size:19px;line-height:1.8;font-weight:700;letter-spacing:1px;color:#172033;overflow-wrap:anywhere;user-select:all;-webkit-user-select:all">{{ license_key }}</div>
+          <p style="margin:18px 0 6px;font-size:13px;line-height:2;color:#4b5568"><strong>تاریخ پایان اعتبار:</strong> {{ subscription.expires_at|date:"Y/m/d H:i" }}</p>
+          <p style="margin:0;font-size:12px;line-height:2;color:#68758b">این کلید را در اختیار دیگران قرار ندهید. کلید کامل به‌صورت امن در پایگاه داده ذخیره نمی‌شود؛ لطفاً این ایمیل را در مکانی امن نگه دارید.</p>
+        </td></tr>
+      </table>
+      <p style="margin:15px 0 0;font-size:11px;line-height:2;color:#8993a5">این پیام به‌صورت خودکار از طرف نبیولا والت ارسال شده است؛ لطفاً به آن پاسخ ندهید.</p>
+    </td></tr>
+  </table>
+</body></html>
