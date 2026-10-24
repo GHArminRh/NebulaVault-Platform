@@ -12,12 +12,12 @@ from .rich_text import clean_rich_text
 
 currency_code_validator = RegexValidator(
     regex=r"^[A-Z]{3}$",
-    message="کد ارز باید شامل سه حرف انگلیسی بزرگ باشد؛ مانند USD.",
+    message="Enter a three-letter uppercase currency code, such as USD.",
 )
 
 sha256_validator = RegexValidator(
     regex=r"^[0-9a-fA-F]{64}$",
-    message="مقدار SHA-256 باید دقیقاً ۶۴ نویسهٔ شانزده‌شانزدهی داشته باشد.",
+    message="SHA-256 must contain exactly 64 hexadecimal characters.",
 )
 
 
