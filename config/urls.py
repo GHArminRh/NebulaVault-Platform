@@ -5,8 +5,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from accounts.forms import NebulaAuthenticationForm
+from config.admin_toggle import toggle_boolean_field
 
 urlpatterns = [
+    path("admin/quick-toggle/", toggle_boolean_field, name="admin-quick-toggle"),
     path("admin/", admin.site.urls),
     path(
         "accounts/login/",
@@ -23,4 +25,3 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-

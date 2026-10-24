@@ -63,3 +63,14 @@ body.login #login .form-row input{width:100%;min-height:43px}
 body.login #login .password-reset-link{display:none}
 @media(max-width:800px){#header{padding:0 17px;flex-wrap:wrap;gap:12px}#user-tools{font-size:10px}#content{padding:25px 16px 40px}div.breadcrumbs{padding:11px 17px!important}#nav-sidebar{display:none}#login{margin-top:35px!important;padding:25px!important}}
 @media(prefers-reduced-motion:no-preference){.module,#content-main{animation:nv-rise .45s ease both}@keyframes nv-rise{from{opacity:.65;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}}
+
+
+/* Reusable inline BooleanField toggles on every Django Admin changelist. */
+.nv-boolean-toggle{display:inline-grid;place-items:center;min-width:30px;min-height:30px;padding:0!important;border:1px solid transparent!important;border-radius:9px!important;font-size:18px!important;font-weight:800!important;line-height:1!important;cursor:pointer;transition:transform .15s ease,opacity .15s ease,box-shadow .15s ease}
+.nv-boolean-toggle.is-true{color:#7ee2b5!important;background:rgba(57,190,132,.12)!important;border-color:rgba(126,226,181,.28)!important;box-shadow:none!important}
+.nv-boolean-toggle.is-false{color:#ff9baa!important;background:rgba(255,103,132,.10)!important;border-color:rgba(255,145,162,.25)!important;box-shadow:none!important}
+.nv-boolean-toggle:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.14)}
+.nv-boolean-toggle:focus-visible{outline:2px solid #b2a5ff!important;outline-offset:2px}
+.nv-boolean-toggle:disabled{cursor:wait;opacity:.6}
+.nv-boolean-toggle.is-saving{animation:nv-toggle-pulse .8s ease-in-out infinite alternate}
+@keyframes nv-toggle-pulse{from{opacity:.55}to{opacity:1}}
