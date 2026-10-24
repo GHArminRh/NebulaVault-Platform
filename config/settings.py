@@ -12,14 +12,13 @@ ALLOWED_HOSTS = [host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS",
 INSTALLED_APPS = [
     "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
     "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
-    "tinymce",
     "accounts", "staff.apps.StaffConfig", "catalog.apps.CatalogConfig", "subscriptions.apps.SubscriptionsConfig",
     "licensing.apps.LicensingConfig", "devices.apps.DevicesConfig",
     "billing.apps.BillingConfig", "audit.apps.AuditConfig",
     "notifications.apps.NotificationsConfig", "portal.apps.PortalConfig",
 ]
 
-TINYMCE_DEFAULT_CONFIG = {
+NEBULA_EDITOR_CONFIG = {
     "height": 420,
     "menubar": "file edit view insert format tools table help",
     "plugins": (
