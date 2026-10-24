@@ -94,4 +94,4 @@ class LicenseActivation(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.device_label or 'Device'} — {self.license.key_prefix}"
+        return f"{self.device_label or 'Device'} — {self.license.subscription.user}"
