@@ -5,7 +5,7 @@ import nh3
 ALLOWED_TAGS = {
     "a", "b", "blockquote", "br", "caption", "code", "dd", "del", "div", "dl",
     "dt", "em", "figcaption", "figure", "h1", "h2", "h3", "h4", "h5", "h6",
-    "hr", "i", "img", "ins", "li", "mark", "ol", "p", "pre", "s", "small",
+    "hr", "i", "img", "ins", "li", "mark", "ol", "p", "pre", "s", "small", "strike",
     "span", "strong", "sub", "sup", "table", "tbody", "td", "tfoot", "th",
     "thead", "tr", "u", "ul",
 }
@@ -29,7 +29,7 @@ SAFE_STYLE_PROPERTIES = {
     "border-style", "border-width", "color", "font-family", "font-size",
     "font-style", "font-weight", "height", "line-height", "margin",
     "margin-bottom", "margin-left", "margin-right", "margin-top", "max-width",
-    "padding", "padding-bottom", "padding-left", "padding-right", "padding-top",
+    "padding", "padding-bottom", "padding-left", "padding-right", "padding-top", "page-break-after",
     "text-align", "text-decoration", "vertical-align", "white-space", "width",
 }
 
