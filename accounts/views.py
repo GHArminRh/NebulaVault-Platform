@@ -158,7 +158,7 @@ def verify_email(request, uidb64, token):
     except Exception:
         customer = None
 
-    if customer is not None and not customer.is_active and email_verification_token.check_token(customer, token):
+    if customer is not None and not customer.is_banned and not customer.is_active and email_verification_token.check_token(customer, token):
         customer.is_active = True
         customer.save(update_fields=["is_active"])
         messages.success(request, "Your email has been verified. You can now sign in.")
@@ -188,7 +188,7 @@ def resend_verification(request):
             return render(request, "accounts/email_code_form.html", {
                 "purpose": "verification", "email": email, "resend_cooldown": True,
             })
-        customer = Customer.objects.filter(email__iexact=email, is_active=False).first()
+        customer = Customer.objects.filter(email__iexact=email, is_active=False, is_banned=False).first()
         if customer:
             try:
                 sent = _send_verification_email(request, customer)
@@ -239,7 +239,7 @@ def verify_email_code(request):
     if request.method == "POST":
         email = request.POST.get("email", "").strip()
         code = request.POST.get("code", "").strip()
-        customer = Customer.objects.filter(email__iexact=email, is_active=False).first()
+        customer = Customer.objects.filter(email__iexact=email, is_active=False, is_banned=False).first()
         entry = None
         if customer and len(code) == 6 and code.isdigit():
             entry = AccountEmailLog.objects.filter(
@@ -282,7 +282,7 @@ def password_reset_request(request):
             cache.set(throttle_key, 1, timeout=3600)
             requests_this_hour = 1
         if requests_this_hour <= 5:
-            customer = Customer.objects.filter(email__iexact=email, is_active=True).first()
+            customer = Customer.objects.filter(email__iexact=email, is_active=True, is_banned=False).first()
             if customer and customer.has_usable_password():
                 code = _new_email_code()
                 _supersede_codes(customer, AccountEmailLog.Purpose.PASSWORD_RESET)
@@ -382,6 +382,14 @@ class CustomerLoginView(LoginView):
     """Route customers with valid credentials but unverified email to verification."""
 
     def form_invalid(self, form):
+        if getattr(form, "banned_account", False):
+            messages.error(self.request, "You have been banned by an administrator.")
+            return render(
+                self.request,
+                self.template_name,
+                self.get_context_data(form=form, banned_account=True),
+                status=200,
+            )
         inactive_email = getattr(form, "inactive_email", None)
         if inactive_email:
             messages.info(
