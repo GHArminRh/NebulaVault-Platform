@@ -21,9 +21,18 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
     )
 
     def clean(self):
-        # Keep Django's AuthenticationForm validation and authentication flow.
-        # The configured CustomerAuthenticationBackend handles customer emails.
-        return super().clean()
+        try:
+            # Keep Django's normal authentication flow for active customers.
+            return super().clean()
+        except ValidationError:
+            # If the credentials are correct but this customer has not verified
+            # their email yet, let the login view route them to verification.
+            email = (self.data.get(self.add_prefix("username")) or "").strip()
+            password = self.data.get(self.add_prefix("password")) or ""
+            customer = Customer.objects.filter(email__iexact=email, is_active=False).first()
+            if customer and password and customer.check_password(password):
+                self.inactive_email = customer.email
+            raise
 
 
 class RegisterForm(HumanCheckMixin, forms.ModelForm):
