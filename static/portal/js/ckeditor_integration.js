@@ -74,7 +74,7 @@
       placeholder: textarea.getAttribute("placeholder") || "Type or paste your content here…",
       plugins: [
         CK.Alignment, CK.Autoformat, CK.AutoImage, CK.AutoLink, CK.Autosave, CK.BalloonToolbar,
-        CK.BlockQuote, CK.Bold, CK.Bookmark, Premium.CaseChange, CK.Code, CK.CodeBlock,
+        CK.BlockQuote, CK.Bold, CK.Bookmark, Premium.CaseChange, CK.Code, CK.CodeBlock, CK.CloudServices,
         CK.Essentials, Premium.ExportInlineStyles, Premium.ExportPdf, Premium.ExportWord,
         CK.FindAndReplace, CK.FontBackgroundColor, CK.FontColor, CK.FontFamily, CK.FontSize,
         Premium.Footnotes, Premium.FormatPainter, CK.Fullscreen, CK.GeneralHtmlSupport,
@@ -110,6 +110,9 @@
       },
       balloonToolbar: ["bold", "italic", "|", "link", "insertImage", "|", "bulletedList", "numberedList"],
       menuBar: { isVisible: true },
+      cloudServices: {
+        tokenUrl: "https://833jqwz9jvuv.cke-cs.com/token/dev/ca1133d877981fae173000ec02734891bccc4c00942eaadfc5eae66364b7?limit=10"
+      },
       autosave: {
         save: editor => { textarea.value = editor.getData(); return Promise.resolve(); },
         waitingTime: 1500
