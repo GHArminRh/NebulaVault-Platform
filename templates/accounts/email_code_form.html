@@ -18,9 +18,9 @@
         <label for="id_email">Email address</label>
         {% if email %}
           {% if purpose == "verification" %}
-            <a href="{% url 'accounts:resend_verification' %}" class="auth-inline-link">Edit</a>
+            <a href="{% url 'accounts:resend_verification' %}" class="auth-inline-link">ویرایش</a>
           {% else %}
-            <a href="{% url 'accounts:password_reset' %}" class="auth-inline-link">Edit</a>
+            <a href="{% url 'accounts:password_reset' %}" class="auth-inline-link">ویرایش</a>
           {% endif %}
         {% endif %}
       </div>
