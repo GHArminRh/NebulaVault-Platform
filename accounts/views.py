@@ -276,6 +276,11 @@ def verify_email_code(request):
     return render(request, "accounts/email_code_form.html", {"purpose": "verification"})
 
 
+def _password_reset_resend_cooldown_key(email, ip):
+    raw = f"{email.strip().casefold()}|{ip or 'unknown'}".encode("utf-8")
+    return "account-password-reset-resend-cooldown:" + hashlib.sha256(raw).hexdigest()
+
+
 @require_http_methods(["GET", "POST"])
 def password_reset_request(request):
     if request.user.is_authenticated:
@@ -283,7 +288,14 @@ def password_reset_request(request):
     form = AccountPasswordResetForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         email = form.cleaned_data["email"].strip()
-        throttle_key = "account-password-reset:" + hashlib.sha256(f"{email.casefold()}|{request.META.get('REMOTE_ADDR', '')}".encode()).hexdigest()
+        ip = request.META.get("REMOTE_ADDR", "")
+        cooldown_key = _password_reset_resend_cooldown_key(email, ip)
+        if not cache.add(cooldown_key, 1, timeout=30):
+            messages.warning(request, "Please wait 30 seconds before requesting another recovery email.")
+            return render(request, "accounts/email_code_form.html", {
+                "purpose": "password_reset", "email": email, "resend_cooldown": True,
+            })
+        throttle_key = "account-password-reset:" + hashlib.sha256(f"{email.casefold()}|{ip}".encode()).hexdigest()
         cache.add(throttle_key, 0, timeout=3600)
         try:
             requests_this_hour = cache.incr(throttle_key)
