@@ -37,8 +37,8 @@ class TrialRedemption(models.Model):
 
     class Meta:
         ordering = ["-started_at"]
-        verbose_name = "استفاده از دوره آزمایشی"
-        verbose_name_plural = "استفاده‌های دوره آزمایشی"
+        verbose_name = "trial redemption"
+        verbose_name_plural = "trial redemptions"
         constraints = [
             models.UniqueConstraint(
                 fields=["user", "product"],
@@ -56,7 +56,7 @@ class TrialRedemption(models.Model):
         if self.started_at and self.ends_at:
             if self.ends_at <= self.started_at:
                 raise ValidationError(
-                    {"ends_at": "The trial must end after it starts."}
+                    {"ends_at": "The trial end date must be after its start date."}
                 )
 
             if self.ends_at - self.started_at > TRIAL_DURATION:
@@ -73,15 +73,15 @@ class Subscription(models.Model):
     """A customer's trial or paid subscription."""
 
     class Kind(models.TextChoices):
-        TRIAL = "trial", "آزمایشی"
-        PAID = "paid", "خریداری‌شده"
+        TRIAL = "trial", "Trial"
+        PAID = "paid", "Paid"
 
     class Status(models.TextChoices):
-        TRIALING = "trialing", "دوره آزمایشی فعال"
-        ACTIVE = "active", "فعال"
-        PAST_DUE = "past_due", "سررسید گذشته"
-        EXPIRED = "expired", "منقضی‌شده"
-        CANCELED = "canceled", "لغوشده"
+        TRIALING = "trialing", "Trial active"
+        ACTIVE = "active", "Active"
+        PAST_DUE = "past_due", "Past due"
+        EXPIRED = "expired", "Expired"
+        CANCELED = "canceled", "Canceled"
 
     user = models.ForeignKey(
         "accounts.Customer",
@@ -129,8 +129,8 @@ class Subscription(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        verbose_name = "اشتراک"
-        verbose_name_plural = "اشتراک‌ها"
+        verbose_name = "subscription"
+        verbose_name_plural = "subscriptions"
         constraints = [
             models.CheckConstraint(
                 condition=Q(expires_at__gt=models.F("starts_at")),
@@ -160,7 +160,7 @@ class Subscription(models.Model):
         if self.starts_at and self.expires_at:
             if self.expires_at <= self.starts_at:
                 errors["expires_at"] = (
-                    "The subscription must expire after it starts."
+                    "The subscription end date must be after its start date."
                 )
 
         if self.plan_id and self.product_id:
@@ -176,7 +176,7 @@ class Subscription(models.Model):
                 self.Status.CANCELED,
             }:
                 errors["status"] = (
-                    "A trial must be trialing, expired, or canceled."
+                    "A trial must have Trial active, Expired, or Canceled status."
                 )
 
             if self.trial_redemption_id:
@@ -206,7 +206,7 @@ class Subscription(models.Model):
         elif self.kind == self.Kind.PAID:
             if self.status == self.Status.TRIALING:
                 errors["status"] = (
-                    "A paid subscription cannot have trialing status."
+                    "A paid subscription cannot have Trial active status."
                 )
 
         if errors:
