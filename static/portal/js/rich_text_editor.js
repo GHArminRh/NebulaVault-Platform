@@ -63,7 +63,7 @@
   function shouldEnhance(textarea) {
     if (!(textarea instanceof HTMLTextAreaElement)) return false;
     if (textarea.disabled || textarea.readOnly || textarea.closest("[hidden], [data-no-rich-editor]")) return false;
-    if (textarea.matches(excludedSelector) || textarea.dataset.nvCkeditorReady === "true") return false;
+    if (textarea.matches(excludedSelector) || ["true", "pending", "error"].includes(textarea.dataset.nvCkeditorReady)) return false;
     if (textarea.closest(".django-ckeditor-widget, .ck-editor")) return false;
     return true;
   }
