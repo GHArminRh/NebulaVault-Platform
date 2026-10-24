@@ -1,11 +1,10 @@
-"""Tests for the staff-only TinyMCE integration."""
+"""Tests for the staff-only django-tinymce integration."""
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.urls import reverse
 
 
-@override_settings(TINYMCE_API_KEY="test-tinymce-key")
 class StaffTinyMCEAdminTests(TestCase):
     def setUp(self):
         staff_user = get_user_model().objects.create_user(
@@ -18,16 +17,23 @@ class StaffTinyMCEAdminTests(TestCase):
             staff_user, backend="django.contrib.auth.backends.ModelBackend"
         )
 
-    def test_tinymce_loads_on_catalog_content_admin_form(self):
+    def test_tinymce_widget_loads_on_catalog_content_admin_form(self):
         response = self.client.get(reverse("admin:catalog_product_add"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(
-            response,
-            "https://cdn.tiny.cloud/1/test-tinymce-key/tinymce/8/tinymce.min.js",
-        )
-        self.assertContains(response, "portal/js/tinymce_admin.js")
+        self.assertContains(response, "tinymce/tinymce.min.js")
+        self.assertContains(response, "tinymce/init_tinymce.js")
+        self.assertContains(response, "portal/js/tinymce_upload.js")
+        self.assertContains(response, "id_description")
+        self.assertNotContains(response, "cdn.tiny.cloud")
+
+    def test_tinymce_widget_loads_on_release_notes_admin_form(self):
+        response = self.client.get(reverse("admin:catalog_release_add"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "tinymce/tinymce.min.js")
+        self.assertContains(response, "id_release_notes")
 
     def test_tinymce_does_not_load_on_unrelated_admin_form(self):
         response = self.client.get(reverse("admin:catalog_plan_add"))
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, "tinymce.min.js")
+        self.assertNotContains(response, "tinymce/tinymce.min.js")
+        self.assertNotContains(response, "cdn.tiny.cloud")
