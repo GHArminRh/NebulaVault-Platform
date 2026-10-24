@@ -52,7 +52,7 @@ if not exist "requirements.txt" (
 )
 
 set "REQ_HASH="
-for /f "delims=" %%H in ('".venv\Scripts\python.exe" -c "import hashlib;print(hashlib.sha256(open('requirements.txt','rb').read()).hexdigest())"') do set "REQ_HASH=%%H"
+for /f "delims=" %%H in ('powershell -NoProfile -Command "(Get-FileHash -Algorithm SHA256 -LiteralPath requirements.txt).Hash"') do set "REQ_HASH=%%H"
 if not defined REQ_HASH (
   echo ERROR: Could not check the dependency list.
   pause
