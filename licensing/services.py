@@ -145,6 +145,9 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
             locked.save(update_fields=["last_validated_at", "updated_at"])
             return LicenseResult(True, "activated", "This device is activated.", activation, locked)
 
+        # All activation records remain after deactivation. Their existence is
+        # the durable marker that the license term has already started.
+        had_any_activation = locked.activations.exists()
         active_count = locked.activations.filter(is_active=True).count()
         if active_count >= locked.activation_limit:
             return LicenseResult(False, "device_limit_reached", "The license has reached its device activation limit.")
@@ -166,9 +169,38 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
                         fingerprint_digest=fingerprint_hash,
                         device_label=label,
                         app_version=version,
+                        first_activated_at=now,
+                        last_seen_at=now,
                     )
             except IntegrityError:
                 return LicenseResult(False, "activation_conflict", "The activation could not be completed; please retry.")
+
+        # The first successful desktop activation starts the purchased term.
+        # Include each paid period already purchased, including verified
+        # renewals completed before activation. Later device activations and
+        # reactivations never reset the clock.
+        if not had_any_activation:
+            subscription = locked.subscription
+            if subscription.kind == subscription.Kind.PAID:
+                plan = subscription.plan
+                if plan is None:
+                    return LicenseResult(
+                        False,
+                        "license_inactive",
+                        "The paid license has no subscription plan.",
+                    )
+                from subscriptions.services import _add_plan_duration
+
+                expiry = now
+                period_count = 1 + subscription.renewals.count()
+                for _ in range(period_count):
+                    expiry = _add_plan_duration(expiry, plan)
+
+                subscription.starts_at = now
+                subscription.expires_at = expiry
+                subscription.save(
+                    update_fields=["starts_at", "expires_at", "updated_at"]
+                )
 
         locked.last_validated_at = now
         locked.save(update_fields=["last_validated_at", "updated_at"])
