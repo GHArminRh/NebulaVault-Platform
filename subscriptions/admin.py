@@ -102,7 +102,8 @@ class SubscriptionAdmin(admin.ModelAdmin):
                 field for field in fields
                 if field not in {"starts_at", "expires_at"}
             ]
-            fields.append("activation_timing_note")
+            if "activation_timing_note" not in fields:
+                fields.append("activation_timing_note")
         return fields
 
     def save_model(self, request, obj, form, change):
