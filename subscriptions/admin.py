@@ -53,6 +53,10 @@ class SubscriptionAdmin(admin.ModelAdmin):
             return "پس از اولین فعال‌سازی"
         return obj.expires_at
 
+    @admin.display(description="وضعیت شروع اعتبار")
+    def activation_timing_note(self, obj):
+        return "مدت اعتبار با اولین فعال‌سازی موفق در برنامه دسکتاپ آغاز می‌شود."
+
     list_filter = ("kind", "status", "product")
     search_fields = (
         "user__username",
@@ -87,7 +91,19 @@ class SubscriptionAdmin(admin.ModelAdmin):
         if obj is not None:
             # Historical subscription dates must not be editable.
             readonly.extend(("starts_at", "expires_at"))
+            if obj.is_waiting_for_activation:
+                readonly.append("activation_timing_note")
         return tuple(readonly)
+
+    def get_fields(self, request, obj=None):
+        fields = list(super().get_fields(request, obj))
+        if obj is not None and obj.is_waiting_for_activation:
+            fields = [
+                field for field in fields
+                if field not in {"starts_at", "expires_at"}
+            ]
+            fields.append("activation_timing_note")
+        return fields
 
     def save_model(self, request, obj, form, change):
         if not change:
