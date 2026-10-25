@@ -1,10 +1,13 @@
 """License issuance and validation primitives used by admin and the client API."""
 
+import base64
 import hashlib
 import secrets
 import string
 from dataclasses import dataclass
 
+from cryptography.fernet import Fernet, InvalidToken
+from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
@@ -12,6 +15,8 @@ from .models import License, LicenseActivation
 
 
 _KEY_ALPHABET = string.ascii_uppercase + string.digits
+_ENCRYPTED_KEY_MARKER = "[[NEBULA_LICENSE_KEY:"
+_ENCRYPTED_KEY_END = "]]"
 
 
 def _key_digest(key):
@@ -26,14 +31,51 @@ def _fingerprint_digest(fingerprint):
     return hashlib.sha256(fingerprint.strip().encode("utf-8")).hexdigest()
 
 
+def _fernet():
+    """Derive a stable encryption key from Django's secret; never store plaintext."""
+    material = hashlib.sha256(
+        (settings.SECRET_KEY + "|nebula-license-key-v1").encode("utf-8")
+    ).digest()
+    return Fernet(base64.urlsafe_b64encode(material))
+
+
+def _save_encrypted_key(record, key):
+    encrypted = _fernet().encrypt(key.encode("utf-8")).decode("ascii")
+    notes = record.notes or ""
+    start = notes.find(_ENCRYPTED_KEY_MARKER)
+    if start >= 0:
+        end = notes.find(_ENCRYPTED_KEY_END, start)
+        if end >= 0:
+            notes = (notes[:start] + notes[end + len(_ENCRYPTED_KEY_END):]).strip()
+    marker = f"{_ENCRYPTED_KEY_MARKER}{encrypted}{_ENCRYPTED_KEY_END}"
+    record.notes = f"{notes}\n{marker}".strip() if notes else marker
+    record.save(update_fields=["notes", "updated_at"])
+
+
+def get_stored_license_key(record):
+    """Decrypt a key stored on newly issued licenses; legacy hashes are not reversible."""
+    notes = record.notes or ""
+    start = notes.find(_ENCRYPTED_KEY_MARKER)
+    if start < 0:
+        return ""
+    value_start = start + len(_ENCRYPTED_KEY_MARKER)
+    end = notes.find(_ENCRYPTED_KEY_END, value_start)
+    if end < 0:
+        return ""
+    try:
+        return _fernet().decrypt(notes[value_start:end].encode("ascii")).decode("utf-8")
+    except (InvalidToken, UnicodeError, ValueError):
+        return ""
+
+
 def generate_license_key():
-    """Generate a high-entropy key; callers must show it once and never log it."""
+    """Generate a high-entropy key; callers must never log it."""
     raw = "".join(secrets.choice(_KEY_ALPHABET) for _ in range(32))
     return "NVL-" + "-".join(raw[i:i + 4] for i in range(0, len(raw), 4))
 
 
 def issue_license(subscription, notes=""):
-    """Issue a license and return (license_record, plaintext_key)."""
+    """Issue a license, storing only a digest plus an encrypted recoverable copy."""
     key = generate_license_key()
     record = License.objects.create(
         subscription=subscription,
@@ -41,6 +83,7 @@ def issue_license(subscription, notes=""):
         key_digest=_key_digest(key),
         notes=notes,
     )
+    _save_encrypted_key(record, key)
     return record, key
 
 
@@ -83,8 +126,6 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
     version = app_version[:40] if isinstance(app_version, str) else ""
 
     with transaction.atomic():
-        # Lock only the License row. Locking the select_related joins as well can
-        # make PostgreSQL reject the query when subscription__plan is nullable.
         locked = License.objects.select_for_update(of=("self",)).select_related(
             "subscription", "subscription__user", "subscription__product", "subscription__plan"
         ).get(pk=license_record.pk)
@@ -119,7 +160,6 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
             ])
         else:
             try:
-                # A nested atomic block ensures a uniqueness race does not poison the outer transaction.
                 with transaction.atomic():
                     activation = LicenseActivation.objects.create(
                         license=locked,
@@ -176,8 +216,8 @@ def deactivate_license(key, fingerprint):
         is_active=True,
     ).first()
     if activation is None:
-        return LicenseResult(False, "device_not_activated", "This device is not activated for the license.")
+        return LicenseResult(False, "device_not_activated", "The device is not activated for the license.")
     activation.is_active = False
     activation.deactivated_at = timezone.now()
     activation.save(update_fields=["is_active", "deactivated_at"])
-    return LicenseResult(True, "deactivated", "This device has been deactivated.", activation, license_record)
+    return LicenseResult(True, "deactivated", "The device has been deactivated.", activation, license_record)

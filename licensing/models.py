@@ -54,6 +54,12 @@ class License(models.Model):
         )
 
     @property
+    def display_key(self):
+        # Import lazily to avoid a model/service import cycle.
+        from .services import get_stored_license_key
+        return get_stored_license_key(self)
+
+    @property
     def activation_limit(self):
         return self.subscription.plan.device_limit if self.subscription.plan_id else 1
 
@@ -62,7 +68,8 @@ class License(models.Model):
         return self.activations.filter(is_active=True).count()
 
     def __str__(self):
-        return f"{self.key_prefix or 'Unissued'} — {self.subscription.user}"
+        # Do not expose even the identifying prefix in admin relations or dropdowns.
+        return f"License for {self.subscription.user}"
 
 
 class LicenseActivation(models.Model):
@@ -87,4 +94,4 @@ class LicenseActivation(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.device_label or 'Device'} — {self.license.key_prefix}"
+        return f"{self.device_label or 'Device'} — {self.license.subscription.user}"

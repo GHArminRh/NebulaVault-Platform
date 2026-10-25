@@ -76,6 +76,13 @@ class CustomerAdmin(admin.ModelAdmin):
             if field.name not in {"is_active", "is_banned"}
         )
 
+    def get_exclude(self, request, obj=None):
+        # Never render the password hash in the customer admin form.
+        excluded = list(super().get_exclude(request, obj) or ())
+        if "password" not in excluded:
+            excluded.append("password")
+        return tuple(excluded)
+
     def has_add_permission(self, request):
         # Customer accounts are created through the public registration flow.
         return False
