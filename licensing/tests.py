@@ -51,6 +51,49 @@ class LicenseServiceTests(LicenseFixtures, TestCase):
         self.assertTrue(deactivate_license(self.plaintext_key, "device-fingerprint-0001").ok)
         self.assertEqual(validate_license(self.plaintext_key, "device-fingerprint-0001").code, "device_not_activated")
 
+    def test_paid_term_begins_at_first_activation_even_if_purchase_date_passed(self):
+        activation_time = timezone.now()
+        self.plan.duration_value = 2
+        self.plan.save(update_fields=["duration_value"])
+        self.subscription.starts_at = activation_time - timedelta(days=90)
+        self.subscription.expires_at = activation_time - timedelta(days=60)
+        self.subscription.save(update_fields=["starts_at", "expires_at"])
+
+        with patch("licensing.services.timezone.now", return_value=activation_time):
+            result = activate_license(
+                self.plaintext_key, "device-fingerprint-first-start", "Desktop", "1.0.0"
+            )
+
+        self.assertTrue(result.ok)
+        self.subscription.refresh_from_db()
+        self.assertEqual(self.subscription.starts_at, activation_time)
+
+        from subscriptions.services import _add_plan_duration
+        self.assertEqual(
+            self.subscription.expires_at,
+            _add_plan_duration(activation_time, self.plan),
+        )
+        self.assertEqual(result.activation.first_activated_at, activation_time)
+
+    def test_reactivating_same_device_does_not_restart_paid_term(self):
+        first_time = timezone.now()
+        with patch("licensing.services.timezone.now", return_value=first_time):
+            first = activate_license(
+                self.plaintext_key, "device-fingerprint-stable", "Desktop", "1.0.0"
+            )
+        self.assertTrue(first.ok)
+        self.subscription.refresh_from_db()
+        original_expiry = self.subscription.expires_at
+
+        with patch("licensing.services.timezone.now", return_value=first_time + timedelta(days=3)):
+            second = activate_license(
+                self.plaintext_key, "device-fingerprint-stable", "Desktop", "1.0.0"
+            )
+
+        self.assertTrue(second.ok)
+        self.subscription.refresh_from_db()
+        self.assertEqual(self.subscription.expires_at, original_expiry)
+
     def test_device_limit_is_enforced_and_deactivation_frees_slot(self):
         self.assertTrue(activate_license(self.plaintext_key, "device-fingerprint-0001").ok)
         self.assertTrue(activate_license(self.plaintext_key, "device-fingerprint-0002").ok)
