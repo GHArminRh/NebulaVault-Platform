@@ -66,11 +66,18 @@ def dashboard(request):
         else:
             messages.error(request, "درخواست نامعتبر است. دوباره تلاش کنید.")
 
-    all_subscriptions = list(Subscription.objects.filter(user=request.user).select_related("product", "plan"))
+    all_subscriptions = list(
+        Subscription.objects.filter(user=request.user)
+        .select_related("product", "plan", "license")
+        .prefetch_related("license__activations")
+    )
     orders = PaymentOrder.objects.filter(user=request.user).select_related("plan", "plan__product")
     return render(request, "portal/dashboard.html", {
         "subscriptions": all_subscriptions[:5], "orders": orders[:5],
-        "active_count": sum(1 for item in all_subscriptions if item.is_currently_valid),
+        "active_count": sum(
+            1 for item in all_subscriptions
+            if item.is_currently_valid and not item.is_waiting_for_activation
+        ),
         "pending_count": orders.filter(status=PaymentOrder.Status.PENDING).count(),
         "now": timezone.now(),
         "profile_form": profile_form,
@@ -79,7 +86,11 @@ def dashboard(request):
 
 @login_required
 def subscriptions(request):
-    items = Subscription.objects.filter(user=request.user).select_related("product", "plan")
+    items = (
+        Subscription.objects.filter(user=request.user)
+        .select_related("product", "plan", "license")
+        .prefetch_related("license__activations")
+    )
     return render(request, "portal/subscriptions.html", {"subscriptions": items})
 
 @login_required

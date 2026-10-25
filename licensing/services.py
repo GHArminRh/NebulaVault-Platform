@@ -126,9 +126,21 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
     version = app_version[:40] if isinstance(app_version, str) else ""
 
     with transaction.atomic():
-        locked = License.objects.select_for_update(of=("self",)).select_related(
-            "subscription", "subscription__user", "subscription__product", "subscription__plan"
-        ).get(pk=license_record.pk)
+        locked = License.objects.select_for_update(of=("self",)).get(
+            pk=license_record.pk
+        )
+        # Serialize the first-activation date calculation against paid renewals.
+        # Renewal processing locks this same subscription row before changing its
+        # expiry, so a concurrent activation cannot overwrite a renewal.
+        from subscriptions.models import Subscription
+
+        locked_subscription = (
+            Subscription.objects.select_for_update(of=("self",))
+            .select_related("user", "product", "plan")
+            .get(pk=locked.subscription_id)
+        )
+        locked.subscription = locked_subscription
+
         if not locked.is_entitled:
             return LicenseResult(False, "license_inactive", "The license is not currently active.")
 
@@ -144,6 +156,20 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
             locked.last_validated_at = now
             locked.save(update_fields=["last_validated_at", "updated_at"])
             return LicenseResult(True, "activated", "This device is activated.", activation, locked)
+
+        # All activation records remain after deactivation. Their existence is
+        # the durable marker that the license term has already started.
+        had_any_activation = locked.activations.exists()
+        if (
+            not had_any_activation
+            and locked.subscription.kind == locked.subscription.Kind.PAID
+            and locked.subscription.plan_id is None
+        ):
+            return LicenseResult(
+                False,
+                "license_inactive",
+                "The paid license has no subscription plan.",
+            )
 
         active_count = locked.activations.filter(is_active=True).count()
         if active_count >= locked.activation_limit:
@@ -166,9 +192,32 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
                         fingerprint_digest=fingerprint_hash,
                         device_label=label,
                         app_version=version,
+                        first_activated_at=now,
+                        last_seen_at=now,
                     )
             except IntegrityError:
                 return LicenseResult(False, "activation_conflict", "The activation could not be completed; please retry.")
+
+        # The first successful desktop activation starts the purchased term.
+        # Include each paid period already purchased, including verified
+        # renewals completed before activation. Later device activations and
+        # reactivations never reset the clock.
+        if not had_any_activation:
+            subscription = locked.subscription
+            if subscription.kind == subscription.Kind.PAID:
+                plan = subscription.plan
+                from subscriptions.services import _add_plan_duration
+
+                expiry = now
+                period_count = 1 + subscription.renewals.count()
+                for _ in range(period_count):
+                    expiry = _add_plan_duration(expiry, plan)
+
+                subscription.starts_at = now
+                subscription.expires_at = expiry
+                subscription.save(
+                    update_fields=["starts_at", "expires_at", "updated_at"]
+                )
 
         locked.last_validated_at = now
         locked.save(update_fields=["last_validated_at", "updated_at"])

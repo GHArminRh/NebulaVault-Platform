@@ -3,7 +3,7 @@ import uuid
 
 from datetime import timedelta
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -211,6 +211,29 @@ class Subscription(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+    @property
+    def has_been_activated(self):
+        """Whether a paid subscription has ever been activated on a device."""
+        if self.kind != self.Kind.PAID or not self.pk:
+            return True
+
+        try:
+            license_record = self.license
+        except ObjectDoesNotExist:
+            # A manually-created subscription may not have a license yet.
+            return False
+
+        return license_record.activations.exists()
+
+    @property
+    def is_waiting_for_activation(self):
+        """Whether a paid, active subscription is waiting for its first activation."""
+        return (
+            self.kind == self.Kind.PAID
+            and self.status == self.Status.ACTIVE
+            and not self.has_been_activated
+        )
 
     @property
     def is_currently_valid(self):
