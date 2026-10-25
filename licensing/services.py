@@ -126,9 +126,21 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
     version = app_version[:40] if isinstance(app_version, str) else ""
 
     with transaction.atomic():
-        locked = License.objects.select_for_update(of=("self",)).select_related(
-            "subscription", "subscription__user", "subscription__product", "subscription__plan"
-        ).get(pk=license_record.pk)
+        locked = License.objects.select_for_update(of=("self",)).get(
+            pk=license_record.pk
+        )
+        # Serialize the first-activation date calculation against paid renewals.
+        # Renewal processing locks this same subscription row before changing its
+        # expiry, so a concurrent activation cannot overwrite a renewal.
+        from subscriptions.models import Subscription
+
+        locked_subscription = (
+            Subscription.objects.select_for_update(of=("self",))
+            .select_related("user", "product", "plan")
+            .get(pk=locked.subscription_id)
+        )
+        locked.subscription = locked_subscription
+
         if not locked.is_entitled:
             return LicenseResult(False, "license_inactive", "The license is not currently active.")
 
