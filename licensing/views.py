@@ -49,7 +49,16 @@ def _respond(result):
         data.update({
             "license_id": str(license_obj.pk),
             "status": license_obj.status,
+            # Return the authoritative dates after server-side activation.
+            "starts_at": subscription.starts_at.isoformat(),
             "expires_at": subscription.expires_at.isoformat(),
+            "first_activated_at": (
+                license_obj.activations.order_by("first_activated_at")
+                .values_list("first_activated_at", flat=True)
+                .first().isoformat()
+                if license_obj.activations.exists()
+                else None
+            ),
             "product": subscription.product.slug,
             "device_limit": license_obj.activation_limit,
             "active_devices": license_obj.active_activation_count,
