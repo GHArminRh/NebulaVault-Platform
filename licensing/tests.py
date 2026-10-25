@@ -146,6 +146,16 @@ class LicenseAPITests(LicenseFixtures, TestCase):
         self.assertEqual(activated.status_code, 200)
         self.assertTrue(activated.json()["ok"])
         self.assertEqual(activated.json()["device_limit"], 2)
+        self.subscription.refresh_from_db()
+        self.assertEqual(
+            activated.json()["expires_at"],
+            self.subscription.expires_at.isoformat(),
+        )
+        self.assertEqual(
+            activated.json()["starts_at"],
+            self.subscription.starts_at.isoformat(),
+        )
+        self.assertIsNotNone(activated.json()["first_activated_at"])
         self.assertEqual(activated["Cache-Control"], "no-store")
 
         validated = self.post_json("validate", payload)
