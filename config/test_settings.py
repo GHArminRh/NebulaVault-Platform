@@ -8,6 +8,9 @@ migrations. Production settings are unchanged.
 from .settings import *  # noqa: F403
 
 MIGRATION_MODULES = {
+    # Customer tables are created by the application's custom initial migration
+    # only when run against an established database; sync them directly here.
+    "accounts": None,
     "catalog": None,
     "subscriptions": None,
     "licensing": None,
