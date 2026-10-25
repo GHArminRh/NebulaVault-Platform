@@ -3,7 +3,7 @@ import uuid
 
 from datetime import timedelta
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -220,12 +220,9 @@ class Subscription(models.Model):
 
         try:
             license_record = self.license
-        except Exception as exc:
+        except ObjectDoesNotExist:
             # A manually-created subscription may not have a license yet.
-            from django.core.exceptions import ObjectDoesNotExist
-            if isinstance(exc, ObjectDoesNotExist):
-                return False
-            raise
+            return False
 
         return license_record.activations.exists()
 
