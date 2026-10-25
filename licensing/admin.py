@@ -49,6 +49,8 @@ class LicenseAdmin(admin.ModelAdmin):
 
     @admin.display(description="Expires", ordering="subscription__expires_at")
     def expires_at(self, obj):
+        if obj.subscription.is_waiting_for_activation:
+            return "After first desktop activation"
         return obj.subscription.expires_at
 
     @admin.display(description="Devices")
