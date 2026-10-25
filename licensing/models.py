@@ -46,11 +46,27 @@ class License(models.Model):
     @property
     def is_entitled(self):
         subscription = self.subscription
+        subscription_is_valid = subscription.is_currently_valid
+
+        # Paid subscriptions are allowed to start on the first successful
+        # desktop activation. Before that point, starts_at/expires_at are
+        # provisional purchase-time values and must not consume the term.
+        # Any activation row (active or deactivated) permanently marks that
+        # the license has started, so reactivation cannot reset the clock.
+        if (
+            self.status == self.Status.ACTIVE
+            and subscription.kind == subscription.Kind.PAID
+            and subscription.status == subscription.Status.ACTIVE
+            and subscription.plan_id is not None
+            and not self.activations.exists()
+        ):
+            subscription_is_valid = True
+
         return (
             self.status == self.Status.ACTIVE
             and subscription.user.is_active
             and subscription.product.is_active
-            and subscription.is_currently_valid
+            and subscription_is_valid
         )
 
     @property
