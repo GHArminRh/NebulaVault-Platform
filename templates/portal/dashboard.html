@@ -27,7 +27,7 @@
   <div class="dashboard-columns nv-main-columns">
     <section class="panel nv-panel">
       <div class="panel-heading"><div><h2>اشتراک‌های شما</h2><p>وضعیت دسترسی و تاریخ انقضا</p></div><a class="text-link" href="{% url 'portal:subscriptions' %}">مشاهده همه ↗</a></div>
-      {% if subscriptions %}<div class="table-list">{% for item in subscriptions %}<div class="table-row"><div class="table-symbol">◈</div><div class="table-main"><strong>{{ item.product.name }}</strong><small>{% if item.plan %}{{ item.plan.name }}{% else %}دوره آزمایشی ۷ روزه{% endif %} · انقضا {{ item.expires_at|date:'Y/m/d' }}</small></div><span class="status-pill status-{{ item.status }}">{% if item.status == "trialing" %}دوره آزمایشی فعال{% elif item.status == "active" %}فعال{% elif item.status == "past_due" %}سررسید گذشته{% elif item.status == "expired" %}منقضی‌شده{% elif item.status == "canceled" %}لغوشده{% else %}نامشخص{% endif %}</span></div>{% endfor %}</div>{% else %}<div class="panel-empty"><span>◈</span><strong>هنوز اشتراکی نداری</strong><p>یک محصول انتخاب کن تا دسترسی‌هایت را اینجا ببینی.</p><a class="text-link" href="{% url 'portal:products' %}">دیدن محصولات ↗</a></div>{% endif %}
+      {% if subscriptions %}<div class="table-list">{% for item in subscriptions %}<div class="table-row"><div class="table-symbol">◈</div><div class="table-main"><strong>{{ item.product.name }}</strong><small>{% if item.plan %}{{ item.plan.name }}{% else %}دوره آزمایشی ۷ روزه{% endif %} {% if item.is_waiting_for_activation %}· آغاز مدت اعتبار با اولین فعال‌سازی{% else %}· انقضا {{ item.expires_at|date:'Y/m/d' }}{% endif %}</small></div><span class="status-pill status-{{ item.status }}">{% if item.is_waiting_for_activation %}در انتظار فعال‌سازی{% elif item.status == "trialing" %}دوره آزمایشی فعال{% elif item.status == "active" %}فعال{% elif item.status == "past_due" %}سررسید گذشته{% elif item.status == "expired" %}منقضی‌شده{% elif item.status == "canceled" %}لغوشده{% else %}نامشخص{% endif %}</span></div>{% endfor %}</div>{% else %}<div class="panel-empty"><span>◈</span><strong>هنوز اشتراکی نداری</strong><p>یک محصول انتخاب کن تا دسترسی‌هایت را اینجا ببینی.</p><a class="text-link" href="{% url 'portal:products' %}">دیدن محصولات ↗</a></div>{% endif %}
     </section>
     <section class="panel nv-panel">
       <div class="panel-heading"><div><h2>سفارش‌های اخیر</h2><p>تاریخچه خریدهای شما</p></div><a class="text-link" href="{% url 'portal:orders' %}">مشاهده همه ↗</a></div>
@@ -48,7 +48,7 @@
           <div class="table-main" style="min-width:0;width:100%">
             <strong>{{ license.subscription.product.name }}</strong>
             <small>{% if license.subscription.plan %}{{ license.subscription.plan.name }}{% else %}دوره آزمایشی{% endif %} · صادرشده در {{ license.created_at|date:'Y/m/d' }}</small>
-            <small>انقضا: {{ license.subscription.expires_at|date:'Y/m/d' }}</small>
+            {% if license.subscription.is_waiting_for_activation %}<small>مدت اعتبار از اولین فعال‌سازی در برنامه دسکتاپ شروع می‌شود.</small>{% else %}<small>انقضا: {{ license.subscription.expires_at|date:'Y/m/d' }}</small>{% endif %}
             {% if license.display_key %}
               <div style="margin-top:12px;padding:14px;border:1px solid rgba(100,210,160,.35);border-radius:12px;background:rgba(35,150,100,.08)">
                 <label for="license-key-{{ license.id }}" style="display:block;margin-bottom:8px;font-weight:700">کلید لایسنس</label>
@@ -61,7 +61,7 @@
               <div class="notice-line" style="margin-top:12px">این لایسنس پیش از فعال‌شدن نمایش امن کلید صادر شده است؛ کلید اصلی در پایگاه داده ذخیره نشده و از روی هش قابل بازیابی نیست. کلید موجود در ایمیل زمان خرید را بررسی کنید.</div>
             {% endif %}
           </div>
-          <div class="row-end"><span class="status-pill status-{% if license.is_entitled %}active{% else %}expired{% endif %}">{% if license.is_entitled %}معتبر{% elif license.status == "suspended" %}تعلیق‌شده{% elif license.status == "revoked" %}لغوشده{% else %}منقضی یا غیرفعال{% endif %}</span></div>
+          <div class="row-end"><span class="status-pill status-{% if license.subscription.is_waiting_for_activation %}active{% elif license.is_entitled %}active{% else %}expired{% endif %}">{% if license.subscription.is_waiting_for_activation %}در انتظار فعال‌سازی{% elif license.is_entitled %}معتبر{% elif license.status == "suspended" %}تعلیق‌شده{% elif license.status == "revoked" %}لغوشده{% else %}منقضی یا غیرفعال{% endif %}</span></div>
         </article>
       {% endfor %}
       </div>
