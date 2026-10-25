@@ -148,6 +148,17 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
         # All activation records remain after deactivation. Their existence is
         # the durable marker that the license term has already started.
         had_any_activation = locked.activations.exists()
+        if (
+            not had_any_activation
+            and locked.subscription.kind == locked.subscription.Kind.PAID
+            and locked.subscription.plan_id is None
+        ):
+            return LicenseResult(
+                False,
+                "license_inactive",
+                "The paid license has no subscription plan.",
+            )
+
         active_count = locked.activations.filter(is_active=True).count()
         if active_count >= locked.activation_limit:
             return LicenseResult(False, "device_limit_reached", "The license has reached its device activation limit.")
@@ -183,12 +194,6 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
             subscription = locked.subscription
             if subscription.kind == subscription.Kind.PAID:
                 plan = subscription.plan
-                if plan is None:
-                    return LicenseResult(
-                        False,
-                        "license_inactive",
-                        "The paid license has no subscription plan.",
-                    )
                 from subscriptions.services import _add_plan_duration
 
                 expiry = now
