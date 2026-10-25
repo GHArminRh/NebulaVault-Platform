@@ -38,9 +38,21 @@ class SubscriptionAdmin(admin.ModelAdmin):
         "kind",
         "status",
         "plan",
-        "starts_at",
-        "expires_at",
+        "display_starts_at",
+        "display_expires_at",
     )
+    @admin.display(description="شروع اعتبار")
+    def display_starts_at(self, obj):
+        if obj.is_waiting_for_activation:
+            return "پس از اولین فعال‌سازی"
+        return obj.starts_at
+
+    @admin.display(description="انقضای اعتبار")
+    def display_expires_at(self, obj):
+        if obj.is_waiting_for_activation:
+            return "پس از اولین فعال‌سازی"
+        return obj.expires_at
+
     list_filter = ("kind", "status", "product")
     search_fields = (
         "user__username",
