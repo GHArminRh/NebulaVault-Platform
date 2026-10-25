@@ -46,6 +46,11 @@ def _respond(result):
             part.strip() for part in (customer.first_name, customer.last_name)
             if part and part.strip()
         )
+        first_activation_at = (
+            license_obj.activations.order_by("first_activated_at")
+            .values_list("first_activated_at", flat=True)
+            .first()
+        )
         data.update({
             "license_id": str(license_obj.pk),
             "status": license_obj.status,
@@ -53,11 +58,7 @@ def _respond(result):
             "starts_at": subscription.starts_at.isoformat(),
             "expires_at": subscription.expires_at.isoformat(),
             "first_activated_at": (
-                license_obj.activations.order_by("first_activated_at")
-                .values_list("first_activated_at", flat=True)
-                .first().isoformat()
-                if license_obj.activations.exists()
-                else None
+                first_activation_at.isoformat() if first_activation_at else None
             ),
             "product": subscription.product.slug,
             "device_limit": license_obj.activation_limit,
