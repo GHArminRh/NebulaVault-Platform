@@ -39,13 +39,26 @@ def _payload(request):
 def _respond(result):
     data = {"ok": result.ok, "code": result.code, "message": result.message}
     if result.ok and result.license:
+        license_obj = result.license
+        subscription = license_obj.subscription
+        customer = subscription.user
+        full_name = " ".join(
+            part.strip() for part in (customer.first_name, customer.last_name)
+            if part and part.strip()
+        )
         data.update({
-            "license_id": str(result.license.pk),
-            "status": result.license.status,
-            "expires_at": result.license.subscription.expires_at.isoformat(),
-            "product": result.license.subscription.product.slug,
-            "device_limit": result.license.activation_limit,
-            "active_devices": result.license.active_activation_count,
+            "license_id": str(license_obj.pk),
+            "status": license_obj.status,
+            "expires_at": subscription.expires_at.isoformat(),
+            "product": subscription.product.slug,
+            "device_limit": license_obj.activation_limit,
+            "active_devices": license_obj.active_activation_count,
+            # Buyer details are returned only for a successfully validated license,
+            # and are sourced from that license's linked subscription/customer.
+            "buyer_name": full_name or customer.username or customer.email,
+            "buyer_email": customer.email,
+            "customer_id": str(customer.pk),
+            "buyer_username": customer.username,
         })
     response = JsonResponse(data, status=200 if result.ok else 403)
     response["Cache-Control"] = "no-store"
