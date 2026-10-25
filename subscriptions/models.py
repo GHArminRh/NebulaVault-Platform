@@ -213,6 +213,32 @@ class Subscription(models.Model):
             raise ValidationError(errors)
 
     @property
+    def has_been_activated(self):
+        """Whether a paid subscription has ever been activated on a device."""
+        if self.kind != self.Kind.PAID or not self.pk:
+            return True
+
+        try:
+            license_record = self.license
+        except Exception as exc:
+            # A manually-created subscription may not have a license yet.
+            from django.core.exceptions import ObjectDoesNotExist
+            if isinstance(exc, ObjectDoesNotExist):
+                return False
+            raise
+
+        return license_record.activations.exists()
+
+    @property
+    def is_waiting_for_activation(self):
+        """Whether a paid, active subscription is waiting for its first activation."""
+        return (
+            self.kind == self.Kind.PAID
+            and self.status == self.Status.ACTIVE
+            and not self.has_been_activated
+        )
+
+    @property
     def is_currently_valid(self):
         """Whether this subscription is within its validity period."""
         now = timezone.now()
