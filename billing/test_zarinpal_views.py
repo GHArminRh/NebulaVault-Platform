@@ -47,9 +47,9 @@ class ZarinPalCallbackViewTests(TestCase):
             idempotency_key=uuid4(),
         )
         self.authority = "A000000000000000000000000000000001"
-        self.attempt.provider_authority = self.authority
+        self.attempt.provider_reference = self.authority
         self.attempt.status = PaymentAttempt.Status.PENDING
-        self.attempt.save(update_fields=["provider_authority", "status", "updated_at"])
+        self.attempt.save(update_fields=["provider_reference", "status", "updated_at"])
         self.callback_url = reverse("billing:zarinpal_callback")
 
     @patch("billing.views.finalize_payment")
