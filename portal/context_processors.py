@@ -1,10 +1,20 @@
+from django.conf import settings
+
+
 def cart_context(request):
-    """Expose cart count globally and license data only on the customer dashboard."""
+    """Expose cart count and safe payment-mode flags globally."""
     raw_ids = request.session.get("nebula_cart", [])
     if not isinstance(raw_ids, list):
         context = {"cart_count": 0}
     else:
         context = {"cart_count": len({str(value) for value in raw_ids if value})}
+
+    context["local_payment_simulator_enabled"] = bool(
+        settings.DEBUG and getattr(settings, "NEBULA_MOCK_PAYMENTS", False)
+    )
+    context["zarinpal_merchant_configured"] = bool(
+        getattr(settings, "ZARINPAL_MERCHANT_ID", "").strip()
+    )
 
     if (
         getattr(request, "user", None)
