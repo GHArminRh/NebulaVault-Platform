@@ -8,7 +8,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from django.test import SimpleTestCase
 
-from .views import OFFLINE_LEASE_SECONDS, _sign_offline_lease
+from .views import _sign_offline_lease
 
 
 def _b64url(value):
@@ -37,9 +37,10 @@ class SignedOfflineLeaseTests(SimpleTestCase):
 
     def test_lease_is_signed_and_bound_to_device(self):
         now = datetime.now(timezone.utc)
+        subscription_end = now + timedelta(days=90)
         with patch("licensing.views.time.time", return_value=now.timestamp()):
             token = _sign_offline_lease(
-                self._license(now + timedelta(days=90)), "device-xyz"
+                self._license(subscription_end), "device-xyz"
             )
         self.assertIsNotNone(token)
         payload_part, signature_part = token.split(".")
@@ -53,7 +54,8 @@ class SignedOfflineLeaseTests(SimpleTestCase):
         payload = json.loads(payload_bytes)
         self.assertEqual(payload["license_id"], "license-123")
         self.assertEqual(payload["device_fingerprint"], "device-xyz")
-        self.assertLessEqual(payload["expires_at"] - payload["issued_at"], OFFLINE_LEASE_SECONDS)
+        self.assertEqual(payload["expires_at"], int(subscription_end.timestamp()))
+        self.assertGreater(payload["expires_at"] - payload["issued_at"], 30 * 24 * 60 * 60)
 
     def test_lease_never_outlives_subscription(self):
         now = datetime.now(timezone.utc)
