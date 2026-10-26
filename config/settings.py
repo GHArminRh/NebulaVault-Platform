@@ -124,3 +124,4 @@ MEDIA_ROOT = BASE_DIR / "media/"
 
 # The mock checkout is for development/testing only. Enable explicitly via env when needed.
 NEBULA_MOCK_PAYMENTS = os.environ.get("NEBULA_MOCK_PAYMENTS", str(DEBUG)).lower() == "true"
+\n# Zarinpal payment gateway (keep credentials in environment variables).\nZARINPAL_MERCHANT_ID = os.environ.get("ZARINPAL_MERCHANT_ID", "").strip()\nZARINPAL_SANDBOX = os.environ.get("ZARINPAL_SANDBOX", "true").lower() == "true"\n
