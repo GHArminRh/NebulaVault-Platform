@@ -239,7 +239,7 @@ def validate_license(key, fingerprint, app_version=""):
     if license_record is None:
         return LicenseResult(False, "invalid_license", "The license key is invalid.")
     if not license_record.is_entitled:
-        return LicenseResult(False, "license_inactive", "The license is not currently active.")
+        return _inactive_license_result(license_record)
 
     activation = LicenseActivation.objects.filter(
         license=license_record,
