@@ -119,7 +119,7 @@ def _inactive_license_result(license_record):
 
 
 def activate_license(key, fingerprint, device_label="", app_version=""):
-    """Activate a device, enforcing current entitlement and the plan's device limit."""
+    """Activate a device only if it has never been deactivated for this license."""
     if not _valid_fingerprint(fingerprint):
         return LicenseResult(False, "invalid_device", "A valid device fingerprint is required.")
     license_record = _find_license(key)
@@ -133,12 +133,8 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
     version = app_version[:40] if isinstance(app_version, str) else ""
 
     with transaction.atomic():
-        locked = License.objects.select_for_update(of=("self",)).get(
-            pk=license_record.pk
-        )
+        locked = License.objects.select_for_update(of=("self",)).get(pk=license_record.pk)
         # Serialize the first-activation date calculation against paid renewals.
-        # Renewal processing locks this same subscription row before changing its
-        # expiry, so a concurrent activation cannot overwrite a renewal.
         from subscriptions.models import Subscription
 
         locked_subscription = (
@@ -155,6 +151,7 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
             license=locked, fingerprint_digest=fingerprint_hash
         ).first()
         now = timezone.now()
+
         if activation and activation.is_active:
             activation.device_label = label or activation.device_label
             activation.app_version = version or activation.app_version
@@ -164,8 +161,18 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
             locked.save(update_fields=["last_validated_at", "updated_at"])
             return LicenseResult(True, "activated", "This device is activated.", activation, locked)
 
-        # All activation records remain after deactivation. Their existence is
-        # the durable marker that the license term has already started.
+        # Deactivation is a persistent block for this device/license pair. Never
+        # flip the same activation back to active just because the key is re-entered.
+        # An administrator can explicitly restore access in the admin interface.
+        if activation is not None:
+            return LicenseResult(
+                False,
+                "device_deactivated",
+                "This device has been deactivated for this license and cannot reactivate by re-entering the key.",
+                activation,
+                locked,
+            )
+
         had_any_activation = locked.activations.exists()
         if (
             not had_any_activation
@@ -182,33 +189,21 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
         if active_count >= locked.activation_limit:
             return LicenseResult(False, "device_limit_reached", "The license has reached its device activation limit.")
 
-        if activation:
-            activation.is_active = True
-            activation.device_label = label
-            activation.app_version = version
-            activation.last_seen_at = now
-            activation.deactivated_at = None
-            activation.save(update_fields=[
-                "is_active", "device_label", "app_version", "last_seen_at", "deactivated_at"
-            ])
-        else:
-            try:
-                with transaction.atomic():
-                    activation = LicenseActivation.objects.create(
-                        license=locked,
-                        fingerprint_digest=fingerprint_hash,
-                        device_label=label,
-                        app_version=version,
-                        first_activated_at=now,
-                        last_seen_at=now,
-                    )
-            except IntegrityError:
-                return LicenseResult(False, "activation_conflict", "The activation could not be completed; please retry.")
+        try:
+            with transaction.atomic():
+                activation = LicenseActivation.objects.create(
+                    license=locked,
+                    fingerprint_digest=fingerprint_hash,
+                    device_label=label,
+                    app_version=version,
+                    first_activated_at=now,
+                    last_seen_at=now,
+                )
+        except IntegrityError:
+            return LicenseResult(False, "activation_conflict", "The activation could not be completed; please retry.")
 
         # The first successful desktop activation starts the purchased term.
-        # Include each paid period already purchased, including verified
-        # renewals completed before activation. Later device activations and
-        # reactivations never reset the clock.
+        # Include each paid period already purchased, including verified renewals.
         if not had_any_activation:
             subscription = locked.subscription
             if subscription.kind == subscription.Kind.PAID:
@@ -222,9 +217,7 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
 
                 subscription.starts_at = now
                 subscription.expires_at = expiry
-                subscription.save(
-                    update_fields=["starts_at", "expires_at", "updated_at"]
-                )
+                subscription.save(update_fields=["starts_at", "expires_at", "updated_at"])
 
         locked.last_validated_at = now
         locked.save(update_fields=["last_validated_at", "updated_at"])
