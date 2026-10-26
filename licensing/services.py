@@ -111,6 +111,13 @@ def _valid_fingerprint(fingerprint):
     return isinstance(fingerprint, str) and 8 <= len(fingerprint.strip()) <= 512
 
 
+def _inactive_license_result(license_record):
+    """Return a stable machine-readable reason for an inactive license."""
+    if license_record.status == License.Status.SUSPENDED:
+        return LicenseResult(False, "license_suspended", "Your license has been suspended by the server.")
+    return LicenseResult(False, "license_inactive", "The license is not currently active.")
+
+
 def activate_license(key, fingerprint, device_label="", app_version=""):
     """Activate a device, enforcing current entitlement and the plan's device limit."""
     if not _valid_fingerprint(fingerprint):
@@ -119,7 +126,7 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
     if license_record is None:
         return LicenseResult(False, "invalid_license", "The license key is invalid.")
     if not license_record.is_entitled:
-        return LicenseResult(False, "license_inactive", "The license is not currently active.")
+        return _inactive_license_result(license_record)
 
     fingerprint_hash = _fingerprint_digest(fingerprint)
     label = device_label[:120] if isinstance(device_label, str) else ""
@@ -142,7 +149,7 @@ def activate_license(key, fingerprint, device_label="", app_version=""):
         locked.subscription = locked_subscription
 
         if not locked.is_entitled:
-            return LicenseResult(False, "license_inactive", "The license is not currently active.")
+            return _inactive_license_result(locked)
 
         activation = LicenseActivation.objects.filter(
             license=locked, fingerprint_digest=fingerprint_hash
