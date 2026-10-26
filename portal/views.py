@@ -1,4 +1,6 @@
 import uuid
+
+from django.conf import settings
 from collections import defaultdict
 
 from django.contrib import messages
@@ -112,7 +114,7 @@ def create_order(request, plan_id):
     except OrderCreationError as exc:
         messages.error(request, str(exc))
         return redirect("portal:product_detail", slug=plan.product.slug)
-    messages.success(request, f"سفارش {order.order_number} ثبت شد، اما پردازش پرداخت هنوز متصل نشده است.")
+    messages.success(request, f"سفارش {order.order_number} ثبت شد. برای تکمیل پرداخت، به بخش سفارش‌ها بروید.")
     return redirect("portal:orders")
 
 def _cart_plan_ids(request):
@@ -190,15 +192,6 @@ def cart_clear(request):
     if request.method != "POST":
         return redirect("portal:cart")
     request.session["nebula_cart"] = []
-    if newly_issued_license_keys:
-        # Merge keys if an earlier successful checkout key has not yet been shown.
-        existing_keys = request.session.get("nebula_new_license_keys", {})
-        if not isinstance(existing_keys, dict):
-            existing_keys = {}
-        request.session["nebula_new_license_keys"] = {
-            **existing_keys,
-            **newly_issued_license_keys,
-        }
     messages.success(request, "سبد خرید شما خالی شد.")
     return redirect("portal:cart")
 
