@@ -130,10 +130,6 @@ class PaymentAttempt(models.Model):
     # No specific provider is required by this model.
     provider = models.CharField(max_length=40)
 
-    # ZarinPal Authority returned when the payment request is created.
-    # This is distinct from provider_reference, which is used for finalization.
-    provider_authority = models.CharField(max_length=64, blank=True, default="", db_index=True)
-
     # Set only when a provider supplies a reference.
     # A provider reference can belong to at most one attempt.
     provider_reference = models.CharField(
