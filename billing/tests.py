@@ -775,7 +775,7 @@ class FinalizePaymentTests(BillingServiceTestCase):
 
         previous_expiry = subscription.expires_at
 
-        finalize_payment(
+        renewal_attempt = finalize_payment(
             attempt_id=renewal_attempt.pk,
             provider_reference="provider-renewal-001",
             confirmed_amount_minor_units=renewal_order.amount_minor_units,

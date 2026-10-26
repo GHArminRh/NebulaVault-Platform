@@ -124,3 +124,12 @@ MEDIA_ROOT = BASE_DIR / "media/"
 
 # The mock checkout is for development/testing only. Enable explicitly via env when needed.
 NEBULA_MOCK_PAYMENTS = os.environ.get("NEBULA_MOCK_PAYMENTS", str(DEBUG)).lower() == "true"
+
+# ZarinPal payment gateway. The merchant ID is required for REST payment requests.
+# Keep credentials in the deployment environment, never in source control.
+ZARINPAL_MERCHANT_ID = os.environ.get("ZARINPAL_MERCHANT_ID", "").strip()
+ZARINPAL_ACCESS_TOKEN = os.environ.get("ZARINPAL_ACCESS_TOKEN", "").strip()
+ZARINPAL_SANDBOX = os.environ.get("ZARINPAL_SANDBOX", "True").strip().lower() == "true"
+ZARINPAL_PUBLIC_BASE_URL = os.environ.get("ZARINPAL_PUBLIC_BASE_URL", "").strip().rstrip("/")
+ZARINPAL_HTTP_TIMEOUT = max(3, int(os.environ.get("ZARINPAL_HTTP_TIMEOUT", "15")))
+ZARINPAL_ENABLED = bool(ZARINPAL_MERCHANT_ID)

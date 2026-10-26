@@ -1,0 +1,62 @@
+name: ZarinPal integration checks
+
+on:
+  push:
+    branches:
+      - feat/zarinpal-payment-gateway
+  pull_request:
+    branches:
+      - master
+      - feat/signed-offline-license-leases
+
+permissions:
+  contents: read
+
+jobs:
+  django-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: nebula_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d nebula_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DJANGO_SECRET_KEY: ci-only-test-secret-not-for-production
+      DJANGO_DEBUG: "True"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      DB_NAME: nebula_test
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
+      NEBULA_MOCK_PAYMENTS: "True"
+      ZARINPAL_SANDBOX: "True"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Validate Django configuration
+        run: python manage.py check
+      # The selected feature branch currently has empty migration packages for
+      # several domain apps. Generate their initial migrations in the ephemeral
+      # CI workspace so the database-backed tests can run; do not commit these
+      # generated files as part of this payment integration.
+      - name: Generate migrations for CI test database
+        run: python manage.py makemigrations
+      - name: Apply migrations
+        run: python manage.py migrate --noinput
+      - name: Run billing and ZarinPal tests
+        run: python manage.py test billing --verbosity 2

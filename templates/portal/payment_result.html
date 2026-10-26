@@ -1,0 +1,18 @@
+{% extends "portal/base.html" %}
+{% block title %}{{ page_title|default:"نتیجه پرداخت" }} — نبیولا والت{% endblock %}
+{% block content %}
+<section class="page-hero page-wrap">
+  <div class="eyebrow">درگاه پرداخت زرین‌پال</div>
+  <h1>{{ page_title|default:"نتیجه پرداخت" }}</h1>
+  <p>{{ result_message }}</p>
+  {% if order_number %}<p>شماره سفارش: <code dir="ltr">{{ order_number }}</code></p>{% endif %}
+  <div class="hero-actions">
+    {% if user.is_authenticated %}
+      <a class="button button-primary button-large" href="{% url 'portal:orders' %}">مشاهده سفارش‌ها</a>
+    {% else %}
+      <a class="button button-primary button-large" href="{% url 'login' %}?next={% url 'portal:orders' %}">ورود و مشاهده سفارش‌ها</a>
+    {% endif %}
+    <a class="button button-glass button-large" href="{% url 'portal:pricing' %}">مشاهده طرح‌ها</a>
+  </div>
+</section>
+{% endblock %}
