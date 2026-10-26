@@ -1,9 +1,12 @@
 """Minimal Zarinpal v4 client; sandbox is the default."""
 import json
+import logging
 import urllib.error
 import urllib.request
 
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 class ZarinpalError(Exception):
@@ -46,10 +49,32 @@ def _post_json(url, payload):
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=15) as response:
+        with urllib.request.urlopen(request, timeout=20) as response:
             result = json.loads(response.read().decode("utf-8"))
-    except (urllib.error.URLError, TimeoutError, ValueError) as exc:
-        raise ZarinpalError("ارتباط با زرین‌پال برقرار نشد. کمی بعد دوباره تلاش کنید.") from exc
+    except urllib.error.HTTPError as exc:
+        logger.warning("Zarinpal HTTP error: host=%s status=%s", request.host, exc.code)
+        raise ZarinpalError(
+            f"پاسخ سرور زرین‌پال خطای HTTP {exc.code} بود. گزارش سرور را بررسی کنید."
+        ) from exc
+    except urllib.error.URLError as exc:
+        logger.warning(
+            "Zarinpal connection error: host=%s reason=%r",
+            request.host, getattr(exc, "reason", exc),
+        )
+        raise ZarinpalError(
+            "اتصال سرور به زرین‌پال برقرار نشد؛ گزارش برنامه را برای علت شبکه، DNS یا TLS بررسی کنید."
+        ) from exc
+    except (TimeoutError, OSError) as exc:
+        logger.warning(
+            "Zarinpal transport error: host=%s error=%s",
+            request.host, type(exc).__name__,
+        )
+        raise ZarinpalError(
+            "اتصال به زرین‌پال زمان‌بر شد یا از سمت شبکه قطع شد؛ گزارش برنامه را بررسی کنید."
+        ) from exc
+    except (ValueError, UnicodeDecodeError) as exc:
+        logger.warning("Zarinpal returned invalid JSON: host=%s", request.host)
+        raise ZarinpalError("پاسخ زرین‌پال قابل‌خواندن نبود؛ گزارش برنامه را بررسی کنید.") from exc
     if not isinstance(result, dict):
         raise ZarinpalError("پاسخ دریافتی از زرین‌پال معتبر نیست.")
     return result

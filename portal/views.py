@@ -1,8 +1,8 @@
 import uuid
-from collections import defaultdict
 
 from django.conf import settings
-from django.db import transaction
+from collections import defaultdict
+
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -11,14 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from accounts.forms import AccountPasswordChangeForm, AccountProfileForm
 from billing.models import PaymentOrder
-from billing.services import (
-    OrderCreationError,
-    PaymentAttemptCreationError,
-    PaymentFinalizationError,
-    create_payment_attempt,
-    create_payment_order,
-    finalize_payment,
-)
+from billing.services import OrderCreationError, create_payment_order
 from catalog.models import Plan, Product, Release
 from subscriptions.models import Subscription
 from subscriptions.services import TrialAlreadyUsed, TrialUnavailable, start_trial
@@ -121,7 +114,7 @@ def create_order(request, plan_id):
     except OrderCreationError as exc:
         messages.error(request, str(exc))
         return redirect("portal:product_detail", slug=plan.product.slug)
-    messages.success(request, f"سفارش {order.order_number} ثبت شد، اما پردازش پرداخت هنوز متصل نشده است.")
+    messages.success(request, f"سفارش {order.order_number} ثبت شد. برای تکمیل پرداخت، به بخش سفارش‌ها بروید.")
     return redirect("portal:orders")
 
 def _cart_plan_ids(request):
@@ -178,7 +171,10 @@ def cart(request):
         "cart_plans": plans,
         "cart_totals": currency_totals,
         "cart_count": len(plans),
-        "mock_payments_enabled": getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG),
+        "zarinpal_enabled": bool(
+            getattr(settings, "ZARINPAL_ENABLED", False)
+            and getattr(settings, "ZARINPAL_MERCHANT_ID", "").strip()
+        ),
     })
 
 
@@ -196,100 +192,9 @@ def cart_clear(request):
     if request.method != "POST":
         return redirect("portal:cart")
     request.session["nebula_cart"] = []
-    if newly_issued_license_keys:
-        # Merge keys if an earlier successful checkout key has not yet been shown.
-        existing_keys = request.session.get("nebula_new_license_keys", {})
-        if not isinstance(existing_keys, dict):
-            existing_keys = {}
-        request.session["nebula_new_license_keys"] = {
-            **existing_keys,
-            **newly_issued_license_keys,
-        }
     messages.success(request, "سبد خرید شما خالی شد.")
     return redirect("portal:cart")
 
-
-@login_required
-def checkout(request):
-    if request.method != "POST":
-        return redirect("portal:cart")
-
-    if not getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG):
-        messages.error(request, "پرداخت آزمایشی غیرفعال است. پس از فعال‌شدن درگاه پرداخت دوباره تلاش کنید.")
-        return redirect("portal:cart")
-
-    plan_ids = _cart_plan_ids(request)
-    if not plan_ids:
-        messages.info(request, "سبد خرید شما خالی است.")
-        return redirect("portal:cart")
-
-    plans = list(
-        Plan.objects.filter(
-            pk__in=plan_ids,
-            is_active=True,
-            product__is_active=True,
-        ).select_related("product")
-    )
-    if len(plans) != len(plan_ids):
-        messages.error(request, "یک یا چند مورد دیگر در دسترس نیستند. لطفاً سبد خرید را بررسی کنید.")
-        request.session["nebula_cart"] = [str(plan.pk) for plan in plans]
-        return redirect("portal:cart")
-
-    completed_orders = []
-    newly_issued_license_keys = {}
-    try:
-        # Keep the mock checkout all-or-nothing: a failure must not leave
-        # only part of a multi-item cart marked as paid.
-        with transaction.atomic():
-            for plan in plans:
-                pending_orders = list(
-                    PaymentOrder.objects
-                    .filter(
-                        user=request.user,
-                        plan=plan,
-                        status=PaymentOrder.Status.PENDING,
-                    )
-                    .order_by("-created_at")[:2]
-                )
-                if len(pending_orders) > 1:
-                    raise OrderCreationError(
-                        "برای این طرح بیش از یک سفارش در انتظار وجود دارد. "
-                        "پیش از تلاش دوباره برای پرداخت، با پشتیبانی تماس بگیرید."
-                    )
-                order = pending_orders[0] if pending_orders else None
-                if order is None:
-                    order = create_payment_order(
-                        user=request.user,
-                        plan_id=plan.pk,
-                        idempotency_key=uuid.uuid4(),
-                    )
-
-                attempt = create_payment_attempt(
-                    user=request.user,
-                    order_id=order.pk,
-                    provider="mock",
-                    idempotency_key=uuid.uuid4(),
-                )
-                finalized_attempt = finalize_payment(
-                    attempt_id=attempt.pk,
-                    provider_reference=f"mock-{order.order_number}",
-                    confirmed_amount_minor_units=order.amount_minor_units,
-                    confirmed_currency=order.currency,
-                )
-                issued_key = getattr(finalized_attempt, "issued_license_key", None)
-                if issued_key:
-                    newly_issued_license_keys[str(order.order_number)] = issued_key
-                completed_orders.append(order)
-    except (OrderCreationError, PaymentAttemptCreationError, PaymentFinalizationError) as exc:
-        messages.error(request, f"تکمیل سفارش ممکن نشد: {exc}")
-        return redirect("portal:cart")
-
-    request.session["nebula_cart"] = []
-    messages.success(
-        request,
-        f"پرداخت آزمایشی با موفقیت انجام شد؛ {len(completed_orders)} سفارش تکمیل و دسترسی شما فعال شد.",
-    )
-    return redirect("portal:orders")
 
 
 @login_required
