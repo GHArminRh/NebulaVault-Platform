@@ -16,14 +16,8 @@ urlpatterns = [
     path("admin/editor-upload/", editor_image_upload, name="editor-image-upload"),
     path("admin/", admin.site.urls),
     path("api/licensing/", include("licensing.urls")),
-    path(
-        "accounts/login/",
-        CustomerLoginView.as_view(
-            template_name="portal/login.html",
-            authentication_form=NebulaAuthenticationForm,
-        ),
-        name="login",
-    ),
+    path("billing/", include("billing.urls")),
+    path("accounts/login/", CustomerLoginView.as_view(template_name="portal/login.html", authentication_form=NebulaAuthenticationForm), name="login"),
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("accounts/", include("accounts.urls")),
     path("", include("portal.urls")),
