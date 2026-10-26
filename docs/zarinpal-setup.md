@@ -10,11 +10,13 @@
 ZARINPAL_MERCHANT_ID=your-merchant-id
 ZARINPAL_SANDBOX=False
 ZARINPAL_ENABLED=True
-NEBULA_MOCK_PAYMENTS=False
+NEBULA_MOCK_PAYMENTS=True
 DJANGO_DEBUG=False
 ```
 
 برای مرچنت‌کد زنده‌ای که مالک حساب در اختیار دارد، مقدار `ZARINPAL_SANDBOX=False` را نگه دارید. برای محیط آزمایشی باید از شناسه پذیرنده sandbox و `ZARINPAL_SANDBOX=True` استفاده شود؛ شناسه زنده و آزمایشی را با هم جابه‌جا نکنید.
+
+در محیط توسعه با `DJANGO_DEBUG=True` می‌توانید `NEBULA_MOCK_PAYMENTS=True` نگه دارید تا پرداخت آزمایشی و زرین‌پال هر دو در سبد خرید دیده شوند. در محیط عملیاتی حتماً `DJANGO_DEBUG=False` و `NEBULA_MOCK_PAYMENTS=False` باشد؛ پرداخت آزمایشی در کد فقط وقتی `DEBUG=True` است اجرا می‌شود.
 
 ## آدرس بازگشت
 
