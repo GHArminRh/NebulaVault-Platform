@@ -149,7 +149,8 @@ def cart_add(request, plan_id):
         messages.success(request, f"طرح «{plan.name}» به سبد خرید اضافه شد.")
     else:
         messages.info(request, f"طرح «{plan.name}» از قبل در سبد خرید شماست.")
-    return redirect("portal:cart")
+    # Keep the customer on the pricing page so they can add more plans.
+    return redirect(request.POST.get("next") or "portal:pricing")
 
 
 def cart(request):
