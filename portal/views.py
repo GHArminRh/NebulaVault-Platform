@@ -171,6 +171,8 @@ def cart(request):
         "cart_plans": plans,
         "cart_totals": currency_totals,
         "cart_count": len(plans),
+        "cart_currency_supported": len(totals) == 1 and next(iter(totals), "") in {"IRR", "IRT"},
+        "cart_currency_mixed": len(totals) > 1,
         "zarinpal_enabled": bool(
             getattr(settings, "ZARINPAL_ENABLED", False)
             and getattr(settings, "ZARINPAL_MERCHANT_ID", "").strip()

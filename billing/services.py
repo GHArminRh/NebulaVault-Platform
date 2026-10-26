@@ -12,7 +12,7 @@ from licensing.services import issue_license
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
-from .models import PaymentAttempt, PaymentOrder
+from .models import PaymentAttempt, PaymentOrder, PaymentOrderItem
 
 
 def _is_provider_reference_integrity_error(exc):
@@ -314,6 +314,80 @@ def create_payment_order(
         raise
 
 
+
+def create_cart_payment_order(*, user, plan_ids):
+    """Create or reuse one pending order for an unchanged, same-currency cart."""
+    if not user.pk or not user.is_active:
+        raise OrderCreationError("برای ادامه، حساب کاربری فعال و ذخیره‌شده لازم است.")
+    if not isinstance(plan_ids, (list, tuple)) or not plan_ids:
+        raise OrderCreationError("سبد خرید خالی است.")
+    normalized = list(dict.fromkeys(str(value) for value in plan_ids if value))
+    if not normalized:
+        raise OrderCreationError("سبد خرید خالی است.")
+
+    try:
+        with transaction.atomic():
+            from accounts.models import Customer
+            locked_user = Customer.objects.select_for_update().filter(pk=user.pk, is_active=True).first()
+            if locked_user is None:
+                raise OrderCreationError("حساب کاربری فعال پیدا نشد.")
+            plans = list(Plan.objects.select_for_update().select_related("product").filter(
+                pk__in=normalized, is_active=True, product__is_active=True
+            ))
+            by_id = {str(plan.pk): plan for plan in plans}
+            if len(by_id) != len(normalized):
+                raise OrderCreationError("یک یا چند طرح سبد خرید دیگر در دسترس نیست.")
+            ordered_plans = [by_id[value] for value in normalized]
+            currencies = {plan.currency.upper() for plan in ordered_plans}
+            if len(currencies) != 1:
+                raise OrderCreationError("برای پرداخت یکجای سبد، همه طرح‌ها باید واحد پول یکسان داشته باشند.")
+            currency = next(iter(currencies))
+            if currency not in {"IRR", "IRT"}:
+                raise OrderCreationError("پرداخت یکجای سبد با زرین‌پال فقط برای ریال یا تومان فعال است.")
+            if any(plan.price_minor_units <= 0 for plan in ordered_plans):
+                raise OrderCreationError("قیمت یکی از طرح‌های سبد معتبر نیست.")
+
+            candidates = PaymentOrder.objects.filter(
+                user=locked_user, status=PaymentOrder.Status.PENDING,
+                subscription__isnull=True, items__isnull=False,
+            ).distinct().order_by("-created_at")
+            total = sum(plan.price_minor_units for plan in ordered_plans)
+            for candidate in candidates:
+                snapshot = list(candidate.items.select_related("plan").all())
+                if len(snapshot) != len(ordered_plans):
+                    continue
+                same = all(
+                    item.plan_id == plan.pk
+                    and item.amount_minor_units == plan.price_minor_units
+                    and item.currency == plan.currency.upper()
+                    for item, plan in zip(snapshot, ordered_plans)
+                )
+                if same and candidate.currency == currency and candidate.amount_minor_units == total:
+                    return candidate
+
+            if total <= 0:
+                raise OrderCreationError("مجموع سبد خرید معتبر نیست.")
+            order = PaymentOrder.objects.create(
+                user=locked_user, plan=ordered_plans[0], subscription=None,
+                idempotency_key=uuid.uuid4(), subscription_id_was_explicit=False,
+                amount_minor_units=total, currency=currency,
+                status=PaymentOrder.Status.PENDING,
+            )
+            PaymentOrderItem.objects.bulk_create([
+                PaymentOrderItem(
+                    order=order, plan=plan, product_name=plan.product.name,
+                    plan_name=plan.name, amount_minor_units=plan.price_minor_units,
+                    currency=plan.currency.upper(), duration_value=plan.duration_value,
+                    duration_unit=plan.duration_unit, device_limit=plan.device_limit,
+                    position=position,
+                )
+                for position, plan in enumerate(ordered_plans)
+            ])
+            return order
+    except IntegrityError:
+        raise OrderCreationError("ثبت سفارش سبد خرید هم‌زمان با درخواست دیگری انجام شد؛ دوباره تلاش کنید.") from None
+
+
 def create_payment_attempt(
     *,
     user,
@@ -540,6 +614,59 @@ def finalize_payment(
                 raise PaymentReferenceConflict(
                     "این تلاش پرداخت از قبل شناسه دیگری از ارائه‌دهنده دارد."
                 )
+
+            cart_items = list(order.items.select_related("plan__product").all())
+            if cart_items:
+                if (
+                    sum(item.amount_minor_units for item in cart_items) != order.amount_minor_units
+                    or any(item.currency != order.currency for item in cart_items)
+                ):
+                    raise PaymentFinalizationError("اقلام ثبت‌شده با مبلغ و واحد پول سفارش مطابقت ندارند.")
+                now = timezone.now()
+                issued_keys = []
+                for line in cart_items:
+                    plan_item = line.plan
+                    subscription = Subscription.objects.create(
+                        user=order.user, product=plan_item.product,
+                        kind=Subscription.Kind.PAID, status=Subscription.Status.ACTIVE,
+                        plan=plan_item, trial_redemption=None, starts_at=now,
+                        expires_at=_add_plan_duration(now, plan_item),
+                    )
+                    license_record, license_key = issue_license(subscription)
+                    issued_keys.append({
+                        "product_name": line.product_name,
+                        "plan_name": line.plan_name,
+                        "license_key": license_key,
+                    })
+                attempt.status = PaymentAttempt.Status.SUCCEEDED
+                attempt.provider_reference = provider_reference
+                attempt.confirmed_at = now
+                attempt.save(update_fields=["status", "provider_reference", "confirmed_at", "updated_at"])
+                order.status = PaymentOrder.Status.PAID
+                order.paid_at = now
+                order.save(update_fields=["status", "paid_at", "updated_at"])
+                attempt.issued_license_keys = issued_keys
+                attempt.issued_license_key = issued_keys[0]["license_key"] if issued_keys else None
+                for item_data in issued_keys:
+                    recipient = (order.user.email or "").strip()
+                    if recipient:
+                        product_name = item_data["product_name"]
+                        plan_name = item_data["plan_name"]
+                        key = item_data["license_key"]
+                        body = (
+                            f"سلام {order.user.username} عزیز،\\n\\n"
+                            f"پرداخت طرح «{plan_name}» برای محصول «{product_name}» "
+                            "با موفقیت تأیید شد و لایسنس شما صادر شد.\\n\\n"
+                            f"کلید لایسنس: {key}\\n\\nاین کلید را در اختیار دیگران قرار ندهید."
+                        )
+                        transaction.on_commit(
+                            lambda to=recipient, subject_product=product_name, plain=body: send_mail(
+                                subject=f"لایسنس محصول {subject_product} صادر شد | نبیولا والت",
+                                message=plain, from_email=None, recipient_list=[to],
+                                fail_silently=True,
+                            )
+                        )
+                return attempt
 
             now = timezone.now()
             plan = order.plan

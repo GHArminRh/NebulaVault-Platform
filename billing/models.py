@@ -181,3 +181,30 @@ class PaymentAttempt(models.Model):
 
     def __str__(self):
         return f"Payment attempt {self.pk} ({self.status})"
+
+
+
+class PaymentOrderItem(models.Model):
+    """Immutable server-priced line item for a multi-plan cart order."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    order = models.ForeignKey(PaymentOrder, on_delete=models.CASCADE, related_name="items")
+    plan = models.ForeignKey("catalog.Plan", on_delete=models.PROTECT, related_name="payment_order_items")
+    product_name = models.CharField(max_length=255)
+    plan_name = models.CharField(max_length=255)
+    amount_minor_units = models.PositiveBigIntegerField()
+    currency = models.CharField(max_length=3, validators=[currency_code_validator])
+    duration_value = models.PositiveIntegerField()
+    duration_unit = models.CharField(max_length=10)
+    device_limit = models.PositiveIntegerField()
+    position = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["position", "created_at", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["order", "plan"], name="billing_order_item_unique_plan"),
+            models.CheckConstraint(condition=models.Q(amount_minor_units__gt=0), name="billing_order_item_amount_positive"),
+        ]
+
+    def __str__(self):
+        return f"{self.product_name} · {self.plan_name}"

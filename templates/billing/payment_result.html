@@ -5,7 +5,7 @@
 <section class="section page-wrap compact-section"><div class="panel" style="padding:2rem;max-width:760px;margin:auto">
 {% if order %}<p>شماره سفارش: <strong>{{ order.order_number }}</strong></p><p>وضعیت سفارش: <strong>{{ order.get_status_display }}</strong></p>{% endif %}
 {% if reference %}<p>شناسه پیگیری: <strong dir="ltr">{{ reference }}</strong></p>{% endif %}
-{% if license_key %}<div class="notice-line">کلید لایسنس صادرشده: <code dir="ltr">{{ license_key }}</code></div>{% endif %}
+{% if license_keys %}{% for item in license_keys %}<div class="notice-line" style="margin:12px 0">لایسنس {{ item.product_name }} · {{ item.plan_name }}: <code dir="ltr">{{ item.license_key }}</code></div>{% endfor %}{% elif license_key %}<div class="notice-line">کلید لایسنس صادرشده: <code dir="ltr">{{ license_key }}</code></div>{% endif %}
 <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.5rem"><a class="button button-primary" href="{% url 'portal:orders' %}">مشاهده سفارش‌ها</a><a class="button button-secondary" href="{% url 'portal:dashboard' %}">رفتن به داشبورد</a></div>
 </div></section>
 {% endblock %}
