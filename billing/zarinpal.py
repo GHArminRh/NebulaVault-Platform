@@ -152,3 +152,12 @@ def verify_gateway_payment(*, authority: str, amount_minor_units: int, currency:
     except Exception as exc:
         logger.exception("ZarinPal payment verification failed")
         raise ZarinPalError("تأیید پرداخت از زرین‌پال ناموفق بود؛ وضعیت سفارش تغییر نکرد.") from exc
+
+
+def payment_redirect_url(authority: str) -> str:
+    """Rebuild the provider redirect URL for an already-created attempt."""
+    from urllib.parse import quote
+    if not authority or len(authority) > 255:
+        raise ZarinPalError("شناسهٔ پرداخت معتبر نیست.")
+    base = "https://sandbox.zarinpal.com/pg/StartPay/" if getattr(settings, "ZARINPAL_SANDBOX", False) else "https://www.zarinpal.com/pg/StartPay/"
+    return base + quote(authority, safe="")
