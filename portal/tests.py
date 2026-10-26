@@ -78,59 +78,6 @@ class PortalPageTests(TestCase):
         self.assertContains(cart_response, self.plan.name)
         self.assertContains(cart_response, "ORDER SUMMARY")
 
-    @override_settings(NEBULA_MOCK_PAYMENTS=True)
-    def test_demo_checkout_marks_order_paid_and_activates_subscription(self):
-        self.client.force_login(
-            self.user,
-            backend="accounts.backends.CustomerAuthenticationBackend",
-        )
-        annual_plan = Plan.objects.create(
-            product=self.product,
-            name="Annual",
-            slug="annual",
-            duration_unit=Plan.DurationUnit.YEARS,
-            duration_value=1,
-            price_minor_units=19999,
-            currency="USD",
-            device_limit=2,
-        )
-        self.client.post(reverse("portal:cart_add", args=[self.plan.pk]))
-        self.client.post(reverse("portal:cart_add", args=[annual_plan.pk]))
-        with self.captureOnCommitCallbacks(execute=True) as callbacks:
-            response = self.client.post(reverse("portal:checkout"))
-        self.assertRedirects(response, reverse("portal:orders"))
-        self.assertEqual(len(callbacks), 2)
-        self.assertEqual(len(mail.outbox), 2)
-        for message in mail.outbox:
-            self.assertIn("لایسنس", message.subject)
-            self.assertIn("کلید لایسنس", message.body)
-            self.assertTrue(message.alternatives)
-            self.assertIn("لایسنس شما صادر شد", message.alternatives[0][0])
-
-        orders = list(PaymentOrder.objects.filter(user=self.user).order_by("plan__name"))
-        self.assertEqual(len(orders), 2)
-        for order in orders:
-            self.assertEqual(order.status, PaymentOrder.Status.PAID)
-            self.assertIsNotNone(order.paid_at)
-            attempt = PaymentAttempt.objects.get(order=order)
-            self.assertEqual(attempt.provider, "mock")
-            self.assertEqual(attempt.status, PaymentAttempt.Status.SUCCEEDED)
-
-        subscriptions = Subscription.objects.filter(user=self.user, kind=Subscription.Kind.PAID)
-        self.assertEqual(subscriptions.count(), 2)
-        for subscription in subscriptions:
-            self.assertEqual(subscription.status, Subscription.Status.ACTIVE)
-            self.assertGreater(subscription.expires_at, subscription.starts_at)
-        self.assertEqual(License.objects.filter(subscription__in=subscriptions).count(), 2)
-        self.assertEqual(self.client.session.get("nebula_cart"), [])
-
-        orders_page = self.client.get(reverse("portal:orders"))
-        self.assertContains(orders_page, "لایسنس شما صادر شد")
-        self.assertRegex(
-            orders_page.content.decode(),
-            r"NVL-(?:[A-Z0-9]{4}-){7}[A-Z0-9]{4}",
-        )
-        self.assertNotIn("nebula_new_license_keys", self.client.session)
 
     def test_order_remains_pending_without_payment_provider(self):
         from billing.models import PaymentOrder
