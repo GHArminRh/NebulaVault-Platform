@@ -127,5 +127,5 @@ NEBULA_MOCK_PAYMENTS = os.environ.get("NEBULA_MOCK_PAYMENTS", str(DEBUG)).lower(
 
 # Zarinpal v4 gateway. Keep sandbox enabled unless explicitly changed for production.
 ZARINPAL_MERCHANT_ID = os.environ.get("ZARINPAL_MERCHANT_ID", "").strip()
-ZARINPAL_SANDBOX = os.environ.get("ZARINPAL_SANDBOX", "True").lower() == "true"
+ZARINPAL_SANDBOX = os.environ.get("ZARINPAL_SANDBOX", "False").lower() == "true"
 ZARINPAL_ENABLED = os.environ.get("ZARINPAL_ENABLED", "True").lower() == "true"
