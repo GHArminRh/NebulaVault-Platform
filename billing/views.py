@@ -79,12 +79,39 @@ def zarinpal_start(request, order_id):
         return redirect("portal:orders")
 
     try:
-        attempt = create_payment_attempt(
-            user=request.user,
-            order_id=order.pk,
-            provider="zarinpal",
-            idempotency_key=request.POST.get("request_key") or "",
-        )
+        # Serialize attempts for a single order. Reuse any still-usable ZarinPal
+        # attempt instead of creating another transaction when the customer
+        # double-clicks, reloads the page, or retries after returning from the bank.
+        with transaction.atomic():
+            locked_order = (
+                PaymentOrder.objects.select_for_update()
+                .filter(pk=order.pk, user=request.user, status=PaymentOrder.Status.PENDING)
+                .first()
+            )
+            if locked_order is None:
+                messages.error(request, "این سفارش دیگر در وضعیت قابل پرداخت نیست.")
+                return redirect("portal:orders")
+
+            attempt = (
+                PaymentAttempt.objects.select_for_update()
+                .filter(
+                    order=locked_order,
+                    provider="zarinpal",
+                    status__in=[
+                        PaymentAttempt.Status.CREATED,
+                        PaymentAttempt.Status.PENDING,
+                    ],
+                )
+                .order_by("-created_at")
+                .first()
+            )
+            if attempt is None:
+                attempt = create_payment_attempt(
+                    user=request.user,
+                    order_id=locked_order.pk,
+                    provider="zarinpal",
+                    idempotency_key=request.POST.get("request_key") or "",
+                )
     except (PaymentAttemptCreationError, PaymentAttemptIdempotencyConflict) as exc:
         messages.error(request, str(exc))
         return redirect("portal:orders")
