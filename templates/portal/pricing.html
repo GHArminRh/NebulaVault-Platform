@@ -20,14 +20,6 @@
       <div class="plan-feature"><span>✓</span> قیمت هنگام ثبت سفارش ثابت می‌شود</div>
       <div class="plan-feature"><span>✓</span> مدت اعتبار از اولین فعال‌سازی در برنامه دسکتاپ شروع می‌شود</div>
 
-      {% if local_payment_simulator_enabled %}
-      <form method="post" action="{% url 'billing:local_simulator_start' plan.id %}">
-        {% csrf_token %}
-        <button class="button button-primary button-full" type="submit">شبیه‌سازی پرداخت محلی (بدون دامنه و شناسه) ↗</button>
-      </form>
-      <p class="muted-small">محیط توسعه؛ برای تست مسیر موفق/ناموفق است و به زرین‌پال متصل نمی‌شود.</p>
-      {% endif %}
-
       {% if zarinpal_merchant_configured %}
         {% if plan.currency == "IRR" or plan.currency == "IRT" %}
         <form method="post" action="{% url 'billing:zarinpal_start' plan.id %}">
