@@ -1,4 +1,5 @@
 
+import uuid
 from uuid import UUID
 from copy import copy
 
