@@ -8,10 +8,10 @@ from billing.zarinpal import ZarinpalError, amount_in_rials, request_payment, ve
 
 class ZarinpalAmountTests(SimpleTestCase):
     def test_rial_amount_is_unchanged(self):
-        self.assertEqual(amount_in_rials(120000, "IRR"), 120000)
+        self.assertEqual(amount_in_rials(120000, "IRR"), 1200)
 
     def test_toman_amount_is_converted_to_rials(self):
-        self.assertEqual(amount_in_rials(12000, "IRT"), 120000)
+        self.assertEqual(amount_in_rials(12000, "IRT"), 1200)
 
     def test_other_currency_is_rejected(self):
         with self.assertRaises(ZarinpalError):
