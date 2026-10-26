@@ -181,7 +181,7 @@ class Plan(models.Model):
     price_minor_units = models.PositiveBigIntegerField()
     currency = models.CharField(
         max_length=3,
-        default="USD",
+        default="IRR",
         validators=[currency_code_validator],
     )
 
