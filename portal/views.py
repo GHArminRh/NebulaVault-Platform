@@ -150,7 +150,7 @@ def cart_add(request, plan_id):
     else:
         messages.info(request, f"طرح «{plan.name}» از قبل در سبد خرید شماست.")
     # Keep the customer on the pricing page so they can add more plans.
-    return redirect(request.POST.get("next") or "portal:pricing")
+    return redirect("portal:pricing")
 
 
 def cart(request):
