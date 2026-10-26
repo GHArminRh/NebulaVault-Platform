@@ -640,9 +640,12 @@ def finalize_payment(
                 ]
             )
 
+            # Keep the result shape stable for every successful payment; renewal
+            # results use None when an existing license key was not newly issued.
+            attempt.issued_license_key = issued_license_key
+
             if issued_license_key:
                 # The caller may display this key once (e.g. immediately after checkout).
-                attempt.issued_license_key = issued_license_key
 
                 # Also deliver the key by email for gateway callbacks that have no
                 # browser session. Email failure must not undo a verified payment.
