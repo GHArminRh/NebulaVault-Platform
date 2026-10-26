@@ -67,7 +67,10 @@ def zarinpal_callback(request):
         if not verified:
             messages.error(request, f"زرین‌پال پرداخت را تأیید نکرد: {detail}")
             return redirect("portal:orders")
-        # Clear temporary Authority before storing the verified RefID.\n        attempt.provider_reference = None\n        attempt.save(update_fields=["provider_reference", "updated_at"])\n        finalized = finalize_payment(attempt_id=attempt.pk, provider_reference=reference, confirmed_amount_minor_units=attempt.order.amount_minor_units, confirmed_currency=attempt.order.currency)
+        # Clear temporary Authority before storing the verified RefID.
+        attempt.provider_reference = None
+        attempt.save(update_fields=["provider_reference", "updated_at"])
+        finalized = finalize_payment(attempt_id=attempt.pk, provider_reference=reference, confirmed_amount_minor_units=attempt.order.amount_minor_units, confirmed_currency=attempt.order.currency)
         key = getattr(finalized, "issued_license_key", None)
         if key:
             stored = request.session.get("nebula_new_license_keys", {})
