@@ -1,5 +1,6 @@
 
 from uuid import UUID
+from copy import copy
 
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -626,11 +627,14 @@ def finalize_payment(
                 issued_keys = []
                 for line in cart_items:
                     plan_item = line.plan
+                    duration_plan = copy(plan_item)
+                    duration_plan.duration_value = line.duration_value
+                    duration_plan.duration_unit = line.duration_unit
                     subscription = Subscription.objects.create(
                         user=order.user, product=plan_item.product,
                         kind=Subscription.Kind.PAID, status=Subscription.Status.ACTIVE,
                         plan=plan_item, trial_redemption=None, starts_at=now,
-                        expires_at=_add_plan_duration(now, plan_item),
+                        expires_at=_add_plan_duration(now, duration_plan),
                     )
                     license_record, license_key = issue_license(subscription)
                     issued_keys.append({
