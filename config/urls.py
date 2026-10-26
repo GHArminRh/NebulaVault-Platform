@@ -16,6 +16,7 @@ urlpatterns = [
     path("admin/editor-upload/", editor_image_upload, name="editor-image-upload"),
     path("admin/", admin.site.urls),
     path("api/licensing/", include("licensing.urls")),
+    path("billing/", include("billing.urls")),
     path(
         "accounts/login/",
         CustomerLoginView.as_view(
