@@ -1,6 +1,6 @@
 # Signed offline license leases
 
-The licensing API can return a device-bound Ed25519 lease in `signed_lease` after successful activation or validation. The lease is capped at 30 days and never extends past the subscription's server-side `expires_at`.
+The licensing API returns a device-bound Ed25519 lease in `signed_lease` after successful activation or validation when the server signing key is configured. The lease expires at the subscription's authoritative server-side `expires_at` timestamp, so it follows the complete purchased term (for example, two months or one year) and never outlives it.
 
 ## Configure signing keys
 
@@ -21,12 +21,12 @@ print('NEBULA_LICENSE_SIGNING_PRIVATE_KEY=' + b64url(private_seed))
 print('Desktop license_public_key=' + b64url(public_key))
 ```
 
-Set `NEBULA_LICENSE_SIGNING_PRIVATE_KEY` in the Django deployment environment. Set the matching public key as `license_public_key` in the desktop app's `license_settings.json` (or `NEBULA_LICENSE_PUBLIC_KEY`). Never put the private seed in the desktop app or public repository.
+Set `NEBULA_LICENSE_SIGNING_PRIVATE_KEY` in the Django deployment environment/secret manager. The matching public key is pinned into the corresponding desktop release and is not read from mutable client settings. Never put the private seed in the desktop app, source repository, logs, or customer package. Rotating the signing key requires a matching desktop release with the new public-key pin.
 
 ## Token contract
 
-The compact token is `base64url(payload_json).base64url(signature)`. The Ed25519 signature covers the exact UTF-8 payload bytes. Payload keys are `schema` (1), `license_id`, `device_fingerprint`, `issued_at` and `expires_at`. The client verifies the signature, device binding and lease window. If the signing key is not configured, the server does not mint a lease and the client remains online-only.
+The compact token is `base64url(payload_json).base64url(signature)`. The Ed25519 signature covers the exact UTF-8 payload bytes. Payload keys are `schema` (1), `license_id`, `device_fingerprint`, `issued_at` and `expires_at`. The client verifies the signature, device binding, license identity, and that the lease expiry exactly matches the subscription expiry returned by the server. If the signing key is not configured, the server does not mint a lease; online use can continue, but offline fallback is unavailable.
 
 ## Operational behavior
 
-The client validates online on startup. If unavailable, it can run only while a valid signed lease remains unexpired and no obvious clock rollback is detected. At expiry, online renewal is mandatory and failure to reach the server fails closed. Client-side rollback checks are a tamper signal, not a trusted clock; do not promise protection against a fully compromised endpoint. Revocation cannot take effect on an offline device until it reconnects, so use a maximum 30-day lease and shorten it if faster revocation is required.
+The desktop validates online at startup and its local engine rechecks the server every 30 seconds while running. The frontend reflects the backend's cached status and opens the existing license gate after a definitive rejection. A revoked/expired/deactivated key and its offline lease are cleared on that rejection so a later network failure cannot reactivate the rejected lease. When the server cannot be reached, use is allowed only while the signed lease remains unexpired and no obvious clock rollback is detected. At subscription expiry, online renewal/activation is mandatory. Revocation cannot take effect on a truly offline device until it reconnects; with a full-term lease, that delay may last until the purchased term ends. Client-side rollback checks are a tamper signal, not a trusted clock, and cannot guarantee resistance to a fully compromised or patched endpoint.
