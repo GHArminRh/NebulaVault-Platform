@@ -658,10 +658,10 @@ def finalize_payment(
                         plan_name = item_data["plan_name"]
                         key = item_data["license_key"]
                         body = (
-                            f"سلام {order.user.username} عزیز،\\n\\n"
+                            f"سلام {order.user.username} عزیز،\n\n"
                             f"پرداخت طرح «{plan_name}» برای محصول «{product_name}» "
-                            "با موفقیت تأیید شد و لایسنس شما صادر شد.\\n\\n"
-                            f"کلید لایسنس: {key}\\n\\nاین کلید را در اختیار دیگران قرار ندهید."
+                            "با موفقیت تأیید شد و لایسنس شما صادر شد.\n\n"
+                            f"کلید لایسنس: {key}\n\nاین کلید را در اختیار دیگران قرار ندهید."
                         )
                         transaction.on_commit(
                             lambda to=recipient, subject_product=product_name, plain=body: send_mail(
