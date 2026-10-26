@@ -179,7 +179,7 @@ def cart(request):
         "cart_plans": plans,
         "cart_totals": currency_totals,
         "cart_count": len(plans),
-        "mock_payments_enabled": getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG),
+        "mock_payments_enabled": bool(settings.DEBUG and getattr(settings, "NEBULA_MOCK_PAYMENTS", False)),
     })
 
 
