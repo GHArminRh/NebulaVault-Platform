@@ -7,7 +7,7 @@ from billing.zarinpal import ZarinpalError, amount_in_rials, request_payment, ve
 
 
 class ZarinpalAmountTests(SimpleTestCase):
-    def test_rial_amount_is_unchanged(self):
+    def test_rial_minor_units_convert_to_whole_rials(self):
         self.assertEqual(amount_in_rials(120000, "IRR"), 1200)
 
     def test_toman_amount_is_converted_to_rials(self):
