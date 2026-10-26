@@ -25,10 +25,16 @@ def amount_in_rials(amount_minor_units, currency):
     amount = int(amount_minor_units)
     if amount <= 0:
         raise ZarinpalError("مبلغ سفارش معتبر نیست.")
+    # The catalog stores amounts in hundredths of the displayed currency
+    # (e.g. USD 1999 means USD 19.99). Zarinpal accepts whole Rials.
     if currency == "IRR":
-        return amount
+        if amount % 100:
+            raise ZarinpalError("مبلغ ریالی باید مضرب ۱۰۰ واحد ذخیره‌شده باشد.")
+        return amount // 100
     if currency == "IRT":
-        return amount * 10
+        if amount % 10:
+            raise ZarinpalError("مبلغ تومانی برای تبدیل به ریال دقیق نیست.")
+        return amount // 10
     raise ZarinpalError("زرین‌پال فقط برای سفارش‌های ریالی یا تومانی فعال است.")
 
 
