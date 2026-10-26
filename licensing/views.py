@@ -17,7 +17,6 @@ from .services import activate_license, deactivate_license, validate_license
 RATE_LIMIT = 60
 RATE_WINDOW_SECONDS = 60
 MAX_BODY_BYTES = 16 * 1024
-OFFLINE_LEASE_SECONDS = 30 * 24 * 60 * 60
 LEASE_SCHEMA = 1
 
 
@@ -49,7 +48,10 @@ def _sign_offline_lease(license_obj, device_fingerprint):
     subscription = license_obj.subscription
     # The subscription end date is authoritative. A lease can never outlive it.
     entitlement_end = int(subscription.expires_at.timestamp())
-    expires_at = min(now + OFFLINE_LEASE_SECONDS, entitlement_end)
+    # The lease matches the full purchased subscription term. This improves
+    # offline usability but means an offline device cannot learn about a revocation
+    # until it next reaches the server.
+    expires_at = entitlement_end
     if expires_at <= now:
         return None
     payload = {
