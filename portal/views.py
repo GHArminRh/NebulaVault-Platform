@@ -149,7 +149,8 @@ def cart_add(request, plan_id):
         messages.success(request, f"طرح «{plan.name}» به سبد خرید اضافه شد.")
     else:
         messages.info(request, f"طرح «{plan.name}» از قبل در سبد خرید شماست.")
-    return redirect("portal:cart")
+    # Keep the customer on the pricing page so they can add more plans.
+    return redirect("portal:pricing")
 
 
 def cart(request):
@@ -178,7 +179,7 @@ def cart(request):
         "cart_plans": plans,
         "cart_totals": currency_totals,
         "cart_count": len(plans),
-        "mock_payments_enabled": getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG),
+        "mock_payments_enabled": bool(settings.DEBUG and getattr(settings, "NEBULA_MOCK_PAYMENTS", False)),
     })
 
 
@@ -214,7 +215,7 @@ def checkout(request):
     if request.method != "POST":
         return redirect("portal:cart")
 
-    if not getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG):
+    if not (settings.DEBUG and getattr(settings, "NEBULA_MOCK_PAYMENTS", False)):
         messages.error(request, "پرداخت آزمایشی غیرفعال است. پس از فعال‌شدن درگاه پرداخت دوباره تلاش کنید.")
         return redirect("portal:cart")
 
