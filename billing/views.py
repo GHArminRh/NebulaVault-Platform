@@ -108,3 +108,40 @@ def zarinpal_callback(request):
             "success": False, "message": f"تأیید پرداخت انجام نشد: {exc}",
             "order": attempt.order,
         }, status=400)
+
+
+@login_required
+@require_POST
+def pay_existing_order(request, order_number):
+    """Start a real Zarinpal attempt for the signed-in user's pending order."""
+    order = get_object_or_404(
+        PaymentOrder.objects.select_related("plan", "plan__product"),
+        order_number=order_number,
+        user=request.user,
+        status=PaymentOrder.Status.PENDING,
+    )
+    if not getattr(settings, "ZARINPAL_ENABLED", True):
+        messages.error(request, "درگاه زرین‌پال در حال حاضر غیرفعال است.")
+        return redirect("portal:orders")
+    try:
+        amount = amount_in_rials(order.amount_minor_units, order.currency)
+        attempt = create_payment_attempt(
+            user=request.user,
+            order_id=order.pk,
+            provider="zarinpal",
+            idempotency_key=uuid.uuid4(),
+        )
+        callback_url = request.build_absolute_uri(reverse("billing:zarinpal_callback"))
+        authority, payment_url = request_payment(
+            amount=amount,
+            description=f"Nebula Vault order {order.order_number}",
+            callback_url=callback_url,
+            email=getattr(request.user, "email", None),
+        )
+        attempt.provider_reference = authority
+        attempt.status = PaymentAttempt.Status.PENDING
+        attempt.save(update_fields=["provider_reference", "status", "updated_at"])
+        return redirect(payment_url)
+    except (PaymentAttemptCreationError, ZarinpalError, ValueError) as exc:
+        messages.error(request, f"شروع پرداخت سفارش ممکن نشد: {exc}")
+        return redirect("portal:orders")
