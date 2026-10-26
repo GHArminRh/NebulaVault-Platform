@@ -110,8 +110,8 @@ def zarinpal_start(request, order_id):
             if attempt.provider != "zarinpal":
                 raise ZarinPalGatewayError("تلاش پرداخت متعلق به درگاه زرین‌پال نیست.")
 
-            if attempt.provider_authority:
-                client_url = _existing_payment_url(attempt.provider_authority)
+            if attempt.provider_reference:
+                client_url = _existing_payment_url(attempt.provider_reference)
                 payment_url = client_url
             elif attempt.status in {
                 PaymentAttempt.Status.CANCELED,
@@ -139,10 +139,10 @@ def zarinpal_start(request, order_id):
                         ),
                         email=getattr(attempt.order.user, "email", ""),
                     )
-                    attempt.provider_authority = authority
+                    attempt.provider_reference = authority
                     attempt.status = PaymentAttempt.Status.PENDING
                     attempt.save(
-                        update_fields=["provider_authority", "status", "updated_at"]
+                        update_fields=["provider_reference", "status", "updated_at"]
                     )
                 except ZarinPalGatewayError as exc:
                     attempt.status = PaymentAttempt.Status.FAILED
@@ -198,7 +198,7 @@ def zarinpal_callback(request):
         .filter(pk=attempt_id, provider="zarinpal")
         .first()
     )
-    if attempt is None or not attempt.provider_authority or authority != attempt.provider_authority:
+    if attempt is None or not attempt.provider_reference or authority != attempt.provider_reference:
         logger.warning("ZarinPal callback did not match a known payment attempt")
         return _payment_result(
             request,
@@ -242,7 +242,7 @@ def zarinpal_callback(request):
     try:
         provider_reference = verify_payment(
             amount_irr=attempt.amount_minor_units,
-            authority=attempt.provider_authority,
+            authority=attempt.provider_reference,
         )
         finalized = finalize_payment(
             attempt_id=attempt.pk,
