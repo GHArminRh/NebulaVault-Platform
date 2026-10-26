@@ -1,0 +1,33 @@
+{% extends 'portal/base.html' %}
+{% load money %}
+{% block title %}شبیه‌ساز پرداخت — نبیولا والت{% endblock %}
+{% block content %}
+<section class="page-hero page-wrap">
+  <div class="eyebrow">محیط توسعه · بدون تراکنش واقعی</div>
+  <h1>شبیه‌ساز پرداخت <span class="gradient-text">محلی</span></h1>
+  <p>این صفحه فقط برای آزمایش جریان سفارش، پرداخت و صدور لایسنس است. به زرین‌پال متصل نیست و هیچ پولی جابه‌جا نمی‌شود.</p>
+</section>
+<section class="section page-wrap compact-section">
+  <article class="pricing-card" style="max-width:680px;margin:0 auto">
+    <div class="card-kicker">{{ attempt.order.plan.product.name }}</div>
+    <h2>{{ attempt.order.plan.name }}</h2>
+    <div class="price-line"><strong>{{ attempt.amount_minor_units|money }}</strong><span>{{ attempt.currency }}</span></div>
+    <p class="muted-small">شماره سفارش: {{ attempt.order.order_number }}</p>
+    <p class="notice-line">برای آزمایش هر دو مسیر، یکی از گزینه‌های زیر را انتخاب کن. گزینه موفق، پرداخت را در دیتابیس آزمایشی تأیید و دسترسی را فعال می‌کند؛ گزینه ناموفق نباید دسترسی ایجاد کند.</p>
+    {% if error %}<p class="notice-line">{{ error }}</p>{% endif %}
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px">
+      <form method="post" action="{% url 'billing:local_simulator_complete' attempt.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="simulation_result" value="success">
+        <button class="button button-primary" type="submit">شبیه‌سازی پرداخت موفق ✓</button>
+      </form>
+      <form method="post" action="{% url 'billing:local_simulator_complete' attempt.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="simulation_result" value="failure">
+        <button class="button button-secondary" type="submit">شبیه‌سازی پرداخت ناموفق ×</button>
+      </form>
+    </div>
+    <p class="cart-note">این قابلیت فقط وقتی DEBUG و NEBULA_MOCK_PAYMENTS فعال باشند کار می‌کند.</p>
+  </article>
+</section>
+{% endblock %}
