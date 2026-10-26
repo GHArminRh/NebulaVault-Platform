@@ -122,7 +122,8 @@ class LicenseServiceTests(LicenseFixtures, TestCase):
             reactivated = activate_license(
                 self.plaintext_key, "device-fingerprint-primary", "Desktop", "1.0.0"
             )
-        self.assertTrue(reactivated.ok)
+        self.assertFalse(reactivated.ok)
+        self.assertEqual(reactivated.code, "device_deactivated")
         self.subscription.refresh_from_db()
         self.assertEqual(self.subscription.expires_at, original_expiry)
 
@@ -133,6 +134,10 @@ class LicenseServiceTests(LicenseFixtures, TestCase):
         self.assertFalse(result.ok)
         self.assertEqual(result.code, "device_limit_reached")
         self.assertTrue(deactivate_license(self.plaintext_key, "device-fingerprint-0001").ok)
+        self.assertEqual(
+            activate_license(self.plaintext_key, "device-fingerprint-0001").code,
+            "device_deactivated",
+        )
         self.assertTrue(activate_license(self.plaintext_key, "device-fingerprint-0003").ok)
 
     def test_suspended_license_cannot_activate_or_validate(self):

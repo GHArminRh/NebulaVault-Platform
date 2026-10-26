@@ -1,4 +1,5 @@
 from django.contrib import admin, messages
+from django.utils import timezone
 
 from .models import License, LicenseActivation
 from .services import generate_license_key, _key_digest, _save_encrypted_key
@@ -92,13 +93,20 @@ class LicenseActivationAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "first_activated_at", "license__status")
     search_fields = ("license__subscription__user__email", "device_label", "app_version")
     list_select_related = ("license", "license__subscription", "license__subscription__user")
-    readonly_fields = ("license", "fingerprint_digest", "device_label", "app_version", "first_activated_at", "last_seen_at", "deactivated_at", "is_active")
+    readonly_fields = ("license", "fingerprint_digest", "device_label", "app_version", "first_activated_at", "last_seen_at", "deactivated_at")
 
     def has_add_permission(self, request):
         return False
 
-    def has_change_permission(self, request, obj=None):
-        return super().has_view_permission(request, obj)
-
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def save_model(self, request, obj, form, change):
+        # Keep the activation status and its audit timestamp consistent when an
+        # administrator manually enables or disables a device.
+        if "is_active" in form.changed_data:
+            if obj.is_active:
+                obj.deactivated_at = None
+            else:
+                obj.deactivated_at = timezone.now()
+        super().save_model(request, obj, form, change)

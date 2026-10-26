@@ -8,6 +8,17 @@ echo ==========================================
 echo      Nebula Vault - Launcher
 echo ==========================================
 echo.
+echo The signing key will be requested securely; it will not be saved to a file.
+echo.
+set "NEBULA_LICENSE_SIGNING_PRIVATE_KEY="
+for /f "usebackq delims=" %%K in (`powershell -NoProfile -Command "$s=Read-Host 'Enter NEBULA_LICENSE_SIGNING_PRIVATE_KEY' -AsSecureString; $p=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($s); try { [Runtime.InteropServices.Marshal]::PtrToStringBSTR($p) } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($p) }"`) do set "NEBULA_LICENSE_SIGNING_PRIVATE_KEY=%%K"
+if not defined NEBULA_LICENSE_SIGNING_PRIVATE_KEY (
+  echo ERROR: No signing key was entered. Startup cancelled.
+  pause
+  exit /b 1
+)
+echo Signing key received. It will be available only to this launcher and its child processes.
+echo.
 
 set "PYTHON_CMD="
 where py >nul 2>nul
