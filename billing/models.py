@@ -139,7 +139,7 @@ class PaymentAttempt(models.Model):
         blank=True,
     )
 
-    # Unique key for identifying retries of the same payment request.
+    # Zarinpal Authority is distinct from the final verified RefID.\n    provider_authority = models.CharField(max_length=255, null=True, blank=True)\n\n    # Unique key for identifying retries of the same payment request.
     idempotency_key = models.UUIDField(
         default=uuid.uuid4,
         unique=True,
