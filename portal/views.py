@@ -105,9 +105,22 @@ def orders(request):
     pending_keys = request.session.pop("nebula_new_license_keys", {})
     if not isinstance(pending_keys, dict):
         pending_keys = {}
+    mock_payments = getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG)
+    zarinpal_enabled = bool(getattr(settings, "ZARINPAL_ENABLED", False)) and not mock_payments
     for item in items:
         item.issued_license_key = pending_keys.get(str(item.order_number))
-    return render(request, "portal/orders.html", {"orders": items})
+        item.can_pay_zarinpal = (
+            zarinpal_enabled
+            and item.status == PaymentOrder.Status.PENDING
+            and item.currency == "IRR"
+            and item.amount_minor_units >= 1000
+        )
+        item.payment_request_key = uuid.uuid4()
+    return render(request, "portal/orders.html", {
+        "orders": items,
+        "zarinpal_enabled": zarinpal_enabled,
+        "mock_payments_enabled": mock_payments,
+    })
 
 @login_required
 def create_order(request, plan_id):
@@ -121,7 +134,7 @@ def create_order(request, plan_id):
     except OrderCreationError as exc:
         messages.error(request, str(exc))
         return redirect("portal:product_detail", slug=plan.product.slug)
-    messages.success(request, f"سفارش {order.order_number} ثبت شد، اما پردازش پرداخت هنوز متصل نشده است.")
+    messages.success(request, f"سفارش {order.order_number} ثبت شد. برای پرداخت، از صفحه سفارش‌ها اقدام کنید.")
     return redirect("portal:orders")
 
 def _cart_plan_ids(request):
@@ -179,6 +192,8 @@ def cart(request):
         "cart_totals": currency_totals,
         "cart_count": len(plans),
         "mock_payments_enabled": getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG),
+        "zarinpal_enabled": bool(getattr(settings, "ZARINPAL_ENABLED", False))
+        and not getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG),
     })
 
 
@@ -214,8 +229,10 @@ def checkout(request):
     if request.method != "POST":
         return redirect("portal:cart")
 
-    if not getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG):
-        messages.error(request, "پرداخت آزمایشی غیرفعال است. پس از فعال‌شدن درگاه پرداخت دوباره تلاش کنید.")
+    mock_payments = getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG)
+    zarinpal_enabled = bool(getattr(settings, "ZARINPAL_ENABLED", False))
+    if not mock_payments and not zarinpal_enabled:
+        messages.error(request, "درگاه پرداخت هنوز در تنظیمات سرور فعال نشده است.")
         return redirect("portal:cart")
 
     plan_ids = _cart_plan_ids(request)
@@ -234,6 +251,55 @@ def checkout(request):
         messages.error(request, "یک یا چند مورد دیگر در دسترس نیستند. لطفاً سبد خرید را بررسی کنید.")
         request.session["nebula_cart"] = [str(plan.pk) for plan in plans]
         return redirect("portal:cart")
+
+    # Live/sandbox ZarinPal checkout creates one order per cart plan. Each order
+    # is paid separately from the orders page so every gateway request is tied
+    # to one immutable server-side amount and currency.
+    if not mock_payments:
+        invalid_plans = [
+            plan for plan in plans
+            if plan.currency != "IRR" or plan.price_minor_units < 1000
+        ]
+        if invalid_plans:
+            messages.error(
+                request,
+                "پرداخت زرین‌پال فقط برای طرح‌های دارای واحد IRR و مبلغ دست‌کم ۱۰۰۰ ریال ممکن است. "
+                "قیمت/واحد پول طرح‌های انتخاب‌شده را در پنل مدیریت اصلاح کنید.",
+            )
+            return redirect("portal:cart")
+
+        created_orders = []
+        try:
+            with transaction.atomic():
+                for plan in plans:
+                    pending = list(
+                        PaymentOrder.objects.filter(
+                            user=request.user,
+                            plan=plan,
+                            status=PaymentOrder.Status.PENDING,
+                        ).order_by("-created_at")[:2]
+                    )
+                    if len(pending) > 1:
+                        raise OrderCreationError(
+                            "برای یکی از طرح‌ها چند سفارش در انتظار وجود دارد. "
+                            "پیش از پرداخت، فهرست سفارش‌ها را بررسی کنید."
+                        )
+                    order = pending[0] if pending else create_payment_order(
+                        user=request.user,
+                        plan_id=plan.pk,
+                        idempotency_key=uuid.uuid4(),
+                    )
+                    created_orders.append(order)
+        except (OrderCreationError, PaymentAttemptCreationError, PaymentFinalizationError) as exc:
+            messages.error(request, f"ایجاد سفارش ممکن نشد: {exc}")
+            return redirect("portal:cart")
+
+        request.session["nebula_cart"] = []
+        messages.success(
+            request,
+            f"{len(created_orders)} سفارش آماده شد. برای هر سفارش، از صفحه سفارش‌ها پرداخت زرین‌پال را جداگانه انجام دهید.",
+        )
+        return redirect("portal:orders")
 
     completed_orders = []
     newly_issued_license_keys = {}
