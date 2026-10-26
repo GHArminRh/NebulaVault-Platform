@@ -122,8 +122,6 @@ LOGOUT_REDIRECT_URL = "portal:home"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media/"
 
-# Mock checkout is disabled by default and is only usable while DEBUG=True.
-NEBULA_MOCK_PAYMENTS = os.environ.get("NEBULA_MOCK_PAYMENTS", "False").lower() == "true"
 
 # Zarinpal v4 gateway. Live mode is the default; set ZARINPAL_SANDBOX=True only for sandbox credentials.
 ZARINPAL_MERCHANT_ID = os.environ.get("ZARINPAL_MERCHANT_ID", "").strip()
