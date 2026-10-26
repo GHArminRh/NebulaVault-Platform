@@ -178,7 +178,11 @@ def cart(request):
         "cart_plans": plans,
         "cart_totals": currency_totals,
         "cart_count": len(plans),
-        "mock_payments_enabled": getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG),
+        "mock_payments_enabled": bool(settings.DEBUG and getattr(settings, "NEBULA_MOCK_PAYMENTS", False)),
+        "zarinpal_enabled": bool(
+            getattr(settings, "ZARINPAL_ENABLED", False)
+            and getattr(settings, "ZARINPAL_MERCHANT_ID", "").strip()
+        ),
     })
 
 
@@ -214,7 +218,7 @@ def checkout(request):
     if request.method != "POST":
         return redirect("portal:cart")
 
-    if not getattr(settings, "NEBULA_MOCK_PAYMENTS", settings.DEBUG):
+    if not (settings.DEBUG and getattr(settings, "NEBULA_MOCK_PAYMENTS", False)):
         messages.error(request, "پرداخت آزمایشی غیرفعال است. پس از فعال‌شدن درگاه پرداخت دوباره تلاش کنید.")
         return redirect("portal:cart")
 
