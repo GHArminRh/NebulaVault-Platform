@@ -55,3 +55,64 @@ class ZarinpalApiTests(SimpleTestCase):
         urlopen.return_value = response
         with self.assertRaises(ZarinpalError):
             verify_payment(authority="A123", amount=100000)
+
+
+class ZarinpalLiveModeTests(SimpleTestCase):
+    @override_settings(
+        ZARINPAL_MERCHANT_ID="merchant-test",
+        ZARINPAL_SANDBOX=False,
+    )
+    @patch("billing.zarinpal.urllib.request.urlopen")
+    def test_live_request_uses_production_endpoint(self, urlopen):
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = json.dumps({
+            "data": {"code": 100, "authority": "LIVE123"}, "errors": []
+        }).encode()
+        urlopen.return_value = response
+
+        authority, url = request_payment(
+            amount=1200,
+            description="Live order",
+            callback_url="https://example.test/billing/zarinpal/callback/",
+            email="buyer@example.test",
+        )
+
+        self.assertEqual(authority, "LIVE123")
+        self.assertEqual(url, "https://www.zarinpal.com/pg/StartPay/LIVE123")
+        request = urlopen.call_args.args[0]
+        self.assertTrue(request.full_url.startswith(
+            "https://payment.zarinpal.com/pg/v4/payment/request.json"
+        ))
+        payload = json.loads(request.data.decode("utf-8"))
+        self.assertEqual(payload["merchant_id"], "merchant-test")
+        self.assertEqual(payload["amount"], 1200)
+        self.assertEqual(payload["metadata"]["email"], "buyer@example.test")
+
+    @override_settings(ZARINPAL_MERCHANT_ID="sandbox-merchant", ZARINPAL_SANDBOX=True)
+    @patch("billing.zarinpal.urllib.request.urlopen")
+    def test_verify_accepts_already_verified_callback(self, urlopen):
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = json.dumps({
+            "data": {"code": 101, "ref_id": 987654}, "errors": []
+        }).encode()
+        urlopen.return_value = response
+
+        result = verify_payment(authority="A123", amount=100000)
+
+        self.assertEqual(result["code"], 101)
+        self.assertEqual(result["ref_id"], "987654")
+
+    @override_settings(ZARINPAL_MERCHANT_ID="", ZARINPAL_SANDBOX=False)
+    def test_request_fails_clearly_when_merchant_id_is_missing(self):
+        with self.assertRaisesRegex(ZarinpalError, "شناسه پذیرنده"):
+            request_payment(
+                amount=1200,
+                description="Order",
+                callback_url="https://example.test/callback/",
+            )
+
+    def test_inexact_currency_amounts_are_rejected(self):
+        with self.assertRaises(ZarinpalError):
+            amount_in_rials(120001, "IRR")
+        with self.assertRaises(ZarinpalError):
+            amount_in_rials(12001, "IRT")
