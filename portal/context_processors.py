@@ -1,10 +1,36 @@
+from collections import defaultdict
+
+from catalog.models import Plan
+
+
 def cart_context(request):
-    """Expose cart count globally and license data only on the customer dashboard."""
+    """Expose the cart count and a compact, validated cart preview site-wide."""
     raw_ids = request.session.get("nebula_cart", [])
     if not isinstance(raw_ids, list):
-        context = {"cart_count": 0}
+        plan_ids = []
     else:
-        context = {"cart_count": len({str(value) for value in raw_ids if value})}
+        plan_ids = list(dict.fromkeys(str(value) for value in raw_ids if value))
+
+    plans = list(
+        Plan.objects.filter(
+            pk__in=plan_ids,
+            is_active=True,
+            product__is_active=True,
+        ).select_related("product")
+    ) if plan_ids else []
+    totals = defaultdict(int)
+    for plan in plans:
+        totals[plan.currency] += plan.price_minor_units
+
+    context = {
+        "cart_count": len(plans),
+        "cart_preview_plans": plans[:4],
+        "cart_preview_totals": [
+            {"currency": currency, "amount_minor_units": amount}
+            for currency, amount in sorted(totals.items())
+        ],
+        "cart_preview_has_more": len(plans) > 4,
+    }
 
     if (
         getattr(request, "user", None)
