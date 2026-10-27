@@ -135,7 +135,11 @@ else:
             else "django.core.mail.backends.smtp.EmailBackend"
         )
     )
-EMAIL_BACKEND = os.environ.get("DJANGO_EMAIL_BACKEND", _default_email_backend)
+if os.environ.get("RESEND_API_KEY", "").strip():
+    EMAIL_BACKEND = "accounts.email_backends.ResendEmailBackend"
+else:
+    EMAIL_BACKEND = os.environ.get("DJANGO_EMAIL_BACKEND", _default_email_backend)
+
 if os.environ.get("RESEND_API_KEY", "").strip():
     # A legacy Gmail sender may still exist in Render's environment; don't
     # accidentally send through Resend using that unrelated sender address.
