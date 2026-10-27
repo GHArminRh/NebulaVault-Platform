@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: nebula-vault
+    runtime: python
+    plan: free
+    buildCommand: bash build.sh
+    startCommand: python manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120
+    healthCheckPath: /
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://*.onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nebula-vault-db
+          property: connectionString
+      - key: ZARINPAL_ENABLED
+        value: "False"
+      - key: ZARINPAL_SANDBOX
+        value: "True"
+
+databases:
+  - name: nebula-vault-db
+    plan: free
+    databaseName: nebula_vault
+    user: nebula_vault_user
