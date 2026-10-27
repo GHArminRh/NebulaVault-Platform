@@ -116,27 +116,48 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "login"
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "").strip()
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-# Prefer Resend's HTTPS API when its key is configured; this avoids SMTP port
-# restrictions on hosts such as Render. SMTP remains available as a fallback.
-if os.environ.get("RESEND_API_KEY", "").strip():
-    _default_email_backend = "accounts.email_backends.ResendEmailBackend"
-else:
-    _default_email_backend = (
-        "django.core.mail.backends.smtp.EmailBackend"
-        if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD
-        else ("django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend")
-    )
-EMAIL_BACKEND = os.environ.get("DJANGO_EMAIL_BACKEND", _default_email_backend)
-DEFAULT_FROM_EMAIL = os.environ.get(
-    "DJANGO_DEFAULT_FROM_EMAIL",
-    os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
-    if os.environ.get("RESEND_API_KEY", "").strip()
-    else (EMAIL_HOST_USER or "Nebula Vault <no-reply@localhost>"),
-)
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").lower() == "true"
 EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", "15"))
+
+# Provider selection is configurable without changing application code.
+# EMAIL_PROVIDER=auto detects a configured API key; explicit values are
+# resend, brevo, mailersend, smtp or console. The legacy DJANGO_EMAIL_BACKEND
+# override is preserved for backward compatibility.
+_EMAIL_PROVIDER_BACKENDS = {
+    "resend": "accounts.email_backends.ResendEmailBackend",
+    "brevo": "accounts.email_backends.BrevoEmailBackend",
+    "mailersend": "accounts.email_backends.MailerSendEmailBackend",
+    "smtp": "django.core.mail.backends.smtp.EmailBackend",
+    "console": "django.core.mail.backends.console.EmailBackend",
+}
+_email_provider = os.environ.get("EMAIL_PROVIDER", "auto").strip().lower()
+if _email_provider == "auto":
+    if os.environ.get("RESEND_API_KEY", "").strip():
+        _email_provider = "resend"
+    elif os.environ.get("BREVO_API_KEY", "").strip():
+        _email_provider = "brevo"
+    elif os.environ.get("MAILERSEND_API_KEY", "").strip():
+        _email_provider = "mailersend"
+    elif EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+        _email_provider = "smtp"
+    else:
+        _email_provider = "console" if DEBUG else "smtp"
+if _email_provider not in _EMAIL_PROVIDER_BACKENDS:
+    raise ValueError(
+        "EMAIL_PROVIDER must be one of: auto, resend, brevo, mailersend, smtp, console"
+    )
+_default_email_backend = _EMAIL_PROVIDER_BACKENDS[_email_provider]
+EMAIL_BACKEND = os.environ.get("DJANGO_EMAIL_BACKEND", _default_email_backend)
+
+_provider_default_from = {
+    "resend": os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev"),
+    "brevo": os.environ.get("BREVO_FROM_EMAIL", ""),
+    "mailersend": os.environ.get("MAILERSEND_FROM_EMAIL", ""),
+}.get(_email_provider, EMAIL_HOST_USER or "Nebula Vault <no-reply@localhost>")
+DEFAULT_FROM_EMAIL = os.environ.get("DJANGO_DEFAULT_FROM_EMAIL", _provider_default_from)
+EMAIL_API_TIMEOUT = int(os.environ.get("EMAIL_API_TIMEOUT", "15"))
 PASSWORD_RESET_TIMEOUT = int(os.environ.get("PASSWORD_RESET_TIMEOUT", "86400"))
 LOGIN_REDIRECT_URL = "portal:dashboard"
 LOGOUT_REDIRECT_URL = "portal:home"
