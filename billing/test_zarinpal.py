@@ -14,6 +14,12 @@ class ZarinpalAmountTests(SimpleTestCase):
     def test_toman_amount_is_converted_to_rials(self):
         self.assertEqual(amount_in_rials(12000, "IRT"), 1200)
 
+    def test_amount_below_gateway_minimum_is_rejected_before_request(self):
+        with self.assertRaisesRegex(ZarinpalError, "حداقل مبلغ قابل پرداخت"):
+            amount_in_rials(10000, "IRR")  # 100 Rials after conversion
+        with self.assertRaisesRegex(ZarinpalError, "حداقل مبلغ قابل پرداخت"):
+            amount_in_rials(9990, "IRT")  # 999 Rials after conversion
+
     def test_other_currency_is_rejected(self):
         with self.assertRaises(ZarinpalError):
             amount_in_rials(12000, "USD")
@@ -29,7 +35,7 @@ class ZarinpalApiTests(SimpleTestCase):
         }).encode()
         urlopen.return_value = response
         authority, url = request_payment(
-            amount=100000, description="Test order",
+            amount=1000, description="Test order",
             callback_url="https://example.test/billing/zarinpal/callback/",
         )
         self.assertEqual(authority, "A123")
@@ -49,7 +55,7 @@ class ZarinpalApiTests(SimpleTestCase):
         with self.assertLogs("billing.zarinpal", level="WARNING") as captured:
             with self.assertRaisesRegex(ZarinpalError, "HTTP 422"):
                 request_payment(
-                    amount=100000, description="Test order",
+                    amount=1000, description="Test order",
                     callback_url="https://private.example/cb?token=secret",
                 )
         log_text = "\n".join(captured.output)
@@ -66,7 +72,7 @@ class ZarinpalApiTests(SimpleTestCase):
             "data": {"code": 100, "ref_id": 987654}, "errors": []
         }).encode()
         urlopen.return_value = response
-        result = verify_payment(authority="A123", amount=100000)
+        result = verify_payment(authority="A123", amount=1000)
         self.assertEqual(result["ref_id"], "987654")
 
     @patch("billing.zarinpal.urllib.request.urlopen")
@@ -77,7 +83,7 @@ class ZarinpalApiTests(SimpleTestCase):
         }).encode()
         urlopen.return_value = response
         with self.assertRaises(ZarinpalError):
-            verify_payment(authority="A123", amount=100000)
+            verify_payment(authority="A123", amount=1000)
 
 
 class ZarinpalLiveModeTests(SimpleTestCase):
@@ -120,7 +126,7 @@ class ZarinpalLiveModeTests(SimpleTestCase):
         }).encode()
         urlopen.return_value = response
 
-        result = verify_payment(authority="A123", amount=100000)
+        result = verify_payment(authority="A123", amount=1000)
 
         self.assertEqual(result["code"], 101)
         self.assertEqual(result["ref_id"], "987654")

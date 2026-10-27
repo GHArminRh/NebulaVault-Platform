@@ -8,6 +8,7 @@ import urllib.request
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+ZARINPAL_MINIMUM_AMOUNT_RIALS = 1000
 
 
 class ZarinpalError(Exception):
@@ -24,22 +25,30 @@ def _config():
 
 
 def amount_in_rials(amount_minor_units, currency):
-    """Convert the order's whole-unit IRR/IRT amount to the Rial API amount."""
+    """Convert the catalog's stored amount to whole Rials accepted by Zarinpal."""
     currency = (currency or "").upper()
     amount = int(amount_minor_units)
     if amount <= 0:
         raise ZarinpalError("مبلغ سفارش معتبر نیست.")
-    # The catalog stores amounts in hundredths of the displayed currency
-    # (e.g. USD 1999 means USD 19.99). Zarinpal accepts whole Rials.
+    # Catalog prices are stored in hundredths of the displayed currency.
     if currency == "IRR":
         if amount % 100:
             raise ZarinpalError("مبلغ ریالی باید مضرب ۱۰۰ واحد ذخیره‌شده باشد.")
-        return amount // 100
-    if currency == "IRT":
+        amount_rials = amount // 100
+    elif currency == "IRT":
         if amount % 10:
             raise ZarinpalError("مبلغ تومانی برای تبدیل به ریال دقیق نیست.")
-        return amount // 10
-    raise ZarinpalError("زرین‌پال فقط برای سفارش‌های ریالی یا تومانی فعال است.")
+        amount_rials = amount // 10
+    else:
+        raise ZarinpalError("زرین‌پال فقط برای سفارش‌های ریالی یا تومانی فعال است.")
+
+    # Never silently inflate the amount: require a valid catalog price instead.
+    if amount_rials < ZARINPAL_MINIMUM_AMOUNT_RIALS:
+        raise ZarinpalError(
+            "حداقل مبلغ قابل پرداخت در زرین‌پال ۱۰۰۰ ریال است. "
+            "قیمت طرح را در پنل مدیریت اصلاح کنید و دوباره تلاش کنید."
+        )
+    return amount_rials
 
 
 def _safe_gateway_error_details(raw_body):
@@ -67,7 +76,6 @@ def _safe_gateway_error_details(raw_body):
             message = "; ".join(str(part) for part in message[:3])
         if message is not None:
             message = str(message)
-            # Avoid leaking customer details or request credentials if echoed by the gateway.
             message = re.sub(r"https?://\S+", "[url]", message, flags=re.IGNORECASE)
             message = re.sub(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", "[email]", message)
             message = re.sub(r"\b[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\b", "[uuid]", message, flags=re.IGNORECASE)
@@ -151,13 +159,15 @@ def request_payment(*, amount, description, callback_url, email=None, mobile=Non
 
 def verify_payment(*, authority, amount):
     merchant_id, base, _ = _config()
+    amount = int(amount)
+    if amount < ZARINPAL_MINIMUM_AMOUNT_RIALS:
+        raise ZarinpalError("مبلغ تأیید پرداخت کمتر از حداقل ۱۰۰۰ ریال است.")
     result = _post_json(
         f"{base}/pg/v4/payment/verify.json",
-        {"merchant_id": merchant_id, "amount": int(amount), "authority": authority},
+        {"merchant_id": merchant_id, "amount": amount, "authority": authority},
     )
     data = result.get("data") or {}
     code = data.get("code")
-    # 101 means this authority has already been verified by the gateway.
     if code not in (100, 101):
         raise ZarinpalError("تأیید پرداخت از طرف زرین‌پال انجام نشد. کد: " + str(code or "نامشخص"))
     return {"code": code, "ref_id": str(data.get("ref_id", "")), "data": data}
