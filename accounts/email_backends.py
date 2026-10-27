@@ -215,10 +215,13 @@ class BrevoEmailBackend(ProviderEmailBackend):
             "sender": data["sender"],
             "to": data["to"],
             "subject": data["subject"],
-            "textContent": data["text"],
         }
+        # Brevo documents htmlContent and textContent as mutually exclusive
+        # body modes for a raw-content request, so prefer HTML when available.
         if data["html"] is not None:
             payload["htmlContent"] = data["html"]
+        else:
+            payload["textContent"] = data["text"]
         if data["cc"]:
             payload["cc"] = data["cc"]
         if data["bcc"]:
