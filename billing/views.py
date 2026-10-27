@@ -17,6 +17,65 @@ from .services import (
 from .zarinpal import ZarinpalError, amount_in_rials, request_payment, verify_payment
 
 
+def _replace_stale_single_plan_order(order, user):
+    """Cancel an unpaid single-plan order when its catalog price has changed.
+
+    Orders remain immutable snapshots. Instead of changing an order or attempt
+    amount in place, create a fresh order at the current catalog price. Only
+    attempts that never obtained a provider reference can be safely canceled.
+    Cart orders and subscription renewals retain their own snapshot semantics.
+    """
+    with transaction.atomic():
+        locked_order = (
+            PaymentOrder.objects.select_for_update()
+            .select_related("plan")
+            .get(pk=order.pk, user=user)
+        )
+        if (
+            locked_order.status != PaymentOrder.Status.PENDING
+            or locked_order.subscription_id is not None
+            or locked_order.items.exists()
+        ):
+            return locked_order
+
+        plan = Plan.objects.select_for_update().get(pk=locked_order.plan_id)
+        if (
+            locked_order.amount_minor_units == plan.price_minor_units
+            and locked_order.currency.upper() == plan.currency.upper()
+        ):
+            return locked_order
+
+        attempts = list(locked_order.payment_attempts.select_for_update().all())
+        safe_to_cancel = {
+            PaymentAttempt.Status.CREATED,
+            PaymentAttempt.Status.FAILED,
+            PaymentAttempt.Status.CANCELED,
+        }
+        if any(
+            attempt.provider_reference
+            or attempt.status not in safe_to_cancel
+            for attempt in attempts
+        ):
+            raise PaymentAttemptCreationError(
+                "قیمت طرح تغییر کرده، اما سفارش قبلی یک تلاش پرداخت فعال یا دارای شناسه درگاه دارد. "
+                "برای جلوگیری از پرداخت با مبلغ نادرست، این سفارش به‌طور خودکار جایگزین نشد."
+            )
+
+        for attempt in attempts:
+            if attempt.status != PaymentAttempt.Status.CANCELED:
+                attempt.status = PaymentAttempt.Status.CANCELED
+                attempt.save(update_fields=["status", "updated_at"])
+
+        locked_order.status = PaymentOrder.Status.CANCELED
+        locked_order.save(update_fields=["status", "updated_at"])
+
+        return create_payment_order(
+            user=user,
+            plan_id=plan.pk,
+            idempotency_key=uuid.uuid4(),
+        )
+
+
 @login_required
 @require_POST
 def start_zarinpal_payment(request, plan_id):
@@ -35,6 +94,8 @@ def start_zarinpal_payment(request, plan_id):
             order = create_payment_order(
                 user=request.user, plan_id=plan.pk, idempotency_key=uuid.uuid4(),
             )
+        else:
+            order = _replace_stale_single_plan_order(order, request.user)
         amount = amount_in_rials(order.amount_minor_units, order.currency)
         attempt = create_payment_attempt(
             user=request.user, order_id=order.pk, provider="zarinpal",
@@ -168,6 +229,15 @@ def pay_existing_order(request, order_number):
         messages.error(request, "درگاه زرین‌پال در حال حاضر غیرفعال است.")
         return redirect("portal:orders")
     try:
+        original_order_id = order.pk
+        order = _replace_stale_single_plan_order(order, request.user)
+        if order.pk != original_order_id:
+            messages.info(
+                request,
+                "قیمت طرح تغییر کرده بود؛ سفارش قبلی لغو و سفارش تازه با قیمت فعلی ساخته شد. "
+                "لطفاً سفارش جدید را در فهرست سفارش‌ها پرداخت کنید.",
+            )
+            return redirect("portal:orders")
         amount = amount_in_rials(order.amount_minor_units, order.currency)
         attempt = create_payment_attempt(
             user=request.user,
