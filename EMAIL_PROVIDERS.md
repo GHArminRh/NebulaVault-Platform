@@ -1,47 +1,32 @@
-# Transactional email providers
+# Resend transactional email
 
-Nebula Vault uses Django's standard `send_mail` / `EmailMessage` APIs for account verification, password reset and other messages. The provider is selected through environment variables, so application views and Persian email templates do not need provider-specific code.
+Nebula Vault continues to use Django's standard `send_mail` and `EmailMessage` APIs for account verification, password reset and other messages. The custom backend sends messages to Resend over HTTPS, so outbound SMTP access and an extra Python package are not required.
 
-## Supported providers
+## Configuration
 
-| `EMAIL_PROVIDER` | Backend | Credential | Sender variable |
-| --- | --- | --- | --- |
-| `auto` | Detect configured API key | Resend, then Brevo, then MailerSend; SMTP if configured | Provider-specific |
-| `resend` | `accounts.email_backends.ResendEmailBackend` | `RESEND_API_KEY` | `RESEND_FROM_EMAIL` |
-| `brevo` | `accounts.email_backends.BrevoEmailBackend` | `BREVO_API_KEY` | `BREVO_FROM_EMAIL` |
-| `mailersend` | `accounts.email_backends.MailerSendEmailBackend` | `MAILERSEND_API_KEY` | `MAILERSEND_FROM_EMAIL` |
-| `smtp` | Django SMTP backend | `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` | `DJANGO_DEFAULT_FROM_EMAIL` |
-| `console` | Django console backend | None; development only | Not applicable |
+Set these variables on the Render web service:
 
-The API backends use HTTPS and Python's standard library, so no extra package is needed. They support text/HTML messages, recipient lists, CC/BCC, reply-to, custom headers where supported, and attachments. The backend returns a successful send count only after the provider accepts the request. Errors are logged and raised unless Django's `fail_silently=True` is used.
+- `RESEND_API_KEY`: secret API key from Resend. Keep it only in server-side environment settings.
+- `RESEND_FROM_EMAIL`: use `onboarding@resend.dev` only for restricted initial testing, or use an address on a domain verified in Resend.
+- `EMAIL_API_TIMEOUT`: optional timeout in seconds (default 15).
 
-## Render setup (Resend test)
+When `RESEND_API_KEY` is present, Django selects `accounts.email_backends.ResendEmailBackend` automatically and prioritizes `RESEND_FROM_EMAIL` over a legacy Gmail sender setting. If the key is absent, existing SMTP/console fallback behavior remains. `DJANGO_EMAIL_BACKEND` remains available as an explicit legacy override.
 
-1. Set `EMAIL_PROVIDER=resend` and `RESEND_API_KEY` in the Render service's environment.
-2. For initial testing, `RESEND_FROM_EMAIL=onboarding@resend.dev` may be used only within Resend's onboarding sender restrictions. It is not a production sender for arbitrary users.
-3. Use a recipient address verified/allowed by the Resend account and trigger the site's resend-verification flow. Check Resend Logs and Render logs if it fails.
-4. Before sending verification and password-reset emails to arbitrary users, add a domain you control in Resend, publish the DNS records Resend supplies, wait for verification, and set `RESEND_FROM_EMAIL` to a sender on that verified domain (for example `Nebula Vault <noreply@your-domain.example>`).
-5. Redeploy/restart the service after environment changes. Do not place API keys in source control, browser code, chat messages, or frontend settings.
+## First live test
 
-## Switching providers
+1. In Render, open the `nebula-vault` service and confirm `RESEND_API_KEY` is configured. Do not put the key in source control or chat.
+2. Set `RESEND_FROM_EMAIL=onboarding@resend.dev` for initial testing if the Resend account permits it.
+3. Redeploy/restart the service and use the account verification resend flow with a recipient Resend allows for the onboarding sender.
+4. Check Resend email logs and Render service logs for the API result.
 
-Set exactly one intended provider in `EMAIL_PROVIDER`, then configure its key and sender:
-- Resend: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
-- Brevo: `BREVO_API_KEY`, `BREVO_FROM_EMAIL`
-- MailerSend: `MAILERSEND_API_KEY`, `MAILERSEND_FROM_EMAIL`
+Important: `onboarding@resend.dev` is a restricted testing sender and is not suitable for sending public signup or password-reset messages to arbitrary users. For production, add a domain you control to Resend, publish the DNS records Resend provides, wait until the domain is verified, then set `RESEND_FROM_EMAIL` to an address on that domain. The Render-provided `onrender.com` subdomain is not a domain you control for this purpose.
 
-Each provider requires its own account approval and valid sender configuration. A sender/domain accepted by one provider is not automatically verified with another provider. API providers intentionally do not automatically retry the same email through a second provider after a timeout or error: the first provider may have accepted the message before the connection failed, and automatic failover could send duplicate verification/reset messages. Switch provider explicitly through environment configuration instead.
+## Features and troubleshooting
 
-## SMTP and local development
+The backend supports text and HTML alternatives, recipients, CC/BCC, reply-to, custom headers and attachments. It reports success only when Resend accepts a request. HTTP and network errors are logged and raised unless Django uses `fail_silently=True`. It does not automatically retry after errors because a timeout may occur after the provider has accepted a message, which could create duplicates.
 
-SMTP is available by setting `EMAIL_PROVIDER=smtp` and configuring `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USE_TLS`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, and optionally `DJANGO_DEFAULT_FROM_EMAIL`. Outbound SMTP may be restricted by the hosting provider. For local development, set `EMAIL_PROVIDER=console` to print email contents to the application console.
-
-## Troubleshooting
-
-- `RESEND_API_KEY is not configured` / similar: selected provider's key is missing or empty.
-- Sender rejected / validation error: verify the sender address/domain in the provider dashboard and ensure the matching sender environment variable is set.
-- HTTP 401/403: verify the correct provider API key, permissions, account status and any IP allowlist.
-- HTTP 429: provider rate limit/quota reached.
-- HTTP 4xx: check the provider's returned error detail in server logs.
-- Network timeout: check that the service can reach the provider's HTTPS API endpoint.
-- Do not share API keys in support chats. If a key has been exposed, revoke it and create a replacement.
+- HTTP 401/403: check the API key and account permissions.
+- Sender/domain error: verify the sender and domain in Resend and check `RESEND_FROM_EMAIL`.
+- Recipient restriction: the onboarding sender is limited; verify a domain for public delivery.
+- HTTP 429: check account quota/rate limits.
+- No email in inbox: inspect Resend and Render logs; API acceptance does not guarantee inbox delivery.
