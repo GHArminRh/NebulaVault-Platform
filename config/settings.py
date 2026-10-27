@@ -136,12 +136,17 @@ else:
         )
     )
 EMAIL_BACKEND = os.environ.get("DJANGO_EMAIL_BACKEND", _default_email_backend)
-DEFAULT_FROM_EMAIL = os.environ.get(
-    "DJANGO_DEFAULT_FROM_EMAIL",
-    os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
-    if os.environ.get("RESEND_API_KEY", "").strip()
-    else (EMAIL_HOST_USER or "Nebula Vault <no-reply@localhost>"),
-)
+if os.environ.get("RESEND_API_KEY", "").strip():
+    # A legacy Gmail sender may still exist in Render's environment; don't
+    # accidentally send through Resend using that unrelated sender address.
+    DEFAULT_FROM_EMAIL = os.environ.get(
+        "RESEND_FROM_EMAIL", "onboarding@resend.dev"
+    ).strip()
+else:
+    DEFAULT_FROM_EMAIL = os.environ.get(
+        "DJANGO_DEFAULT_FROM_EMAIL",
+        EMAIL_HOST_USER or "Nebula Vault <no-reply@localhost>",
+    )
 EMAIL_API_TIMEOUT = int(os.environ.get("EMAIL_API_TIMEOUT", "15"))
 PASSWORD_RESET_TIMEOUT = int(os.environ.get("PASSWORD_RESET_TIMEOUT", "86400"))
 LOGIN_REDIRECT_URL = "portal:dashboard"
