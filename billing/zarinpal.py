@@ -1,6 +1,7 @@
 """Minimal Zarinpal v4 client; sandbox is the default."""
 import json
 import logging
+import re
 import urllib.error
 import urllib.request
 
@@ -41,6 +42,42 @@ def amount_in_rials(amount_minor_units, currency):
     raise ZarinpalError("زرین‌پال فقط برای سفارش‌های ریالی یا تومانی فعال است.")
 
 
+def _safe_gateway_error_details(raw_body):
+    """Return only short, redacted gateway error codes/messages for diagnostics."""
+    try:
+        body = json.loads(raw_body.decode("utf-8", errors="replace"))
+    except (TypeError, ValueError):
+        return "non_json_response"
+
+    errors = body.get("errors") if isinstance(body, dict) else None
+    if not errors and isinstance(body, dict):
+        errors = body.get("data", {}).get("errors") if isinstance(body.get("data"), dict) else None
+    if isinstance(errors, dict):
+        items = [errors]
+    elif isinstance(errors, list):
+        items = [item for item in errors if isinstance(item, dict)][:5]
+    else:
+        return "gateway_error_details_unavailable"
+
+    details = []
+    for item in items:
+        code = item.get("code")
+        message = item.get("message") or item.get("messages")
+        if isinstance(message, list):
+            message = "; ".join(str(part) for part in message[:3])
+        if message is not None:
+            message = str(message)
+            # Avoid leaking customer details or request credentials if echoed by the gateway.
+            message = re.sub(r"https?://\S+", "[url]", message, flags=re.IGNORECASE)
+            message = re.sub(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", "[email]", message)
+            message = re.sub(r"\b[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\b", "[uuid]", message, flags=re.IGNORECASE)
+            message = re.sub(r"\b\d{7,}\b", "[number]", message)
+            message = message[:300]
+        if code is not None or message:
+            details.append({"code": code, "message": message})
+    return json.dumps(details, ensure_ascii=False, separators=(",", ":"))[:1200] if details else "gateway_error_details_unavailable"
+
+
 def _post_json(url, payload):
     request = urllib.request.Request(
         url,
@@ -52,9 +89,16 @@ def _post_json(url, payload):
         with urllib.request.urlopen(request, timeout=20) as response:
             result = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        logger.warning("Zarinpal HTTP error: host=%s status=%s", request.host, exc.code)
+        try:
+            details = _safe_gateway_error_details(exc.read(8192))
+        except (OSError, ValueError):
+            details = "response_body_unavailable"
+        logger.warning(
+            "Zarinpal HTTP error: host=%s status=%s gateway_details=%s",
+            request.host, exc.code, details,
+        )
         raise ZarinpalError(
-            f"پاسخ سرور زرین‌پال خطای HTTP {exc.code} بود. گزارش سرور را بررسی کنید."
+            f"پاسخ سرور زرین‌پال خطای HTTP {exc.code} بود. گزارش برنامه را برای جزئیات بررسی کنید."
         ) from exc
     except urllib.error.URLError as exc:
         logger.warning(

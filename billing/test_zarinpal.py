@@ -1,4 +1,5 @@
 import json
+import urllib.error
 from unittest.mock import MagicMock, patch
 
 from django.test import SimpleTestCase, override_settings
@@ -35,6 +36,28 @@ class ZarinpalApiTests(SimpleTestCase):
         self.assertEqual(url, "https://sandbox.zarinpal.com/pg/StartPay/A123")
         request = urlopen.call_args.args[0]
         self.assertTrue(request.full_url.startswith("https://sandbox.zarinpal.com/pg/v4/payment/request.json"))
+
+    @patch("billing.zarinpal.urllib.request.urlopen")
+    def test_http_error_logs_gateway_validation_details_without_sensitive_values(self, urlopen):
+        response_body = json.dumps({
+            "errors": {"code": "INVALID_CALLBACK", "message": "Invalid callback URL https://private.example/cb?token=secret for buyer@example.test"}
+        }).encode()
+        urlopen.side_effect = urllib.error.HTTPError(
+            "https://sandbox.zarinpal.com/pg/v4/payment/request.json",
+            422, "Unprocessable Entity", {}, __import__("io").BytesIO(response_body),
+        )
+        with self.assertLogs("billing.zarinpal", level="WARNING") as captured:
+            with self.assertRaisesRegex(ZarinpalError, "HTTP 422"):
+                request_payment(
+                    amount=100000, description="Test order",
+                    callback_url="https://private.example/cb?token=secret",
+                )
+        log_text = "\n".join(captured.output)
+        self.assertIn("INVALID_CALLBACK", log_text)
+        self.assertIn("[url]", log_text)
+        self.assertIn("[email]", log_text)
+        self.assertNotIn("secret", log_text)
+        self.assertNotIn("buyer@example.test", log_text)
 
     @patch("billing.zarinpal.urllib.request.urlopen")
     def test_verify_accepts_success_code_and_returns_reference(self, urlopen):
