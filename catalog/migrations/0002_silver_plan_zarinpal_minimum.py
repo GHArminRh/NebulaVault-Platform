@@ -14,9 +14,11 @@ def set_silver_plan_to_gateway_minimum(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("catalog", "0001_initial"),
-    ]
+    # This repository intentionally does not track catalog schema migrations;
+    # the production database already has the catalog tables. Keep this
+    # data-only migration independent of the historical, untracked initial
+    # migration so Django can build a consistent graph during deployment.
+    dependencies = []
 
     operations = [
         migrations.RunPython(
