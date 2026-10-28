@@ -8,18 +8,64 @@
 <form method="post" class="form-stack auth-form-premium">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}"><label for="id_username">نشانی ایمیل</label><input id="id_username" name="username" type="email" autocomplete="username" required autofocus placeholder="ایمیل خود را وارد کنید" value="{{ form.username.value|default:'' }}"><label for="id_password">رمز عبور</label><div class="password-wrap"><input id="id_password" name="password" type="password" autocomplete="current-password" required placeholder="رمز عبور خود را وارد کنید"><button class="password-toggle" type="button">نمایش</button></div>
 <input type="hidden" name="human_check" value="on"><section class="turnstile-security-card" aria-labelledby="turnstile-security-title"><span class="turnstile-security-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.1 19 6v5.2c0 4.5-2.8 7.6-7 9.7-4.2-2.1-7-5.2-7-9.7V6l7-2.9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m8.7 11.8 2.1 2.1 4.6-4.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="turnstile-security-content"><strong id="turnstile-security-title">تأیید امنیتی</strong><small>محافظت از حساب شما توسط Cloudflare</small></span><label class="turnstile-consent"><input type="checkbox" id="turnstile-start-check"><span>من ربات نیستم</span></label><div class="turnstile-widget-frame" id="turnstile-widget-frame" hidden></div></section>{% if form.non_field_errors %}<small class="field-error" role="alert">{{ form.non_field_errors|join:', ' }}</small>{% endif %}<script>
 (function(){
-  var started=false, widgetId=null, apiReady=!!(window.turnstile&&typeof window.turnstile.render==="function");
+  var started=false, apiLoading=false, widgetId=null;
   var check=document.getElementById("turnstile-start-check");
   var frame=document.getElementById("turnstile-widget-frame");
   function renderWidget(){
-    if(!check.checked||!apiReady||started)return;
-    started=true; frame.hidden=false;
-    widgetId=window.turnstile.render(frame,{sitekey:"{{ TURNSTILE_SITE_KEY|escapejs }}",theme:"dark",language:"fa",callback:function(){check.checked=true;check.disabled=true;check.parentElement.querySelector("span").textContent="تأیید امنیتی انجام شد";}, "expired-callback":function(){check.disabled=false;check.parentElement.querySelector("span").textContent="من ربات نیستم";}, "error-callback":function(){check.disabled=false;check.parentElement.querySelector("span").textContent="خطا در تأیید؛ دوباره تلاش کنید";}});
+    if(!check.checked||!window.turnstile||started)return;
+    started=true;
+    frame.hidden=false;
+    widgetId=window.turnstile.render(frame,{
+      sitekey:"{{ TURNSTILE_SITE_KEY|escapejs }}",
+      theme:"dark",
+      language:"fa",
+      size:"compact",
+      appearance:"always",
+      callback:function(){
+        check.checked=true;
+        check.disabled=true;
+        check.parentElement.querySelector("span").textContent="تأیید امنیتی انجام شد";
+      },
+      "expired-callback":function(){
+        check.disabled=false;
+        check.parentElement.querySelector("span").textContent="من ربات نیستم";
+      },
+      "error-callback":function(){
+        check.disabled=false;
+        check.parentElement.querySelector("span").textContent="خطا در تأیید؛ دوباره تلاش کنید";
+      }
+    });
   }
-  window.onTurnstileApiLoad=function(){apiReady=true;renderWidget();};
-  check.addEventListener("change",function(){if(check.checked){renderWidget();}else if(started){if(widgetId!==null)window.turnstile.remove(widgetId);widgetId=null;frame.innerHTML="";frame.hidden=true;started=false;check.disabled=false;}});
+  function loadTurnstile(){
+    if(window.turnstile){renderWidget();return;}
+    if(apiLoading)return;
+    apiLoading=true;
+    window.onTurnstileApiLoad=renderWidget;
+    var script=document.createElement("script");
+    script.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileApiLoad";
+    script.async=true;
+    script.defer=true;
+    script.onerror=function(){
+      apiLoading=false;
+      check.parentElement.querySelector("span").textContent="بارگذاری تأیید امنیتی ناموفق بود؛ دوباره تلاش کنید";
+    };
+    document.head.appendChild(script);
+  }
+  check.addEventListener("change",function(){
+    if(check.checked){
+      loadTurnstile();
+    }else if(started){
+      if(widgetId!==null&&window.turnstile)window.turnstile.remove(widgetId);
+      widgetId=null;
+      frame.innerHTML="";
+      frame.hidden=true;
+      started=false;
+      check.disabled=false;
+      check.parentElement.querySelector("span").textContent="من ربات نیستم";
+    }
+  });
 })();
-</script><script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileApiLoad" async defer></script>
+</script>
 <button class="button button-primary button-full button-large auth-submit" type="submit">ورود به حساب <span aria-hidden="true">↗</span></button></form><p class="auth-switch"><a href="{% url 'accounts:password_reset' %}">رمز عبور را فراموش کرده‌اید؟</a></p><p class="auth-switch">تازه به نبیولا والت پیوسته‌اید؟ <a href="{% url 'accounts:register' %}">ایجاد حساب کاربری</a></p><p class="auth-footnote">⌑ ورود شما به‌صورت امن توسط نبیولا والت انجام می‌شود.</p></div></section><style>
 .turnstile-security-card{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border:1px solid rgba(119,153,216,.2);border-radius:12px;background:rgba(17,29,52,.42)}
 .turnstile-security-icon{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border:1px solid rgba(101,177,255,.22);border-radius:9px;background:rgba(55,130,255,.09);color:#9bcaff}
