@@ -428,7 +428,7 @@ class CustomerLoginView(LoginView):
             return render(
                 request,
                 self.template_name,
-                self.get_context_data(form=form),
+                self.get_context_data(form=form, login_throttled=True),
                 status=429,
             )
         return super().post(request, *args, **kwargs)
@@ -517,7 +517,7 @@ class CustomerLoginView(LoginView):
             return render(
                 self.request,
                 self.template_name,
-                self.get_context_data(form=form),
+                self.get_context_data(form=form, login_throttled=True),
                 status=429,
             )
 
