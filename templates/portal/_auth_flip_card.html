@@ -55,10 +55,15 @@
       var sitekey=widget.getAttribute('data-sitekey');
       if(!sitekey)return;
       try{
-        window.turnstile.render(widget,{sitekey:sitekey,theme:'dark',language:'fa',size:'normal',appearance:'always',
-          callback:function(){var box=widget.closest('.turnstile-shell');if(box){var loading=box.querySelector('.turnstile-loading');if(loading)loading.style.display='none';}}
-        });
+        window.turnstile.render(widget,{sitekey:sitekey,theme:'dark',language:'fa',size:'normal',appearance:'always'});
         widget.setAttribute('data-rendered','true');
+        var box=widget.closest('.turnstile-shell');
+        var loading=box&&box.querySelector('.turnstile-loading');
+        if(loading){
+          var observer=new MutationObserver(function(){if(widget.querySelector('iframe')){loading.style.display='none';observer.disconnect();}});
+          observer.observe(widget,{childList:true,subtree:true});
+          if(widget.querySelector('iframe')){loading.style.display='none';observer.disconnect();}
+        }
       }catch(error){/* Leave the accessible loading/error surface in place if Turnstile cannot initialize. */}
     });
   }
