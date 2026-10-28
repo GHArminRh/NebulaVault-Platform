@@ -12,10 +12,6 @@
 {% block extrastyle %}
   {{ block.super }}
   <style>
-    /*
-     * Dracula login-page polish. Scoped to the built-in admin login view so
-     * custom admin widgets and the rest of Django's markup remain untouched.
-     */
     body.login {
       min-height: 100vh;
       background:
@@ -28,7 +24,6 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       background: transparent;
       border: 0;
       box-shadow: none;
@@ -62,7 +57,7 @@
 
     body.login #content {
       width: min(420px, calc(100% - 32px));
-      margin: 0 auto 48px;
+      margin: 0 auto;
       padding: 30px;
       box-sizing: border-box;
       float: none;
@@ -157,11 +152,7 @@
       color: #a8a9b8;
     }
 
-    /*
-     * django-admin-dracula adds its navigation drawer and filter controls to
-     * the shared admin shell. They belong on authenticated admin pages only;
-     * leaving them visible on the login screen pushes the form off-centre.
-     */
+    /* Keep Dracula navigation controls off the login screen. */
     body.login #nav-sidebar,
     body.login #nav-sidebar-inner,
     body.login #toggle-nav-sidebar,
@@ -169,33 +160,45 @@
     body.login .nav-sidebar,
     body.login .toggle-nav-sidebar,
     body.login button[aria-label="Toggle navigation"],
-    body.login input[aria-label="Filter navigation items"] {
+    body.login input[aria-label="Filter navigation items"],
+    body.login #header nav,
+    body.login .breadcrumbs {
+      display: none !important;
+    }
+
+    /* Use the full viewport for the login card; hide the admin masthead. */
+    body.login #header {
       display: none !important;
     }
 
     body.login #main {
-      display: block !important;
-      margin-left: 0 !important;
-      padding-left: 0 !important;
+      display: flex !important;
+      flex: 1 0 auto;
+      align-items: center;
+      justify-content: center;
       width: 100% !important;
       min-width: 0 !important;
+      margin: 0 !important;
+      padding: 24px !important;
       box-sizing: border-box;
     }
 
     body.login #content {
       position: relative;
-      margin-left: auto !important;
-      margin-right: auto !important;
+      width: min(420px, 100%);
+      margin: 0 auto !important;
       clear: both;
     }
 
-    body.login #header {
-      display: block;
-      width: 100%;
-      box-sizing: border-box;
+    body.login #content-main {
+      min-width: 0;
     }
 
     @media (max-width: 480px) {
+      body.login #main {
+        padding: 16px !important;
+      }
+
       body.login #content {
         padding: 22px;
       }
