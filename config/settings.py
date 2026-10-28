@@ -43,6 +43,11 @@ INSTALLED_APPS = [
     "menus",
     "treebeard",
     "sekizai",
+    "djangocms_text",
+    "djangocms_frontend",
+    "djangocms_frontend.contrib.grid",
+    "djangocms_frontend.contrib.image",
+    "djangocms_frontend.contrib.link",
     "image_uploader_widget",
     "import_export",
     "rest_framework",
@@ -117,6 +122,7 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "cms.context_processors.cms_settings",
