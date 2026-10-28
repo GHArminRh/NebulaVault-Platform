@@ -7,6 +7,9 @@ migrations. Production settings are unchanged.
 """
 from .settings import *  # noqa: F403
 
+# Keep test throttles isolated; production uses the shared database cache.
+CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "nebula-tests"}}
+
 # Use an isolated in-memory cache in tests; production uses the shared DB cache.
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "nebula-tests"}}
 
