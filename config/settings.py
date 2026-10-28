@@ -39,6 +39,10 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "image_uploader_widget",
     "import_export",
+    "rest_framework",
+    "django_filters",
+    "drf_spectacular",
+    "api.apps.ApiConfig",
     "tinymce",
     "rating.apps.RatingConfig",
     "comment.apps.CommentConfig",
@@ -225,3 +229,46 @@ RATING_SETTINGS = {"URLHASH_LENGTH": 8}
 # Upstream django-rating-system seeds settings by downloading images during its
 # second migration. Keep its schema migration local and deterministic instead.
 MIGRATION_MODULES = {"rating": "config.rating_migrations"}
+
+
+# Django REST Framework defaults: customer authentication is handled by the
+# project's dual-user-model session middleware or revocable Bearer API tokens.
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "api.authentication.CustomerBearerAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 25,
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "60/hour",
+        "user": "1000/day",
+        "token_login": "5/minute",
+        "ratings": "20/hour",
+    },
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "COERCE_DECIMAL_TO_STRING": True,
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Nebula Vault API",
+    "DESCRIPTION": (
+        "Versioned API for public products, releases, plans and blog content, "
+        "plus authenticated customer profile, subscriptions, orders and ratings."
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+}

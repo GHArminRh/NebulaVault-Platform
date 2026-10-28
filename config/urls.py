@@ -38,6 +38,7 @@ urlpatterns = [
     path("tinymce/", include("tinymce.urls")),
     path("comment/", include("comment.urls")),
     path("blog/", include("blog.urls")),
+    path("api/v1/", include("api.urls")),
     path("api/licensing/", include("licensing.urls")),
     path("billing/", include("billing.urls")),
     path(
