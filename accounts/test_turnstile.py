@@ -1,13 +1,13 @@
 import json
 from unittest.mock import MagicMock, patch
 
-from django.test import SimpleTestCase, override_settings
+from django.test import TestCase, SimpleTestCase, override_settings
 
 from accounts.forms import RegisterForm
 from accounts.turnstile import verify_turnstile
 
 
-class TurnstileVerificationTests(SimpleTestCase):
+class TurnstileVerificationTests(TestCase):
     def test_missing_token_or_secret_fails_without_network_request(self):
         with patch("accounts.turnstile.urlopen") as urlopen:
             self.assertFalse(verify_turnstile("", secret_key="secret", verify_url="https://verify.example"))
