@@ -13,7 +13,7 @@ urlpatterns = [
     path("admin/quick-toggle/", toggle_boolean_field, name="admin-quick-toggle"),
     path("admin/json-export/<str:app_label>/<str:model_name>/<str:object_id>/", export_admin_object_json, name="admin-json-export"),
     path("admin/json-import/<str:app_label>/<str:model_name>/", import_admin_json, name="admin-json-import"),
-    path("admin/editor-upload/", editor_image_upload, name="admin-editor-image-upload"),
+    path("admin/editor-upload/", editor_image_upload, name="editor-image-upload"),
     path("admin/", admin.site.urls),
     path("api/licensing/", include("licensing.urls")),
     path("billing/", include("billing.urls")),
