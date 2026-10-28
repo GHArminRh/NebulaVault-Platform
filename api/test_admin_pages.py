@@ -37,7 +37,7 @@ class AdminPageRequiredTests(SimpleTestCase):
         self.assertContains(response, "403", status_code=403)
 
     def test_active_staff_can_access_discovery_page(self):
-        request = self.factory.get("/api/v1/docs/")
+        request = self.add_session(self.factory.get("/api/v1/docs/"))
         request.user = SimpleNamespace(
             is_authenticated=True, is_active=True, is_staff=True
         )
