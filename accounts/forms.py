@@ -7,11 +7,29 @@ from .models import Customer
 
 
 class HumanCheckMixin:
-    human_check = forms.BooleanField(
-        required=True,
-        error_messages={"required": "لطفاً تأیید کنید که ربات نیستید."},
-        label="من ربات نیستم",
-    )
+    # The visible checkbox is replaced by Cloudflare Turnstile. Keep this optional
+    # compatibility field for existing forms/templates; it is not trusted as proof.
+    human_check = forms.BooleanField(required=False, widget=forms.HiddenInput())
+
+    def clean(self):
+        from django.conf import settings
+        from django.core.exceptions import ValidationError
+        from .turnstile import verify_turnstile
+
+        if getattr(settings, "TURNSTILE_ENABLED", True):
+            token = (self.data.get("cf-turnstile-response") or "").strip()
+            if not token or not verify_turnstile(
+                token,
+                secret_key=getattr(settings, "TURNSTILE_SECRET_KEY", ""),
+                remote_ip=self.request.META.get("REMOTE_ADDR") if getattr(self, "request", None) else None,
+                verify_url=getattr(settings, "TURNSTILE_VERIFY_URL", "https://challenges.cloudflare.com/turnstile/v0/siteverify"),
+            ):
+                raise ValidationError("تأیید امنیتی ناموفق بود. لطفاً کپچا را دوباره تکمیل کنید.")
+            self.cleaned_data["turnstile_verified"] = True
+        else:
+            # Explicitly disabled only for isolated tests/local development.
+            self.cleaned_data["turnstile_verified"] = True
+        return super().clean()
 
 
 class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
@@ -29,7 +47,7 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
             email = (self.data.get(self.add_prefix("username")) or "").strip()
             password = self.data.get(self.add_prefix("password")) or ""
             customer = Customer.objects.filter(email__iexact=email).first()
-            if self.cleaned_data.get("human_check") and customer and password and customer.check_password(password):
+            if self.cleaned_data.get("turnstile_verified") and customer and password and customer.check_password(password):
                 if customer.is_banned:
                     self.banned_account = True
                 elif not customer.is_active:
