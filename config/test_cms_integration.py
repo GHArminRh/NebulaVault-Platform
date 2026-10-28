@@ -29,6 +29,7 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
             "LivePricingGridPlugin",
             "LiveReleaseListPlugin",
             "LiveBlogListPlugin",
+            "ExternalImagePlugin",
         ):
             self.assertIsNotNone(plugin_pool.get_plugin(plugin_name))
 
@@ -38,6 +39,7 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
             "portal/plugins/live_pricing.html",
             "portal/plugins/live_releases.html",
             "portal/plugins/live_blog.html",
+            "portal/plugins/external_image.html",
         ):
             self.assertIsNotNone(get_template(template_name))
 
