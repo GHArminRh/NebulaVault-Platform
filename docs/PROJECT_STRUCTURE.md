@@ -35,9 +35,10 @@ The repository already uses a conventional Django layout: one project package (`
 - Run Django checks and migration consistency checks.
 
 ### Phase 2 — Focused module decomposition
-- Map responsibilities and call sites in `accounts/views.py` and `billing/services.py`.
-- Add characterization tests for existing behavior before moving code.
-- Extract cohesive functions into small modules only when import compatibility can be retained.
+- [x] Split `billing/services.py` implementations into `billing/order_services.py`, `billing/attempt_services.py`, and `billing/finalization_services.py`.
+- [x] Keep `billing.services` as a compatibility facade so existing callers and tests can retain their imports.
+- [x] Add billing regression tests to the pull-request CI workflow.
+- [ ] Map responsibilities and call sites in `accounts/views.py`; extract account flows in a separate, tested change.
 - Avoid circular imports and avoid importing Django models at module load when a local import is currently required to break a dependency cycle.
 
 ### Phase 3 — Test and CI consistency
@@ -75,3 +76,15 @@ The first CI run on this cleanup branch confirms that the focused Ruff check pas
 - Turnstile tests pass in CI.
 
 These failures are recorded as existing baseline issues, not as changes introduced by formatting. Do not weaken security or rewrite expected behavior merely to make tests green. Before splitting account or licensing modules, first decide the intended behavior for each failing scenario, update/add focused tests accordingly, and establish a reliable green regression baseline.
+
+
+## Billing service split (2026-10-28)
+
+The first behavior-preserving module split is in place on the cleanup branch:
+
+- `billing/order_services.py`: single-plan and multi-item cart order creation.
+- `billing/attempt_services.py`: idempotent payment-attempt creation.
+- `billing/finalization_services.py`: finalization after trusted provider-side verification, including subscription/license updates and notifications.
+- `billing/services.py`: compatibility facade exposing the existing service names and error classes.
+
+No model fields, migrations, payment URLs, Zarinpal request/verification flow, or database transaction boundaries were intentionally changed by this split. The new CI job runs `billing.tests`; the refactor is not considered validated until that job completes and the diff is reviewed.
