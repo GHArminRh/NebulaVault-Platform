@@ -322,3 +322,35 @@ class AccountBackendTests(TestCase):
         from django.contrib import admin
         from accounts.models import AccountEmailLog
         self.assertIn(AccountEmailLog, admin.site._registry)
+
+
+    def test_customer_login_locks_after_five_failed_attempts(self):
+        payload = {
+            "username": self.user.email,
+            "password": "Definitely-wrong-password!",
+            "human_check": "on",
+        }
+        for _ in range(5):
+            response = self.client.post(reverse("login"), payload)
+            self.assertEqual(response.status_code, 200)
+        response = self.client.post(reverse("login"), payload)
+        self.assertEqual(response.status_code, 429)
+        self.assertContains(response, "به‌دلیل چند تلاش ناموفق", status_code=429)
+
+    def test_successful_customer_login_clears_failed_attempt_counter(self):
+        from django.core.cache import cache
+        from unittest.mock import patch
+
+        cache_key = "customer-login-failures:test-success-clears"
+        cache.set(cache_key, 2, timeout=900)
+        with patch("accounts.views.CustomerLoginView._login_attempt_key", return_value=cache_key):
+            response = self.client.post(
+                reverse("login"),
+                {
+                    "username": self.user.email,
+                    "password": "Secure-test-password-2026!",
+                    "human_check": "on",
+                },
+            )
+        self.assertEqual(response.status_code, 302)
+        self.assertIsNone(cache.get(cache_key))
