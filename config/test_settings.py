@@ -25,10 +25,11 @@ MIGRATION_MODULES = {
     "audit": None,
     "notifications": None,
     "portal": None,
-    # comment.0001_initial depends on accounts. Since accounts migrations are
-    # disabled above for tests, disable comment migrations too so Django can
-    # synchronize both apps together without a missing migration dependency.
+    # These legacy app migrations depend on each other and on accounts.
+    # For isolated tests, synchronize their tables together rather than
+    # resolving a migration graph whose parent migrations are disabled.
     "comment": None,
+    "blog": None,
 }
 
 # Avoid requiring collectstatic's production manifest during test client requests.
