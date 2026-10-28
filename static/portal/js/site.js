@@ -1,11 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
   const toggle = document.querySelector(".menu-toggle");
   const nav = document.querySelector(".mobile-nav");
-  if (toggle && nav) toggle.addEventListener("click", () => {
-    const open = toggle.getAttribute("aria-expanded") === "true";
-    toggle.setAttribute("aria-expanded", String(!open));
-    nav.hidden = open;
-  });
+  if (toggle && nav) {
+    toggle.addEventListener("click", () => {
+      const open = toggle.getAttribute("aria-expanded") === "true";
+      toggle.setAttribute("aria-expanded", String(!open));
+      nav.hidden = open;
+    });
+    nav.querySelectorAll('a[href*="#"]').forEach(link => link.addEventListener("click", () => {
+      toggle.setAttribute("aria-expanded", "false");
+      nav.hidden = true;
+    }));
+  }
   document.querySelectorAll(".password-toggle").forEach(button => button.addEventListener("click", () => {
     const input = button.parentElement.querySelector("input");
     const show = input.type === "password";
