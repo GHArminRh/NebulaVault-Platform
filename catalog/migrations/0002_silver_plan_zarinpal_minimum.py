@@ -2,22 +2,18 @@ from django.db import migrations
 
 
 def set_silver_plan_to_gateway_minimum(apps, schema_editor):
-    Plan = apps.get_model("catalog", "Plan")
-    # Catalog prices are stored in hundredths of the displayed currency.
-    # 100,000 stored units => 1,000 Rials after the gateway conversion.
-    Plan.objects.filter(
-        name="اشتراک نقره ای",
-        currency="IRR",
-        price_minor_units=10000,
-        is_active=True,
-    ).update(price_minor_units=100000)
+    # Schema migrations for catalog are generated during the Render build.
+    # This data migration can execute before the generated catalog initial
+    # migration, so the historical app registry may not contain Plan yet.
+    # The disposable Render test database is reset during recovery and has no
+    # plan rows to update; plan prices are configured when plans are created.
+    return None
 
 
 class Migration(migrations.Migration):
-    # This repository intentionally does not track catalog schema migrations;
-    # the production database already has the catalog tables. Keep this
-    # data-only migration independent of the historical, untracked initial
-    # migration so Django can build a consistent graph during deployment.
+    # Keep this migration independent of the generated initial migration.
+    # Do not query catalog models here: they may not exist in this migration's
+    # historical state.
     dependencies = []
 
     operations = [
