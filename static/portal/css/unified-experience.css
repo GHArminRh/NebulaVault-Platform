@@ -244,4 +244,4 @@ html{scroll-behavior:smooth;scroll-padding-top:104px}
 /* Keep the global section navigation out of the account workspace; the compact account rail remains. */
 .nv-portal:has(.nv-dashboard-layout) .desktop-nav,
 .nv-portal:has(.nv-dashboard-layout) .menu-toggle,
-.nv-portal:has(.nv-dashboard-layout)~.mobile-nav{display:none!important}
+.nv-portal:has(.nv-dashboard-layout) .mobile-nav{display:none!important}
