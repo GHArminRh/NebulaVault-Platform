@@ -15,29 +15,5 @@
     {{ form.password.label_tag }} {{ form.password }}
     <input type="hidden" name="next" value="{{ next }}">
   </div>
-  <div class="form-row"><div id="turnstile-widget" class="cf-turnstile"></div></div>
-  <div class="submit-row"><input type="submit" value="{% translate 'Log in' %}"></div>
-</form>
-</div>
-<style>.cf-turnstile{margin:12px 0;max-width:100%}</style>
-<script>
-(function(){
-  var host=document.getElementById("turnstile-widget"),widgetId=null,executing=false;
-  function mount(){
-    if(!window.turnstile||widgetId!==null)return;
-    widgetId=window.turnstile.render(host,{
-      sitekey:"{{ TURNSTILE_SITE_KEY|escapejs }}",
-      theme:"auto",language:"en",size:"normal",execution:"execute",
-      callback:function(){executing=false;},
-      "error-callback":function(){executing=false;},
-      "expired-callback":function(){executing=false;}
-    });
-  }
-  window.addEventListener("load",mount);
-  var api=document.createElement("script");
-  api.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-  api.async=true;api.defer=true;api.onload=mount;document.head.appendChild(api);
-  host.addEventListener("click",function(){if(widgetId!==null&&!executing){executing=true;window.turnstile.execute(widgetId);}});
-})();
-</script>
+  <div class="form-row"><div class="cf-turnstile" data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}" data-theme="auto" data-language="en" data-size="normal"></div><script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endblock %}
