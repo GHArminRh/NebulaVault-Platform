@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from import_export import resources
+from import_export.admin import ExportMixin
 
 from .models import (
     Subscription,
@@ -10,8 +12,30 @@ from .models import (
 from .services import _add_plan_duration
 
 
+class TrialRedemptionResource(resources.ModelResource):
+    class Meta:
+        model = TrialRedemption
+        fields = ("id", "user", "product", "started_at", "ends_at", "created_at")
+        export_order = fields
+
+
+class SubscriptionResource(resources.ModelResource):
+    class Meta:
+        model = Subscription
+        fields = ("id", "user", "product", "kind", "status", "plan", "trial_redemption", "starts_at", "expires_at", "created_at", "updated_at")
+        export_order = fields
+
+
+class SubscriptionRenewalResource(resources.ModelResource):
+    class Meta:
+        model = SubscriptionRenewal
+        fields = ("id", "subscription", "payment_reference", "amount_minor_units", "currency", "previous_expires_at", "new_expires_at", "created_at")
+        export_order = fields
+
+
 @admin.register(TrialRedemption)
-class TrialRedemptionAdmin(admin.ModelAdmin):
+class TrialRedemptionAdmin(ExportMixin, admin.ModelAdmin):
+    resource_classes = (TrialRedemptionResource,)
     list_display = (
         "user",
         "product",
@@ -31,7 +55,8 @@ class TrialRedemptionAdmin(admin.ModelAdmin):
 
 
 @admin.register(Subscription)
-class SubscriptionAdmin(admin.ModelAdmin):
+class SubscriptionAdmin(ExportMixin, admin.ModelAdmin):
+    resource_classes = (SubscriptionResource,)
     list_display = (
         "user",
         "product",
@@ -140,7 +165,8 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
 
 @admin.register(SubscriptionRenewal)
-class SubscriptionRenewalAdmin(admin.ModelAdmin):
+class SubscriptionRenewalAdmin(ExportMixin, admin.ModelAdmin):
+    resource_classes = (SubscriptionRenewalResource,)
     list_display = (
         "subscription",
         "payment_reference",
