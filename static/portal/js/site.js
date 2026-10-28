@@ -48,7 +48,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Scroll-aware section navigation. The first dashboard item is active on load;
   // the active item changes only when its section reaches the reading line.
   const railLinks = [...document.querySelectorAll(".nv-rail-link[href^='#']")];
-  const railTargets = railLinks.map(link => document.querySelector(link.getAttribute("href"))).filter(Boolean);
+  const railTargets = railLinks.map(link => document.querySelector(link.getAttribute("href"))).filter(Boolean)
+    .sort((a, b) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
   const homeLinks = [...document.querySelectorAll(".desktop-nav a[href*='#'], .mobile-nav a[href*='#']")]
     .filter(link => {
       try { return new URL(link.href, location.href).pathname === location.pathname && Boolean(new URL(link.href, location.href).hash); }
@@ -57,16 +58,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const homeTargets = [...new Set(homeLinks.map(link => {
     try { return document.querySelector(decodeURIComponent(new URL(link.href, location.href).hash)); }
     catch (_) { return null; }
-  }).filter(Boolean))];
+  }).filter(Boolean))].sort((a, b) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
   const syncScrollNavigation = () => {
     const header = document.querySelector(".site-header");
     const line = (header?.getBoundingClientRect().bottom || 0) + 42;
     const sync = (links, targets, fallbackId) => {
       if (!links.length || !targets.length) return;
+      // Pick the last section that has crossed the header's reading line.
+      // Do not stop at the first target below the line: anchors can be nested
+      // or supplied by duplicated desktop/mobile navigation in varying order.
       let current = targets[0];
       for (const target of targets) {
         if (target.getBoundingClientRect().top <= line) current = target;
-        else break;
       }
       if (window.scrollY < 8 && fallbackId) current = document.getElementById(fallbackId) || current;
       links.forEach(link => {
