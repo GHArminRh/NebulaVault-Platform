@@ -16,6 +16,18 @@ from staff.admin_forms import AdminTurnstileAuthenticationForm
 admin.site.login_form = AdminTurnstileAuthenticationForm
 
 
+def service_worker(request):
+    """Serve the PWA service worker from the site root so it controls all pages."""
+    script = settings.BASE_DIR / "static" / "portal" / "service-worker.js"
+    response = HttpResponse(
+        script.read_text(encoding="utf-8"),
+        content_type="application/javascript; charset=utf-8",
+    )
+    response["Service-Worker-Allowed"] = "/"
+    response["Cache-Control"] = "no-cache"
+    return response
+
+
 def healthcheck(request):
     """Minimal Render health endpoint; avoids rendering the site or querying the database."""
     return HttpResponse("ok", content_type="text/plain")
@@ -23,6 +35,7 @@ def healthcheck(request):
 
 urlpatterns = [
     path("healthz/", healthcheck, name="healthcheck"),
+    path("service-worker.js", service_worker, name="service-worker"),
     path("admin/quick-toggle/", toggle_boolean_field, name="admin-quick-toggle"),
     path("admin/json-export/<str:app_label>/<str:model_name>/<str:object_id>/", export_admin_object_json, name="admin-json-export"),
     path("admin/json-import/<str:app_label>/<str:model_name>/", import_admin_json, name="admin-json-import"),
