@@ -1032,3 +1032,85 @@ body.nv-portal{overflow-x:clip!important}
     padding: 14px!important;
   }
 }
+
+
+/* Dashboard navigation: compact vertical rail, never create an inner scrollbar. */
+.nv-dashboard-page .nv-dash-rail{
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+  overflow-y:visible!important;
+  overscroll-behavior:auto!important;
+  padding:12px 10px!important;
+  gap:0!important;
+}
+.nv-dashboard-page .nv-dash-rail .nv-rail-brand{
+  padding:3px 6px 10px!important;
+}
+.nv-dashboard-page .nv-dash-rail .nv-rail-label{
+  margin:10px 8px 5px!important;
+}
+.nv-dashboard-page .nv-dash-rail .nv-rail-link{
+  min-height:0!important;
+  padding:7px 8px!important;
+  margin:2px 0!important;
+  line-height:1.45!important;
+}
+.nv-dashboard-page .nv-dash-rail .nv-rail-link span{
+  width:23px!important;
+  height:23px!important;
+  flex:0 0 23px!important;
+}
+.nv-dashboard-page .nv-dash-rail .nv-rail-bottom{
+  margin-top:9px!important;
+  padding:8px 7px 0!important;
+}
+.nv-dashboard-page .nv-dash-rail .nv-dashboard-logout{
+  margin-top:8px!important;
+}
+@media (min-width:901px){
+  .nv-dashboard-page .nv-dash-rail{
+    top:88px!important;
+    bottom:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+    overflow-y:visible!important;
+  }
+}
+@media (max-width:900px){
+  .nv-dashboard-page .nv-dash-rail{
+    position:relative!important;
+    max-height:none!important;
+    overflow:visible!important;
+    overflow-x:visible!important;
+    overflow-y:visible!important;
+    flex-wrap:wrap!important;
+    white-space:normal!important;
+    padding:10px!important;
+  }
+  .nv-dashboard-page .nv-dash-rail .nv-rail-brand{
+    flex-basis:100%!important;
+    padding-bottom:8px!important;
+  }
+  .nv-dashboard-page .nv-dash-rail .nv-rail-label{
+    display:none!important;
+  }
+  .nv-dashboard-page .nv-dash-rail .nv-rail-link{
+    flex:1 1 calc(50% - 8px)!important;
+    min-width:0!important;
+  }
+  .nv-dashboard-page .nv-dash-rail .nv-rail-bottom{
+    display:contents!important;
+  }
+  .nv-dashboard-page .nv-dash-rail .nv-dashboard-logout{
+    flex:1 1 calc(50% - 8px)!important;
+    margin:0!important;
+  }
+}
+@media (max-width:420px){
+  .nv-dashboard-page .nv-dash-rail .nv-rail-link,
+  .nv-dashboard-page .nv-dash-rail .nv-dashboard-logout{
+    flex-basis:100%!important;
+  }
+}
