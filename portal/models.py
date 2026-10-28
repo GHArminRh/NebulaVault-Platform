@@ -21,3 +21,21 @@ class CMSExternalImage(CMSPlugin):
 
     def __str__(self):
         return self.alt_text or self.image_url
+
+
+class CMSUploadedImage(CMSPlugin):
+    """An uploaded CMS image stored only when durable media storage is configured."""
+
+    image = models.ImageField(
+        upload_to="cms/images/%Y/%m/",
+        verbose_name="فایل تصویر",
+    )
+    alt_text = models.CharField(max_length=240, verbose_name="متن جایگزین")
+    caption = models.CharField(max_length=320, blank=True, verbose_name="زیرنویس")
+
+    class Meta:
+        verbose_name = "تصویر بارگذاری‌شدهٔ CMS"
+        verbose_name_plural = "تصاویر بارگذاری‌شدهٔ CMS"
+
+    def __str__(self):
+        return self.alt_text or str(self.image)
