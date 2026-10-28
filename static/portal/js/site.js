@@ -20,6 +20,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }), {threshold: .08});
     document.querySelectorAll(".product-card,.pricing-card,.feature-row,.panel,.stat-card").forEach(el => {el.classList.add("reveal");observer.observe(el);});
   }
+  // Accessible two-sided sign-in / registration card.
+  document.querySelectorAll(".nv-auth-shell").forEach(shell => {
+    const card = shell.querySelector("[data-auth-card]");
+    if (!card) return;
+    const setSide = side => {
+      card.classList.toggle("is-register", side === "register");
+      shell.setAttribute("data-auth-side", side);
+      shell.querySelectorAll(".nv-auth-face").forEach(face => {
+        const active = (side === "register") === face.classList.contains("nv-auth-register");
+        face.inert = !active;
+        face.setAttribute("aria-hidden", String(!active));
+      });
+    };
+    shell.querySelectorAll("[data-auth-flip]").forEach(button => {
+      button.addEventListener("click", () => setSide(button.getAttribute("data-auth-flip")));
+    });
+    setSide(shell.getAttribute("data-auth-side") || "login");
+  });
+  // Keep dashboard rail's active state in sync with the visible section.
+  const railLinks = [...document.querySelectorAll(".nv-rail-link[href^='#']")];
+  const railTargets = railLinks.map(link => document.querySelector(link.getAttribute("href"))).filter(Boolean);
+  if ("IntersectionObserver" in window && railTargets.length) {
+    const railObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+      if (entry.isIntersecting) railLinks.forEach(link => link.classList.toggle("is-current", link.getAttribute("href") === "#" + entry.target.id));
+    }), {rootMargin: "-20% 0px -65% 0px", threshold: 0});
+    railTargets.forEach(target => railObserver.observe(target));
+  }
   // Subtle mouse-reactive ambient lighting for pointer devices only.
   const ambientLayers = [...document.querySelectorAll(".ambient")];
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
