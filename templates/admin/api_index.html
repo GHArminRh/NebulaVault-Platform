@@ -1,0 +1,94 @@
+{% load static %}
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>فهرست API | Nebula Vault</title>
+  <style>
+    :root { color-scheme: light; --ink:#172033; --muted:#657087; --line:#e4e9f1; --panel:#fff; --bg:#f4f7fb; --blue:#2855d9; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:radial-gradient(ellipse at top right,#e8efff 0,transparent 42%),var(--bg); color:var(--ink); font-family:Tahoma,Arial,sans-serif; line-height:1.8; }
+    .wrap { width:min(1180px,calc(100% - 32px)); margin:42px auto; }
+    .top { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:24px; }
+    .brand { display:flex; align-items:center; gap:13px; }
+    .logo { display:grid; place-items:center; width:48px; height:48px; border-radius:15px; background:linear-gradient(135deg,#345ce5,#6d8bff); color:#fff; font-weight:bold; box-shadow:0 8px 22px #345ce52b; }
+    h1 { font-size:clamp(23px,3vw,32px); margin:0; letter-spacing:-.5px; }
+    .sub { margin:3px 0 0; color:var(--muted); font-size:13px; }
+    .actions { display:flex; flex-wrap:wrap; gap:9px; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; text-decoration:none; border:1px solid var(--line); border-radius:11px; padding:9px 14px; background:#fff; color:var(--ink); font-size:13px; }
+    .btn.primary { background:var(--blue); border-color:var(--blue); color:#fff; }
+    .hero { background:linear-gradient(120deg,#182746,#263f78); color:white; border-radius:20px; padding:25px 27px; display:flex; align-items:center; justify-content:space-between; gap:20px; box-shadow:0 16px 40px #18274620; margin-bottom:22px; }
+    .hero h2 { margin:0 0 5px; font-size:19px; }
+    .hero p { margin:0; color:#d4def5; font-size:13px; }
+    .badge { border:1px solid #7c9bdf; background:#ffffff12; border-radius:99px; padding:5px 12px; white-space:nowrap; font-size:12px; }
+    .tools { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:20px 0 12px; }
+    .tools h2 { margin:0; font-size:17px; }
+    .search { width:min(360px,100%); border:1px solid #d8dfeb; border-radius:11px; padding:10px 13px; background:white; font:inherit; font-size:13px; outline:none; }
+    .search:focus { border-color:#7690ee; box-shadow:0 0 0 3px #345ce51a; }
+    .table-wrap { background:var(--panel); border:1px solid var(--line); border-radius:16px; overflow:hidden; box-shadow:0 8px 28px #1c31500a; }
+    table { width:100%; border-collapse:collapse; text-align:right; }
+    th,td { padding:13px 15px; border-bottom:1px solid var(--line); vertical-align:middle; }
+    th { background:#f8faff; color:#66718a; font-size:12px; font-weight:700; }
+    td { font-size:13px; }
+    tr:last-child td { border-bottom:0; }
+    .method { display:inline-block; min-width:60px; text-align:center; padding:3px 7px; border-radius:7px; background:#eaf0ff; color:#254bc5; font:bold 11px/1.8 ui-monospace,Consolas,monospace; direction:ltr; }
+    .path { direction:ltr; text-align:left; display:inline-block; font:12px/1.7 ui-monospace,Consolas,monospace; color:#24385f; overflow-wrap:anywhere; }
+    .auth { color:#68748b; font-size:12px; }
+    .empty { padding:26px; text-align:center; color:var(--muted); display:none; }
+    footer { color:#7b8497; font-size:11px; text-align:center; margin-top:17px; }
+    @media(max-width:760px) { .wrap{margin:22px auto}.top,.hero,.tools{align-items:stretch;flex-direction:column}.hero{padding:20px}.table-wrap{overflow-x:auto}table{min-width:760px}.search{width:100%} }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <div class="brand">
+        <div class="logo">NV</div>
+        <div><h1>فهرست مسیرهای API</h1><p class="sub">Nebula Vault · راهنمای داخلی توسعه‌دهندگان</p></div>
+      </div>
+      <nav class="actions">
+        <a class="btn" href="/admin/">بازگشت به مدیریت</a>
+        <a class="btn primary" href="/api/v1/docs/" target="_blank" rel="noopener">باز کردن Swagger</a>
+      </nav>
+    </header>
+    <section class="hero">
+      <div><h2>مرجع مسیرهای سرویس</h2><p>مسیرهای نسخه‌بندی‌شده API، دسترسی حساب مشتری و مسیرهای سازگاری لایسنس دسکتاپ.</p></div>
+      <span class="badge">نسخه API: v1</span>
+    </section>
+    <section>
+      <div class="tools"><h2>مسیرهای موجود <span style="color:#7b8497;font-size:12px;font-weight:normal">({{ endpoints|length }} مسیر)</span></h2><input class="search" id="api-search" type="search" placeholder="جستجو در مسیر، روش یا توضیحات…" aria-label="جستجوی مسیرهای API"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>روش</th><th>مسیر</th><th>دسترسی</th><th>توضیحات</th></tr></thead>
+          <tbody id="api-rows">
+          {% for endpoint in endpoints %}
+            <tr><td><span class="method">{{ endpoint.method }}</span></td><td><code class="path">{{ endpoint.path }}</code></td><td class="auth">{{ endpoint.auth }}</td><td>{{ endpoint.description }}</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <div class="empty" id="api-empty">مسیر منطبق با جستجوی شما پیدا نشد.</div>
+      </div>
+    </section>
+    <footer>این صفحه فقط برای کاربران واردشده به پنل مدیریت و دارای دسترسی staff نمایش داده می‌شود.</footer>
+  </main>
+  <script>
+    (() => {
+      const search = document.getElementById("api-search");
+      const rows = [...document.querySelectorAll("#api-rows tr")];
+      const empty = document.getElementById("api-empty");
+      search.addEventListener("input", () => {
+        const term = search.value.trim().toLocaleLowerCase();
+        let visible = 0;
+        rows.forEach((row) => {
+          const match = row.textContent.toLocaleLowerCase().includes(term);
+          row.hidden = !match;
+          if (match) visible += 1;
+        });
+        empty.style.display = visible ? "none" : "block";
+      });
+    })();
+  </script>
+</body>
+</html>
