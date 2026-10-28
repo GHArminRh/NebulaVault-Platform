@@ -4,15 +4,55 @@
   const endpoint = "/admin/quick-toggle/";
   const protectedFields = new Set(["is_staff", "is_superuser"]);
   const actionCellClass = "nv-record-actions";
-  const iconStyle = "width:10px;height:10px;display:inline-block;vertical-align:middle;border:0;";
-
 
   function csrfToken() {
-    const entry = document.cookie.split("; ").find((part) => part.startsWith("csrftoken="));
-    return entry ? decodeURIComponent(entry.split("=").slice(1).join("=")) : "";
+    const cookie = document.cookie.split("; ").find((part) => part.startsWith("csrftoken="));
+    const formToken = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    return cookie
+      ? decodeURIComponent(cookie.split("=").slice(1).join("="))
+      : (formToken ? formToken.value : "");
+  }
+
+  function addSwitchStyles() {
+    if (document.getElementById("nv-admin-switch-styles")) return;
+    const style = document.createElement("style");
+    style.id = "nv-admin-switch-styles";
+    style.textContent = `
+      .nv-boolean-toggle {
+        appearance: none; -webkit-appearance: none; display: inline-flex;
+        align-items: center; justify-content: center; padding: 5px 7px; margin: 0;
+        border: 0; border-radius: 9px; background: transparent; color: inherit;
+        cursor: pointer; vertical-align: middle; touch-action: manipulation;
+        transition: background-color .18s ease, opacity .18s ease;
+      }
+      .nv-boolean-toggle:hover { background: rgba(120, 145, 180, .10); }
+      .nv-boolean-toggle:focus-visible { outline: 2px solid #4b9cff; outline-offset: 2px; }
+      .nv-boolean-toggle:disabled { cursor: pointer; opacity: .78; }
+      .nv-switch-track {
+        position: relative; display: inline-block; flex: 0 0 34px;
+        width: 34px; height: 20px; border-radius: 999px;
+        background: #a3aab7; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+        transition: background-color .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease;
+      }
+      .nv-switch-thumb {
+        position: absolute; top: 3px; left: 3px; width: 14px; height: 14px;
+        border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.22);
+        transform: translateX(0); transition: transform .22s cubic-bezier(.2,.8,.2,1);
+      }
+      .nv-boolean-toggle.is-on .nv-switch-track {
+        background: #2ca66f; box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);
+      }
+      .nv-boolean-toggle.is-on .nv-switch-thumb { transform: translateX(14px); }
+      .nv-boolean-toggle.is-saving .nv-switch-track { box-shadow: 0 0 0 2px rgba(75,156,255,.16); }
+      @media (prefers-reduced-motion: reduce) {
+        .nv-boolean-toggle, .nv-switch-track, .nv-switch-thumb { transition: none !important; }
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   function objectIdForRow(row) {
+    if (!row) return null;
     if (row.dataset.objectPk) return row.dataset.objectPk;
     const action = row.querySelector('input[name="_selected_action"]');
     if (action) return action.value;
@@ -32,38 +72,53 @@
   }
 
   function renderButton(cell, icon, context) {
-    const currentValue = icon.alt === "True";
     if (cell.querySelector(".nv-boolean-toggle")) return;
     const fieldClass = Array.from(cell.classList).find((name) => name.startsWith("field-"));
     if (!fieldClass) return;
     const fieldName = fieldClass.slice("field-".length);
     if (!fieldName || protectedFields.has(fieldName)) return;
 
-    // Keep Django's original status image, including its native src, alt and classes.
+    const initialValue = icon.alt === "True";
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "nv-boolean-toggle";
-    button.style.appearance = "none";
-    button.style.webkitAppearance = "none";
-    button.style.border = "0";
-    button.style.background = "transparent";
-    button.style.padding = "0";
-    button.style.margin = "0";
-    button.style.font = "inherit";
-    button.style.lineHeight = "inherit";
-    button.style.color = "inherit";
-    button.style.cursor = "pointer";
-    button.style.verticalAlign = "middle";
-    button.appendChild(icon);
-    button.setAttribute("aria-label", (currentValue ? "Enabled" : "Disabled") + "; click to toggle");
-    button.title = "Click to " + (currentValue ? "disable" : "enable");
-    button.dataset.value = String(currentValue);
+    button.className = "nv-boolean-toggle" + (initialValue ? " is-on" : "");
+    button.setAttribute("role", "switch");
+    button.setAttribute("aria-checked", String(initialValue));
+    button.setAttribute("aria-label", (initialValue ? "Enabled" : "Disabled") + "; click to toggle");
+    button.title = initialValue ? "Click to disable" : "Click to enable";
+    button.dataset.value = String(initialValue);
 
+    const track = document.createElement("span");
+    track.className = "nv-switch-track";
+    track.setAttribute("aria-hidden", "true");
+    const thumb = document.createElement("span");
+    thumb.className = "nv-switch-thumb";
+    track.appendChild(thumb);
+    button.appendChild(track);
+
+    function paint(value) {
+      button.dataset.value = String(value);
+      button.classList.toggle("is-on", value);
+      button.setAttribute("aria-checked", String(value));
+      button.setAttribute("aria-label", (value ? "Enabled" : "Disabled") + "; click to toggle");
+      button.title = value ? "Click to disable" : "Click to enable";
+    }
+
+    let pending = false;
     button.addEventListener("click", async () => {
-      if (button.disabled) return;
-      const nextValue = button.dataset.value !== "true";
+      if (pending) return;
+      const previousValue = button.dataset.value === "true";
+      const nextValue = !previousValue;
+      const objectId = objectIdForRow(cell.closest("tr"));
+      if (!objectId) {
+        window.alert("Could not identify this record. Refresh the page and try again.");
+        return;
+      }
+
+      pending = true;
       button.disabled = true;
-      button.style.cursor = "wait";
+      button.classList.add("is-saving");
+      paint(nextValue); // Immediate, optimistic UI update; the server remains authoritative.
       try {
         const response = await fetch(endpoint, {
           method: "POST",
@@ -75,28 +130,21 @@
           },
           body: JSON.stringify({
             ...context,
-            object_id: objectIdForRow(cell.closest("tr")),
+            object_id: objectId,
             field_name: fieldName,
             value: nextValue
           })
         });
         const data = await response.json();
         if (!response.ok || !data.ok) throw new Error(data.error || "Could not save this change.");
-
-        const next = Boolean(data.value);
-        button.dataset.value = String(next);
-        // Swap only the filename; preserve Django's native icon asset and styling.
-        const url = new URL(icon.getAttribute("src"), window.location.href);
-        url.pathname = url.pathname.replace(/icon-(yes|no)\.svg$/, next ? "icon-yes.svg" : "icon-no.svg");
-        icon.setAttribute("src", url.pathname + url.search + url.hash);
-        icon.alt = next ? "True" : "False";
-        button.setAttribute("aria-label", (next ? "Enabled" : "Disabled") + "; click to toggle");
-        button.title = "Click to " + (next ? "disable" : "enable");
+        paint(Boolean(data.value));
       } catch (error) {
+        paint(previousValue);
         window.alert(error.message || "Could not save this change.");
       } finally {
+        pending = false;
         button.disabled = false;
-        button.style.cursor = "pointer";
+        button.classList.remove("is-saving");
       }
     });
     cell.replaceChildren(button);
@@ -109,9 +157,7 @@
 
     const cell = document.createElement("td");
     cell.className = actionCellClass;
-    cell.style.whiteSpace = "nowrap";
-    cell.style.textAlign = "center";
-    cell.style.verticalAlign = "middle";
+    cell.style.cssText = "white-space:nowrap;text-align:center;vertical-align:middle;";
 
     const deleteLink = document.createElement("a");
     deleteLink.href = "/admin/" + encodeURIComponent(context.app_label) + "/" +
@@ -123,7 +169,7 @@
     const deleteIcon = document.createElement("img");
     deleteIcon.src = "/static/admin/img/icon-deletelink.svg";
     deleteIcon.alt = "";
-    deleteIcon.style.cssText = iconStyle;
+    deleteIcon.style.cssText = "width:10px;height:10px;display:inline-block;vertical-align:middle;border:0;";
     deleteLink.appendChild(deleteIcon);
 
     const exportLink = document.createElement("a");
@@ -136,7 +182,7 @@
     const exportIcon = document.createElement("img");
     exportIcon.src = "/static/portal/img/icon-json-export.svg";
     exportIcon.alt = "";
-    exportIcon.style.cssText = iconStyle;
+    exportIcon.style.cssText = "width:10px;height:10px;display:inline-block;vertical-align:middle;border:0;";
     exportLink.appendChild(exportIcon);
 
     cell.append(deleteLink, exportLink);
@@ -172,15 +218,14 @@
   function enhanceBooleanCells() {
     const context = appAndModel();
     if (!context) return;
+    addSwitchStyles();
     addActionsHeader();
     addImportLink(context);
     document.querySelectorAll("#result_list tbody tr").forEach((row) => {
       addRecordActions(row, context);
-      const cells = row.querySelectorAll("td[class*='field-']");
-      cells.forEach((cell) => {
+      row.querySelectorAll("td[class*='field-']").forEach((cell) => {
         const icon = cell.querySelector('img[alt="True"], img[alt="False"]');
-        if (!icon) return;
-        renderButton(cell, icon, context);
+        if (icon) renderButton(cell, icon, context);
       });
     });
   }
