@@ -19,7 +19,8 @@ from subscriptions.services import TrialAlreadyUsed, TrialUnavailable, start_tri
 def home(request):
     products = Product.objects.filter(is_active=True).prefetch_related(Prefetch("plans", queryset=Plan.objects.filter(is_active=True)))[:3]
     releases = Release.objects.filter(is_published=True, product__is_active=True).select_related("product")[:3]
-    return render(request, "portal/home.html", {"products": products, "releases": releases})
+    plans = Plan.objects.filter(is_active=True, product__is_active=True).select_related("product")
+    return render(request, "portal/home.html", {"products": products, "plans": plans, "releases": releases})
 
 def products(request):
     items = Product.objects.filter(is_active=True).prefetch_related(Prefetch("plans", queryset=Plan.objects.filter(is_active=True)))
