@@ -33,6 +33,8 @@ def editor_image_upload(request):
         "catalog.change_product",
         "catalog.add_release",
         "catalog.change_release",
+        "blog.add_blogpost",
+        "blog.change_blogpost",
     )
     if not any(user.has_perm(permission) for permission in editor_permissions):
         return JsonResponse(
