@@ -5,12 +5,8 @@ import sys
 
 
 def _reset_test_database_once():
-    """One-time, explicitly gated reset for the disposable Render test database.
-
-    The marker schema is intentionally outside public, so the reset cannot repeat
-    on later restarts while the temporary environment flag remains configured.
-    """
-    if os.environ.get("RESET_TEST_DATABASE_ONCE") != "nebula-vault-db":
+    """One-time, explicitly gated reset for the disposable Render test database."""
+    if os.environ.get("RESET_TEST_DATABASE_ONCE") != "nebula-vault-db-v2":
         return
     if sys.argv[1:2] != ["migrate"]:
         return
@@ -25,17 +21,16 @@ def _reset_test_database_once():
         cursor.execute(
             "SELECT EXISTS (SELECT 1 FROM information_schema.schemata "
             "WHERE schema_name = %s)",
-            ["_nebula_reset_marker"],
+            ["_nebula_reset_marker_v2"],
         )
-        already_reset = cursor.fetchone()[0]
-        if already_reset:
+        if cursor.fetchone()[0]:
             return
 
-        # This is destructive by design and is only enabled by the exact
-        # one-time token above for the disposable test database.
+        # The user confirmed this is a disposable test database and approved
+        # clearing it to recover from inconsistent migration history.
         cursor.execute("DROP SCHEMA IF EXISTS public CASCADE")
         cursor.execute("CREATE SCHEMA public AUTHORIZATION CURRENT_USER")
-        cursor.execute("CREATE SCHEMA _nebula_reset_marker")
+        cursor.execute("CREATE SCHEMA _nebula_reset_marker_v2")
         connection.commit()
 
 
