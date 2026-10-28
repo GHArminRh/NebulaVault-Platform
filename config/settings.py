@@ -81,6 +81,7 @@ TEMPLATES = [{
         "django.template.context_processors.request", "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
         "portal.context_processors.cart_context",
+        "accounts.context_processors.turnstile",
     ]},
 }]
 WSGI_APPLICATION = "config.wsgi.application"
@@ -165,3 +166,10 @@ MEDIA_ROOT = BASE_DIR / "media/"
 ZARINPAL_MERCHANT_ID = os.environ.get("ZARINPAL_MERCHANT_ID", "").strip()
 ZARINPAL_SANDBOX = os.environ.get("ZARINPAL_SANDBOX", "False").lower() == "true"
 ZARINPAL_ENABLED = os.environ.get("ZARINPAL_ENABLED", "True").lower() == "true"
+
+
+# Cloudflare Turnstile: enabled by default; configure both keys in the deployment environment.
+TURNSTILE_ENABLED = os.environ.get("TURNSTILE_ENABLED", "True").strip().lower() in {"1", "true", "yes", "on"}
+TURNSTILE_SITE_KEY = os.environ.get("TURNSTILE_SITE_KEY", "").strip()
+TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY", "").strip()
+TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
