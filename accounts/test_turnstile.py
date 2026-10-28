@@ -1,7 +1,7 @@
 import json
 from unittest.mock import MagicMock, patch
 
-from django.test import TestCase, SimpleTestCase, override_settings
+from django.test import TestCase, override_settings
 
 from accounts.forms import RegisterForm
 from accounts.turnstile import verify_turnstile
