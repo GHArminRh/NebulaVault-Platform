@@ -123,3 +123,15 @@ class BlogRatingSerializer(serializers.ModelSerializer):
         if value < 1 or value > 5:
             raise serializers.ValidationError("Score must be between 1 and 5.")
         return value
+
+
+class TokenLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True, trim_whitespace=False)
+
+
+class TokenResponseSerializer(serializers.Serializer):
+    access_token = serializers.CharField()
+    token_type = serializers.ChoiceField(choices=("Bearer",))
+    expires_at = serializers.DateTimeField()
+    customer = CustomerProfileSerializer()
