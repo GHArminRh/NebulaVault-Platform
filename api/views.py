@@ -10,6 +10,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema
 
 from accounts.models import Customer
 from billing.models import PaymentOrder
@@ -23,6 +24,8 @@ from .permissions import IsCustomer
 from .serializers import (
     BlogPostSerializer,
     BlogRatingSerializer,
+    TokenLoginSerializer,
+    TokenResponseSerializer,
     CustomerProfileSerializer,
     PaymentOrderSerializer,
     PlanSerializer,
@@ -37,6 +40,7 @@ class TokenLoginThrottle(AnonRateThrottle):
     scope = "token_login"
 
 
+@extend_schema(request=TokenLoginSerializer, responses={201: TokenResponseSerializer})
 class TokenCreateView(APIView):
     """Issue a one-time-visible 30-day customer Bearer token."""
 
