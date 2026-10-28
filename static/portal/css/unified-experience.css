@@ -319,3 +319,18 @@ html{scroll-padding-top:88px}
   .nv-portal:not(:has(.nv-dashboard-layout))>header.site-header{z-index:100!important}
   .nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav{display:none}
 }
+
+
+/* Keep homepage anchor targets below the sticky header instead of hiding them underneath it. */
+html{scroll-padding-top:100px!important}
+.nv-home-hero#home,.nv-home-section#products,.nv-pricing-band#pricing,
+.nv-home-section#features,.nv-release-section#releases,.nv-home-section#about{
+  scroll-margin-top:100px!important;
+}
+@media(max-width:820px){
+  html{scroll-padding-top:82px!important}
+  .nv-home-hero#home,.nv-home-section#products,.nv-pricing-band#pricing,
+  .nv-home-section#features,.nv-release-section#releases,.nv-home-section#about{
+    scroll-margin-top:82px!important;
+  }
+}
