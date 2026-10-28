@@ -6,6 +6,7 @@ from cms.plugin_pool import plugin_pool
 
 from blog.models import BlogPost
 from catalog.models import Plan, Product, Release
+from .models import CMSExternalImage
 
 
 @plugin_pool.register_plugin
@@ -82,4 +83,18 @@ class LiveBlogListPlugin(CMSPluginBase):
             )
             .order_by("-is_featured", "-published_at")[:6]
         )
+        return context
+
+
+@plugin_pool.register_plugin
+class ExternalImagePlugin(CMSPluginBase):
+    model = CMSExternalImage
+    name = "تصویر با آدرس اینترنتی"
+    module = "محتوای پویای نبیولا"
+    render_template = "portal/plugins/external_image.html"
+    cache = True
+
+    def render(self, context, instance, placeholder):
+        context = super().render(context, instance, placeholder)
+        context["cms_image"] = instance
         return context
