@@ -130,7 +130,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 if DATABASE_URL:
-    import dj_database_url
+    import dj_database_url  # noqa: E402
 
     DATABASES = {
         "default": dj_database_url.parse(
