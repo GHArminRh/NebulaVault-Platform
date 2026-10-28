@@ -297,7 +297,8 @@ class AccountBackendTests(TestCase):
         response = self.client.post(
             reverse("accounts:password_reset"), {"email": self.user.email}
         )
-        self.assertRedirects(response, reverse("accounts:password_reset_done"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["purpose"], "password_reset")
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("accounts/password/reset/", mail.outbox[0].body)
         import re
