@@ -171,8 +171,8 @@ html{scroll-behavior:smooth;scroll-padding-top:104px}
 
 /* Scroll-position navigation and desktop-inspired responsive starfield. */
 .nv-starfield{position:fixed;inset:0;display:block;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.66}
-.nv-portal> :not(.nv-starfield){position:relative;z-index:1}
-.nv-portal .ambient{z-index:0}
+.nv-portal>header.site-header,.nv-portal>nav.mobile-nav,.nv-portal>main,.nv-portal>footer.site-footer{position:relative;z-index:1}
+.nv-portal .ambient{position:absolute;z-index:0}
 .nv-dashboard-content #dashboard-overview,
 .nv-dashboard-content #dashboard-subscriptions,
 .nv-dashboard-content #dashboard-orders,
