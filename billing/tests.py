@@ -775,7 +775,7 @@ class FinalizePaymentTests(BillingServiceTestCase):
 
         previous_expiry = subscription.expires_at
 
-        finalize_payment(
+        finalized_attempt = finalize_payment(
             attempt_id=renewal_attempt.pk,
             provider_reference="provider-renewal-001",
             confirmed_amount_minor_units=renewal_order.amount_minor_units,
@@ -795,8 +795,10 @@ class FinalizePaymentTests(BillingServiceTestCase):
         self.assertEqual(renewal.subscription, subscription)
         self.assertEqual(renewal.amount_minor_units, renewal_order.amount_minor_units)
         self.assertEqual(renewal.currency, renewal_order.currency)
-        self.assertTrue(hasattr(renewal_attempt, "issued_license_key"))
-        self.assertTrue(renewal_attempt.issued_license_key)
+        # finalize_payment loads and returns its own locked model instance;
+        # delivery-only attributes belong to that returned instance, not this stale one.
+        self.assertTrue(hasattr(finalized_attempt, "issued_license_key"))
+        self.assertTrue(finalized_attempt.issued_license_key)
         self.assertEqual(License.objects.filter(subscription=subscription).count(), 1)
 
     def test_duplicate_renewal_callback_does_not_extend_twice(self):
@@ -1052,7 +1054,7 @@ class ConcurrentPaymentFinalizationTests(TransactionTestCase):
                 confirmed_currency=self.order.currency,
             )
         finally:
-            close_old_connections()
+            connections.close_all()
 
     def test_concurrent_duplicate_callbacks_finalize_only_once(self):
         barrier = threading.Barrier(2)

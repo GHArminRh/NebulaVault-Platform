@@ -1,5 +1,6 @@
 from accounts.models import Customer
 from django.core import mail
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -7,6 +8,9 @@ from django.urls import reverse
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", TURNSTILE_ENABLED=False)
 class AccountBackendTests(TestCase):
     def setUp(self):
+        # The production database cache is shared by request throttles; clear it
+        # between tests so one test's rate limit cannot leak into another.
+        cache.clear()
         self.user = Customer.objects.create_user(
             username="account_user",
             email="account@example.com",
@@ -53,7 +57,7 @@ class AccountBackendTests(TestCase):
             {"first_name": "", "last_name": "", "email": "other@example.com"},
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "An account with this email already exists.")
+        self.assertContains(response, "حسابی با این نشانی ایمیل از قبل وجود دارد.")
 
     def test_password_change_keeps_user_signed_in(self):
         self.client.force_login(self.user, backend='accounts.backends.CustomerAuthenticationBackend')
@@ -74,14 +78,16 @@ class AccountBackendTests(TestCase):
         response = self.client.post(
             reverse("accounts:password_reset"), {"email": "unknown@example.com"}
         )
-        self.assertRedirects(response, reverse("accounts:password_reset_done"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["purpose"], "password_reset")
         self.assertEqual(len(mail.outbox), 0)
 
     def test_password_reset_sends_email_for_existing_account(self):
         response = self.client.post(
             reverse("accounts:password_reset"), {"email": self.user.email}
         )
-        self.assertRedirects(response, reverse("accounts:password_reset_done"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["purpose"], "password_reset")
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("accounts/password/reset/", mail.outbox[0].body)
     def test_registration_generates_username_from_email_local_part(self):
@@ -154,12 +160,12 @@ class AccountBackendTests(TestCase):
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
         token = email_verification_token.make_token(self.user)
         response = self.client.get(reverse("accounts:verify_email", args=[uid, token]))
-        self.assertRedirects(response, reverse("login"))
+        self.assertRedirects(response, reverse("portal:dashboard"))
         self.user.refresh_from_db()
         self.assertTrue(self.user.is_active)
         response = self.client.get(reverse("accounts:verify_email", args=[uid, token]))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "already verified")
+        self.assertTrue(response.context["already_verified"])
 
     def test_resend_verification_does_not_disclose_unknown_email(self):
         response = self.client.post(reverse("accounts:resend_verification"), {"email": "unknown@example.com"})
@@ -283,7 +289,7 @@ class AccountBackendTests(TestCase):
             reverse("accounts:verify_email_code"),
             {"email": self.user.email, "code": code_match.group(1)},
         )
-        self.assertRedirects(response, reverse("login"))
+        self.assertRedirects(response, reverse("portal:dashboard"))
         self.user.refresh_from_db()
         self.assertTrue(self.user.is_active)
 
@@ -291,7 +297,8 @@ class AccountBackendTests(TestCase):
         response = self.client.post(
             reverse("accounts:password_reset"), {"email": self.user.email}
         )
-        self.assertRedirects(response, reverse("accounts:password_reset_done"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["purpose"], "password_reset")
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("accounts/password/reset/", mail.outbox[0].body)
         import re
@@ -336,7 +343,7 @@ class AccountBackendTests(TestCase):
                 self.assertEqual(response.status_code, 200)
             else:
                 self.assertEqual(response.status_code, 429)
-                self.assertContains(response, "به‌دلیل پنج تلاش ناموفق", status_code=429)
+                self.assertContains(response, "موقتاً محدود شده است", status_code=429)
         # Further submissions remain blocked during the 15-minute window.
         response = self.client.post(reverse("login"), payload)
         self.assertEqual(response.status_code, 429)

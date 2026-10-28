@@ -8,6 +8,7 @@ on:
       - "accounts/**"
       - "catalog/**"
       - "subscriptions/**"
+      - "billing/**"
       - "staff/**"
       - "config/**"
       - "requirements.txt"
@@ -18,10 +19,12 @@ on:
       - "accounts/**"
       - "catalog/**"
       - "subscriptions/**"
+      - "billing/**"
       - "staff/**"
       - "config/**"
       - "requirements.txt"
       - ".github/workflows/licensing-tests.yml"
+      - "pyproject.toml"
 
 jobs:
   test:
@@ -57,6 +60,10 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
+      - name: Check formatting baseline
+        run: |
+          python -m pip install ruff
+          ruff check config/settings.py config/test_settings.py billing/services.py billing/order_services.py billing/attempt_services.py billing/finalization_services.py
       - name: Run licensing tests
         run: python manage.py test licensing --settings=config.test_settings --verbosity=2
 
@@ -69,4 +76,9 @@ jobs:
         run: python manage.py test accounts.tests --settings=config.test_settings --verbosity=2
 
       - name: Run email backend tests
+        if: always()
         run: python manage.py test accounts.test_email_backends --settings=config.test_settings --verbosity=2
+
+      - name: Run billing regression tests
+        if: always()
+        run: python manage.py test billing.tests --settings=config.test_settings --verbosity=2
