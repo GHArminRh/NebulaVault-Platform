@@ -625,3 +625,17 @@ html{scroll-padding-top:90px!important;scroll-behavior:smooth}
 @media(prefers-reduced-motion:reduce){
   .nv-rail-link,.nv-rail-link span,.nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav>a{transition:none!important}
 }
+
+
+/* Sticky rail fix: hidden horizontal overflow on body creates a competing scroll container. */
+html,body{overflow-x:clip!important}
+body.nv-portal{overflow-y:visible!important}
+.nv-dashboard-layout,
+.nv-dashboard-layout>.nv-dash-rail,
+.nv-dashboard-content{overflow-y:visible}
+.nv-dashboard-layout{position:relative;isolation:isolate}
+.nv-dash-rail{z-index:500!important;pointer-events:auto!important}
+.nv-dash-rail a{position:relative;z-index:501;pointer-events:auto!important}
+@media(min-width:821px){
+  .nv-dash-rail{max-height:calc(100vh - 108px);overflow-y:auto!important;overscroll-behavior:contain}
+}
