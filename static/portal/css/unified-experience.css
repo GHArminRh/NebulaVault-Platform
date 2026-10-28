@@ -639,3 +639,115 @@ body.nv-portal{overflow-y:visible!important}
 @media(min-width:821px){
   .nv-dash-rail{max-height:calc(100vh - 108px);overflow-y:auto!important;overscroll-behavior:contain}
 }
+
+
+/* Layout correction pass: keep the dashboard rail above page content and remove wasted viewport space. */
+body.nv-portal{overflow-x:clip!important}
+.nv-dashboard-layout{
+  position:relative!important;
+  z-index:60!important;
+  isolation:auto!important;
+  overflow:visible!important;
+  contain:none!important;
+}
+.nv-dashboard-content{position:relative;z-index:0;overflow:visible!important}
+.nv-dash-rail{
+  position:sticky!important;
+  top:100px!important;
+  z-index:61!important;
+  align-self:start!important;
+  transform:none!important;
+  max-height:calc(100svh - 116px)!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+}
+.nv-dash-rail::before{z-index:0}
+.nv-rail-link{z-index:1!important}
+@media(min-width:901px){
+  .nv-home-hero{
+    min-height:calc(100svh - 88px);
+    padding-block:clamp(20px,4svh,42px)!important;
+    gap:clamp(18px,3vw,48px);
+  }
+  .nv-hero-visual{height:min(52svh,480px)}
+  .nv-home-section,
+  .nv-pricing-band,
+  .nv-release-section,
+  .nv-faq-section{
+    min-height:calc(100svh - 88px);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .nv-home-section{padding-block:clamp(24px,4svh,42px)!important}
+  .nv-pricing-band{padding-block:0!important}
+  .nv-pricing-band>.page-wrap.section{padding-block:clamp(24px,4svh,42px)!important}
+  .nv-release-section>.page-wrap.section{padding-block:clamp(24px,4svh,42px)!important}
+  .nv-home-section .section-heading{margin-bottom:clamp(16px,2.5svh,26px)!important}
+  .nv-product-card{min-height:0;padding:clamp(16px,1.8vw,24px)}
+  .nv-product-card>p{min-height:0;line-height:1.7}
+  .nv-feature-card{min-height:0;padding:clamp(18px,2vw,25px)}
+  .nv-feature-card p{min-height:0;line-height:1.8}
+  .nv-plan-card{padding:clamp(16px,2vw,23px)}
+  .nv-plan-card h3{margin-bottom:clamp(10px,1.5svh,18px)}
+  .nv-plan-button{margin-top:clamp(12px,2svh,20px)}
+}
+@media(max-width:900px){
+  .nv-dashboard-layout{z-index:60!important;isolation:auto!important}
+  .nv-dash-rail{
+    position:sticky!important;
+    top:82px!important;
+    z-index:61!important;
+    max-height:none!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    flex-wrap:nowrap!important;
+    background:rgba(13,19,35,.97)!important;
+  }
+}
+@media(max-width:640px){
+  :root{--nv-page-gutter:16px;--nv-section-space:24px}
+  .nv-home-hero{padding-top:22px!important;padding-bottom:34px!important;gap:6px!important}
+  .nv-hero-visual{height:clamp(235px,65vw,300px)!important}
+  .nv-scroll-cue{bottom:7px!important}
+  .nv-proof-inner{padding-block:12px!important;gap:8px 14px!important}
+  .nv-home-section,
+  .nv-pricing-band,
+  .nv-release-section,
+  .nv-faq-section{padding-block:22px!important;min-height:0!important}
+  .nv-pricing-band>.page-wrap.section,
+  .nv-release-section>.page-wrap.section{padding-block:22px!important}
+  .nv-home-section .section-heading{margin-bottom:14px!important}
+  .nv-home-section .section-heading h2{line-height:1.4!important}
+  .nv-product-card{padding:16px!important}
+  .nv-product-topline{margin-bottom:10px!important}
+  .nv-product-card h3{margin-block:2px 6px!important;font-size:18px!important}
+  .nv-product-card>p{margin-bottom:10px!important;line-height:1.7!important}
+  .nv-product-meta{padding-top:9px!important}
+  .nv-card-link{margin-top:10px!important;padding-top:10px!important}
+  .nv-plan-card{padding:16px!important}
+  .nv-plan-card h3{margin:6px 0 12px!important}
+  .nv-plan-button{margin-top:14px!important}
+  .nv-feature-card{padding:17px!important}
+  .nv-feature-card h3{margin:14px 0 7px!important}
+  .nv-feature-card p{line-height:1.75!important}
+  .nv-release-list .release-row{padding:11px!important}
+  .nv-faq-list summary{padding:13px 0!important}
+  .nv-final-cta{margin-bottom:28px!important;padding:24px 15px!important}
+  .nv-dashboard-layout{z-index:60!important}
+  .nv-dash-rail{
+    top:80px!important;
+    padding:7px!important;
+    gap:4px!important;
+    border-radius:15px!important;
+  }
+  .nv-rail-link{padding:7px 8px!important}
+}
+@media(max-width:380px){
+  .nv-home-hero{padding-top:18px!important;padding-bottom:30px!important}
+  .nv-hero-visual{height:225px!important}
+  .nv-home-section,
+  .nv-pricing-band,
+  .nv-release-section,
+  .nv-faq-section{padding-block:18px!important}
+}
