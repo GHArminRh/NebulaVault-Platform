@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "menus",
     "treebeard",
     "sekizai",
+    "easy_thumbnails",
     "djangocms_text",
     "djangocms_frontend",
     "djangocms_frontend.contrib.grid",
