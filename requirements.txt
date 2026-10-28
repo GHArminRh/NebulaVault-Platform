@@ -1,4 +1,7 @@
 Django>=5.2,<6.0
+django-cms>=5.1.3,<5.2
+djangocms-text>=1.0.2,<1.1
+djangocms-frontend>=2.0,<3.0
 python-dotenv>=1.0,<2.0
 psycopg2-binary>=2.9,<3.0
 nh3>=0.2.21,<1.0

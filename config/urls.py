@@ -80,6 +80,8 @@ urlpatterns = [
     path("api/v1/", include("api.urls")),
     path("api/licensing/", include("licensing.urls")),
     path("billing/", include("billing.urls")),
+    # CMS pages are isolated under /pages/ to preserve all existing routes.
+    path("pages/", include("cms.urls")),
     path(
         "accounts/login/",
         CustomerLoginView.as_view(

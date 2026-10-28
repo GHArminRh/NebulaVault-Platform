@@ -2,6 +2,7 @@ from datetime import timedelta
 import hashlib
 import secrets
 
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -24,16 +25,36 @@ class PublicApiTests(APITestCase):
         )
         Product.objects.create(name="Hidden Product", slug="hidden", is_active=False)
 
+        # API discovery is staff-only; product data remains publicly readable.
+        root = self.client.get("/api/v1/")
+        self.assertEqual(root.status_code, status.HTTP_403_FORBIDDEN)
+
+        staff = get_user_model().objects.create_superuser(
+            username="api-admin",
+            email="api-admin@example.com",
+            password="Strong-admin-password-123!",
+        )
+        self.client.force_login(staff, backend="django.contrib.auth.backends.ModelBackend")
         root = self.client.get("/api/v1/")
         self.assertEqual(root.status_code, status.HTTP_200_OK)
         self.assertEqual(root.data["version"], "v1")
+        self.client.logout()
 
         response = self.client.get("/api/v1/products/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 1)
         self.assertEqual(response.data["results"][0]["id"], str(product.pk))
 
-    def test_openapi_schema_is_available(self):
+    def test_openapi_schema_is_available_to_active_staff_only(self):
+        anonymous_response = self.client.get("/api/v1/schema/")
+        self.assertEqual(anonymous_response.status_code, status.HTTP_403_FORBIDDEN)
+
+        staff = get_user_model().objects.create_superuser(
+            username="schema-admin",
+            email="schema-admin@example.com",
+            password="Strong-admin-password-123!",
+        )
+        self.client.force_login(staff, backend="django.contrib.auth.backends.ModelBackend")
         response = self.client.get("/api/v1/schema/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("openapi", response.data)

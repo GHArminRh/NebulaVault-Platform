@@ -34,9 +34,24 @@ INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
+    "django.contrib.sites",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "staff.apps.StaffConfig",
+    "cms",
+    "menus",
+    "treebeard",
+    "sekizai",
+    "easy_thumbnails",
+    "djangocms_text",
+    "djangocms_link",
+    "djangocms_frontend",
+    "djangocms_frontend.contrib.grid",
+    "djangocms_frontend.contrib.card",
+    "djangocms_frontend.contrib.content",
+    "djangocms_frontend.contrib.alert",
+    "djangocms_frontend.contrib.link",
     "image_uploader_widget",
     "import_export",
     "rest_framework",
@@ -48,7 +63,6 @@ INSTALLED_APPS = [
     "comment.apps.CommentConfig",
     "blog.apps.BlogConfig",
     "accounts",
-    "staff.apps.StaffConfig",
     "catalog.apps.CatalogConfig",
     "subscriptions.apps.SubscriptionsConfig",
     "licensing.apps.LicensingConfig",
@@ -88,11 +102,16 @@ AUTHENTICATION_BACKENDS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "portal.middleware.InterfaceLanguageMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "portal.middleware.InterfaceLanguageMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "accounts.middleware.UUIDCompatibleAuthenticationMiddleware",
+    "cms.middleware.user.CurrentUserMiddleware",
+    "cms.middleware.page.CurrentPageMiddleware",
+    "cms.middleware.toolbar.ToolbarMiddleware",
+    "cms.middleware.language.LanguageCookieMiddleware",
     "portal.middleware.SeparateStaffAndCustomerSessionsMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -107,8 +126,11 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "cms.context_processors.cms_settings",
+                "sekizai.context_processors.sekizai",
                 "portal.context_processors.cart_context",
                 "accounts.context_processors.turnstile",
             ],
@@ -146,6 +168,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "fa"
+SITE_ID = 1
+X_FRAME_OPTIONS = "SAMEORIGIN"
+CMS_TEMPLATES = [
+    ("portal/cms_page.html", "صفحهٔ عمومی نبیولا والت"),
+]
 LANGUAGES = [("en", "English"), ("fa", "Persian")]
 TIME_ZONE = "Asia/Tehran"
 USE_I18N = True
