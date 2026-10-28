@@ -1,5 +1,4 @@
 from django.db import migrations, models
-import django.contrib.contenttypes.fields
 class Migration(migrations.Migration):
     initial = True
     dependencies = [("comment", "0001_initial")]
@@ -21,5 +20,4 @@ class Migration(migrations.Migration):
         ("created_at", models.DateTimeField(auto_now_add=True)),
         ("updated_at", models.DateTimeField(auto_now=True)),
       ],options={"ordering":("-is_featured","-published_at","-created_at"),"verbose_name":"Blog post","verbose_name_plural":"Blog posts"}),
-      migrations.AddField(model_name="blogpost",name="comments",field=django.contrib.contenttypes.fields.GenericRelation(related_query_name="blog_post",to="comment.comment")),
     ]
