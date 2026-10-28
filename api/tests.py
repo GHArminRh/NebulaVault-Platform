@@ -34,7 +34,7 @@ class PublicApiTests(APITestCase):
             email="api-admin@example.com",
             password="Strong-admin-password-123!",
         )
-        self.client.force_login(staff)
+        self.client.force_login(staff, backend="django.contrib.auth.backends.ModelBackend")
         root = self.client.get("/api/v1/")
         self.assertEqual(root.status_code, status.HTTP_200_OK)
         self.assertEqual(root.data["version"], "v1")
