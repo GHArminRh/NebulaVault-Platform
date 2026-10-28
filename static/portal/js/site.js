@@ -107,6 +107,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const stars = [];
     let width = 0, height = 0, dpr = 1, raf = 0, lastTime = 0;
+    let pointerX = -10000, pointerY = -10000, pointerActive = false;
+    window.addEventListener("pointermove", event => {
+      if (event.pointerType === "touch") return;
+      pointerX = event.clientX; pointerY = event.clientY; pointerActive = true;
+    }, {passive:true});
+    window.addEventListener("pointerleave", () => { pointerActive = false; }, {passive:true});
     const makeStar = () => ({
       x: Math.random() * width, y: Math.random() * height,
       radius: .35 + Math.random() * 1.15,
@@ -144,14 +150,25 @@ document.addEventListener("DOMContentLoaded", () => {
           if (star.x > width + 3) star.x = -3;
         }
         const shimmer = .82 + .18 * Math.sin((performance.now() * .00045 * star.speed * 12) + star.phase);
+        let drawX = star.x, drawY = star.y;
+        if (pointerActive) {
+          const dx = star.x - pointerX, dy = star.y - pointerY;
+          const distance = Math.hypot(dx, dy);
+          const radius = 165;
+          if (distance > 0 && distance < radius) {
+            const influence = (1 - distance / radius) * 9;
+            drawX += dx / distance * influence;
+            drawY += dy / distance * influence;
+          }
+        }
         starContext.beginPath();
         starContext.fillStyle = "rgba(198, 215, 255, " + (star.alpha * (animate ? shimmer : 1)) + ")";
-        starContext.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        starContext.arc(drawX, drawY, star.radius, 0, Math.PI * 2);
         starContext.fill();
         if (star.radius > 1.15) {
           starContext.beginPath();
-          starContext.fillStyle = "rgba(116, 151, 255, " + (.08 * star.alpha) + ")";
-          starContext.arc(star.x, star.y, star.radius * 3.5, 0, Math.PI * 2);
+          starContext.fillStyle = "rgba(116, 151, 255, " + (.06 * star.alpha) + ")";
+          starContext.arc(drawX, drawY, star.radius * 2.8, 0, Math.PI * 2);
           starContext.fill();
         }
       }
