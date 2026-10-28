@@ -8,7 +8,7 @@ class CommentAdmin(admin.ModelAdmin):
     list_filter = ("status", "status_edited", "is_pinned", "is_spoiler", "posted")
     search_fields = ("content_main", "content", "user__email")
     readonly_fields = ("user","content_main","content","parent","content_type","object_id","urlhash","posted","updated")
-    actions = ("accept_comments","reject_comments","pin_comments","unpin_comments")
+    actions = ("accept_comments","reject_comments","accept_edits","reject_edits","pin_comments","unpin_comments")
     @admin.action(description="Accept selected comments")
     def accept_comments(self, request, queryset):
         count=queryset.update(status="a")
@@ -17,6 +17,18 @@ class CommentAdmin(admin.ModelAdmin):
     def reject_comments(self, request, queryset):
         count=queryset.update(status="r")
         self.message_user(request,ngettext("%d comment rejected.","%d comments rejected.",count)%count,messages.WARNING)
+    @admin.action(description="Accept selected comment edits")
+    def accept_edits(self, request, queryset):
+        for comment in queryset.filter(status_edited="d"):
+            comment.content_main = comment.content
+            comment.status_edited = "a"
+            comment.save(update_fields=("content_main", "status_edited", "updated"))
+    @admin.action(description="Reject selected comment edits")
+    def reject_edits(self, request, queryset):
+        for comment in queryset.filter(status_edited="d"):
+            comment.content = comment.content_main
+            comment.status_edited = "r"
+            comment.save(update_fields=("content", "status_edited", "updated"))
     @admin.action(description="Pin selected comments")
     def pin_comments(self, request, queryset): queryset.update(is_pinned=True)
     @admin.action(description="Unpin selected comments")

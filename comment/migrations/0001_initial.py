@@ -7,12 +7,6 @@ class Migration(migrations.Migration):
     initial=True
     dependencies=[("accounts","0001_initial"),("contenttypes","0002_remove_content_type_name")]
     operations=[
-      migrations.RunPython(
-        lambda apps,schema_editor: (
-          apps.get_model("comment","CommentSettings").objects.get_or_create(slug="default-config",defaults={"name":"Nebula Vault Blog"}),
-          apps.get_model("comment","React").objects.get_or_create(slug="like",defaults={"emoji":"👍"}),
-          apps.get_model("comment","React").objects.get_or_create(slug="dislike",defaults={"emoji":"👎"}),
-        ), migrations.RunPython.noop),
       migrations.CreateModel(name="CommentSettings",fields=[
         ("name",models.CharField(default="Nebula Vault Blog",max_length=30)),
         ("slug",models.SlugField(default="default-config",primary_key=True,serialize=False)),
@@ -55,5 +49,12 @@ class Migration(migrations.Migration):
         ("comment",models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,related_name="reactions",to="comment.comment")),
         ("react",models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,related_name="reactions",to="comment.react")),
       ],options={"constraints":[models.UniqueConstraint(fields=("user","comment"),name="comment_one_reaction_per_user")]}),
+
+      migrations.RunPython(
+        lambda apps,schema_editor: (
+          apps.get_model("comment","CommentSettings").objects.get_or_create(slug="default-config",defaults={"name":"Nebula Vault Blog"}),
+          apps.get_model("comment","React").objects.get_or_create(slug="like",defaults={"emoji":"👍"}),
+          apps.get_model("comment","React").objects.get_or_create(slug="dislike",defaults={"emoji":"👎"}),
+        ), migrations.RunPython.noop),
 
     ]
