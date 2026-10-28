@@ -157,6 +157,44 @@
       color: #a8a9b8;
     }
 
+    /*
+     * django-admin-dracula adds its navigation drawer and filter controls to
+     * the shared admin shell. They belong on authenticated admin pages only;
+     * leaving them visible on the login screen pushes the form off-centre.
+     */
+    body.login #nav-sidebar,
+    body.login #nav-sidebar-inner,
+    body.login #toggle-nav-sidebar,
+    body.login #nav-filter,
+    body.login .nav-sidebar,
+    body.login .toggle-nav-sidebar,
+    body.login button[aria-label="Toggle navigation"],
+    body.login input[aria-label="Filter navigation items"] {
+      display: none !important;
+    }
+
+    body.login #main {
+      display: block !important;
+      margin-left: 0 !important;
+      padding-left: 0 !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      box-sizing: border-box;
+    }
+
+    body.login #content {
+      position: relative;
+      margin-left: auto !important;
+      margin-right: auto !important;
+      clear: both;
+    }
+
+    body.login #header {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
     @media (max-width: 480px) {
       body.login #content {
         padding: 22px;
