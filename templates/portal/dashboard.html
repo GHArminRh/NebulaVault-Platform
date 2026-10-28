@@ -2,7 +2,19 @@
 {% load money %}
 {% block title %}پیشخوان — نبیولا والت{% endblock %}
 {% block content %}
-<section class="dashboard page-wrap nv-dashboard">
+<div class="nv-dashboard-layout page-wrap">
+  <aside class="nv-dash-rail" aria-label="ناوبری پیشخوان">
+    <div class="nv-rail-brand"><span class="brand-mark">◇</span><span>فضای من<small>NEBULA WORKSPACE</small></span></div>
+    <div class="nv-rail-label">فضای شخصی</div>
+    <a class="nv-rail-link is-current" href="#dashboard-overview"><span>⌂</span> نمای کلی</a>
+    <a class="nv-rail-link" href="#dashboard-subscriptions"><span>◈</span> اشتراک‌ها</a>
+    <a class="nv-rail-link" href="#dashboard-orders"><span>↗</span> سفارش‌ها</a>
+    <a class="nv-rail-link" href="#my-licenses"><span>⌑</span> لایسنس‌ها</a>
+    <a class="nv-rail-link" href="#account-settings"><span>⚙</span> تنظیمات حساب</a>
+    <div class="nv-rail-bottom"><div class="nv-rail-status"><i class="pulse"></i> فضای حساب فعال</div></div>
+  </aside>
+  <div class="nv-dashboard-content">
+<section class="dashboard nv-dashboard" id="dashboard-overview">
   <div class="dashboard-welcome nv-welcome">
     <div>
       <div class="eyebrow"><i class="pulse"></i> فضای شخصی شما</div>
@@ -97,4 +109,6 @@
   </section>
   <div class="dashboard-footer-note"><i class="pulse"></i><div><strong>حساب تو، تحت کنترل تو.</strong><p>اطلاعات حساب تنها پس از تأیید سمت سرور ذخیره می‌شود.</p></div></div>
 </section>
+  </div>
+</div>
 {% endblock %}
