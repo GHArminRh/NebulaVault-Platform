@@ -51,5 +51,9 @@ class SeparateStaffAndCustomerSessionsMiddleware(MiddlewareMixin):
         if isinstance(user, get_user_model()):
             if request.path.rstrip("/") == "/accounts/logout":
                 return redirect("portal:home")
+            # The CMS frontend editor needs the staff identity on CMS pages only.
+            # Keep the existing staff/customer session separation everywhere else.
+            if request.path.startswith("/pages/") and getattr(user, "is_staff", False):
+                return None
             request.user = AnonymousUser()
         return None
