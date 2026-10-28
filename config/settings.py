@@ -236,7 +236,7 @@ MIGRATION_MODULES = {"rating": "config.rating_migrations"}
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "api.authentication.CustomerBearerAuthentication",
-        "api.authentication.CustomerSessionAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
