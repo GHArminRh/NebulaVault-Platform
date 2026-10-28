@@ -1,19 +1,119 @@
 {% extends "admin/base_site.html" %}
 {% load i18n static %}
+
 {% block bodyclass %}{{ block.super }} login{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  #admin-turnstile { margin: 12px 0; min-height: 65px; }
+</style>
+{% endblock %}
+
 {% block content %}
-{% if form.errors and not form.turnstile_error %}<p class="errornote">{% translate "Please enter the correct username and password for a staff account. Note that both fields may be case-sensitive." %}</p>{% endif %}
-{% if form.non_field_errors %}<p class="errornote">{{ form.non_field_errors }}</p>{% endif %}
+{% if form.errors and not form.turnstile_error %}
+<p class="errornote">{% translate "Please enter the correct username and password for a staff account. Note that both fields may be case-sensitive." %}</p>
+{% endif %}
+{% if form.non_field_errors %}
+<p class="errornote">{{ form.non_field_errors }}</p>
+{% endif %}
+
 <div id="content-main">
-<form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
-  <div class="form-row">
-    {{ form.username.errors }}
-    {{ form.username.label_tag }} {{ form.username }}
-  </div>
-  <div class="form-row">
-    {{ form.password.errors }}
-    {{ form.password.label_tag }} {{ form.password }}
-    <input type="hidden" name="next" value="{{ next }}">
-  </div>
-  <div class="form-row"><div class="cf-turnstile" data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}" data-theme="auto" data-language="en" data-size="normal"></div><script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <form action="{{ app_path }}" method="post" id="login-form">
+    {% csrf_token %}
+    <div class="form-row">
+      {{ form.username.errors }}
+      {{ form.username.label_tag }} {{ form.username }}
+    </div>
+    <div class="form-row">
+      {{ form.password.errors }}
+      {{ form.password.label_tag }} {{ form.password }}
+      <input type="hidden" name="next" value="{{ next }}">
+    </div>
+
+    <div class="form-row">
+      <div id="admin-turnstile"
+           class="cf-turnstile"
+           data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}"
+           data-theme="auto"
+           data-language="en"
+           data-size="normal"></div>
+    </div>
+
+    {% url 'admin_password_reset' as password_reset_url %}
+    {% if password_reset_url %}
+    <div class="password-reset-link">
+      <a href="{{ password_reset_url }}">{% translate 'Forgotten your password or username?' %}</a>
+    </div>
+    {% endif %}
+
+    <div class="submit-row">
+      <input type="submit" value="{% translate 'Log in' %}">
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  const form = document.getElementById('login-form');
+  const widget = document.getElementById('admin-turnstile');
+  if (!form || !widget) return;
+
+  // Keep the native Cloudflare widget visible, but don't load/run its checks
+  // until the visitor interacts with the checkbox area.
+  let started = false;
+  function startTurnstile() {
+    if (started) return;
+    started = true;
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.async = true;
+    script.defer = true;
+    script.onload = function () {
+      if (!window.turnstile) return;
+      const widgetId = window.turnstile.render(widget, {
+        sitekey: widget.dataset.sitekey,
+        theme: widget.dataset.theme || 'auto',
+        language: widget.dataset.language || 'en',
+        size: widget.dataset.size || 'normal',
+        execution: 'execute',
+        appearance: 'always',
+        callback: function (token) {
+          widget.dataset.verified = token ? 'true' : 'false';
+        },
+        'error-callback': function () {
+          widget.dataset.verified = 'false';
+        },
+        'expired-callback': function () {
+          widget.dataset.verified = 'false';
+        }
+      });
+      widget.addEventListener('click', function () {
+        if (widgetId && window.turnstile) window.turnstile.execute(widgetId);
+      }, { once: true });
+    };
+    document.head.appendChild(script);
+  }
+
+  widget.addEventListener('click', startTurnstile, { once: true });
+  widget.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter' || event.key === ' ') startTurnstile();
+  }, { once: true });
+
+  form.addEventListener('submit', function (event) {
+    const token = form.querySelector('[name="cf-turnstile-response"]');
+    if (!token || !token.value) {
+      event.preventDefault();
+      if (!started) startTurnstile();
+      widget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+})();
+</script>
+<script>
+(function () {
+  const username = document.getElementById('id_username');
+  if (username) username.focus();
+})();
+</script>
 {% endblock %}
