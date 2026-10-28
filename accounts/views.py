@@ -400,7 +400,43 @@ def password_reset_confirm(request, uidb64, token):
 
 
 class CustomerLoginView(LoginView):
-    """Route inactive and banned customers accurately without masking bad credentials."""
+    """Route account states accurately and throttle repeated failed login attempts."""
+
+    LOGIN_FAILURE_LIMIT = 5
+    LOGIN_FAILURE_WINDOW_SECONDS = 15 * 60
+
+    def _login_attempt_key(self):
+        # Cloudflare supplies the visitor IP in this header. The email is included
+        # so a single visitor's typo does not throttle unrelated accounts.
+        email = (self.request.POST.get("username") or "").strip().casefold()
+        ip = (
+            self.request.META.get("HTTP_CF_CONNECTING_IP")
+            or self.request.META.get("REMOTE_ADDR", "")
+            or "unknown"
+        )
+        digest = hashlib.sha256(f"{ip}|{email}".encode("utf-8")).hexdigest()
+        return f"customer-login-failures:{digest}"
+
+    def post(self, request, *args, **kwargs):
+        key = self._login_attempt_key()
+        if cache.get(key, 0) >= self.LOGIN_FAILURE_LIMIT:
+            form = self.get_form()
+            form.add_error(
+                None,
+                "به‌دلیل چند تلاش ناموفق، ورود این حساب موقتاً محدود شده است. لطفاً ۱۵ دقیقه دیگر دوباره تلاش کنید.",
+            )
+            return render(
+                request,
+                self.template_name,
+                self.get_context_data(form=form),
+                status=429,
+            )
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        # A successful login clears the counter for this IP/account pair.
+        cache.delete(self._login_attempt_key())
+        return super().form_valid(form)
 
     def form_invalid(self, form):
         # Resolve the account state here as well as in the form. This keeps the
@@ -415,6 +451,19 @@ class CustomerLoginView(LoginView):
             candidate = Customer.objects.filter(email__iexact=email).first()
             if candidate and candidate.check_password(password):
                 customer = candidate
+
+        # Count only credential failures after a successful human check. CAPTCHA
+        # failures, banned accounts with the correct password, and inactive
+        # accounts with the correct password do not consume this counter.
+        if human_check_passed and not (
+            customer and password and customer.check_password(password)
+        ):
+            key = self._login_attempt_key()
+            cache.add(key, 0, timeout=self.LOGIN_FAILURE_WINDOW_SECONDS)
+            try:
+                cache.incr(key)
+            except ValueError:
+                cache.set(key, 1, timeout=self.LOGIN_FAILURE_WINDOW_SECONDS)
 
         if customer and customer.is_banned:
             messages.error(self.request, "دسترسی حساب شما توسط مدیر مسدود شده است.")
