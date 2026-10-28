@@ -11,16 +11,16 @@
 <label for="id_password2">تکرار رمز عبور</label><input id="id_password2" name="password2" type="password" autocomplete="new-password" required placeholder="رمز عبور را دوباره وارد کنید">{% if form.password2.errors %}<small class="field-error">{{ form.password2.errors|join:', ' }}</small>{% endif %}
 <input type="hidden" name="human_check" value="on"><section class="turnstile-security-card" aria-labelledby="turnstile-security-title"><span class="turnstile-security-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.1 19 6v5.2c0 4.5-2.8 7.6-7 9.7-4.2-2.1-7-5.2-7-9.7V6l7-2.9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m8.7 11.8 2.1 2.1 4.6-4.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="turnstile-security-content"><strong id="turnstile-security-title">تأیید امنیتی</strong><small>محافظت از حساب شما توسط Cloudflare</small></span><label class="turnstile-consent"><input type="checkbox" id="turnstile-start-check"><span>من ربات نیستم</span></label><div class="turnstile-widget-frame" id="turnstile-widget-frame" hidden></div></section>{% if form.non_field_errors %}<small class="field-error" role="alert">{{ form.non_field_errors|join:', ' }}</small>{% endif %}<script>
 (function(){
-  var started=false, apiReady=!!(window.turnstile&&typeof window.turnstile.render==="function");
+  var started=false, widgetId=null, apiReady=!!(window.turnstile&&typeof window.turnstile.render==="function");
   var check=document.getElementById("turnstile-start-check");
   var frame=document.getElementById("turnstile-widget-frame");
   function renderWidget(){
     if(!check.checked||!apiReady||started)return;
     started=true; frame.hidden=false;
-    window.turnstile.render(frame,{sitekey:"{{ TURNSTILE_SITE_KEY|escapejs }}",theme:"dark",language:"fa",callback:function(){check.checked=true;check.disabled=true;check.parentElement.querySelector("span").textContent="تأیید امنیتی انجام شد";}, "expired-callback":function(){check.disabled=false;check.parentElement.querySelector("span").textContent="من ربات نیستم";}, "error-callback":function(){check.disabled=false;check.parentElement.querySelector("span").textContent="خطا در تأیید؛ دوباره تلاش کنید";}});
+    widgetId=window.turnstile.render(frame,{sitekey:"{{ TURNSTILE_SITE_KEY|escapejs }}",theme:"dark",language:"fa",callback:function(){check.checked=true;check.disabled=true;check.parentElement.querySelector("span").textContent="تأیید امنیتی انجام شد";}, "expired-callback":function(){check.disabled=false;check.parentElement.querySelector("span").textContent="من ربات نیستم";}, "error-callback":function(){check.disabled=false;check.parentElement.querySelector("span").textContent="خطا در تأیید؛ دوباره تلاش کنید";}});
   }
   window.onTurnstileApiLoad=function(){apiReady=true;renderWidget();};
-  check.addEventListener("change",function(){if(check.checked){renderWidget();}else if(started){window.turnstile.remove(frame.querySelector("iframe")?.parentElement?.id);frame.innerHTML="";frame.hidden=true;started=false;check.disabled=false;}});
+  check.addEventListener("change",function(){if(check.checked){renderWidget();}else if(started){if(widgetId!==null)window.turnstile.remove(widgetId);widgetId=null;frame.innerHTML="";frame.hidden=true;started=false;check.disabled=false;}});
 })();
 </script><script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileApiLoad" async defer></script><button class="button button-primary button-full button-large auth-submit" type="submit">ایجاد حساب و ارسال پیوند تأیید <span aria-hidden="true">↗</span></button></form>
 <p class="auth-switch">از قبل حساب دارید؟ <a href="{% url 'login' %}">ورود</a></p><p class="auth-footnote">⌑ پیوند امن تأیید با اعتبار محدود برای شما ایمیل می‌شود.</p></div></section><style>
