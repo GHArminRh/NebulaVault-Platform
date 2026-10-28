@@ -28,21 +28,26 @@ def products(request):
 
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug, is_active=True)
-    plans = product.plans.filter(is_active=True)
+    plans = list(product.plans.filter(is_active=True))
     releases = product.releases.filter(is_published=True)
     has_used_trial = request.user.is_authenticated and product.trial_redemptions.filter(user=request.user).exists()
-    has_active_license = False
+    renewable_plan_ids = set()
     if request.user.is_authenticated:
         now = timezone.now()
-        has_active_license = Subscription.objects.filter(
-            user=request.user,
-            product=product,
-            kind=Subscription.Kind.PAID,
-            status=Subscription.Status.ACTIVE,
-            license__status="active",
-        ).filter(
-            Q(expires_at__gt=now) | Q(license__activations__isnull=True)
-        ).distinct().exists()
+        renewable_plan_ids = set(
+            Subscription.objects.filter(
+                user=request.user,
+                product=product,
+                kind=Subscription.Kind.PAID,
+                status=Subscription.Status.ACTIVE,
+                license__status="active",
+            ).filter(
+                Q(expires_at__gt=now) | Q(license__activations__isnull=True)
+            ).values_list("plan_id", flat=True).distinct()
+        )
+    for plan in plans:
+        plan.is_renewal = plan.pk in renewable_plan_ids
+    has_active_license = bool(renewable_plan_ids)
     return render(request, "portal/product_detail.html", {
         "product": product,
         "plans": plans,
@@ -52,7 +57,22 @@ def product_detail(request, slug):
     })
 
 def pricing(request):
-    plans = Plan.objects.filter(is_active=True, product__is_active=True).select_related("product")
+    plans = list(Plan.objects.filter(is_active=True, product__is_active=True).select_related("product"))
+    renewable_plan_ids = set()
+    if request.user.is_authenticated:
+        now = timezone.now()
+        renewable_plan_ids = set(
+            Subscription.objects.filter(
+                user=request.user,
+                kind=Subscription.Kind.PAID,
+                status=Subscription.Status.ACTIVE,
+                license__status="active",
+            ).filter(
+                Q(expires_at__gt=now) | Q(license__activations__isnull=True)
+            ).values_list("plan_id", flat=True).distinct()
+        )
+    for plan in plans:
+        plan.is_renewal = plan.pk in renewable_plan_ids
     return render(request, "portal/pricing.html", {"plans": plans})
 
 @login_required
