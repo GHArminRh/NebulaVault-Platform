@@ -1,17 +1,41 @@
 from django import forms
+from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm
-from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.contrib.auth.password_validation import validate_password
 
 from .models import Customer
+from .turnstile import verify_turnstile
 
 
 class HumanCheckMixin:
-    human_check = forms.BooleanField(
-        required=True,
-        error_messages={"required": "لطفاً تأیید کنید که ربات نیستید."},
-        label="من ربات نیستم",
-    )
+    # Compatibility only; this hidden value is never trusted as proof of a human.
+    human_check = forms.BooleanField(required=False, widget=forms.HiddenInput())
+
+    def clean(self):
+        # Verify Turnstile before Django's authentication clean() so inactive
+        # accounts can still be routed to verification only after passing CAPTCHA.
+        if getattr(settings, "TURNSTILE_ENABLED", True):
+            token = (self.data.get("cf-turnstile-response") or "").strip()
+            valid = verify_turnstile(
+                token,
+                secret_key=getattr(settings, "TURNSTILE_SECRET_KEY", ""),
+                verify_url=getattr(
+                    settings,
+                    "TURNSTILE_VERIFY_URL",
+                    "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                ),
+            )
+            if not valid:
+                self.turnstile_error = True
+                raise ValidationError(
+                    "تأیید امنیتی ناموفق بود. لطفاً کپچا را تکمیل کنید و دوباره تلاش کنید."
+                )
+            self.cleaned_data["turnstile_verified"] = True
+        else:
+            # Tests/local development may explicitly disable Turnstile.
+            self.cleaned_data["turnstile_verified"] = True
+        return super().clean()
 
 
 class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
@@ -25,11 +49,11 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
             # Keep Django's normal authentication flow for active customers.
             return super().clean()
         except ValidationError:
-            # Only reveal account state after both the password and human check pass.
+            # Only reveal account state after password and Turnstile both pass.
             email = (self.data.get(self.add_prefix("username")) or "").strip()
             password = self.data.get(self.add_prefix("password")) or ""
             customer = Customer.objects.filter(email__iexact=email).first()
-            if self.cleaned_data.get("human_check") and customer and password and customer.check_password(password):
+            if self.cleaned_data.get("turnstile_verified") and customer and password and customer.check_password(password):
                 if customer.is_banned:
                     self.banned_account = True
                 elif not customer.is_active:
@@ -49,7 +73,6 @@ class RegisterForm(HumanCheckMixin, forms.ModelForm):
 
     class Meta:
         model = Customer
-        # Username is intentionally omitted: it is generated from the email.
         fields = ("email",)
 
     def clean_email(self):
@@ -66,9 +89,6 @@ class RegisterForm(HumanCheckMixin, forms.ModelForm):
         base = email.rsplit("@", 1)[0].strip()
         if not base:
             raise ValidationError({"email": "نشانی ایمیل باید پیش از علامت @ نام کاربری داشته باشد."})
-
-        # Preserve the email's local-part exactly when available. If it is
-        # already taken, add a numeric suffix without asking the user to choose.
         candidate = base[:150]
         suffix = 2
         while Customer.objects.filter(username__iexact=candidate).exists():
@@ -127,7 +147,6 @@ class AccountProfileForm(forms.ModelForm):
         if Customer.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
             raise ValidationError("حسابی با این نشانی ایمیل از قبل وجود دارد.")
         return email
-
 
 
 class AccountPasswordChangeForm(PasswordChangeForm):
