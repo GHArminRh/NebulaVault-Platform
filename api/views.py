@@ -17,6 +17,7 @@ from accounts.models import Customer
 from billing.models import PaymentOrder
 from blog.models import BlogPost, BlogPostRating, Tag
 from catalog.models import Plan, Product, Release
+from licensing.models import License
 from subscriptions.models import Subscription
 
 from .authentication import CustomerBearerAuthentication
@@ -24,6 +25,7 @@ from .models import CustomerAPIToken
 from .permissions import IsCustomer
 from .serializers import (
     BlogPostSerializer,
+    CustomerLicenseSerializer,
     BlogRatingSerializer,
     TokenLoginSerializer,
     TokenResponseSerializer,
@@ -177,6 +179,21 @@ class MySubscriptionListView(generics.ListAPIView):
 
     def get_queryset(self):
         return Subscription.objects.filter(user=self.request.user).select_related("product", "plan")
+
+
+class MyLicenseListView(generics.ListAPIView):
+    serializer_class = CustomerLicenseSerializer
+    authentication_classes = (CustomerBearerAuthentication, SessionAuthentication)
+    permission_classes = (IsCustomer,)
+    ordering_fields = ("created_at", "updated_at", "status", "last_validated_at")
+    ordering = ("-created_at",)
+
+    def get_queryset(self):
+        return (
+            License.objects.filter(subscription__user=self.request.user)
+            .select_related("subscription", "subscription__product", "subscription__plan")
+            .prefetch_related("activations")
+        )
 
 
 class MyPaymentOrderListView(generics.ListAPIView):
