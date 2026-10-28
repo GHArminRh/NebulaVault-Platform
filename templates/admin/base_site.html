@@ -12,16 +12,27 @@
 {% block extrastyle %}
   {{ block.super }}
   <style>
+    /*
+     * Login-only visual language follows the public Nebula Vault site:
+     * midnight navy, electric blue, violet and cyan. Authenticated admin
+     * pages keep their existing Dracula theme.
+     */
     body.login {
       min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
       background:
-        radial-gradient(ellipse at 50% 0%, rgba(189, 147, 249, .13), transparent 48%),
-        #282a36;
-      color: #f8f8f2;
+        radial-gradient(ellipse at 48% 0%, rgba(35, 91, 179, .20), transparent 38%),
+        radial-gradient(ellipse at 90% 20%, rgba(117, 59, 217, .14), transparent 28%),
+        radial-gradient(ellipse at 0% 70%, rgba(22, 110, 165, .10), transparent 28%),
+        linear-gradient(180deg, #071025 0%, #050a18 58%, #070c1c 100%);
+      color: #f3f5ff;
+      font-family: 'Vazirmatn', Tahoma, sans-serif;
     }
 
     body.login #container {
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       background: transparent;
@@ -29,130 +40,9 @@
       box-shadow: none;
     }
 
-    body.login #header {
-      background: transparent;
-      color: #f8f8f2;
-      border: 0;
-      box-shadow: none;
-      padding: 28px 24px 12px;
-    }
-
-    body.login #branding {
-      float: none;
-      text-align: center;
-    }
-
-    body.login #site-name {
-      margin: 0;
-      font-size: clamp(1.55rem, 3vw, 2rem);
-      font-weight: 700;
-      letter-spacing: -.035em;
-    }
-
-    body.login #site-name a,
-    body.login #site-name a:link,
-    body.login #site-name a:visited {
-      color: #bd93f9;
-    }
-
-    body.login #content {
-      width: min(420px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 30px;
-      box-sizing: border-box;
-      float: none;
-      background: #343746;
-      border: 1px solid #494b5b;
-      border-radius: 18px;
-      box-shadow: 0 24px 70px rgba(0, 0, 0, .28);
-    }
-
-    body.login #content-main,
-    body.login form {
-      width: 100%;
-      float: none;
-    }
-
-    body.login .form-row {
-      padding: 8px 0 14px;
-      border: 0;
-    }
-
-    body.login .form-row label {
-      display: block;
-      float: none;
-      width: auto;
-      padding: 0 0 8px;
-      color: #f8f8f2;
-      font-weight: 600;
-    }
-
-    body.login .form-row input[type="text"],
-    body.login .form-row input[type="password"],
-    body.login .form-row input[type="email"] {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 12px 14px;
-      border: 1px solid #56596b;
-      border-radius: 9px;
-      background: #282a36;
-      color: #f8f8f2;
-      min-height: 44px;
-      transition: border-color .18s ease, box-shadow .18s ease;
-    }
-
-    body.login .form-row input:focus {
-      border-color: #bd93f9;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(189, 147, 249, .18);
-    }
-
-    body.login .submit-row {
-      padding: 18px 0 0;
-      background: transparent;
-      border: 0;
-      text-align: stretch;
-    }
-
-    body.login .submit-row input[type="submit"] {
-      width: 100%;
-      float: none;
-      padding: 12px 18px;
-      border: 0;
-      border-radius: 9px;
-      background: #bd93f9;
-      color: #282a36;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background .18s ease, transform .18s ease;
-    }
-
-    body.login .submit-row input[type="submit"]:hover {
-      background: #caa9fa;
-      transform: translateY(-1px);
-    }
-
-    body.login .errornote,
-    body.login .form-row .errorlist {
-      color: #ffb8b8;
-      background: rgba(255, 85, 85, .10);
-      border: 1px solid rgba(255, 85, 85, .35);
-      border-radius: 8px;
-      padding: 10px 12px;
-    }
-
-    body.login .password-reset-link a,
-    body.login a:link,
-    body.login a:visited {
-      color: #8be9fd;
-    }
-
-    body.login #footer {
-      background: transparent;
-      color: #a8a9b8;
-    }
-
-    /* Keep Dracula navigation controls off the login screen. */
+    /* Hide the Django/Dracula masthead and footer on the login view only. */
+    body.login #header,
+    body.login #footer,
     body.login #nav-sidebar,
     body.login #nav-sidebar-inner,
     body.login #toggle-nav-sidebar,
@@ -166,11 +56,6 @@
       display: none !important;
     }
 
-    /* Use the full viewport for the login card; hide the admin masthead. */
-    body.login #header {
-      display: none !important;
-    }
-
     body.login #main {
       display: flex !important;
       flex: 1 0 auto;
@@ -179,7 +64,7 @@
       width: 100% !important;
       min-width: 0 !important;
       margin: 0 !important;
-      padding: 24px !important;
+      padding: 18px !important;
       box-sizing: border-box;
     }
 
@@ -187,20 +72,150 @@
       position: relative;
       width: min(420px, 100%);
       margin: 0 auto !important;
+      padding: 22px 26px;
+      box-sizing: border-box;
+      float: none;
       clear: both;
+      background:
+        radial-gradient(ellipse at 90% 0%, rgba(65, 92, 210, .12), transparent 46%),
+        linear-gradient(145deg, rgba(13, 25, 49, .97), rgba(7, 14, 29, .98));
+      border: 1px solid rgba(104, 157, 255, .24);
+      border-radius: 18px;
+      box-shadow: 0 20px 55px rgba(0, 0, 0, .32), 0 0 30px rgba(48, 115, 255, .06);
     }
 
-    body.login #content-main {
+    body.login #content-main,
+    body.login form {
+      width: 100%;
       min-width: 0;
+      float: none;
+    }
+
+    body.login .form-row {
+      padding: 4px 0 8px;
+      border: 0;
+    }
+
+    body.login .form-row label {
+      display: block;
+      float: none;
+      width: auto;
+      padding: 0 0 5px;
+      color: #c2cde2;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    body.login .form-row input[type="text"],
+    body.login .form-row input[type="password"],
+    body.login .form-row input[type="email"] {
+      width: 100%;
+      min-height: 40px;
+      box-sizing: border-box;
+      padding: 9px 12px;
+      border: 1px solid rgba(104, 151, 224, .24);
+      border-radius: 10px;
+      background: rgba(4, 10, 23, .78);
+      color: #eef4ff;
+      font: inherit;
+      transition: border-color .18s ease, box-shadow .18s ease;
+    }
+
+    body.login .form-row input:focus {
+      border-color: rgba(72, 207, 255, .75);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(56, 125, 255, .13);
+    }
+
+    body.login .submit-row {
+      padding: 11px 0 0;
+      margin: 0;
+      background: transparent;
+      border: 0;
+      text-align: center;
+    }
+
+    body.login .submit-row input[type="submit"] {
+      width: 100%;
+      min-height: 42px;
+      float: none;
+      padding: 10px 16px;
+      border: 1px solid rgba(120, 158, 255, .24);
+      border-radius: 10px;
+      background: linear-gradient(105deg, #387dff, #694cff 65%, #8a4cff);
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(68, 94, 255, .20);
+      transition: filter .18s ease, transform .18s ease, box-shadow .18s ease;
+    }
+
+    body.login .submit-row input[type="submit"]:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 28px rgba(68, 94, 255, .28);
+    }
+
+    body.login .errornote,
+    body.login .form-row .errorlist {
+      color: #ffb8c3;
+      background: rgba(233, 83, 112, .08);
+      border: 1px solid rgba(233, 83, 112, .25);
+      border-radius: 9px;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    body.login .password-reset-link {
+      margin-top: 2px;
+      font-size: 11px;
+    }
+
+    body.login .password-reset-link a,
+    body.login a:link,
+    body.login a:visited {
+      color: #48cfff;
+    }
+
+    body.login a:hover {
+      color: #a9caff;
+    }
+
+    @media (max-height: 700px) {
+      body.login #main {
+        padding: 10px !important;
+      }
+
+      body.login #content {
+        padding: 16px 22px;
+      }
+
+      body.login .form-row {
+        padding: 2px 0 6px;
+      }
+
+      body.login .submit-row {
+        padding-top: 8px;
+      }
+
+      body.login .turnstile-row {
+        margin: 8px 0 2px !important;
+        padding: 8px 10px !important;
+      }
+
+      body.login .turnstile-heading {
+        margin-bottom: 5px !important;
+      }
     }
 
     @media (max-width: 480px) {
       body.login #main {
-        padding: 16px !important;
+        padding: 12px !important;
       }
 
       body.login #content {
-        padding: 22px;
+        padding: 20px 18px;
       }
     }
   </style>
