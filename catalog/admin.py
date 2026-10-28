@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
+from import_export.widgets import ForeignKeyWidget
 
 from .forms import ProductAdminForm, ReleaseAdminForm
 from .models import Plan, Product, Release
@@ -17,7 +18,7 @@ class ProductResource(resources.ModelResource):
 
 
 class ReleaseResource(resources.ModelResource):
-    product = fields.Field(attribute="product", column_name="product_id")
+    product = fields.Field(attribute="product", column_name="product_id", widget=ForeignKeyWidget(Product, field="id"))
 
     class Meta:
         model = Release
