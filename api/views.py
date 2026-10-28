@@ -98,7 +98,7 @@ class TokenRevokeView(APIView):
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ProductSerializer
     lookup_field = "slug"
-    lookup_value_regex = r"[-\\w]+"
+    lookup_value_regex = r"[-\w]+"
     queryset = Product.objects.filter(is_active=True).order_by("name")
     search_fields = ("name", "slug", "description")
     ordering_fields = ("name", "created_at", "updated_at")
@@ -134,7 +134,7 @@ class PlanViewSet(viewsets.ReadOnlyModelViewSet):
 class BlogPostViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = BlogPostSerializer
     lookup_field = "slug"
-    lookup_value_regex = r"[-a-zA-Z0-9_]+"
+    lookup_value_regex = r"[-\w]+"
     queryset = BlogPost.objects.filter(
         status=BlogPost.Status.PUBLISHED,
         published_at__isnull=False,
