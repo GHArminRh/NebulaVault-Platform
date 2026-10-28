@@ -170,6 +170,7 @@ SITE_ID = 1
 X_FRAME_OPTIONS = "SAMEORIGIN"
 CMS_TEMPLATES = [
     ("portal/cms_page.html", "صفحهٔ عمومی نبیولا والت"),
+    ("portal/cms_home_page.html", "صفحهٔ اصلی قابل ویرایش نبیولا والت"),
 ]
 LANGUAGES = [("en", "English"), ("fa", "Persian")]
 TIME_ZONE = "Asia/Tehran"
