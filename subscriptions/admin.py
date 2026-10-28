@@ -29,7 +29,7 @@ class SubscriptionResource(resources.ModelResource):
 class SubscriptionRenewalResource(resources.ModelResource):
     class Meta:
         model = SubscriptionRenewal
-        fields = ("id", "subscription", "payment_reference", "amount_minor_units", "currency", "previous_expires_at", "new_expires_at", "created_at")
+        fields = ("id", "subscription", "amount_minor_units", "currency", "previous_expires_at", "new_expires_at", "created_at")
         export_order = fields
 
 
