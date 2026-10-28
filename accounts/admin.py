@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
+from import_export import resources
+from import_export.admin import ExportMixin
 
 from .models import AccountEmailLog, Customer
 
@@ -91,8 +93,16 @@ class CustomerAdmin(admin.ModelAdmin):
         js = ("accounts/admin_customer_username.js",)
 
 
+class AccountEmailLogResource(resources.ModelResource):
+    class Meta:
+        model = AccountEmailLog
+        fields = ("id", "recipient", "purpose", "status", "created_at", "sent_at", "expires_at", "failed_attempts")
+        export_order = fields
+
+
 @admin.register(AccountEmailLog)
-class AccountEmailLogAdmin(admin.ModelAdmin):
+class AccountEmailLogAdmin(ExportMixin, admin.ModelAdmin):
+    resource_classes = (AccountEmailLogResource,)
     list_display = ("created_at", "recipient", "purpose", "status", "sent_at", "expires_at", "failed_attempts")
     list_filter = ("purpose", "status", "created_at")
     search_fields = ("recipient", "customer__email", "customer__username")
