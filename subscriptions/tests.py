@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from catalog.models import Plan, Product
+from licensing.models import License
 from subscriptions.models import Subscription, SubscriptionRenewal, TrialRedemption
 from subscriptions.services import (
     PaymentReferenceConflict,
@@ -69,6 +70,40 @@ class StartTrialTests(TestCase):
             start_trial(user=self.user, product=self.product)
 
         self.assertEqual(TrialRedemption.objects.count(), 1)
+        self.assertEqual(Subscription.objects.count(), 1)
+
+    def test_active_paid_license_blocks_trial_for_same_product(self):
+        plan = Plan.objects.create(
+            product=self.product,
+            name="Monthly",
+            slug="monthly-active-license",
+            duration_unit=Plan.DurationUnit.MONTHS,
+            duration_value=1,
+            price_minor_units=1999,
+            currency="IRR",
+            device_limit=1,
+            is_active=True,
+        )
+        now = timezone.now()
+        subscription = Subscription.objects.create(
+            user=self.user,
+            product=self.product,
+            kind=Subscription.Kind.PAID,
+            status=Subscription.Status.ACTIVE,
+            plan=plan,
+            trial_redemption=None,
+            starts_at=now,
+            expires_at=now + timedelta(days=30),
+        )
+        License.objects.create(
+            subscription=subscription,
+            key_digest="a" * 64,
+        )
+
+        with self.assertRaises(TrialUnavailable):
+            start_trial(user=self.user, product=self.product)
+
+        self.assertEqual(TrialRedemption.objects.count(), 0)
         self.assertEqual(Subscription.objects.count(), 1)
 
     def test_inactive_product_cannot_start_trial(self):
