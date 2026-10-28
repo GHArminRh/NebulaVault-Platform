@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
         face.inert = !active;
         face.setAttribute("aria-hidden", String(!active));
       });
+      if (typeof window.nvRenderAuthTurnstile === "function") window.nvRenderAuthTurnstile();
     };
     shell.querySelectorAll("[data-auth-flip]").forEach(button => {
       button.addEventListener("click", () => setSide(button.getAttribute("data-auth-flip")));
