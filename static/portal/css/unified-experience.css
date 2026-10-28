@@ -473,3 +473,57 @@ table{max-width:100%}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+
+/* Navigation and anchor alignment: use one offset source and keep the dashboard rail interactive. */
+html{scroll-padding-top:90px!important;scroll-behavior:smooth}
+#home,#products,#pricing,#features,#releases,#about,
+.nv-home-hero#home,.nv-home-section#products,.nv-pricing-band#pricing,
+.nv-home-section#features,.nv-release-section#releases,.nv-home-section#about,
+#dashboard-overview,#dashboard-activity,#dashboard-subscriptions,#my-licenses,#account-settings{
+  scroll-margin-top:0!important;
+}
+.nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav{
+  margin-inline-start:0!important;
+  margin-inline-end:auto!important;
+}
+.nv-dashboard-layout{
+  align-items:start;
+  overflow:visible!important;
+}
+.nv-dashboard-content{min-width:0;overflow:visible}
+.nv-dash-rail{
+  position:sticky!important;
+  top:94px!important;
+  z-index:20!important;
+  align-self:start;
+  pointer-events:auto!important;
+  isolation:isolate;
+  max-height:calc(100vh - 112px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(153,141,255,.24) transparent;
+}
+.nv-rail-link,.nv-rail-link *{pointer-events:auto}
+.nv-rail-link{scroll-margin:0!important;touch-action:manipulation}
+.nv-dashboard-content .nv-main-columns{scroll-margin-top:0!important}
+@media(max-width:820px){
+  html{scroll-padding-top:82px!important}
+  .nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav{display:none}
+  .nv-dashboard-layout{overflow:visible!important}
+  .nv-dash-rail{
+    position:sticky!important;
+    top:72px!important;
+    z-index:30!important;
+    max-height:none;
+    overflow-x:auto;
+    overflow-y:hidden;
+    flex-wrap:nowrap!important;
+    white-space:nowrap;
+    background:rgba(13,19,35,.97);
+    backdrop-filter:blur(18px);
+  }
+  .nv-rail-link{flex:0 0 auto!important}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
