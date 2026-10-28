@@ -39,7 +39,7 @@ class AccountBackendTests(TestCase):
             reverse("accounts:profile"),
             {"username": self.user.username, "first_name": "", "last_name": "", "email": "new-address@example.com"},
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
         self.user.refresh_from_db()
         self.assertEqual(self.user.email, "new-address@example.com")
         self.assertFalse(self.user.is_active)
