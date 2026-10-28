@@ -19,7 +19,22 @@ from subscriptions.services import TrialAlreadyUsed, TrialUnavailable, start_tri
 def home(request):
     products = Product.objects.filter(is_active=True).prefetch_related(Prefetch("plans", queryset=Plan.objects.filter(is_active=True)))[:3]
     releases = Release.objects.filter(is_published=True, product__is_active=True).select_related("product")[:3]
-    plans = Plan.objects.filter(is_active=True, product__is_active=True).select_related("product")
+    plans = list(Plan.objects.filter(is_active=True, product__is_active=True).select_related("product"))
+    renewable_plan_ids = set()
+    if request.user.is_authenticated:
+        now = timezone.now()
+        renewable_plan_ids = set(
+            Subscription.objects.filter(
+                user=request.user,
+                kind=Subscription.Kind.PAID,
+                status=Subscription.Status.ACTIVE,
+                license__status="active",
+            ).filter(
+                Q(expires_at__gt=now) | Q(license__activations__isnull=True)
+            ).values_list("plan_id", flat=True).distinct()
+        )
+    for plan in plans:
+        plan.is_renewal = plan.pk in renewable_plan_ids
     return render(request, "portal/home.html", {"products": products, "plans": plans, "releases": releases})
 
 def products(request):
