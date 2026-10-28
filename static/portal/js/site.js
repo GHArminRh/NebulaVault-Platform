@@ -1,4 +1,52 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Slim top-edge progress indicator for document loads, navigations and form submissions.
+  const progress = document.querySelector(".nv-page-progress");
+  if (progress) {
+    let progressValue = 0;
+    let progressTimer = null;
+    const setProgress = value => {
+      progressValue = Math.max(progressValue, Math.min(94, value));
+      progress.style.setProperty("--nv-progress", progressValue + "%");
+      progress.setAttribute("aria-valuenow", String(Math.round(progressValue)));
+    };
+    const startProgress = () => {
+      progress.classList.add("is-loading");
+      progress.classList.remove("is-complete");
+      progressValue = 0;
+      setProgress(8);
+      clearInterval(progressTimer);
+      progressTimer = setInterval(() => setProgress(progressValue + Math.max(1, (88 - progressValue) * .075)), 120);
+    };
+    const completeProgress = () => {
+      clearInterval(progressTimer);
+      setProgress(100);
+      progress.classList.add("is-complete");
+      window.setTimeout(() => {
+        progress.classList.remove("is-loading", "is-complete");
+        progress.style.setProperty("--nv-progress", "0%");
+        progress.setAttribute("aria-valuenow", "0");
+        progressValue = 0;
+      }, 320);
+    };
+    if (document.readyState === "complete") completeProgress();
+    else {
+      startProgress();
+      window.addEventListener("load", completeProgress, { once: true });
+    }
+    document.addEventListener("click", event => {
+      const link = event.target.closest("a[href]");
+      if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.target === "_blank" || link.hasAttribute("download")) return;
+      const destination = new URL(link.href, window.location.href);
+      if (destination.origin !== window.location.origin || (destination.pathname === location.pathname && destination.search === location.search && destination.hash)) return;
+      startProgress();
+    }, true);
+    document.addEventListener("submit", event => {
+      const form = event.target;
+      if (form instanceof HTMLFormElement && form.method.toLowerCase() !== "dialog") startProgress();
+    }, true);
+    window.addEventListener("pageshow", completeProgress);
+  }
+
   const toggle = document.querySelector(".menu-toggle");
   const nav = document.querySelector(".mobile-nav");
   if (toggle && nav) {
