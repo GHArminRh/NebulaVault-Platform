@@ -32,7 +32,7 @@ def home(request):
                 language=getattr(request, "LANGUAGE_CODE", "fa"),
                 path__in=("", "/"),
             ).exists():
-                return cms_page_details(request)
+                return cms_page_details(request, slug="")
         except (ImportError, AttributeError, TypeError, ValueError):
             # A missing CMS homepage must never break the established homepage.
             pass
