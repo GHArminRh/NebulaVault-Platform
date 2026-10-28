@@ -8,6 +8,7 @@ on:
       - "accounts/**"
       - "catalog/**"
       - "subscriptions/**"
+      - "billing/**"
       - "staff/**"
       - "config/**"
       - "requirements.txt"
@@ -18,6 +19,7 @@ on:
       - "accounts/**"
       - "catalog/**"
       - "subscriptions/**"
+      - "billing/**"
       - "staff/**"
       - "config/**"
       - "requirements.txt"
@@ -75,3 +77,6 @@ jobs:
 
       - name: Run email backend tests
         run: python manage.py test accounts.test_email_backends --settings=config.test_settings --verbosity=2
+
+      - name: Run billing regression tests
+        run: python manage.py test billing.tests --settings=config.test_settings --verbosity=2
