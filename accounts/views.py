@@ -455,15 +455,17 @@ class CustomerLoginView(LoginView):
         # Count only credential failures after a successful human check. CAPTCHA
         # failures, banned accounts with the correct password, and inactive
         # accounts with the correct password do not consume this counter.
+        failure_count = None
         if human_check_passed and not (
             customer and password and customer.check_password(password)
         ):
             key = self._login_attempt_key()
             cache.add(key, 0, timeout=self.LOGIN_FAILURE_WINDOW_SECONDS)
             try:
-                cache.incr(key)
+                failure_count = cache.incr(key)
             except ValueError:
                 cache.set(key, 1, timeout=self.LOGIN_FAILURE_WINDOW_SECONDS)
+                failure_count = 1
 
         if customer and customer.is_banned:
             messages.error(self.request, "دسترسی حساب شما توسط مدیر مسدود شده است.")
@@ -504,5 +506,19 @@ class CustomerLoginView(LoginView):
                     "در حال حاضر ارسال ایمیل تأیید ممکن نشد. تنظیمات ایمیل را بررسی و دوباره تلاش کنید.",
                 )
             return render(self.request, "accounts/email_code_form.html", context)
+
+        # Lock immediately on the fifth failed password submission, rather than
+        # allowing the fifth response to look like an ordinary login failure.
+        if failure_count is not None and failure_count >= self.LOGIN_FAILURE_LIMIT:
+            form.add_error(
+                None,
+                "به‌دلیل پنج تلاش ناموفق، ورود این حساب موقتاً محدود شده است. لطفاً ۱۵ دقیقه دیگر دوباره تلاش کنید.",
+            )
+            return render(
+                self.request,
+                self.template_name,
+                self.get_context_data(form=form),
+                status=429,
+            )
 
         return super().form_invalid(form)
