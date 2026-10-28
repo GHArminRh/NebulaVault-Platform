@@ -38,7 +38,6 @@ urlpatterns = [
     path("admin/editor-upload/", editor_image_upload, name="editor-image-upload"),
     path("admin/", admin.site.urls),
     path("tinymce/", include("tinymce.urls")),
-    path("rating/", include("rating.urls")),
     path("comment/", include("comment.urls")),
     path("blog/", include("blog.urls")),
     path("api/licensing/", include("licensing.urls")),
