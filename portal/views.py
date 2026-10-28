@@ -6,7 +6,7 @@ from collections import defaultdict
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from accounts.forms import AccountPasswordChangeForm, AccountProfileForm
@@ -31,7 +31,25 @@ def product_detail(request, slug):
     plans = product.plans.filter(is_active=True)
     releases = product.releases.filter(is_published=True)
     has_used_trial = request.user.is_authenticated and product.trial_redemptions.filter(user=request.user).exists()
-    return render(request, "portal/product_detail.html", {"product": product, "plans": plans, "releases": releases, "has_used_trial": has_used_trial})
+    has_active_license = False
+    if request.user.is_authenticated:
+        now = timezone.now()
+        has_active_license = Subscription.objects.filter(
+            user=request.user,
+            product=product,
+            kind=Subscription.Kind.PAID,
+            status=Subscription.Status.ACTIVE,
+            license__status="active",
+        ).filter(
+            Q(expires_at__gt=now) | Q(license__activations__isnull=True)
+        ).distinct().exists()
+    return render(request, "portal/product_detail.html", {
+        "product": product,
+        "plans": plans,
+        "releases": releases,
+        "has_used_trial": has_used_trial,
+        "has_active_license": has_active_license,
+    })
 
 def pricing(request):
     plans = Plan.objects.filter(is_active=True, product__is_active=True).select_related("product")
