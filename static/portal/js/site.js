@@ -61,12 +61,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }).filter(Boolean))].sort((a, b) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
   const syncScrollNavigation = () => {
     const header = document.querySelector(".site-header");
-    const line = (header?.getBoundingClientRect().bottom || 0) + 18;
+    // Match the active-section reading line to the actual sticky-header offset.
+    const line = (header?.getBoundingClientRect().bottom || 0) + 28;
     const sync = (links, targets, fallbackId) => {
       if (!links.length || !targets.length) return;
-      // Pick the last section that has crossed the header's reading line.
-      // Do not stop at the first target below the line: anchors can be nested
-      // or supplied by duplicated desktop/mobile navigation in varying order.
       let current = targets[0];
       for (const target of targets) {
         if (target.getBoundingClientRect().top <= line) current = target;
@@ -75,28 +73,74 @@ document.addEventListener("DOMContentLoaded", () => {
       links.forEach(link => {
         let hash = "";
         try { hash = new URL(link.href, location.href).hash; } catch (_) {}
-        link.classList.toggle("is-current", hash === "#" + current.id);
-        if (hash === "#" + current.id) link.setAttribute("aria-current", "location");
+        const active = hash === "#" + current.id;
+        link.classList.toggle("is-current", active);
+        if (active) link.setAttribute("aria-current", "location");
         else link.removeAttribute("aria-current");
       });
     };
     sync(railLinks, railTargets, "dashboard-overview");
     sync(homeLinks, homeTargets, "home");
   };
-  if (railTargets.length || homeTargets.length) {
-    let scrollFrame = false;
-    const requestSync = () => {
-      if (scrollFrame) return;
-      scrollFrame = true;
-      window.requestAnimationFrame(() => { syncScrollNavigation(); scrollFrame = false; });
+  const requestNavSync = (() => {
+    let pending = false;
+    return () => {
+      if (pending) return;
+      pending = true;
+      window.requestAnimationFrame(() => {
+        syncScrollNavigation();
+        pending = false;
+      });
     };
-    window.addEventListener("scroll", requestSync, {passive: true});
-    window.addEventListener("resize", requestSync, {passive: true});
-    window.addEventListener("hashchange", requestSync);
-    document.querySelectorAll('.nv-rail-link[href^="#"], .desktop-nav a[href*="#"], .mobile-nav a[href*="#"]').forEach(link => {
-      link.addEventListener("click", () => window.setTimeout(requestSync, 80));
+  })();
+  const scrollToAnchor = (target, smooth = true) => {
+    if (!target) return;
+    const header = document.querySelector(".site-header");
+    const offset = (header?.getBoundingClientRect().height || 0) + 12;
+    const top = Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({top, behavior: smooth && !reduced ? "smooth" : "auto"});
+    requestNavSync();
+  };
+  if (railTargets.length || homeTargets.length) {
+    window.addEventListener("scroll", requestNavSync, {passive: true});
+    window.addEventListener("resize", requestNavSync, {passive: true});
+    window.addEventListener("hashchange", requestNavSync);
+    window.addEventListener("popstate", () => {
+      const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+      if (target) scrollToAnchor(target);
+      else requestNavSync();
     });
-    syncScrollNavigation();
+    document.querySelectorAll('a[href*="#"]').forEach(link => {
+      link.addEventListener("click", event => {
+        let url;
+        try { url = new URL(link.href, location.href); } catch (_) { return; }
+        if (url.pathname !== location.pathname || !url.hash) return;
+        const targetId = decodeURIComponent(url.hash.slice(1));
+        const target = document.getElementById(targetId);
+        if (!target) return;
+        event.preventDefault();
+        if (toggle && nav && link.closest(".mobile-nav")) {
+          toggle.setAttribute("aria-expanded", "false");
+          nav.hidden = true;
+        }
+        const nextUrl = url.pathname + url.search + url.hash;
+        if (location.pathname + location.search + location.hash !== nextUrl) {
+          history.pushState(null, "", nextUrl);
+        }
+        scrollToAnchor(target);
+      });
+    });
+    // Correct direct links such as /dashboard/#my-licenses after layout settles.
+    if (location.hash) {
+      window.setTimeout(() => {
+        const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+        if (target) scrollToAnchor(target, false);
+        else requestNavSync();
+      }, 100);
+    } else {
+      syncScrollNavigation();
+    }
   }
 
   // Lightweight responsive starfield inspired by the desktop app: drifting,
