@@ -72,7 +72,7 @@ class StartTrialTests(TestCase):
         self.assertEqual(TrialRedemption.objects.count(), 1)
         self.assertEqual(Subscription.objects.count(), 1)
 
-    def test_active_paid_license_blocks_trial_for_same_product(self):
+    def test_active_paid_license_blocks_trial_for_account(self):
         plan = Plan.objects.create(
             product=self.product,
             name="Monthly",
@@ -100,8 +100,13 @@ class StartTrialTests(TestCase):
             key_digest="a" * 64,
         )
 
+        another_product = Product.objects.create(
+            name="Another product",
+            slug="another-product",
+            is_active=True,
+        )
         with self.assertRaises(TrialUnavailable):
-            start_trial(user=self.user, product=self.product)
+            start_trial(user=self.user, product=another_product)
 
         self.assertEqual(TrialRedemption.objects.count(), 0)
         self.assertEqual(Subscription.objects.count(), 1)
