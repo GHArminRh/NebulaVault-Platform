@@ -1054,7 +1054,7 @@ class ConcurrentPaymentFinalizationTests(TransactionTestCase):
                 confirmed_currency=self.order.currency,
             )
         finally:
-            close_old_connections()
+            connections.close_all()
 
     def test_concurrent_duplicate_callbacks_finalize_only_once(self):
         barrier = threading.Barrier(2)
