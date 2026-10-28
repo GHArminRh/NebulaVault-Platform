@@ -1,11 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
+
+from api.admin_pages import admin_page_required
 
 from accounts.forms import NebulaAuthenticationForm
 from accounts.views import CustomerLoginView
@@ -31,7 +32,7 @@ def healthcheck(request):
     return HttpResponse("ok", content_type="text/plain")
 
 
-@staff_member_required(login_url="/admin/login/")
+@admin_page_required
 def api_index(request):
     """Private API route directory for authenticated staff members."""
     endpoints = [
