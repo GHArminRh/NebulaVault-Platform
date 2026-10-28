@@ -4,7 +4,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", TURNSTILE_ENABLED=False)
 class AccountBackendTests(TestCase):
     def setUp(self):
         self.user = Customer.objects.create_user(
