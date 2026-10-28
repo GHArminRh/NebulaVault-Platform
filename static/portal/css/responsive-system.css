@@ -870,3 +870,52 @@ body.nv-portal .nv-panel {
     transition-duration: .01ms !important;
   }
 }
+
+/* Mobile menu must be viewport-anchored, not placed back in the scrolled document flow. */
+@media (max-width: 900px) {
+  body.nv-portal > nav.mobile-nav:not([hidden]) {
+    position: fixed !important;
+    top: 72px !important;
+    inset-inline: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: calc(100vh - 84px) !important;
+    max-height: calc(100dvh - 84px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    z-index: 10000 !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-content: start;
+    padding: 12px !important;
+    border: 1px solid rgba(166, 183, 231, .18) !important;
+    border-radius: 16px !important;
+    background: rgba(9, 13, 25, .99) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .62), 0 4px 18px rgba(0, 0, 0, .35);
+    isolation: isolate;
+  }
+
+  body.nv-portal > nav.mobile-nav:not([hidden]) a,
+  body.nv-portal > nav.mobile-nav:not([hidden]) .nv-mobile-logout button {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 420px) {
+  body.nv-portal > nav.mobile-nav:not([hidden]) {
+    inset-inline: 8px !important;
+    max-height: calc(100vh - 80px) !important;
+    max-height: calc(100dvh - 80px) !important;
+    padding: 9px !important;
+    gap: 5px !important;
+  }
+
+  body.nv-portal > nav.mobile-nav:not([hidden]) a,
+  body.nv-portal > nav.mobile-nav:not([hidden]) .nv-mobile-logout button {
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+}
