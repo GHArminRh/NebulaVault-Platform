@@ -47,7 +47,17 @@ def product_detail(request, slug):
         )
     for plan in plans:
         plan.is_renewal = plan.pk in renewable_plan_ids
-    has_active_license = bool(renewable_plan_ids)
+    has_active_license = False
+    if request.user.is_authenticated:
+        now = timezone.now()
+        has_active_license = Subscription.objects.filter(
+            user=request.user,
+            kind=Subscription.Kind.PAID,
+            status=Subscription.Status.ACTIVE,
+            license__status="active",
+        ).filter(
+            Q(expires_at__gt=now) | Q(license__activations__isnull=True)
+        ).distinct().exists()
     return render(request, "portal/product_detail.html", {
         "product": product,
         "plans": plans,
