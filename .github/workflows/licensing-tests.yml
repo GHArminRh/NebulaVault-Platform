@@ -63,7 +63,7 @@ jobs:
       - name: Check formatting baseline
         run: |
           python -m pip install ruff
-          ruff check config/settings.py config/test_settings.py
+          ruff check config/settings.py config/test_settings.py billing/services.py billing/order_services.py billing/attempt_services.py billing/finalization_services.py
       - name: Run licensing tests
         run: python manage.py test licensing --settings=config.test_settings --verbosity=2
 
