@@ -8,3 +8,159 @@
 {% endblock %}
 
 {% block nav-global %}{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <style>
+    /*
+     * Dracula login-page polish. Scoped to the built-in admin login view so
+     * custom admin widgets and the rest of Django's markup remain untouched.
+     */
+    body.login {
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(189, 147, 249, .13), transparent 48%),
+        #282a36;
+      color: #f8f8f2;
+    }
+
+    body.login #container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    body.login #header {
+      background: transparent;
+      color: #f8f8f2;
+      border: 0;
+      box-shadow: none;
+      padding: 28px 24px 12px;
+    }
+
+    body.login #branding {
+      float: none;
+      text-align: center;
+    }
+
+    body.login #site-name {
+      margin: 0;
+      font-size: clamp(1.55rem, 3vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -.035em;
+    }
+
+    body.login #site-name a,
+    body.login #site-name a:link,
+    body.login #site-name a:visited {
+      color: #bd93f9;
+    }
+
+    body.login #content {
+      width: min(420px, calc(100% - 32px));
+      margin: 0 auto 48px;
+      padding: 30px;
+      box-sizing: border-box;
+      float: none;
+      background: #343746;
+      border: 1px solid #494b5b;
+      border-radius: 18px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .28);
+    }
+
+    body.login #content-main,
+    body.login form {
+      width: 100%;
+      float: none;
+    }
+
+    body.login .form-row {
+      padding: 8px 0 14px;
+      border: 0;
+    }
+
+    body.login .form-row label {
+      display: block;
+      float: none;
+      width: auto;
+      padding: 0 0 8px;
+      color: #f8f8f2;
+      font-weight: 600;
+    }
+
+    body.login .form-row input[type="text"],
+    body.login .form-row input[type="password"],
+    body.login .form-row input[type="email"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px 14px;
+      border: 1px solid #56596b;
+      border-radius: 9px;
+      background: #282a36;
+      color: #f8f8f2;
+      min-height: 44px;
+      transition: border-color .18s ease, box-shadow .18s ease;
+    }
+
+    body.login .form-row input:focus {
+      border-color: #bd93f9;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(189, 147, 249, .18);
+    }
+
+    body.login .submit-row {
+      padding: 18px 0 0;
+      background: transparent;
+      border: 0;
+      text-align: stretch;
+    }
+
+    body.login .submit-row input[type="submit"] {
+      width: 100%;
+      float: none;
+      padding: 12px 18px;
+      border: 0;
+      border-radius: 9px;
+      background: #bd93f9;
+      color: #282a36;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .18s ease, transform .18s ease;
+    }
+
+    body.login .submit-row input[type="submit"]:hover {
+      background: #caa9fa;
+      transform: translateY(-1px);
+    }
+
+    body.login .errornote,
+    body.login .form-row .errorlist {
+      color: #ffb8b8;
+      background: rgba(255, 85, 85, .10);
+      border: 1px solid rgba(255, 85, 85, .35);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    body.login .password-reset-link a,
+    body.login a:link,
+    body.login a:visited {
+      color: #8be9fd;
+    }
+
+    body.login #footer {
+      background: transparent;
+      color: #a8a9b8;
+    }
+
+    @media (max-width: 480px) {
+      body.login #content {
+        padding: 22px;
+      }
+    }
+  </style>
+{% endblock %}
