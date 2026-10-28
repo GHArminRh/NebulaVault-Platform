@@ -152,9 +152,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const stars = [];
     let width = 0, height = 0, dpr = 1, raf = 0, lastTime = 0;
     let pointerX = -10000, pointerY = -10000, pointerActive = false;
+    let pointerTargetX = -10000, pointerTargetY = -10000;
     window.addEventListener("pointermove", event => {
       if (event.pointerType === "touch") return;
-      pointerX = event.clientX; pointerY = event.clientY; pointerActive = true;
+      pointerTargetX = event.clientX; pointerTargetY = event.clientY; pointerActive = true;
     }, {passive:true});
     window.addEventListener("pointerleave", () => { pointerActive = false; }, {passive:true});
     const makeStar = () => ({
@@ -185,6 +186,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     const paintStars = (time, animate) => {
       starContext.clearRect(0, 0, width, height);
+      // Ease the pointer independently from raw input so nearby stars glide instead of snapping.
+      if (pointerActive) {
+        pointerX += (pointerTargetX - pointerX) * .075;
+        pointerY += (pointerTargetY - pointerY) * .075;
+      }
       for (const star of stars) {
         if (animate) {
           star.y -= star.drift * Math.min(time, 32) / 1000;
@@ -198,9 +204,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (pointerActive) {
           const dx = star.x - pointerX, dy = star.y - pointerY;
           const distance = Math.hypot(dx, dy);
-          const radius = 165;
+          const radius = 205;
           if (distance > 0 && distance < radius) {
-            const influence = (1 - distance / radius) * 9;
+            const falloff = 1 - distance / radius;
+            const influence = falloff * falloff * 5.5;
             drawX += dx / distance * influence;
             drawY += dy / distance * influence;
           }
