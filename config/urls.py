@@ -5,6 +5,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from accounts.forms import NebulaAuthenticationForm
+from accounts.admin_auth import TurnstileAdminAuthenticationForm
+
+# Keep Django's native English admin UI, adding server-side Turnstile verification.
+admin.site.login_form = TurnstileAdminAuthenticationForm
 from accounts.views import CustomerLoginView
 from config.admin_toggle import export_admin_object_json, import_admin_json, toggle_boolean_field
 from portal.editor_uploads import editor_image_upload
