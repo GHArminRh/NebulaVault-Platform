@@ -76,7 +76,9 @@ jobs:
         run: python manage.py test accounts.tests --settings=config.test_settings --verbosity=2
 
       - name: Run email backend tests
+        if: always()
         run: python manage.py test accounts.test_email_backends --settings=config.test_settings --verbosity=2
 
       - name: Run billing regression tests
+        if: always()
         run: python manage.py test billing.tests --settings=config.test_settings --verbosity=2
