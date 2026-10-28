@@ -1,0 +1,28 @@
+{
+  "id": "/",
+  "name": "نبیولا والت",
+  "short_name": "نبیولا",
+  "description": "پلتفرم امن نرم‌افزار نبیولا والت",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#080d1b",
+  "theme_color": "#0b1020",
+  "icons": [
+    {
+      "src": "/static/portal/img/pwa-icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/portal/img/pwa-icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
