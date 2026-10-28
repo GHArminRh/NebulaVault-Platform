@@ -240,3 +240,8 @@ html{scroll-behavior:smooth;scroll-padding-top:104px}
 @media(max-width:1050px){.nv-dashboard-layout{grid-template-columns:185px minmax(0,1fr)}}
 @media(max-width:820px){.nv-dashboard-layout{grid-template-columns:1fr}#dashboard-activity{scroll-margin-top:86px}}
 @media(prefers-reduced-motion:reduce){.nv-portal::after{transition:none}}
+
+/* Keep the global section navigation out of the account workspace; the compact account rail remains. */
+.nv-portal:has(.nv-dashboard-layout) .desktop-nav,
+.nv-portal:has(.nv-dashboard-layout) .menu-toggle,
+.nv-portal:has(.nv-dashboard-layout)~.mobile-nav{display:none!important}
