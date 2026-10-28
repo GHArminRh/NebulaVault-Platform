@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase
 
@@ -10,8 +11,12 @@ class AdminPageRequiredTests(SimpleTestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
+    def add_session(self, request):
+        SessionMiddleware(lambda _request: None).process_request(request)
+        return request
+
     def test_anonymous_user_gets_branded_403_without_redirect(self):
-        request = self.factory.get("/api/v1/docs/")
+        request = self.add_session(self.factory.get("/api/v1/docs/"))
         request.user = SimpleNamespace(
             is_authenticated=False, is_active=False, is_staff=False
         )
@@ -23,7 +28,7 @@ class AdminPageRequiredTests(SimpleTestCase):
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
 
     def test_non_staff_user_gets_branded_403(self):
-        request = self.factory.get("/api/v1/schema/")
+        request = self.add_session(self.factory.get("/api/v1/schema/"))
         request.user = SimpleNamespace(
             is_authenticated=True, is_active=True, is_staff=False
         )
