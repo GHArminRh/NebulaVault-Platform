@@ -37,7 +37,7 @@ def create(request):
 @login_required
 def edit(request,pk):
     comment=get_object_or_404(Comment,pk=pk)
-    if comment.user_id!=request.user.pk: raise PermissionDenied
+    if not isinstance(request.user,Customer) or comment.user_id!=request.user.pk: raise PermissionDenied
     post=_post_for_comment(comment)
     settings_obj=get_object_or_404(CommentSettings,slug="default-config")
     if not settings_obj.allow_edit: raise PermissionDenied
