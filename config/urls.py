@@ -9,6 +9,11 @@ from accounts.forms import NebulaAuthenticationForm
 from accounts.views import CustomerLoginView
 from config.admin_toggle import export_admin_object_json, import_admin_json, toggle_boolean_field
 from portal.editor_uploads import editor_image_upload
+from staff.admin_forms import AdminTurnstileAuthenticationForm
+
+# Reuse the existing Django AdminSite and its Dracula theme, only replacing the
+# login form so admin sign-in requires the same server-verified Turnstile check.
+admin.site.login_form = AdminTurnstileAuthenticationForm
 
 
 def healthcheck(request):
