@@ -64,3 +64,14 @@ Before a refactor is accepted:
 ## Explicit non-goals
 
 This cleanup does not translate or redesign the Django admin, alter customer-facing Persian copy, change payment configuration, change security policy, or change the desktop application's license protocol.
+
+
+## Baseline test findings (before deeper refactoring)
+
+The first CI run on this cleanup branch confirms that the focused Ruff check passes for `config/settings.py` and `config/test_settings.py`. The existing Django regression suite is not green, however, and these same failures were already present on the parent feature branch `feat/django-login-failed-attempt-throttle` before this cleanup:
+
+- Licensing: `test_suspended_license_cannot_activate_or_validate` expects `license_suspended` but receives `license_inactive`.
+- Accounts: 10 failures in `accounts.tests.AccountBackendTests`, including tests receiving HTTP 429 from throttling, password-reset requests not reaching the expected redirect, and verification tests expecting a login-page redirect rather than the current dashboard redirect.
+- Turnstile tests pass in CI.
+
+These failures are recorded as existing baseline issues, not as changes introduced by formatting. Do not weaken security or rewrite expected behavior merely to make tests green. Before splitting account or licensing modules, first decide the intended behavior for each failing scenario, update/add focused tests accordingly, and establish a reliable green regression baseline.
