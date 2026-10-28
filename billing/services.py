@@ -5,22 +5,6 @@ Implementations live in focused modules so existing imports from
 more specific modules.
 """
 
-import uuid
-from uuid import UUID
-
-from django.db import IntegrityError, transaction
-from django.utils import timezone
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-
-from catalog.models import Plan
-from subscriptions.models import Subscription, SubscriptionRenewal
-from subscriptions.services import _add_plan_duration
-from licensing.models import License
-from licensing.services import issue_license
-
-from .models import PaymentAttempt, PaymentOrder, PaymentOrderItem
-
 
 def _is_provider_reference_integrity_error(exc):
     """Return whether an IntegrityError identifies a provider-reference clash."""
@@ -61,7 +45,6 @@ def _is_provider_reference_integrity_error(exc):
     )
 
 
-
 class OrderCreationError(Exception):
     """امکان ایجاد سفارش پرداخت درخواستی وجود ندارد."""
 
@@ -84,8 +67,6 @@ class PaymentFinalizationError(Exception):
 
 class PaymentReferenceConflict(PaymentFinalizationError):
     """شناسه پرداخت ارائه‌دهنده به‌صورت ناسازگار دوباره استفاده شده است."""
-
-
 
 
 # Re-export the public service API from the focused implementation modules.
