@@ -1,5 +1,6 @@
 from accounts.models import Customer
-from django.core import cache, mail
+from django.core import mail
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
