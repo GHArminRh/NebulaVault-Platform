@@ -1,5 +1,5 @@
 from accounts.models import Customer
-from django.core import mail
+from django.core import cache, mail
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -7,6 +7,8 @@ from django.urls import reverse
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", TURNSTILE_ENABLED=False)
 class AccountBackendTests(TestCase):
     def setUp(self):
+        # The database-backed login throttles use a shared cache across tests.
+        cache.clear()
         self.user = Customer.objects.create_user(
             username="account_user",
             email="account@example.com",
@@ -53,7 +55,7 @@ class AccountBackendTests(TestCase):
             {"first_name": "", "last_name": "", "email": "other@example.com"},
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "An account with this email already exists.")
+        self.assertContains(response, "حسابی با این نشانی ایمیل از قبل وجود دارد.")
 
     def test_password_change_keeps_user_signed_in(self):
         self.client.force_login(self.user, backend='accounts.backends.CustomerAuthenticationBackend')
@@ -154,7 +156,7 @@ class AccountBackendTests(TestCase):
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
         token = email_verification_token.make_token(self.user)
         response = self.client.get(reverse("accounts:verify_email", args=[uid, token]))
-        self.assertRedirects(response, reverse("login"))
+        self.assertRedirects(response, reverse("portal:dashboard"))
         self.user.refresh_from_db()
         self.assertTrue(self.user.is_active)
         response = self.client.get(reverse("accounts:verify_email", args=[uid, token]))
