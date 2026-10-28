@@ -6,6 +6,7 @@ on:
     paths:
       - "licensing/**"
       - "api/**"
+      - "api/**"
       - "accounts/**"
       - "catalog/**"
       - "subscriptions/**"
@@ -18,6 +19,7 @@ on:
   pull_request:
     paths:
       - "licensing/**"
+      - "api/**"
       - "accounts/**"
       - "catalog/**"
       - "subscriptions/**"
