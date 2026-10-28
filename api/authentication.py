@@ -3,7 +3,7 @@ import hmac
 from datetime import timedelta
 
 from django.utils import timezone
-from rest_framework.authentication import BaseAuthentication, SessionAuthentication
+from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
 from .models import CustomerAPIToken
@@ -52,7 +52,3 @@ class CustomerBearerAuthentication(BaseAuthentication):
 
     def authenticate_header(self, request):
         return self.keyword
-
-
-class CustomerSessionAuthentication(SessionAuthentication):
-    """Use the project's existing dual-user-model session middleware."""
