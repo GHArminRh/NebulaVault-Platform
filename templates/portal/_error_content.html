@@ -1,0 +1,31 @@
+{% load static %}
+<style>
+  .nv-error-wrap{min-height:min(68vh,680px);display:grid;place-items:center;padding:54px 0 72px}
+  .nv-error-card{position:relative;isolation:isolate;overflow:hidden;width:min(760px,100%);padding:clamp(28px,5vw,56px);text-align:center;border:1px solid rgba(151,169,232,.16);border-radius:26px;background:linear-gradient(145deg,rgba(20,29,52,.96),rgba(10,16,31,.98));box-shadow:0 28px 90px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.025)}
+  .nv-error-card:before{content:"";position:absolute;z-index:-1;width:380px;height:260px;top:-150px;left:50%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse,rgba(127,112,255,.2),rgba(77,213,224,.06) 48%,transparent 72%);filter:blur(10px)}
+  .nv-error-symbol{width:82px;height:82px;margin:0 auto 22px;display:grid;place-items:center;border-radius:25px;border:1px solid rgba(156,169,255,.25);background:linear-gradient(145deg,rgba(139,122,255,.16),rgba(90,217,225,.06));color:#bcb2ff;font-size:37px;box-shadow:0 0 36px rgba(117,104,255,.1)}
+  .nv-error-code{margin:0;font:800 clamp(58px,12vw,104px)/.98 'DM Sans','Vazirmatn',sans-serif;letter-spacing:-5px;background:linear-gradient(100deg,#b7a9ff,#8ae5e8);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .nv-error-title{margin:22px 0 12px;font-size:clamp(22px,4vw,30px);font-weight:800;color:#f3f5ff}
+  .nv-error-message{max-width:520px;margin:0 auto;color:#a5b0cb;font-size:14px;line-height:2}
+  .nv-error-hint{max-width:520px;margin:14px auto 0;color:#7887a8;font-size:12px;line-height:1.9}
+  .nv-error-actions{display:flex;justify-content:center;align-items:center;gap:11px;flex-wrap:wrap;margin-top:28px}
+  .nv-error-actions .button{min-width:145px}
+  .nv-error-reference{margin-top:24px;color:#657391;font-size:10px}
+  .nv-error-reference code{color:#98a7c7}
+  @media(max-width:600px){.nv-error-wrap{min-height:55vh;padding:28px 0 42px}.nv-error-card{border-radius:20px;padding:28px 18px}.nv-error-symbol{width:68px;height:68px;border-radius:21px;font-size:30px}.nv-error-code{letter-spacing:-3px}.nv-error-actions{flex-direction:column}.nv-error-actions .button{width:100%}}
+  @media(prefers-reduced-motion:no-preference){.nv-error-card{animation:nv-error-enter .42s cubic-bezier(.22,1,.36,1) both}.nv-error-symbol{animation:nv-error-float 5s ease-in-out .4s infinite}@keyframes nv-error-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes nv-error-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}}
+</style>
+<section class="nv-error-wrap page-wrap" aria-labelledby="nv-error-title">
+  <div class="nv-error-card">
+    <div class="nv-error-symbol" aria-hidden="true">{{ error_symbol|default:"◇" }}</div>
+    <p class="nv-error-code" aria-label="خطای {{ error_code }}">{{ error_code }}</p>
+    <h1 class="nv-error-title" id="nv-error-title">{{ error_title }}</h1>
+    <p class="nv-error-message">{{ error_message }}</p>
+    {% if error_hint %}<p class="nv-error-hint">{{ error_hint }}</p>{% endif %}
+    <div class="nv-error-actions">
+      <a class="button button-primary button-large" href="{% url 'portal:home' %}">بازگشت به صفحه اصلی <span aria-hidden="true">↗</span></a>
+      <button class="button button-glass button-large" type="button" onclick="window.location.reload()">تلاش دوباره</button>
+    </div>
+    <p class="nv-error-reference">نبیولا والت <span aria-hidden="true">·</span> پلتفرم امن نرم‌افزار</p>
+  </div>
+</section>
