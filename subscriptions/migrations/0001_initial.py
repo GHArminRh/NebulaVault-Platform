@@ -12,7 +12,6 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('catalog', '0003_merge_catalog_initial_and_silver_plan'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
