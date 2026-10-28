@@ -6,7 +6,7 @@ from django.utils.html import format_html
 from django.utils.translation import ngettext
 from image_uploader_widget.widgets import ImageUploaderWidget
 from import_export import resources
-from import_export.admin import ExportActionMixin, ImportMixin
+from import_export.admin import ImportExportModelAdmin
 
 from .forms import BlogPostAdminForm
 from .models import BlogPost, BlogPostRating, Tag
@@ -82,7 +82,7 @@ class BlogPostResource(resources.ModelResource):
 
 
 @admin.register(Tag)
-class TagAdmin(ImportMixin, ExportActionMixin, admin.ModelAdmin):
+class TagAdmin(ImportExportModelAdmin):
     resource_classes = (TagResource,)
     inlines = (MembershipInline,)
     list_display = ("name", "post_count")
@@ -96,7 +96,7 @@ class TagAdmin(ImportMixin, ExportActionMixin, admin.ModelAdmin):
 
 
 @admin.register(BlogPost)
-class BlogPostAdmin(ImportMixin, ExportActionMixin, admin.ModelAdmin):
+class BlogPostAdmin(ImportExportModelAdmin):
     form = BlogPostAdminForm
     resource_classes = (BlogPostResource,)
     formfield_overrides = {ImageField: {"widget": ImageUploaderWidget}}
