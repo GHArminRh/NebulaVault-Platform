@@ -1,6 +1,6 @@
 import calendar
 
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, transaction, models
 from datetime import timedelta
 from django.utils import timezone
 from .models import Subscription, SubscriptionRenewal, TrialRedemption
@@ -33,6 +33,23 @@ def start_trial(*, user, product):
 
     try:
         with transaction.atomic():
+            now = timezone.now()
+            has_active_license = Subscription.objects.filter(
+                user=user,
+                product=product,
+                kind=Subscription.Kind.PAID,
+                status=Subscription.Status.ACTIVE,
+                license__status="active",
+            ).filter(
+                models.Q(expires_at__gt=now)
+                | models.Q(license__activations__isnull=True)
+            ).distinct().exists()
+
+            if has_active_license:
+                raise TrialUnavailable(
+                    "برای این محصول لایسنس فعال دارید و نمی‌توانید دوره آزمایشی بگیرید."
+                )
+
             already_used = TrialRedemption.objects.filter(
                 user=user,
                 product=product,
