@@ -13,7 +13,6 @@ TRIAL_DURATION = timedelta(days=7)
 
 
 class TrialRedemption(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     """
     Permanent record that a customer used the trial for a product.
     This record must not be deleted when the trial expires.
@@ -69,7 +68,6 @@ class TrialRedemption(models.Model):
 
 
 class Subscription(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     """A customer's trial or paid subscription."""
 
     class Kind(models.TextChoices):
