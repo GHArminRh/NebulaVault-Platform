@@ -12,7 +12,7 @@ Nebula Vault is a Django application for the Persian-language customer portal, p
 | `portal/` | Public/customer pages, shared context, middleware, and template tags |
 | `catalog/` | Products, plans, releases, and rich-text content |
 | `subscriptions/` | Trials, subscriptions, and renewals |
-| `billing/` | Orders, payment attempts, cart checkout, and Zarinpal integration |
+| `billing/` | Orders, payment attempts, cart checkout, and Zarinpal integration; `services.py` preserves the public service imports while implementations are separated into `order_services.py`, `attempt_services.py`, and `finalization_services.py` |
 | `licensing/` | License issuance and license lifecycle |
 | `audit/`, `devices/`, `notifications/` | Supporting Django apps; keep installed until references and migrations are audited |
 | `templates/` | Shared site and Django admin templates |
