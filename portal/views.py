@@ -14,7 +14,7 @@ from billing.models import PaymentOrder
 from billing.services import OrderCreationError, create_payment_order
 from catalog.models import Plan, Product, Release
 from subscriptions.models import Subscription
-from subscriptions.services import TrialAlreadyUsed, TrialUnavailable, start_trial
+from subscriptions.services import TrialAlreadyUsed, TrialUnavailable, start_trial as create_trial_subscription
 
 def home(request):
     products = Product.objects.filter(is_active=True).prefetch_related(Prefetch("plans", queryset=Plan.objects.filter(is_active=True)))[:3]
@@ -206,7 +206,7 @@ def start_trial(request, slug):
         return redirect("portal:product_detail", slug=slug)
     product = get_object_or_404(Product, slug=slug, is_active=True)
     try:
-        start_trial(user=request.user, product=product)
+        create_trial_subscription(user=request.user, product=product)
     except (TrialAlreadyUsed, TrialUnavailable) as exc:
         messages.error(request, str(exc))
         return redirect("portal:product_detail", slug=slug)
