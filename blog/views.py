@@ -22,10 +22,14 @@ def post_list(request):
 def post_detail(request, slug):
     post = get_object_or_404(BlogPost, slug=slug, status=BlogPost.Status.PUBLISHED, published_at__lte=timezone.now())
     ctype = ContentType.objects.get_for_model(post)
-    comments = Comment.objects.filter(content_type=ctype, object_id=post.pk, parent__isnull=True, status="a").select_related("user").prefetch_related("children__user", "reactions__react")
+    comment_settings = CommentSettings.objects.get(slug="default-config")
+    comment_queryset = Comment.objects.filter(content_type=ctype, object_id=post.pk, parent__isnull=True, status="a").select_related("user").prefetch_related("children__user", "reactions__react")
+    page_size = comment_settings.per_page or max(comment_queryset.count(), 1)
+    comment_page = Paginator(comment_queryset, page_size).get_page(request.GET.get("comment_page"))
+    comments = comment_page.object_list
     related = BlogPost.objects.filter(status=BlogPost.Status.PUBLISHED, published_at__lte=timezone.now()).exclude(pk=post.pk)
     if post.category: related = related.filter(category=post.category)
-    return render(request, "blog/post_detail.html", {"post": post, "comments": comments, "comment_settings": CommentSettings.objects.get(slug="default-config"), "related_posts": related[:3]})
+    return render(request, "blog/post_detail.html", {"post": post, "comments": comments, "comment_page": comment_page, "comment_settings": comment_settings, "related_posts": related[:3]})
 
 def _back_to_post(slug):
     return redirect("blog:post_detail", slug=slug)
