@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }).filter(Boolean))].sort((a, b) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
   const syncScrollNavigation = () => {
     const header = document.querySelector(".site-header");
-    const line = (header?.getBoundingClientRect().bottom || 0) + 42;
+    const line = (header?.getBoundingClientRect().bottom || 0) + 18;
     const sync = (links, targets, fallbackId) => {
       if (!links.length || !targets.length) return;
       // Pick the last section that has crossed the header's reading line.
