@@ -16,6 +16,7 @@ class CMSExternalImage(CMSPlugin):
     caption = models.CharField(max_length=320, blank=True, verbose_name="زیرنویس")
 
     class Meta:
+        app_label = "portal"
         verbose_name = "بلوک تصویر خارجی"
         verbose_name_plural = "بلوک‌های تصویر خارجی"
 
@@ -34,6 +35,7 @@ class CMSUploadedImage(CMSPlugin):
     caption = models.CharField(max_length=320, blank=True, verbose_name="زیرنویس")
 
     class Meta:
+        app_label = "portal"
         verbose_name = "تصویر بارگذاری‌شدهٔ CMS"
         verbose_name_plural = "تصاویر بارگذاری‌شدهٔ CMS"
 
