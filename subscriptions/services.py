@@ -36,7 +36,6 @@ def start_trial(*, user, product):
             now = timezone.now()
             has_active_license = Subscription.objects.filter(
                 user=user,
-                product=product,
                 kind=Subscription.Kind.PAID,
                 status=Subscription.Status.ACTIVE,
                 license__status="active",
