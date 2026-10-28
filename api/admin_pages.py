@@ -1,13 +1,13 @@
 from functools import wraps
 
-from django.http import HttpResponseForbidden
+from django.shortcuts import render
 
 
 def admin_page_required(view_func):
-    """Allow only active staff users to view API discovery/documentation pages.
+    """Restrict API discovery and documentation pages to active staff users.
 
-    Unlike Django's staff_member_required decorator, this returns HTTP 403
-    directly instead of redirecting anonymous visitors to the admin login.
+    Return a branded HTTP 403 page directly, without redirecting API clients
+    or anonymous visitors to the Django admin login.
     """
     @wraps(view_func)
     def wrapped(request, *args, **kwargs):
@@ -18,15 +18,14 @@ def admin_page_required(view_func):
             and user.is_active
             and user.is_staff
         ):
-            response = HttpResponseForbidden(
-                "403 Forbidden — دسترسی غیرمجاز. مشاهده این صفحه فقط برای مدیران مجاز است.",
-                content_type="text/plain; charset=utf-8",
-            )
+            response = render(request, "errors/403.html", status=403)
             response["Cache-Control"] = "no-store"
+            response["X-Robots-Tag"] = "noindex, nofollow"
             return response
 
         response = view_func(request, *args, **kwargs)
         response["Cache-Control"] = "private, no-store"
+        response["X-Robots-Tag"] = "noindex, nofollow"
         return response
 
     return wrapped
