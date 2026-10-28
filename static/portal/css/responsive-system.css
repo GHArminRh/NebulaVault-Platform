@@ -231,6 +231,29 @@ body.nv-portal .nv-panel {
     backdrop-filter: blur(20px);
   }
 
+  body.nv-portal .mobile-nav .nv-mobile-logout {
+    display: flex;
+    min-width: 0;
+    margin: 0;
+  }
+
+  body.nv-portal .mobile-nav .nv-mobile-logout button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 9px 10px;
+    border: 1px solid rgba(166, 183, 231, .12);
+    border-radius: 10px;
+    background: transparent;
+    color: #a5afc8;
+    font: inherit;
+    text-align: center;
+    line-height: 1.6;
+  }
+
   body.nv-portal .mobile-nav a {
     display: flex;
     align-items: center;
@@ -501,6 +524,12 @@ body.nv-portal .nv-panel {
     width: calc(100% - 24px);
     gap: 5px;
     padding-block: 10px 14px;
+  }
+
+  body.nv-portal .mobile-nav .nv-mobile-logout button {
+    min-height: 40px;
+    padding: 8px;
+    font-size: 12px;
   }
 
   body.nv-portal .mobile-nav a {
