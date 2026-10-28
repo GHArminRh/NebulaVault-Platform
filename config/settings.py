@@ -29,7 +29,10 @@ SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
 # Django apps
+# The Dracula app must precede django.contrib.admin so its admin templates
+# and static assets take precedence without replacing Django's admin logic.
 INSTALLED_APPS = [
+    "django_admin_dracula",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
