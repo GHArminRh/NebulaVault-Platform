@@ -26,3 +26,9 @@ MIGRATION_MODULES = {
     "notifications": None,
     "portal": None,
 }
+
+# Avoid requiring collectstatic's production manifest during test client requests.
+STORAGES = {
+    **STORAGES,
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
