@@ -176,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("visibilitychange", startStars);
     motionPreference.addEventListener?.("change", startStars);
   }
-  // Subtle mouse-reactive ambient lighting for pointer devices only.
+  // Cursor-following nebula glow, matching the desktop app's soft pointer light.
   const ambientLayers = [...document.querySelectorAll(".ambient")];
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const finePointer = window.matchMedia("(pointer: fine)").matches;
@@ -185,8 +185,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let pointerX = 0;
     let pointerY = 0;
     window.addEventListener("pointermove", event => {
-      pointerX = (event.clientX / Math.max(window.innerWidth, 1) - 0.5) * 2;
-      pointerY = (event.clientY / Math.max(window.innerHeight, 1) - 0.5) * 2;
+      const x = Math.max(0, Math.min(window.innerWidth, event.clientX));
+      const y = Math.max(0, Math.min(window.innerHeight, event.clientY));
+      pointerX = (x / Math.max(window.innerWidth, 1) - 0.5) * 2;
+      pointerY = (y / Math.max(window.innerHeight, 1) - 0.5) * 2;
+      document.documentElement.style.setProperty("--nv-pointer-x", x + "px");
+      document.documentElement.style.setProperty("--nv-pointer-y", y + "px");
+      document.documentElement.style.setProperty("--nv-pointer-glow", "1");
       if (framePending) return;
       framePending = true;
       window.requestAnimationFrame(() => {
@@ -199,6 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, { passive: true });
     window.addEventListener("pointerleave", () => {
       ambientLayers.forEach(layer => { layer.style.transform = ""; });
+      document.documentElement.style.setProperty("--nv-pointer-glow", "0");
     });
   }
 });
