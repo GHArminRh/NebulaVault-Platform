@@ -751,3 +751,54 @@ body.nv-portal{overflow-x:clip!important}
   .nv-release-section,
   .nv-faq-section{padding-block:18px!important}
 }
+
+
+/* Definitive dashboard rail fix: take the desktop rail out of content stacking; keep mobile rail in normal flow. */
+@media (min-width: 901px){
+  .nv-dashboard-layout{
+    display:block!important;
+    position:relative!important;
+    isolation:auto!important;
+    overflow:visible!important;
+    z-index:auto!important;
+  }
+  .nv-dash-rail{
+    position:fixed!important;
+    top:100px!important;
+    right:max(28px,calc((100vw - 1160px)/2))!important;
+    bottom:auto!important;
+    width:220px!important;
+    max-height:calc(100vh - 120px)!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    z-index:9999!important;
+    transform:none!important;
+    isolation:isolate!important;
+    pointer-events:auto!important;
+  }
+  .nv-dashboard-content{
+    position:relative!important;
+    z-index:0!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:none!important;
+    margin-right:240px!important;
+    overflow:visible!important;
+  }
+}
+@media (min-width:901px) and (max-width:1100px){
+  .nv-dash-rail{width:185px!important;right:28px!important;top:94px!important;max-height:calc(100vh - 108px)!important}
+  .nv-dashboard-content{margin-right:201px!important}
+}
+@media (max-width:900px){
+  .nv-dashboard-layout{display:grid!important;grid-template-columns:minmax(0,1fr)!important;overflow:visible!important;isolation:auto!important;z-index:auto!important}
+  .nv-dash-rail{
+    position:sticky!important;top:82px!important;right:auto!important;bottom:auto!important;
+    width:100%!important;max-width:100%!important;max-height:none!important;
+    display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;
+    z-index:9999!important;transform:none!important;isolation:isolate!important;
+    background:rgba(13,19,35,.98)!important;pointer-events:auto!important;
+  }
+  .nv-dashboard-content{width:100%!important;margin:0!important;min-width:0!important;max-width:100%!important;position:relative!important;z-index:0!important;overflow:visible!important}
+  .nv-rail-link{flex:0 0 auto!important;pointer-events:auto!important;position:relative!important;z-index:2!important}
+}
