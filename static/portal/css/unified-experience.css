@@ -269,3 +269,53 @@ html{scroll-padding-top:88px}
   font-weight:700;
 }
 .nv-rail-link.is-current::after{content:none!important;display:none!important}
+
+
+/* Homepage navigation polish and reliable click target above animated layers. */
+.nv-portal:not(:has(.nv-dashboard-layout))>header.site-header{
+  z-index:100!important;isolation:isolate;pointer-events:auto;
+  background:linear-gradient(180deg,rgba(9,13,25,.94),rgba(9,13,25,.78));
+  border-bottom:1px solid rgba(143,161,214,.12);
+  box-shadow:0 8px 28px rgba(0,0,0,.10);
+}
+.nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav{
+  display:flex;align-items:center;gap:clamp(12px,1.55vw,23px);
+  margin-inline-start:auto;margin-inline-end:clamp(10px,1.6vw,24px);
+  pointer-events:auto;position:relative;z-index:2;
+}
+.nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav>a{
+  display:inline-flex;align-items:center;min-height:40px;padding:8px 1px;
+  color:#aeb8d0;font-size:12px;font-weight:500;letter-spacing:-.1px;
+  position:relative;transition:color .2s ease,text-shadow .2s ease;
+}
+.nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav>a::after{
+  content:"";position:absolute;right:0;left:0;bottom:1px;height:2px;width:auto;
+  transform:scaleX(0);transform-origin:center;border-radius:4px;
+  background:linear-gradient(90deg,#79dce8,#a99aff);
+  box-shadow:0 0 9px rgba(137,122,255,.22);transition:transform .22s ease;
+}
+.nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav>a:hover,
+.nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav>a:focus-visible,
+.nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav>a.is-current{
+  color:#f1f3ff;text-shadow:0 0 16px rgba(169,154,255,.12);outline:none;
+}
+.nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav>a:hover::after,
+.nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav>a:focus-visible::after,
+.nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav>a.is-current::after,
+.nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav>a[aria-current="location"]::after{transform:scaleX(1)}
+.nv-portal:not(:has(.nv-dashboard-layout)) .header-actions{position:relative;z-index:2;pointer-events:auto}
+.nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav a,
+.nv-portal:not(:has(.nv-dashboard-layout)) .header-actions a,
+.nv-portal:not(:has(.nv-dashboard-layout)) .header-actions button{pointer-events:auto;cursor:pointer}
+.nv-portal::after{
+  background:radial-gradient(280px circle at var(--nv-pointer-x,50vw) var(--nv-pointer-y,35vh),rgba(104,126,255,.075),transparent 72%),
+             radial-gradient(150px circle at var(--nv-pointer-x,50vw) var(--nv-pointer-y,35vh),rgba(87,221,239,.045),transparent 75%);
+}
+@media(max-width:1050px){
+  .nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav{gap:12px;margin-inline-end:8px}
+  .nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav>a{font-size:11px}
+}
+@media(max-width:820px){
+  .nv-portal:not(:has(.nv-dashboard-layout))>header.site-header{z-index:100!important}
+  .nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav{display:none}
+}
