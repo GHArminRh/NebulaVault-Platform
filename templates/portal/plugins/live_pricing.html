@@ -1,0 +1,6 @@
+{% load money %}
+<section class="section page-wrap compact-section nv-cms-live-section">
+  <div class="section-heading"><div><div class="eyebrow">تعرفه‌های شفاف</div><h2>طرح مناسب خودتان را انتخاب کنید.</h2><p>قیمت و مدت هر طرح از اطلاعات زندهٔ فروش خوانده می‌شود.</p></div></div>
+  {% if cms_plans %}<div class="nv-plan-grid">{% for plan in cms_plans %}<article class="nv-plan-card"><div class="nv-plan-product">{{ plan.product.name }}</div><h3>{{ plan.name }}</h3><div class="nv-plan-price"><strong>{{ plan.price_minor_units|money }}</strong><span>{{ plan.currency }}</span></div><div class="nv-plan-duration">{{ plan.duration_value }} {% if plan.duration_unit == "days" %}روز{% elif plan.duration_unit == "months" %}ماه{% elif plan.duration_unit == "years" %}سال{% else %}واحد زمانی{% endif %}</div><a class="button button-glass nv-plan-button" href="{% url 'portal:product_detail' plan.product.slug %}">جزئیات و خرید <span>↗</span></a></article>{% endfor %}</div>{% else %}<p class="nv-section-empty">در حال حاضر طرح فعالی منتشر نشده است.</p>{% endif %}
+  <p class="nv-pricing-footnote"><a href="{% url 'portal:pricing' %}">مشاهده همهٔ تعرفه‌ها و سبد خرید ↗</a></p>
+</section>
