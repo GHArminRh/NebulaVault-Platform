@@ -113,6 +113,7 @@ class ReleaseViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = "id"
     queryset = Release.objects.filter(
         is_published=True,
+        published_at__isnull=False,
         product__is_active=True,
     ).select_related("product")
     filterset_fields = ("product__slug", "platform", "architecture")
