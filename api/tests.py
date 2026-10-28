@@ -29,6 +29,11 @@ class PublicApiTests(APITestCase):
         self.assertEqual(response.data["count"], 1)
         self.assertEqual(response.data["results"][0]["id"], str(product.pk))
 
+    def test_openapi_schema_is_available(self):
+        response = self.client.get("/api/v1/schema/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("openapi", response.data)
+
     def test_only_published_blog_posts_are_public(self):
         BlogPost.objects.create(
             title="Public article",
