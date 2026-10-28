@@ -1,0 +1,5 @@
+{% load money %}
+<section class="section page-wrap compact-section nv-cms-live-section">
+  <div class="section-heading"><div><div class="eyebrow">مجموعه محصولات</div><h2>محصولات نبیولا والت</h2><p>اطلاعات به‌صورت زنده از کاتالوگ محصولات خوانده می‌شود.</p></div></div>
+  {% if cms_products %}<div class="product-grid nv-home-product-grid">{% for product in cms_products %}<article class="product-card nv-product-card"><div class="nv-product-topline"><span class="product-icon product-icon-{{ forloop.counter }}">◈</span><span class="nv-product-index">NV · 0{{ forloop.counter }}</span></div><h3>{{ product.name }}</h3><p>{{ product.description|striptags|default:"ابزاری سنجیده برای کارهای دیجیتال شما."|truncatewords:25 }}</p><div class="nv-product-meta"><span class="pill pill-live"><i></i> فعال</span><span>{{ product.plans.all|length }} طرح</span></div><a class="nv-card-link" href="{% url 'portal:product_detail' product.slug %}">بررسی محصول <span>↗</span></a></article>{% endfor %}</div>{% else %}<p class="nv-section-empty">در حال حاضر محصول فعالی منتشر نشده است.</p>{% endif %}
+</section>
