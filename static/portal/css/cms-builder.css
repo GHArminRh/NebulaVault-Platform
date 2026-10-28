@@ -1,0 +1,16 @@
+/* Styles for django CMS content plugins, scoped to CMS pages to protect the existing site UI. */
+.nv-cms-page { min-height: 45vh; padding-top: 2.5rem; padding-bottom: 4rem; }
+.nv-cms-page .cms-plugin { min-width: 0; }
+.nv-cms-page .row { display: flex; flex-wrap: wrap; gap: 1.25rem 0; margin-inline: -0.75rem; }
+.nv-cms-page .row > [class*="col-"] { box-sizing: border-box; padding-inline: 0.75rem; min-width: 0; flex: 1 1 16rem; max-width: 100%; }
+.nv-cms-page .card { height: 100%; border: 1px solid rgba(148,163,184,.24); border-radius: 1.1rem; padding: 1.25rem; background: rgba(15,23,42,.72); color: #e5e7eb; box-shadow: 0 14px 40px rgba(2,6,23,.12); }
+.nv-cms-page .card-title { color: #f8fafc; font-weight: 700; margin-bottom: .75rem; }
+.nv-cms-page .card-body { min-width: 0; }
+.nv-cms-page .alert { padding: 1rem 1.25rem; border: 1px solid rgba(148,163,184,.3); border-radius: .9rem; margin-block: 1rem; background: rgba(30,41,59,.72); }
+.nv-cms-page img { max-width: 100%; height: auto; border-radius: .8rem; }
+.nv-cms-page h1, .nv-cms-page h2, .nv-cms-page h3 { color: #f8fafc; line-height: 1.55; }
+.nv-cms-page p, .nv-cms-page li { color: #cbd5e1; line-height: 1.95; }
+.nv-cms-page a { overflow-wrap: anywhere; }
+.nv-cms-page .btn { display: inline-flex; align-items: center; justify-content: center; border-radius: .75rem; padding: .65rem 1rem; text-decoration: none; border: 1px solid rgba(148,163,184,.35); }
+.nv-cms-page .btn-primary { background: #6366f1; border-color: #6366f1; color: #fff; }
+.nv-cms-page .btn-secondary, .nv-cms-page .btn-outline-primary { color: #e5e7eb; }
