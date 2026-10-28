@@ -1,22 +1,3 @@
 {% extends 'portal/base.html' %}
-{% block title %}ایجاد حساب — نبیولا والت{% endblock %}
-{% block content %}
-<section class="auth-layout page-wrap auth-layout-premium">
-<div class="auth-art auth-art-premium"><div class="auth-orbit" aria-hidden="true"><span>◇</span><i></i><b></b></div><div class="eyebrow"><i class="eyebrow-dot"></i> شروعی تازه</div><h2>برای<br>آینده <span class="gradient-text">بهتر جا باز کنید.</span></h2><p>یک حساب برای محصولات و اشتراک‌ها و مدیریت ساده‌تر ابزارهای دیجیتال شما.</p><div class="auth-trust-list"><span><b>✓</b> مدیریت آسان حساب</span><span><b>✓</b> همه‌چیز در کنار هم</span></div><div class="auth-mini-stat"><i class="pulse"></i> فصل تازه شما از اینجا آغاز می‌شود.</div></div>
-<div class="auth-card auth-card-premium auth-register-card"><a class="auth-mobile-brand" href="{% url 'portal:home' %}">◇ نبیولا<span> والت</span></a><div class="eyebrow">عضویت در نبیولا والت</div><h1>ایجاد حساب کاربری</h1><p class="auth-subtitle">حساب خود را بسازید و سپس برای فعال‌سازی، ایمیل خود را تأیید کنید.</p>
-<form method="post" class="form-stack auth-form-premium">{% csrf_token %}{% if form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
-<p class="auth-subtitle">نام کاربری شما به‌صورت خودکار از بخش پیش از @ در ایمیلتان ساخته می‌شود. بعداً می‌توانید آن را در نمایه تغییر دهید.</p>
-<label for="id_email">نشانی ایمیل</label><input id="id_email" name="email" type="email" autocomplete="email" required value="{{ form.email.value|default:'' }}" placeholder="you@example.com">{% if form.email.errors %}<small class="field-error">{{ form.email.errors|join:', ' }}</small>{% endif %}
-<label for="id_password1">رمز عبور</label><div class="password-wrap"><input id="id_password1" name="password1" type="password" autocomplete="new-password" required placeholder="یک رمز عبور قوی بسازید"><button class="password-toggle" type="button">نمایش</button></div>{% if form.password1.errors %}<small class="field-error">{{ form.password1.errors|join:', ' }}</small>{% endif %}
-<label for="id_password2">تکرار رمز عبور</label><input id="id_password2" name="password2" type="password" autocomplete="new-password" required placeholder="رمز عبور را دوباره وارد کنید">{% if form.password2.errors %}<small class="field-error">{{ form.password2.errors|join:', ' }}</small>{% endif %}
-<div class="turnstile-shell" aria-label="تأیید امنیتی"><div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div><div class="cf-turnstile" data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}" data-theme="dark" data-language="fa" data-size="normal" data-appearance="always"></div></div><script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer onload="document.documentElement.classList.add('turnstile-script-loaded')"></script><button class="button button-primary button-full button-large auth-submit" type="submit">ایجاد حساب و ارسال پیوند تأیید <span aria-hidden="true">↗</span></button></form>
-<p class="auth-switch">از قبل حساب دارید؟ <a href="{% url 'login' %}">ورود</a></p><p class="auth-footnote">⌑ پیوند امن تأیید با اعتبار محدود برای شما ایمیل می‌شود.</p></div></section><style>
-.turnstile-shell{position:relative;min-height:76px;margin:12px 0;max-width:100%;display:flex;align-items:center;justify-content:flex-start}
-.turnstile-shell .cf-turnstile{position:relative;z-index:1;min-height:65px}
-.turnstile-loading{position:absolute;inset:0;display:flex;align-items:center;gap:10px;padding:0 12px;border:1px solid rgba(148,163,184,.22);border-radius:10px;background:rgba(15,23,42,.45);color:#aab6c8;font-size:12px;direction:rtl;transition:opacity .18s ease}
-.turnstile-spinner{width:15px;height:15px;border:2px solid rgba(148,163,184,.3);border-top-color:#60a5fa;border-radius:50%;animation:turnstile-spin .8s linear infinite;flex:0 0 auto}
-.turnstile-script-loaded .turnstile-loading{opacity:0;pointer-events:none}
-@keyframes turnstile-spin{to{transform:rotate(360deg)}}
-</style><script>
-(function(){var shell=document.querySelector('.turnstile-shell');if(!shell)return;var widget=shell.querySelector('.cf-turnstile');var loading=shell.querySelector('.turnstile-loading');var observer=new MutationObserver(function(){if(widget.querySelector('iframe')){loading.style.display='none';observer.disconnect();}});observer.observe(widget,{childList:true,subtree:true});window.addEventListener('load',function(){if(widget.querySelector('iframe')){loading.style.display='none';observer.disconnect();}});})();
-</script>{% endblock %}
+{% block title %}ثبت‌نام و ورود — نبیولا والت{% endblock %}
+{% block content %}{% include 'portal/_auth_flip_card.html' with auth_side='register' %}{% endblock %}

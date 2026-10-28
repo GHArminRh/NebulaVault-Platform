@@ -1,11 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
   const toggle = document.querySelector(".menu-toggle");
   const nav = document.querySelector(".mobile-nav");
-  if (toggle && nav) toggle.addEventListener("click", () => {
-    const open = toggle.getAttribute("aria-expanded") === "true";
-    toggle.setAttribute("aria-expanded", String(!open));
-    nav.hidden = open;
-  });
+  if (toggle && nav) {
+    toggle.addEventListener("click", () => {
+      const open = toggle.getAttribute("aria-expanded") === "true";
+      toggle.setAttribute("aria-expanded", String(!open));
+      nav.hidden = open;
+    });
+    nav.querySelectorAll('a[href*="#"]').forEach(link => link.addEventListener("click", () => {
+      toggle.setAttribute("aria-expanded", "false");
+      nav.hidden = true;
+    }));
+  }
   document.querySelectorAll(".password-toggle").forEach(button => button.addEventListener("click", () => {
     const input = button.parentElement.querySelector("input");
     const show = input.type === "password";
@@ -19,6 +25,34 @@ document.addEventListener("DOMContentLoaded", () => {
       if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); }
     }), {threshold: .08});
     document.querySelectorAll(".product-card,.pricing-card,.feature-row,.panel,.stat-card").forEach(el => {el.classList.add("reveal");observer.observe(el);});
+  }
+  // Accessible two-sided sign-in / registration card.
+  document.querySelectorAll(".nv-auth-shell").forEach(shell => {
+    const card = shell.querySelector("[data-auth-card]");
+    if (!card) return;
+    const setSide = side => {
+      card.classList.toggle("is-register", side === "register");
+      shell.setAttribute("data-auth-side", side);
+      shell.querySelectorAll(".nv-auth-face").forEach(face => {
+        const active = (side === "register") === face.classList.contains("nv-auth-register");
+        face.inert = !active;
+        face.setAttribute("aria-hidden", String(!active));
+      });
+      if (typeof window.nvRenderAuthTurnstile === "function") window.nvRenderAuthTurnstile();
+    };
+    shell.querySelectorAll("[data-auth-flip]").forEach(button => {
+      button.addEventListener("click", () => setSide(button.getAttribute("data-auth-flip")));
+    });
+    setSide(shell.getAttribute("data-auth-side") || "login");
+  });
+  // Keep dashboard rail's active state in sync with the visible section.
+  const railLinks = [...document.querySelectorAll(".nv-rail-link[href^='#']")];
+  const railTargets = railLinks.map(link => document.querySelector(link.getAttribute("href"))).filter(Boolean);
+  if ("IntersectionObserver" in window && railTargets.length) {
+    const railObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+      if (entry.isIntersecting) railLinks.forEach(link => link.classList.toggle("is-current", link.getAttribute("href") === "#" + entry.target.id));
+    }), {rootMargin: "-20% 0px -65% 0px", threshold: 0});
+    railTargets.forEach(target => railObserver.observe(target));
   }
   // Subtle mouse-reactive ambient lighting for pointer devices only.
   const ambientLayers = [...document.querySelectorAll(".ambient")];

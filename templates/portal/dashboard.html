@@ -2,7 +2,19 @@
 {% load money %}
 {% block title %}پیشخوان — نبیولا والت{% endblock %}
 {% block content %}
-<section class="dashboard page-wrap nv-dashboard">
+<div class="nv-dashboard-layout page-wrap">
+  <aside class="nv-dash-rail" aria-label="ناوبری پیشخوان">
+    <div class="nv-rail-brand"><span class="brand-mark">◇</span><span>فضای من<small>NEBULA WORKSPACE</small></span></div>
+    <div class="nv-rail-label">فضای شخصی</div>
+    <a class="nv-rail-link is-current" href="#dashboard-overview"><span>⌂</span> نمای کلی</a>
+    <a class="nv-rail-link" href="#dashboard-subscriptions"><span>◈</span> اشتراک‌ها</a>
+    <a class="nv-rail-link" href="#dashboard-orders"><span>↗</span> سفارش‌ها</a>
+    <a class="nv-rail-link" href="#my-licenses"><span>⌑</span> لایسنس‌ها</a>
+    <a class="nv-rail-link" href="#account-settings"><span>⚙</span> تنظیمات حساب</a>
+    <div class="nv-rail-bottom"><div class="nv-rail-status"><i class="pulse"></i> فضای حساب فعال</div></div>
+  </aside>
+  <div class="nv-dashboard-content">
+<section class="dashboard nv-dashboard" id="dashboard-overview">
   <div class="dashboard-welcome nv-welcome">
     <div>
       <div class="eyebrow"><i class="pulse"></i> فضای شخصی شما</div>
@@ -25,11 +37,11 @@
   </div>
 
   <div class="dashboard-columns nv-main-columns">
-    <section class="panel nv-panel">
+    <section class="panel nv-panel" id="dashboard-subscriptions">
       <div class="panel-heading"><div><h2>اشتراک‌های شما</h2><p>وضعیت دسترسی و تاریخ انقضا</p></div><a class="text-link" href="{% url 'portal:subscriptions' %}">مشاهده همه ↗</a></div>
       {% if subscriptions %}<div class="table-list">{% for item in subscriptions %}<div class="table-row"><div class="table-symbol">◈</div><div class="table-main"><strong>{{ item.product.name }}</strong><small>{% if item.plan %}{{ item.plan.name }}{% else %}دوره آزمایشی ۷ روزه{% endif %} {% if item.is_waiting_for_activation %}· آغاز مدت اعتبار با اولین فعال‌سازی{% else %}· انقضا {{ item.expires_at|date:'Y/m/d' }}{% endif %}</small></div><span class="status-pill status-{{ item.status }}">{% if item.is_waiting_for_activation %}در انتظار فعال‌سازی{% elif item.status == "trialing" %}دوره آزمایشی فعال{% elif item.status == "active" %}فعال{% elif item.status == "past_due" %}سررسید گذشته{% elif item.status == "expired" %}منقضی‌شده{% elif item.status == "canceled" %}لغوشده{% else %}نامشخص{% endif %}</span></div>{% endfor %}</div>{% else %}<div class="panel-empty"><span>◈</span><strong>هنوز اشتراکی نداری</strong><p>یک محصول انتخاب کن تا دسترسی‌هایت را اینجا ببینی.</p><a class="text-link" href="{% url 'portal:products' %}">دیدن محصولات ↗</a></div>{% endif %}
     </section>
-    <section class="panel nv-panel">
+    <section class="panel nv-panel" id="dashboard-orders">
       <div class="panel-heading"><div><h2>سفارش‌های اخیر</h2><p>تاریخچه خریدهای شما</p></div><a class="text-link" href="{% url 'portal:orders' %}">مشاهده همه ↗</a></div>
       {% if orders %}<div class="table-list">{% for order in orders %}<div class="table-row"><div class="table-symbol order-symbol">↗</div><div class="table-main"><strong>{{ order.plan.product.name }}</strong><small>{{ order.order_number|truncatechars:18 }} · {{ order.created_at|date:'Y/m/d' }}</small></div><div class="row-end"><span class="status-pill status-{{ order.status }}">{% if order.status == "pending" %}در انتظار{% elif order.status == "paid" %}پرداخت‌شده{% elif order.status == "canceled" %}لغوشده{% elif order.status == "expired" %}منقضی‌شده{% elif order.status == "refunded" %}بازپرداخت‌شده{% else %}نامشخص{% endif %}</span><small class="money">{{ order.amount_minor_units|money }} {{ order.currency }}</small></div></div>{% endfor %}</div>{% else %}<div class="panel-empty"><span>◷</span><strong>هنوز سفارشی ثبت نشده</strong><p>سفارش‌ها پس از ثبت در این بخش نمایش داده می‌شوند.</p><a class="text-link" href="{% url 'portal:pricing' %}">مشاهده طرح‌ها ↗</a></div>{% endif %}
     </section>
@@ -97,4 +109,6 @@
   </section>
   <div class="dashboard-footer-note"><i class="pulse"></i><div><strong>حساب تو، تحت کنترل تو.</strong><p>اطلاعات حساب تنها پس از تأیید سمت سرور ذخیره می‌شود.</p></div></div>
 </section>
+  </div>
+</div>
 {% endblock %}
