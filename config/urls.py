@@ -3,13 +3,21 @@ from django.contrib.auth import views as auth_views
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import HttpResponse
 
 from accounts.forms import NebulaAuthenticationForm
 from accounts.views import CustomerLoginView
 from config.admin_toggle import export_admin_object_json, import_admin_json, toggle_boolean_field
 from portal.editor_uploads import editor_image_upload
 
+
+def healthcheck(request):
+    """Minimal Render health endpoint; avoids rendering the site or querying the database."""
+    return HttpResponse("ok", content_type="text/plain")
+
+
 urlpatterns = [
+    path("healthz/", healthcheck, name="healthcheck"),
     path("admin/quick-toggle/", toggle_boolean_field, name="admin-quick-toggle"),
     path("admin/json-export/<str:app_label>/<str:model_name>/<str:object_id>/", export_admin_object_json, name="admin-json-export"),
     path("admin/json-import/<str:app_label>/<str:model_name>/", import_admin_json, name="admin-json-import"),
