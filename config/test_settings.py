@@ -7,6 +7,9 @@ migrations. Production settings are unchanged.
 """
 from .settings import *  # noqa: F403
 
+# Use an isolated in-memory cache in tests; production uses the shared DB cache.
+CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "nebula-tests"}}
+
 MIGRATION_MODULES = {
     # Customer tables are created by the application's custom initial migration
     # only when run against an established database; sync them directly here.
