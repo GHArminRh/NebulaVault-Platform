@@ -6,6 +6,8 @@ migration behavior is unchanged.
 """
 
 from .settings import *  # noqa: F403
+from django.apps import apps
+from django.db.models.signals import post_migrate
 
 # Keep test throttles isolated; production uses the shared database cache.
 CACHES = {
@@ -22,7 +24,6 @@ DATABASES["default"].setdefault("TEST", {})["MIGRATE"] = False  # noqa: F405
 
 # Preserve the small amount of seed data previously supplied by comment's
 # initial migration, since migrations are intentionally disabled in tests.
-from django.db.models.signals import post_migrate
 
 
 def seed_comment_defaults(sender, **kwargs):
@@ -34,8 +35,6 @@ def seed_comment_defaults(sender, **kwargs):
     React.objects.get_or_create(slug="like", defaults={"emoji": "👍"})
     React.objects.get_or_create(slug="dislike", defaults={"emoji": "👎"})
 
-
-from django.apps import apps
 
 post_migrate.connect(
     seed_comment_defaults,
