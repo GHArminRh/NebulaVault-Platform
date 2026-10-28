@@ -26,7 +26,7 @@ class CustomerAPIToken(models.Model):
         verbose_name = "customer API token"
         verbose_name_plural = "customer API tokens"
         indexes = [
-            models.Index(fields=("customer", "revoked_at")),
+            models.Index(fields=("customer", "revoked_at"), name="api_cust_revoke_idx"),
         ]
 
     @property
