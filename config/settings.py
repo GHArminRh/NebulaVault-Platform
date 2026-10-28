@@ -157,6 +157,7 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media/"
+DJANGORESIZED_DEFAULT_FORMAT_EXTENSIONS = {"WEBP": ".webp", "JPEG": ".jpg"}
 
 CACHES = {
     "default": {
