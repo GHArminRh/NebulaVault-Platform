@@ -1,4 +1,6 @@
 from datetime import timedelta
+import hashlib
+import secrets
 
 from django.utils import timezone
 from rest_framework import status
@@ -7,7 +9,9 @@ from rest_framework.test import APITestCase
 from accounts.models import Customer
 from api.models import CustomerAPIToken
 from blog.models import BlogPost
-from catalog.models import Product
+from catalog.models import Plan, Product
+from licensing.models import License
+from subscriptions.models import Subscription
 
 
 class PublicApiTests(APITestCase):
@@ -124,6 +128,48 @@ class CustomerApiAuthenticationTests(APITestCase):
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_customer_license_endpoint_returns_only_safe_license_metadata(self):
+        raw_token = secrets.token_urlsafe(48)
+        CustomerAPIToken.objects.create(
+            customer=self.customer,
+            token_prefix=raw_token[:12],
+            token_digest=hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
+            expires_at=timezone.now() + timedelta(days=30),
+        )
+        product = Product.objects.create(name="Licensed Product", is_active=True)
+        plan = Plan.objects.create(
+            product=product,
+            name="Monthly",
+            slug="monthly",
+            duration_unit="months",
+            duration_value=1,
+            price_minor_units=1000,
+            currency="IRR",
+        )
+        now = timezone.now()
+        subscription = Subscription.objects.create(
+            user=self.customer,
+            product=product,
+            kind=Subscription.Kind.PAID,
+            status=Subscription.Status.ACTIVE,
+            plan=plan,
+            starts_at=now,
+            expires_at=now + timedelta(days=30),
+        )
+        License.objects.create(
+            subscription=subscription,
+            key_digest=hashlib.sha256(b"private-license-key").hexdigest(),
+        )
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {raw_token}")
+        response = self.client.get("/api/v1/account/licenses/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+        license_data = response.data["results"][0]
+        self.assertEqual(license_data["product"], product.slug)
+        self.assertNotIn("key_digest", license_data)
+        self.assertNotIn("display_key", license_data)
 
     def test_token_has_expiry(self):
         self.create_token()
