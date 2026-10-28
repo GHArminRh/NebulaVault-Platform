@@ -1,7 +1,8 @@
 """Settings for isolated Django tests.
 
-Domain apps without a test migration graph are synchronized directly into the
-disposable test database. Production settings and migrations are unchanged.
+Domain apps without their own migrations are synchronized directly into the
+disposable test database. The accounts migration is retained because comment
+and blog migrations depend on it.
 """
 
 from .settings import *  # noqa: F403
@@ -15,8 +16,8 @@ CACHES = {
 }
 
 MIGRATION_MODULES = {
-    # These apps are synchronized directly in test databases.
-    "accounts": None,
+    # Keep accounts migrations enabled: comment.0001_initial depends on it.
+    # Other domain apps without migrations are synchronized directly.
     "catalog": None,
     "subscriptions": None,
     "licensing": None,
@@ -25,11 +26,6 @@ MIGRATION_MODULES = {
     "audit": None,
     "notifications": None,
     "portal": None,
-    # These legacy app migrations depend on each other and on accounts.
-    # For isolated tests, synchronize their tables together rather than
-    # resolving a migration graph whose parent migrations are disabled.
-    "comment": None,
-    "blog": None,
 }
 
 # Avoid requiring collectstatic's production manifest during test client requests.
