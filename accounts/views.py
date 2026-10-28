@@ -30,9 +30,11 @@ logger = logging.getLogger(__name__)
 @login_required
 @require_http_methods(["GET", "POST"])
 def profile(request):
+    # ModelForm validation mutates its instance in memory. Capture the persisted
+    # value before binding/validating the form so email changes are detected.
+    previous_email = request.user.email
     form = AccountProfileForm(request.POST or None, instance=request.user)
     if request.method == "POST" and form.is_valid():
-        previous_email = request.user.email
         customer = form.save(commit=False)
         email_changed = customer.email.casefold() != previous_email.casefold()
         if email_changed:
