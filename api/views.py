@@ -251,7 +251,7 @@ class ApiStatusView(APIView):
                 "version": "v1",
                 "status": "ok",
                 "authentication": ["Bearer token", "customer session"],
-                "documentation": "/api/docs/",
-                "schema": "/api/schema/",
+                "documentation": "/api/v1/docs/",
+                "schema": "/api/v1/schema/",
             }
         )
