@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "image_uploader_widget",
+    "tinymce",
+    "comment.apps.CommentConfig",
+    "blog.apps.BlogConfig",
     "accounts",
     "staff.apps.StaffConfig",
     "catalog.apps.CatalogConfig",
@@ -52,23 +55,12 @@ INSTALLED_APPS = [
     "portal.apps.PortalConfig",
 ]
 
-# Rich-text editor configuration
-NEBULA_EDITOR_CONFIG = {
+# django-tinymce configuration shared by catalog and blog administration.
+TINYMCE_DEFAULT_CONFIG = {
     "height": 420,
     "menubar": "file edit view insert format tools table help",
-    "plugins": (
-        "advlist autolink lists link image charmap preview anchor "
-        "searchreplace visualblocks code fullscreen insertdatetime media "
-        "table wordcount"
-    ),
-    "toolbar": (
-        "undo redo | blocks | fontfamily fontsize | "
-        "bold italic underline strikethrough | "
-        "alignleft aligncenter alignright alignjustify | "
-        "bullist numlist outdent indent | "
-        "forecolor backcolor | link image media table | "
-        "removeformat | searchreplace | code fullscreen"
-    ),
+    "plugins": "advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table wordcount",
+    "toolbar": "undo redo | blocks | fontfamily fontsize | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | forecolor backcolor | link image media table | removeformat | searchreplace | code fullscreen",
     "branding": False,
     "promotion": False,
     "resize": True,
@@ -78,18 +70,11 @@ NEBULA_EDITOR_CONFIG = {
     "browser_spellcheck": True,
     "paste_data_images": True,
     "automatic_uploads": True,
+    "images_upload_url": "/admin/editor-upload/",
+    "images_upload_credentials": True,
     "image_caption": True,
     "images_file_types": "jpg,jpeg,png,gif,webp",
-    "block_formats": (
-        "Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3; "
-        "Heading 4=h4; Preformatted=pre; Blockquote=blockquote"
-    ),
-    "content_style": (
-        "body { font-family: Arial, Tahoma, sans-serif; font-size: 14px; } "
-        "img { max-width: 100%; height: auto; } "
-        "table { border-collapse: collapse; max-width: 100%; } "
-        "td, th { border: 1px solid #d1d5db; padding: 6px; }"
-    ),
+    "content_style": "body { font-family: Arial, Tahoma, sans-serif; font-size: 14px; } img { max-width: 100%; height: auto; } table { border-collapse: collapse; max-width: 100%; } td, th { border: 1px solid #d1d5db; padding: 6px; }",
 }
 
 # Both staff/admin accounts and site customers use UUID4 primary keys.
@@ -282,3 +267,7 @@ TURNSTILE_ENABLED = (
 TURNSTILE_SITE_KEY = os.environ.get("TURNSTILE_SITE_KEY", "").strip()
 TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY", "").strip()
 TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+
+
+# Blog comment system: comments are moderated before appearing publicly.
+COMMENT_SETTINGS = {"URLHASH_LENGTH": 12, "OFFLINE_IMPORTS": True, "PROFILE_IMAGE_FIELD": None}

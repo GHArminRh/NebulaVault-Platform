@@ -41,6 +41,9 @@ urlpatterns = [
     path("admin/json-import/<str:app_label>/<str:model_name>/", import_admin_json, name="admin-json-import"),
     path("admin/editor-upload/", editor_image_upload, name="editor-image-upload"),
     path("admin/", admin.site.urls),
+    path("tinymce/", include("tinymce.urls")),
+    path("comment/", include("comment.urls")),
+    path("blog/", include("blog.urls")),
     path("api/licensing/", include("licensing.urls")),
     path("billing/", include("billing.urls")),
     path(

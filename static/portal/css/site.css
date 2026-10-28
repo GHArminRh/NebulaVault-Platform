@@ -144,3 +144,15 @@ html[dir="rtl"] .nv-dashboard{text-align:right}html[dir="rtl"] .nv-banner-versio
 .cart-hover-cta{width:100%;margin-top:14px}
 .cart-hover-empty{margin:14px 0 2px}
 @media(max-width:760px){.cart-hover-panel{display:none}.cart-nav-wrap{display:inline-flex}}
+
+
+/* Nebula Vault themed native scrollbars. */
+html{scrollbar-width:thin;scrollbar-color:rgba(126,145,210,.58) rgba(7,12,26,.72);scrollbar-gutter:stable}
+body.nv-portal{scrollbar-width:thin;scrollbar-color:rgba(126,145,210,.58) rgba(7,12,26,.72)}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:linear-gradient(180deg,#080d1b,#0d1428);border-left:1px solid rgba(150,171,235,.07)}
+::-webkit-scrollbar-thumb{min-height:36px;border:3px solid transparent;border-radius:999px;background:linear-gradient(180deg,#8e83ff,#4e9bbd) padding-box;box-shadow:inset 0 0 0 1px rgba(228,237,255,.12)}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#b3a9ff,#70d7df) padding-box}
+::-webkit-scrollbar-corner{background:#080d1b}
+@media(pointer:coarse){::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{border-width:1px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
