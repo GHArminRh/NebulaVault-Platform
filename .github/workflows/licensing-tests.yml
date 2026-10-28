@@ -6,7 +6,6 @@ on:
     paths:
       - "licensing/**"
       - "api/**"
-      - "api/**"
       - "accounts/**"
       - "catalog/**"
       - "subscriptions/**"
