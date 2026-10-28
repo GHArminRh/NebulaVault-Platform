@@ -1,19 +1,18 @@
-import uuid
+"""Finalize payments only after trusted provider-side verification."""
+
 from uuid import UUID
 
-from django.db import IntegrityError, transaction
-from django.utils import timezone
 from django.core.mail import send_mail
+from django.db import IntegrityError, transaction
 from django.template.loader import render_to_string
+from django.utils import timezone
 
-from catalog.models import Plan
 from subscriptions.models import Subscription, SubscriptionRenewal
 from subscriptions.services import _add_plan_duration
 from licensing.models import License
 from licensing.services import issue_license
 
-from .models import PaymentAttempt, PaymentOrder, PaymentOrderItem
-
+from .models import PaymentAttempt, PaymentOrder
 from .services import (
     PaymentFinalizationError,
     PaymentReferenceConflict,
