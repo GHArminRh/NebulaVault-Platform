@@ -821,3 +821,51 @@ body.nv-portal{overflow-x:clip!important}
 @media(max-width:900px){.nv-dash-rail-compact{position:relative!important;top:auto!important;right:auto!important;width:100%!important;min-height:0!important;flex-direction:row!important;align-items:center!important;flex-wrap:wrap!important}.nv-dash-rail-compact .nv-rail-bottom{display:flex!important;align-items:center!important;gap:12px!important;margin-inline-start:auto!important}.nv-dashboard-logout{margin:0!important}.nv-logout-link{width:auto!important;white-space:nowrap!important}}
 @media(max-width:480px){.nv-dash-rail-compact{gap:12px!important;padding:12px!important}.nv-home-brand-link{gap:8px!important}.nv-home-brand-link .brand-mark{flex:0 0 auto}.nv-dash-rail-compact .nv-rail-status{display:none!important}.nv-logout-link{padding:8px 10px!important}}
 @media(prefers-reduced-motion:reduce){.nv-page-progress,.nv-page-progress-track{transition:none!important}}
+
+
+/* Dashboard: remove the global top navigation; keep the right-side dashboard rail. */
+.nv-dashboard-page .site-header,
+.nv-dashboard-page .mobile-nav{
+  display:none!important;
+}
+.nv-dashboard-page .nv-dash-rail .nv-home-brand-link{
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+  color:#f3f5ff!important;
+  text-decoration:none!important;
+}
+.nv-dashboard-page .nv-dash-rail .nv-home-brand-link>span:last-child{
+  display:flex;
+  flex-direction:column;
+  font-weight:800;
+  line-height:1.7;
+}
+.nv-dashboard-page .nv-dash-rail .nv-home-brand-link small{
+  font-size:10px;
+  color:var(--nv-muted,#94a2c1);
+  font-weight:500;
+}
+.nv-dashboard-page .nv-dashboard-logout{
+  display:block!important;
+  margin-top:12px!important;
+  position:relative!important;
+  z-index:3!important;
+}
+.nv-dashboard-page .nv-logout-link{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:10px!important;
+  width:100%!important;
+  border:1px solid rgba(255,112,139,.22)!important;
+  background:rgba(255,91,124,.07)!important;
+  color:#ffb1c0!important;
+  cursor:pointer!important;
+  font:inherit!important;
+  text-align:right!important;
+}
+.nv-dashboard-page .nv-logout-link:hover{
+  background:rgba(255,91,124,.15)!important;
+  border-color:rgba(255,112,139,.45)!important;
+}
