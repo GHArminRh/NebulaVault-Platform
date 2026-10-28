@@ -11,13 +11,10 @@ from config.admin_toggle import export_admin_object_json, import_admin_json, tog
 from portal.editor_uploads import editor_image_upload
 from staff.admin_forms import AdminTurnstileAuthenticationForm
 
-# Reuse the existing Django AdminSite and its Dracula theme, only replacing the
-# login form so admin sign-in requires the same server-verified Turnstile check.
 admin.site.login_form = AdminTurnstileAuthenticationForm
 
 
 def service_worker(request):
-    """Serve the PWA service worker from the site root so it controls all pages."""
     script = settings.BASE_DIR / "static" / "portal" / "service-worker.js"
     response = HttpResponse(
         script.read_text(encoding="utf-8"),
@@ -29,7 +26,6 @@ def service_worker(request):
 
 
 def healthcheck(request):
-    """Minimal Render health endpoint; avoids rendering the site or querying the database."""
     return HttpResponse("ok", content_type="text/plain")
 
 
@@ -42,6 +38,7 @@ urlpatterns = [
     path("admin/editor-upload/", editor_image_upload, name="editor-image-upload"),
     path("admin/", admin.site.urls),
     path("tinymce/", include("tinymce.urls")),
+    path("rating/", include("rating.urls")),
     path("comment/", include("comment.urls")),
     path("blog/", include("blog.urls")),
     path("api/licensing/", include("licensing.urls")),
