@@ -47,6 +47,6 @@ class BlogPost(models.Model):
     def reading_minutes(self):
         from html import unescape
         from re import sub
-        words = len(sub(r"\\s+", " ", unescape(sub(r"<[^>]+>", " ", self.content))).split())
+        words = len(sub(r"\s+", " ", unescape(sub(r"<[^>]+>", " ", self.content))).split())
         return max(1, (words + 199) // 200)
     def __str__(self): return self.title
