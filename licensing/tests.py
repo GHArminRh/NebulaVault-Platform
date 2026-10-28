@@ -145,7 +145,7 @@ class LicenseServiceTests(LicenseFixtures, TestCase):
         self.license.save(update_fields=["status", "updated_at"])
         result = activate_license(self.plaintext_key, "device-fingerprint-0001")
         self.assertFalse(result.ok)
-        self.assertEqual(result.code, "license_inactive")
+        self.assertEqual(result.code, "license_suspended")
 
     def test_revoked_license_can_still_deactivate_device(self):
         self.assertTrue(activate_license(self.plaintext_key, "device-fingerprint-0001").ok)
