@@ -7,6 +7,14 @@
 {{ block.super }}
 <style>
   #admin-turnstile { margin: 12px 0; min-height: 65px; }
+  #turnstile-start {
+    min-height: 42px; display: inline-flex; align-items: center; gap: 9px;
+    padding: 0 12px; border: 1px solid var(--border-color, #8c8c8c);
+    border-radius: 3px; background: var(--body-bg, #fff); color: var(--body-fg, #333);
+    cursor: pointer; font: inherit;
+  }
+  #turnstile-start:hover { border-color: var(--primary, #417690); }
+  #turnstile-start:focus-visible { outline: 2px solid var(--primary, #417690); outline-offset: 2px; }
 </style>
 {% endblock %}
 
@@ -33,11 +41,15 @@
 
     <div class="form-row">
       <div id="admin-turnstile"
-           class="cf-turnstile"
            data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}"
            data-theme="auto"
            data-language="en"
-           data-size="normal"></div>
+           data-size="normal">
+        <button type="button" id="turnstile-start">
+          <span aria-hidden="true">☐</span>
+          <span>Click to load security verification</span>
+        </button>
+      </div>
     </div>
 
     {% url 'admin_password_reset' as password_reset_url %}
@@ -57,7 +69,8 @@
 (function () {
   const form = document.getElementById('login-form');
   const widget = document.getElementById('admin-turnstile');
-  if (!form || !widget) return;
+  const startButton = document.getElementById('turnstile-start');
+  if (!form || !widget || !startButton) return;
 
   // Keep the native Cloudflare widget visible, but don't load/run its checks
   // until the visitor interacts with the checkbox area.
@@ -95,16 +108,18 @@
     document.head.appendChild(script);
   }
 
-  widget.addEventListener('click', startTurnstile, { once: true });
-  widget.addEventListener('keydown', function (event) {
-    if (event.key === 'Enter' || event.key === ' ') startTurnstile();
+  startButton.addEventListener('click', function () {
+    startButton.remove();
+    startTurnstile();
   }, { once: true });
 
   form.addEventListener('submit', function (event) {
     const token = form.querySelector('[name="cf-turnstile-response"]');
     if (!token || !token.value) {
       event.preventDefault();
-      if (!started) startTurnstile();
+      if (!started) {
+        startButton.click();
+      }
       widget.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   });
