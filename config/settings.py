@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sites",
+    "storages",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
@@ -180,8 +181,44 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# Direct CMS file uploads are enabled only when durable S3-compatible storage
+# is explicitly configured. Render's local filesystem is ephemeral on Free.
+CMS_MEDIA_STORAGE_BACKEND = os.environ.get("CMS_MEDIA_STORAGE_BACKEND", "local").strip().lower()
+AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME", "").strip()
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "").strip()
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
+AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", "").strip() or None
+AWS_S3_ENDPOINT_URL = os.environ.get("AWS_S3_ENDPOINT_URL", "").strip() or None
+AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_S3_CUSTOM_DOMAIN", "").strip() or None
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+AWS_QUERYSTRING_AUTH = os.environ.get("AWS_QUERYSTRING_AUTH", "False").strip().lower() == "true"
+CMS_MEDIA_UPLOADS_ENABLED = bool(
+    CMS_MEDIA_STORAGE_BACKEND == "s3"
+    and AWS_STORAGE_BUCKET_NAME
+    and AWS_ACCESS_KEY_ID
+    and AWS_SECRET_ACCESS_KEY
+)
+DEFAULT_MEDIA_STORAGE = (
+    {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            "access_key": AWS_ACCESS_KEY_ID,
+            "secret_key": AWS_SECRET_ACCESS_KEY,
+            "region_name": AWS_S3_REGION_NAME,
+            "endpoint_url": AWS_S3_ENDPOINT_URL,
+            "custom_domain": AWS_S3_CUSTOM_DOMAIN,
+            "file_overwrite": False,
+            "default_acl": None,
+            "querystring_auth": AWS_QUERYSTRING_AUTH,
+        },
+    }
+    if CMS_MEDIA_UPLOADS_ENABLED
+    else {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+)
 STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "default": DEFAULT_MEDIA_STORAGE,
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
     },
