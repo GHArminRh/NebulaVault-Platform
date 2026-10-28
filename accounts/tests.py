@@ -330,12 +330,16 @@ class AccountBackendTests(TestCase):
             "password": "Definitely-wrong-password!",
             "human_check": "on",
         }
-        for _ in range(5):
+        for attempt in range(1, 6):
             response = self.client.post(reverse("login"), payload)
-            self.assertEqual(response.status_code, 200)
+            if attempt < 5:
+                self.assertEqual(response.status_code, 200)
+            else:
+                self.assertEqual(response.status_code, 429)
+                self.assertContains(response, "به‌دلیل پنج تلاش ناموفق", status_code=429)
+        # Further submissions remain blocked during the 15-minute window.
         response = self.client.post(reverse("login"), payload)
         self.assertEqual(response.status_code, 429)
-        self.assertContains(response, "به‌دلیل چند تلاش ناموفق", status_code=429)
 
     def test_successful_customer_login_clears_failed_attempt_counter(self):
         from django.core.cache import cache
