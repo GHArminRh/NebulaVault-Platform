@@ -113,7 +113,7 @@ html{scroll-behavior:smooth;scroll-padding-top:104px}
 .nv-auth-form .password-wrap input{padding-left:65px}
 .nv-auth-form .password-toggle{position:absolute;left:7px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#a99aff;font-size:10px;padding:6px}
 .nv-auth-form .turnstile-shell{min-height:70px;margin:8px 0 2px;max-width:100%;overflow:hidden}
-.nv-auth-form .turnstile-shell .cf-turnstile{max-width:100%;overflow:hidden}
+.nv-auth-form .turnstile-shell .nv-turnstile-widget{position:relative;z-index:1;min-height:65px;max-width:100%;overflow:hidden}
 .nv-auth-form .turnstile-loading{font-size:10px}
 .nv-auth-form .button-full{margin-top:7px}
 .nv-auth-help{margin:3px 0 0;color:#7f8eac;font-size:10px;line-height:1.8}
