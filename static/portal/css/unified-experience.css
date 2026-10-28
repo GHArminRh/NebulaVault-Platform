@@ -869,3 +869,166 @@ body.nv-portal{overflow-x:clip!important}
   background:rgba(255,91,124,.15)!important;
   border-color:rgba(255,112,139,.45)!important;
 }
+
+
+/* Mobile dashboard layout polish: prevent horizontal overflow and the blank left gutter. */
+@media (max-width: 900px) {
+  html,
+  body.nv-dashboard-page,
+  body.nv-dashboard-page main {
+    width: 100%!important;
+    max-width: 100%!important;
+    overflow-x: clip!important;
+  }
+  body.nv-dashboard-page main {
+    margin-inline: 0!important;
+    padding-inline: 0!important;
+  }
+  .nv-dashboard-page .nv-dashboard-layout.page-wrap {
+    display: flex!important;
+    flex-direction: column!important;
+    align-items: stretch!important;
+    gap: 16px!important;
+    width: 100%!important;
+    max-width: 100%!important;
+    margin: 12px 0 32px!important;
+    padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right))!important;
+    box-sizing: border-box!important;
+    overflow-x: clip!important;
+  }
+  .nv-dashboard-page .nv-dash-rail {
+    position: relative!important;
+    inset: auto!important;
+    float: none!important;
+    width: 100%!important;
+    min-width: 0!important;
+    max-width: 100%!important;
+    min-height: 0!important;
+    max-height: none!important;
+    margin: 0!important;
+    padding: 12px!important;
+    box-sizing: border-box!important;
+    display: flex!important;
+    flex-direction: row!important;
+    flex-wrap: wrap!important;
+    align-items: center!important;
+    justify-content: flex-start!important;
+    gap: 8px!important;
+    overflow: visible!important;
+    border-radius: 16px!important;
+    transform: none!important;
+  }
+  .nv-dashboard-page .nv-dash-rail .nv-rail-brand {
+    flex: 1 0 100%!important;
+    width: 100%!important;
+    min-width: 0!important;
+    margin: 0 0 4px!important;
+    padding: 0 0 10px!important;
+    box-sizing: border-box!important;
+  }
+  .nv-dashboard-page .nv-dash-rail .nv-rail-link {
+    flex: 1 1 calc(50% - 8px)!important;
+    width: auto!important;
+    min-width: 0!important;
+    max-width: 100%!important;
+    justify-content: center!important;
+    box-sizing: border-box!important;
+    white-space: normal!important;
+    text-align: center!important;
+    overflow-wrap: anywhere!important;
+    padding: 10px 8px!important;
+  }
+  .nv-dashboard-page .nv-dash-rail .nv-rail-bottom {
+    display: contents!important;
+  }
+  .nv-dashboard-page .nv-dash-rail .nv-rail-status {
+    display: none!important;
+  }
+  .nv-dashboard-page .nv-dash-rail .nv-dashboard-logout {
+    flex: 1 1 calc(50% - 8px)!important;
+    min-width: 0!important;
+    margin: 0!important;
+  }
+  .nv-dashboard-page .nv-dash-rail .nv-logout-link {
+    width: 100%!important;
+    min-height: 40px!important;
+  }
+  .nv-dashboard-page .nv-dashboard-content {
+    display: block!important;
+    width: 100%!important;
+    min-width: 0!important;
+    max-width: 100%!important;
+    margin: 0!important;
+    padding: 0!important;
+    box-sizing: border-box!important;
+    overflow: visible!important;
+  }
+  .nv-dashboard-page .nv-dashboard,
+  .nv-dashboard-page .nv-dashboard-content > * {
+    width: 100%!important;
+    min-width: 0!important;
+    max-width: 100%!important;
+    box-sizing: border-box!important;
+  }
+  .nv-dashboard-page .nv-welcome {
+    align-items: flex-start!important;
+    flex-direction: column!important;
+    gap: 14px!important;
+  }
+  .nv-dashboard-page .nv-home-cta {
+    align-self: stretch!important;
+    justify-content: center!important;
+    width: 100%!important;
+    box-sizing: border-box!important;
+  }
+  .nv-dashboard-page .nv-stats,
+  .nv-dashboard-page .nv-main-columns,
+  .nv-dashboard-page .nv-settings-grid {
+    grid-template-columns: minmax(0, 1fr)!important;
+    min-width: 0!important;
+  }
+  .nv-dashboard-page .nv-panel,
+  .nv-dashboard-page .nv-settings-card,
+  .nv-dashboard-page .nv-dashboard-banner,
+  .nv-dashboard-page .nv-account-section {
+    min-width: 0!important;
+    max-width: 100%!important;
+    box-sizing: border-box!important;
+  }
+  .nv-dashboard-page .nv-table-list,
+  .nv-dashboard-page .table-row,
+  .nv-dashboard-page .table-main {
+    min-width: 0!important;
+    max-width: 100%!important;
+  }
+  .nv-dashboard-page input,
+  .nv-dashboard-page button,
+  .nv-dashboard-page select,
+  .nv-dashboard-page textarea {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+@media (max-width: 420px) {
+  .nv-dashboard-page .nv-dashboard-layout.page-wrap {
+    padding-inline: 10px!important;
+    gap: 12px!important;
+  }
+  .nv-dashboard-page .nv-dash-rail {
+    padding: 10px!important;
+    gap: 6px!important;
+  }
+  .nv-dashboard-page .nv-dash-rail .nv-rail-link,
+  .nv-dashboard-page .nv-dash-rail .nv-dashboard-logout {
+    flex-basis: 100%!important;
+  }
+  .nv-dashboard-page .nv-welcome h1 {
+    font-size: clamp(24px, 7vw, 32px)!important;
+    line-height: 1.6!important;
+    overflow-wrap: anywhere!important;
+  }
+  .nv-dashboard-page .nv-panel,
+  .nv-dashboard-page .nv-settings-card {
+    padding: 14px!important;
+  }
+}
