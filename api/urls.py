@@ -33,7 +33,7 @@ urlpatterns = [
     path("account/me/", CustomerProfileView.as_view(), name="account-me"),
     path("account/subscriptions/", MySubscriptionListView.as_view(), name="account-subscriptions"),
     path("account/orders/", MyPaymentOrderListView.as_view(), name="account-orders"),
-    path("blog/posts/<slug:slug>/rating/", BlogPostRatingView.as_view(), name="blog-rating"),
+    path("blog/posts/<str:slug>/rating/", BlogPostRatingView.as_view(), name="blog-rating"),
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path("docs/", SpectacularSwaggerView.as_view(url_name="api:schema"), name="docs"),
     path("", include(router.urls)),
