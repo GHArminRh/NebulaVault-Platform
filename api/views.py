@@ -48,6 +48,9 @@ class TokenCreateView(APIView):
     authentication_classes = ()
     throttle_classes = (TokenLoginThrottle,)
 
+    def get_authenticate_header(self, request):
+        return "Bearer"
+
     def post(self, request):
         credentials = TokenLoginSerializer(data=request.data)
         credentials.is_valid(raise_exception=True)
