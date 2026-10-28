@@ -1,9 +1,7 @@
 """Settings for isolated Django tests.
 
-The repository currently has no migration files for the domain apps below.
-Treat them as unmigrated apps in the disposable test database so Django
-creates their tables via syncdb after applying the built-in and staff
-migrations. Production settings are unchanged.
+Domain apps without a test migration graph are synchronized directly into the
+disposable test database. Production settings and migrations are unchanged.
 """
 
 from .settings import *  # noqa: F403
@@ -17,8 +15,7 @@ CACHES = {
 }
 
 MIGRATION_MODULES = {
-    # Customer tables are created by the application's custom initial migration
-    # only when run against an established database; sync them directly here.
+    # These apps are synchronized directly in test databases.
     "accounts": None,
     "catalog": None,
     "subscriptions": None,
@@ -28,6 +25,10 @@ MIGRATION_MODULES = {
     "audit": None,
     "notifications": None,
     "portal": None,
+    # comment.0001_initial depends on accounts. Since accounts migrations are
+    # disabled above for tests, disable comment migrations too so Django can
+    # synchronize both apps together without a missing migration dependency.
+    "comment": None,
 }
 
 # Avoid requiring collectstatic's production manifest during test client requests.
