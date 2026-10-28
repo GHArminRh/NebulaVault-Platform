@@ -32,7 +32,7 @@ MIGRATION_MODULES = {
 
 # Avoid requiring collectstatic's production manifest during test client requests.
 STORAGES = {
-    **STORAGES,
+    **STORAGES,  # noqa: F405 - inherited from config.settings
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
