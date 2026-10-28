@@ -49,13 +49,10 @@ class TokenCreateView(APIView):
     throttle_classes = (TokenLoginThrottle,)
 
     def post(self, request):
-        email = str(request.data.get("email", "")).strip().lower()
-        password = request.data.get("password", "")
-        if not email or not isinstance(password, str) or not password:
-            return Response(
-                {"detail": "Email and password are required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        credentials = TokenLoginSerializer(data=request.data)
+        credentials.is_valid(raise_exception=True)
+        email = credentials.validated_data["email"].strip().lower()
+        password = credentials.validated_data["password"]
 
         customer = Customer.objects.filter(email__iexact=email).first()
         if customer is None or not customer.check_password(password):
