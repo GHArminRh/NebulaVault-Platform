@@ -53,7 +53,20 @@ class SeparateStaffAndCustomerSessionsMiddleware(MiddlewareMixin):
                 return redirect("portal:home")
             # The CMS frontend editor needs the staff identity on CMS pages only.
             # Keep the existing staff/customer session separation everywhere else.
-            if request.path.startswith("/pages/") and getattr(user, "is_staff", False):
+            staff_only_frontend_paths = {
+                "/api",
+                "/api/",
+                "/api/v1/",
+                "/api/v1/schema/",
+                "/api/v1/docs/",
+            }
+            if (
+                getattr(user, "is_staff", False)
+                and (
+                    request.path.startswith("/pages/")
+                    or request.path in staff_only_frontend_paths
+                )
+            ):
                 return None
             request.user = AnonymousUser()
         return None
