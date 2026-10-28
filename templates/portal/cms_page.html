@@ -1,5 +1,6 @@
 {% extends "portal/base.html" %}
-{% load cms_tags %}
+{% load cms_tags sekizai_tags static %}
+{% addtoblock "css" %}<link rel="stylesheet" href="{% static 'portal/css/cms-builder.css' %}">{% endaddtoblock %}
 
 {% block title %}{% page_attribute "page_title" %} — نبیولا والت{% endblock %}
 {% block meta_description %}{% page_attribute "meta_description" %}{% endblock %}
