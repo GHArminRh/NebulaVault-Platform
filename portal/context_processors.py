@@ -31,7 +31,7 @@ def cart_context(request):
         ):
             from licensing.models import License
 
-            dashboard_licenses = (
+            dashboard_licenses = list(
                 License.objects.filter(subscription__user=request.user)
                 .select_related("subscription", "subscription__product", "subscription__plan")
                 .order_by("-created_at")
