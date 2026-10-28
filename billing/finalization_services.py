@@ -163,18 +163,68 @@ def finalize_payment(
                     duration_plan = copy(plan_item)
                     duration_plan.duration_value = line.duration_value
                     duration_plan.duration_unit = line.duration_unit
-                    subscription = Subscription.objects.create(
-                        user=order.user, product=plan_item.product,
-                        kind=Subscription.Kind.PAID, status=Subscription.Status.ACTIVE,
-                        plan=plan_item, trial_redemption=None, starts_at=now,
-                        expires_at=_add_plan_duration(now, duration_plan),
+
+                    # If this exact product/plan already has an active license,
+                    # treat the cart line as a renewal instead of issuing a
+                    # second independent license.
+                    existing_subscriptions = list(
+                        Subscription.objects.select_for_update()
+                        .filter(
+                            user=order.user,
+                            product=plan_item.product,
+                            plan=plan_item,
+                            kind=Subscription.Kind.PAID,
+                            license__status=License.Status.ACTIVE,
+                        )
+                        .exclude(status=Subscription.Status.CANCELED)
+                        .order_by("created_at")[:2]
                     )
-                    license_record, license_key = issue_license(subscription)
-                    issued_keys.append({
-                        "product_name": line.product_name,
-                        "plan_name": line.plan_name,
-                        "license_key": license_key,
-                    })
+                    if len(existing_subscriptions) > 1:
+                        raise PaymentFinalizationError(
+                            "برای این طرح بیش از یک لایسنس پیدا شد؛ تمدید خودکار ممکن نیست."
+                        )
+
+                    if existing_subscriptions:
+                        subscription = existing_subscriptions[0]
+                        previous_expiry = subscription.expires_at
+                        extension_start = max(previous_expiry, now)
+                        new_expiry = _add_plan_duration(extension_start, duration_plan)
+                        # Renewal references are unique per order line because
+                        # one cart payment may renew multiple subscriptions.
+                        renewal_reference = f"{provider_reference[:180]}:cart-item:{line.pk}"
+                        SubscriptionRenewal.objects.create(
+                            subscription=subscription,
+                            payment_reference=renewal_reference,
+                            previous_expires_at=previous_expiry,
+                            new_expires_at=new_expiry,
+                            amount_minor_units=line.amount_minor_units,
+                            currency=line.currency,
+                        )
+                        subscription.expires_at = new_expiry
+                        subscription.status = Subscription.Status.ACTIVE
+                        subscription.save(
+                            update_fields=["expires_at", "status", "updated_at"]
+                        )
+                    else:
+                        subscription = Subscription.objects.create(
+                            user=order.user, product=plan_item.product,
+                            kind=Subscription.Kind.PAID, status=Subscription.Status.ACTIVE,
+                            plan=plan_item, trial_redemption=None, starts_at=now,
+                            expires_at=_add_plan_duration(now, duration_plan),
+                        )
+
+                    # Existing active licenses keep their current key. Only
+                    # first purchases issue and deliver a new key.
+                    existing_license = License.objects.filter(
+                        subscription=subscription
+                    ).first()
+                    if existing_license is None:
+                        license_record, license_key = issue_license(subscription)
+                        issued_keys.append({
+                            "product_name": line.product_name,
+                            "plan_name": line.plan_name,
+                            "license_key": license_key,
+                        })
                 attempt.status = PaymentAttempt.Status.SUCCEEDED
                 attempt.provider_reference = provider_reference
                 attempt.confirmed_at = now
