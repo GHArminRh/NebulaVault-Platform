@@ -20,4 +20,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }), {threshold: .08});
     document.querySelectorAll(".product-card,.pricing-card,.feature-row,.panel,.stat-card").forEach(el => {el.classList.add("reveal");observer.observe(el);});
   }
+  // Subtle mouse-reactive ambient lighting for pointer devices only.
+  const ambientLayers = [...document.querySelectorAll(".ambient")];
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const finePointer = window.matchMedia("(pointer: fine)").matches;
+  if (ambientLayers.length && !reduceMotion && finePointer) {
+    let framePending = false;
+    let pointerX = 0;
+    let pointerY = 0;
+    window.addEventListener("pointermove", event => {
+      pointerX = (event.clientX / Math.max(window.innerWidth, 1) - 0.5) * 2;
+      pointerY = (event.clientY / Math.max(window.innerHeight, 1) - 0.5) * 2;
+      if (framePending) return;
+      framePending = true;
+      window.requestAnimationFrame(() => {
+        ambientLayers.forEach((layer, index) => {
+          const depth = index === 0 ? 14 : -10;
+          layer.style.transform = `translate3d(${pointerX * depth}px, ${pointerY * depth}px, 0)`;
+        });
+        framePending = false;
+      });
+    }, { passive: true });
+    window.addEventListener("pointerleave", () => {
+      ambientLayers.forEach(layer => { layer.style.transform = ""; });
+    });
+  }
 });
