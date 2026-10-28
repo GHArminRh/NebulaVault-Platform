@@ -39,7 +39,7 @@ class AccountBackendTests(TestCase):
             reverse("accounts:profile"),
             {"username": self.user.username, "first_name": "", "last_name": "", "email": "new-address@example.com"},
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
         self.user.refresh_from_db()
         self.assertEqual(self.user.email, "new-address@example.com")
         self.assertFalse(self.user.is_active)
@@ -78,14 +78,16 @@ class AccountBackendTests(TestCase):
         response = self.client.post(
             reverse("accounts:password_reset"), {"email": "unknown@example.com"}
         )
-        self.assertRedirects(response, reverse("accounts:password_reset_done"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["purpose"], "password_reset")
         self.assertEqual(len(mail.outbox), 0)
 
     def test_password_reset_sends_email_for_existing_account(self):
         response = self.client.post(
             reverse("accounts:password_reset"), {"email": self.user.email}
         )
-        self.assertRedirects(response, reverse("accounts:password_reset_done"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["purpose"], "password_reset")
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("accounts/password/reset/", mail.outbox[0].body)
     def test_registration_generates_username_from_email_local_part(self):
@@ -163,7 +165,7 @@ class AccountBackendTests(TestCase):
         self.assertTrue(self.user.is_active)
         response = self.client.get(reverse("accounts:verify_email", args=[uid, token]))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "already verified")
+        self.assertTrue(response.context["already_verified"])
 
     def test_resend_verification_does_not_disclose_unknown_email(self):
         response = self.client.post(reverse("accounts:resend_verification"), {"email": "unknown@example.com"})
@@ -287,7 +289,7 @@ class AccountBackendTests(TestCase):
             reverse("accounts:verify_email_code"),
             {"email": self.user.email, "code": code_match.group(1)},
         )
-        self.assertRedirects(response, reverse("login"))
+        self.assertRedirects(response, reverse("portal:dashboard"))
         self.user.refresh_from_db()
         self.assertTrue(self.user.is_active)
 
@@ -340,7 +342,7 @@ class AccountBackendTests(TestCase):
                 self.assertEqual(response.status_code, 200)
             else:
                 self.assertEqual(response.status_code, 429)
-                self.assertContains(response, "به‌دلیل پنج تلاش ناموفق", status_code=429)
+                self.assertContains(response, "موقتاً محدود شده است", status_code=429)
         # Further submissions remain blocked during the 15-minute window.
         response = self.client.post(reverse("login"), payload)
         self.assertEqual(response.status_code, 429)
