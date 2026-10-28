@@ -70,6 +70,8 @@ def delete(request,pk):
 def react(request,pk):
     comment=get_object_or_404(Comment,pk=pk,status="a")
     post=_post_for_comment(comment)
+    settings_obj=get_object_or_404(CommentSettings,slug="default-config")
+    if not settings_obj.allow_reaction: raise PermissionDenied
     if request.method=="POST" and isinstance(request.user,Customer):
         react_obj=get_object_or_404(React,slug=request.POST.get("react_slug","like"))
         existing=Reaction.objects.filter(user=request.user,comment=comment).first()
