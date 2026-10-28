@@ -4,6 +4,7 @@ from accounts.models import Customer
 from billing.models import PaymentOrder
 from blog.models import BlogPost, BlogPostRating, Tag
 from catalog.models import Plan, Product, Release
+from licensing.models import License, LicenseActivation
 from subscriptions.models import Subscription
 
 
@@ -135,3 +136,35 @@ class TokenResponseSerializer(serializers.Serializer):
     token_type = serializers.ChoiceField(choices=("Bearer",))
     expires_at = serializers.DateTimeField()
     customer = CustomerProfileSerializer()
+
+
+class LicenseActivationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LicenseActivation
+        fields = (
+            "id", "device_label", "app_version", "is_active",
+            "first_activated_at", "last_seen_at", "deactivated_at",
+        )
+        read_only_fields = fields
+
+
+class CustomerLicenseSerializer(serializers.ModelSerializer):
+    product = serializers.SlugRelatedField(
+        source="subscription.product", read_only=True, slug_field="slug"
+    )
+    starts_at = serializers.DateTimeField(source="subscription.starts_at", read_only=True)
+    expires_at = serializers.DateTimeField(source="subscription.expires_at", read_only=True)
+    subscription_status = serializers.CharField(source="subscription.status", read_only=True)
+    device_limit = serializers.IntegerField(read_only=True, source="activation_limit")
+    active_devices = serializers.IntegerField(read_only=True, source="active_activation_count")
+    is_entitled = serializers.BooleanField(read_only=True)
+    activations = LicenseActivationSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = License
+        fields = (
+            "id", "product", "status", "subscription_status", "is_entitled",
+            "starts_at", "expires_at", "device_limit", "active_devices",
+            "activations", "created_at", "updated_at", "last_validated_at",
+        )
+        read_only_fields = fields
