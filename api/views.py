@@ -6,6 +6,7 @@ from django.db.models import Avg, Count
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, permissions, status, viewsets
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
@@ -18,7 +19,7 @@ from blog.models import BlogPost, BlogPostRating, Tag
 from catalog.models import Plan, Product, Release
 from subscriptions.models import Subscription
 
-from .authentication import CustomerBearerAuthentication, CustomerSessionAuthentication
+from .authentication import CustomerBearerAuthentication
 from .models import CustomerAPIToken
 from .permissions import IsCustomer
 from .serializers import (
@@ -82,7 +83,7 @@ class TokenCreateView(APIView):
 
 
 class TokenRevokeView(APIView):
-    authentication_classes = (CustomerBearerAuthentication, CustomerSessionAuthentication)
+    authentication_classes = (CustomerBearerAuthentication, SessionAuthentication)
     permission_classes = (IsCustomer,)
 
     def post(self, request):
@@ -160,7 +161,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class CustomerProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = CustomerProfileSerializer
-    authentication_classes = (CustomerBearerAuthentication, CustomerSessionAuthentication)
+    authentication_classes = (CustomerBearerAuthentication, SessionAuthentication)
     permission_classes = (IsCustomer,)
 
     def get_object(self):
@@ -169,7 +170,7 @@ class CustomerProfileView(generics.RetrieveUpdateAPIView):
 
 class MySubscriptionListView(generics.ListAPIView):
     serializer_class = SubscriptionSerializer
-    authentication_classes = (CustomerBearerAuthentication, CustomerSessionAuthentication)
+    authentication_classes = (CustomerBearerAuthentication, SessionAuthentication)
     permission_classes = (IsCustomer,)
     ordering_fields = ("created_at", "starts_at", "expires_at", "status")
     ordering = ("-created_at",)
@@ -180,7 +181,7 @@ class MySubscriptionListView(generics.ListAPIView):
 
 class MyPaymentOrderListView(generics.ListAPIView):
     serializer_class = PaymentOrderSerializer
-    authentication_classes = (CustomerBearerAuthentication, CustomerSessionAuthentication)
+    authentication_classes = (CustomerBearerAuthentication, SessionAuthentication)
     permission_classes = (IsCustomer,)
     ordering_fields = ("created_at", "paid_at", "status", "amount_minor_units")
     ordering = ("-created_at",)
@@ -194,7 +195,7 @@ class MyPaymentOrderListView(generics.ListAPIView):
 
 
 class BlogPostRatingView(APIView):
-    authentication_classes = (CustomerBearerAuthentication, CustomerSessionAuthentication)
+    authentication_classes = (CustomerBearerAuthentication, SessionAuthentication)
     throttle_classes = (ScopedRateThrottle,)
     throttle_scope = "ratings"
 
