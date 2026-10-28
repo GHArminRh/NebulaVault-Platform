@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     buildCommand: bash build.sh
-    startCommand: python manage.py migrate --noinput && python manage.py bootstrap_render_admin && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120
+    startCommand: python manage.py migrate --noinput && python manage.py createcachetable django_cache --database default && python manage.py bootstrap_render_admin && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120
     healthCheckPath: /
     envVars:
       - key: DJANGO_SECRET_KEY
