@@ -8,13 +8,11 @@ class AdminOnlyV1ApiMiddleware:
     desktop application's license activation and validation workflow.
     """
 
-    API_PREFIXES = ("/api/v1/", "/api/v1")
-
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.path_info.startswith(self.API_PREFIXES):
+        if request.path_info == "/api/v1" or request.path_info.startswith("/api/v1/"):
             user = getattr(request, "user", None)
             if not (
                 user
@@ -32,6 +30,6 @@ class AdminOnlyV1ApiMiddleware:
                 return response
 
         response = self.get_response(request)
-        if request.path_info.startswith(self.API_PREFIXES):
+        if request.path_info == "/api/v1" or request.path_info.startswith("/api/v1/"):
             response["Cache-Control"] = "private, no-store"
         return response
