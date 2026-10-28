@@ -1,4 +1,5 @@
 """Nebula Vault CMS plugins backed by live product, pricing, release and blog data."""
+from django.conf import settings
 from django.utils import timezone
 from cms.models.pluginmodel import CMSPlugin
 from cms.plugin_base import CMSPluginBase
@@ -6,7 +7,7 @@ from cms.plugin_pool import plugin_pool
 
 from blog.models import BlogPost
 from catalog.models import Plan, Product, Release
-from .models import CMSExternalImage
+from .models import CMSExternalImage, CMSUploadedImage
 
 
 @plugin_pool.register_plugin
@@ -98,3 +99,19 @@ class ExternalImagePlugin(CMSPluginBase):
         context = super().render(context, instance, placeholder)
         context["cms_image"] = instance
         return context
+
+
+# Do not expose an upload control while the deployment has no durable storage.
+if settings.CMS_MEDIA_UPLOADS_ENABLED:
+    @plugin_pool.register_plugin
+    class UploadedImagePlugin(CMSPluginBase):
+        model = CMSUploadedImage
+        name = "تصویر بارگذاری‌شده"
+        module = "محتوای پویای نبیولا"
+        render_template = "portal/plugins/uploaded_image.html"
+        cache = True
+
+        def render(self, context, instance, placeholder):
+            context = super().render(context, instance, placeholder)
+            context["cms_image"] = instance
+            return context
