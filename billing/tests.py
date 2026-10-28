@@ -14,7 +14,7 @@ from catalog.models import Plan, Product
 from subscriptions.models import Subscription, SubscriptionRenewal
 from licensing.models import License
 
-from .models import PaymentAttempt, PaymentOrder
+from .models import PaymentAttempt, PaymentOrder, PaymentOrderItem
 from .services import (
     IdempotencyConflict,
     OrderCreationError,
@@ -683,6 +683,72 @@ class FinalizePaymentTests(BillingServiceTestCase):
         self.assertEqual(self.order.status, PaymentOrder.Status.PENDING)
         self.assertEqual(self.attempt.status, PaymentAttempt.Status.CREATED)
         self.assertEqual(Subscription.objects.count(), 0)
+
+    def test_cart_checkout_renews_existing_license_instead_of_issuing_another(self):
+        subscription = Subscription.objects.create(
+            user=self.user,
+            product=self.product,
+            kind=Subscription.Kind.PAID,
+            status=Subscription.Status.ACTIVE,
+            plan=self.plan,
+            starts_at=timezone.now() - timedelta(days=20),
+            expires_at=timezone.now() + timedelta(days=10),
+        )
+        License.objects.create(
+            subscription=subscription,
+            key_digest="b" * 64,
+        )
+        previous_expiry = subscription.expires_at
+
+        cart_order = PaymentOrder.objects.create(
+            user=self.user,
+            plan=self.plan,
+            idempotency_key=uuid4(),
+            subscription=None,
+            amount_minor_units=self.plan.price_minor_units,
+            currency=self.plan.currency,
+            status=PaymentOrder.Status.PENDING,
+        )
+        line = PaymentOrderItem.objects.create(
+            order=cart_order,
+            plan=self.plan,
+            product_name=self.product.name,
+            plan_name=self.plan.name,
+            amount_minor_units=self.plan.price_minor_units,
+            currency=self.plan.currency,
+            duration_value=1,
+            duration_unit="months",
+            device_limit=self.plan.device_limit,
+            position=0,
+        )
+        attempt = create_payment_attempt(
+            user=self.user,
+            order_id=cart_order.pk,
+            provider="example",
+            idempotency_key=uuid4(),
+        )
+
+        finalize_payment(
+            attempt_id=attempt.pk,
+            provider_reference="provider-cart-renew-001",
+            confirmed_amount_minor_units=cart_order.amount_minor_units,
+            confirmed_currency=cart_order.currency,
+        )
+
+        subscription.refresh_from_db()
+        cart_order.refresh_from_db()
+        self.assertEqual(cart_order.status, PaymentOrder.Status.PAID)
+        self.assertGreater(subscription.expires_at, previous_expiry)
+        self.assertEqual(
+            Subscription.objects.filter(user=self.user, plan=self.plan).count(),
+            1,
+        )
+        self.assertEqual(License.objects.filter(subscription=subscription).count(), 1)
+        renewal = SubscriptionRenewal.objects.get(
+            payment_reference=f"provider-cart-renew-001:cart-item:{line.pk}"
+        )
+        self.assertEqual(renewal.subscription, subscription)
+        self.assertEqual(renewal.amount_minor_units, line.amount_minor_units)
 
     def test_duplicate_callback_does_not_create_second_subscription(self):
         first = self.finalize()
