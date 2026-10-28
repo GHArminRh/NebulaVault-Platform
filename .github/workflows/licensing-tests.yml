@@ -60,5 +60,8 @@ jobs:
       - name: Run licensing tests
         run: python manage.py test licensing --settings=config.test_settings --verbosity=2
 
+      - name: Run Turnstile tests
+        run: python manage.py test accounts.test_turnstile --settings=config.test_settings --verbosity=2
+
       - name: Run email backend tests
         run: python manage.py test accounts.test_email_backends --settings=config.test_settings --verbosity=2
