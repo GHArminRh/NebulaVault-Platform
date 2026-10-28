@@ -88,3 +88,6 @@ The first behavior-preserving module split is in place on the cleanup branch:
 - `billing/services.py`: compatibility facade exposing the existing service names and error classes.
 
 No model fields, migrations, payment URLs, Zarinpal request/verification flow, or database transaction boundaries were intentionally changed by this split. The new CI job runs `billing.tests`; the refactor is not considered validated until that job completes and the diff is reviewed.
+
+
+The billing regression suite also exposed a stale assertion in the pre-existing renewal test: it checked a dynamically attached, delivery-only attribute on the original model instance even though `finalize_payment()` locks, reloads, and returns a separate instance. The test now asserts against the returned instance; production payment behavior was not changed for this test.
