@@ -64,5 +64,9 @@ jobs:
         if: always()
         run: python manage.py test accounts.test_turnstile --settings=config.test_settings --verbosity=2
 
+      - name: Run account regression tests
+        if: always()
+        run: python manage.py test accounts.tests --settings=config.test_settings --verbosity=2
+
       - name: Run email backend tests
         run: python manage.py test accounts.test_email_backends --settings=config.test_settings --verbosity=2
