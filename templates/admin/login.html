@@ -1,22 +1,16 @@
 {% extends "admin/base_site.html" %}
 {% load i18n static %}
 
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 {% block bodyclass %}{{ block.super }} login{% endblock %}
-
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/login.css' %}">
 <style>
-  #admin-turnstile { margin: 12px 0; min-height: 65px; }
-  #turnstile-start {
-    min-height: 42px; display: inline-flex; align-items: center; gap: 9px;
-    padding: 0 12px; border: 1px solid var(--border-color, #8c8c8c);
-    border-radius: 3px; background: var(--body-bg, #fff); color: var(--body-fg, #333);
-    cursor: pointer; font: inherit;
-  }
-  #turnstile-start:hover { border-color: var(--primary, #417690); }
-  #turnstile-start:focus-visible { outline: 2px solid var(--primary, #417690); outline-offset: 2px; }
+  #admin-turnstile { margin: 12px 0; }
 </style>
 {% endblock %}
+{% block nav-global %}{% endblock %}
 
 {% block content %}
 {% if form.errors and not form.turnstile_error %}
@@ -25,7 +19,6 @@
 {% if form.non_field_errors %}
 <p class="errornote">{{ form.non_field_errors }}</p>
 {% endif %}
-
 <div id="content-main">
   <form action="{{ app_path }}" method="post" id="login-form">
     {% csrf_token %}
@@ -38,97 +31,23 @@
       {{ form.password.label_tag }} {{ form.password }}
       <input type="hidden" name="next" value="{{ next }}">
     </div>
-
     <div class="form-row">
-      <div id="admin-turnstile"
+      <div id="admin-turnstile" class="cf-turnstile"
            data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}"
            data-theme="auto"
            data-language="en"
-           data-size="normal">
-        <button type="button" id="turnstile-start">
-          <span aria-hidden="true">☐</span>
-          <span>Click to load security verification</span>
-        </button>
-      </div>
+           data-size="normal"></div>
     </div>
-
     {% url 'admin_password_reset' as password_reset_url %}
     {% if password_reset_url %}
     <div class="password-reset-link">
       <a href="{{ password_reset_url }}">{% translate 'Forgotten your password or username?' %}</a>
     </div>
     {% endif %}
-
     <div class="submit-row">
       <input type="submit" value="{% translate 'Log in' %}">
     </div>
   </form>
 </div>
-
-<script>
-(function () {
-  const form = document.getElementById('login-form');
-  const widget = document.getElementById('admin-turnstile');
-  const startButton = document.getElementById('turnstile-start');
-  if (!form || !widget || !startButton) return;
-
-  // Keep the native Cloudflare widget visible, but don't load/run its checks
-  // until the visitor interacts with the checkbox area.
-  let started = false;
-  function startTurnstile() {
-    if (started) return;
-    started = true;
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-    script.async = true;
-    script.defer = true;
-    script.onload = function () {
-      if (!window.turnstile) return;
-      const widgetId = window.turnstile.render(widget, {
-        sitekey: widget.dataset.sitekey,
-        theme: widget.dataset.theme || 'auto',
-        language: widget.dataset.language || 'en',
-        size: widget.dataset.size || 'normal',
-        execution: 'execute',
-        appearance: 'always',
-        callback: function (token) {
-          widget.dataset.verified = token ? 'true' : 'false';
-        },
-        'error-callback': function () {
-          widget.dataset.verified = 'false';
-        },
-        'expired-callback': function () {
-          widget.dataset.verified = 'false';
-        }
-      });
-      widget.addEventListener('click', function () {
-        if (widgetId && window.turnstile) window.turnstile.execute(widgetId);
-      }, { once: true });
-    };
-    document.head.appendChild(script);
-  }
-
-  startButton.addEventListener('click', function () {
-    startButton.remove();
-    startTurnstile();
-  }, { once: true });
-
-  form.addEventListener('submit', function (event) {
-    const token = form.querySelector('[name="cf-turnstile-response"]');
-    if (!token || !token.value) {
-      event.preventDefault();
-      if (!started) {
-        startButton.click();
-      }
-      widget.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  });
-})();
-</script>
-<script>
-(function () {
-  const username = document.getElementById('id_username');
-  if (username) username.focus();
-})();
-</script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endblock %}
