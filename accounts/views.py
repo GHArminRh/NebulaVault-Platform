@@ -408,7 +408,7 @@ class CustomerLoginView(LoginView):
         # customer before Django assigns form.get_user().
         email = (self.request.POST.get("username") or "").strip()
         password = self.request.POST.get("password") or ""
-        human_check_passed = self.request.POST.get("human_check") in {"on", "true", "1"}
+        human_check_passed = bool(form.cleaned_data.get("turnstile_verified"))
 
         customer = None
         if email and password and human_check_passed:
