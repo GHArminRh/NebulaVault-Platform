@@ -221,3 +221,6 @@ TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverif
 
 COMMENT_SETTINGS = {"URLHASH_LENGTH": 12, "OFFLINE_IMPORTS": True, "PROFILE_IMAGE_FIELD": None}
 RATING_SETTINGS = {"URLHASH_LENGTH": 8}
+# Upstream django-rating-system seeds settings by downloading images during its
+# second migration. Keep its schema migration local and deterministic instead.
+MIGRATION_MODULES = {"rating": "config.rating_migrations"}
