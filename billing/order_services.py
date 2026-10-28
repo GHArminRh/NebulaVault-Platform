@@ -1,19 +1,14 @@
+"""Create immutable single-plan and cart payment-order snapshots."""
+
 import uuid
 from uuid import UUID
 
 from django.db import IntegrityError, transaction
-from django.utils import timezone
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
 
 from catalog.models import Plan
-from subscriptions.models import Subscription, SubscriptionRenewal
-from subscriptions.services import _add_plan_duration
-from licensing.models import License
-from licensing.services import issue_license
+from subscriptions.models import Subscription
 
-from .models import PaymentAttempt, PaymentOrder, PaymentOrderItem
-
+from .models import PaymentOrder, PaymentOrderItem
 from .services import IdempotencyConflict, OrderCreationError
 
 
