@@ -1,0 +1,4 @@
+<figure class="nv-cms-image" style="margin:1.5rem auto;max-width:100%;text-align:center">
+  <img src="{{ cms_image.image_url }}" alt="{{ cms_image.alt_text }}" loading="lazy" decoding="async" style="display:block;max-width:100%;height:auto;margin-inline:auto;border-radius:16px">
+  {% if cms_image.caption %}<figcaption style="margin-top:.65rem;color:var(--muted,#94a3b8);font-size:.92rem">{{ cms_image.caption }}</figcaption>{% endif %}
+</figure>

@@ -18,6 +18,25 @@ from subscriptions.models import Subscription
 from subscriptions.services import TrialAlreadyUsed, TrialUnavailable, start_trial as create_trial_subscription
 
 def home(request):
+    # If an editor has explicitly designated a published CMS page as the
+    # site's homepage, let django CMS render it. Otherwise preserve the
+    # established dynamic homepage without requiring any database setup.
+    current_page = getattr(request, "current_page", None)
+    if current_page is not None:
+        try:
+            from cms.models import PageUrl
+            from cms.views import details as cms_page_details
+
+            if PageUrl.objects.filter(
+                page=current_page,
+                language=getattr(request, "LANGUAGE_CODE", "fa"),
+                path__in=("", "/"),
+            ).exists():
+                return cms_page_details(request, slug="")
+        except (ImportError, AttributeError, TypeError, ValueError):
+            # A missing CMS homepage must never break the established homepage.
+            pass
+
     products = Product.objects.filter(is_active=True).prefetch_related(Prefetch("plans", queryset=Plan.objects.filter(is_active=True)))[:3]
     releases = Release.objects.filter(is_published=True, product__is_active=True).select_related("product")[:3]
     plans = list(Plan.objects.filter(is_active=True, product__is_active=True).select_related("product"))

@@ -64,6 +64,10 @@ class SeparateStaffAndCustomerSessionsMiddleware(MiddlewareMixin):
                 getattr(user, "is_staff", False)
                 and (
                     request.path.startswith("/pages/")
+                    or (
+                        request.path == "/"
+                        and getattr(request, "current_page", None) is not None
+                    )
                     or request.path in staff_only_frontend_paths
                 )
             ):
