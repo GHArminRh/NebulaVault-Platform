@@ -4,10 +4,15 @@
 {% block body_class %}nv-dashboard-page{% endblock %}
 {% block content %}
 <div class="nv-dashboard-layout page-wrap">
-  <aside class="nv-dash-rail nv-dash-rail-compact" aria-label="دسترسی‌های حساب">
+  <aside class="nv-dash-rail" aria-label="ناوبری پیشخوان">
     <a class="nv-rail-brand nv-home-brand-link" href="{% url 'portal:home' %}" aria-label="رفتن به صفحه اصلی نبیولا والت"><span class="brand-mark">◇</span><span>نبیولا والت<small>صفحه اصلی سایت</small></span></a>
+    <div class="nv-rail-label">فضای شخصی</div>
+    <a class="nv-rail-link is-current" href="#dashboard-overview"><span>⌂</span> نمای کلی</a>
+    <a class="nv-rail-link" href="#dashboard-activity"><span>◈</span> اشتراک‌ها و سفارش‌ها</a>
+    <a class="nv-rail-link" href="#my-licenses"><span>⌑</span> لایسنس‌ها</a>
+    <a class="nv-rail-link" href="#account-settings"><span>⚙</span> تنظیمات حساب</a>
     <div class="nv-rail-bottom">
-      <div class="nv-rail-status"><i class="pulse"></i> حساب کاربری</div>
+      <div class="nv-rail-status"><i class="pulse"></i> فضای حساب فعال</div>
       <form method="post" action="{% url 'logout' %}" class="nv-dashboard-logout">{% csrf_token %}<button type="submit" class="nv-rail-link nv-logout-link"><span aria-hidden="true">↪</span> خروج</button></form>
     </div>
   </aside>
