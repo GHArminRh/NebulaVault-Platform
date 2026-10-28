@@ -1,5 +1,6 @@
 from django.conf import settings
 from cms.plugin_pool import plugin_pool
+from portal.models import CMSExternalImage, CMSUploadedImage
 from django.template.loader import get_template
 from django.test import SimpleTestCase
 from django.urls import resolve
@@ -43,6 +44,10 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
             "portal/plugins/uploaded_image.html",
         ):
             self.assertIsNotNone(get_template(template_name))
+
+    def test_cms_image_models_belong_to_portal_migrations(self):
+        self.assertEqual(CMSExternalImage._meta.app_label, "portal")
+        self.assertEqual(CMSUploadedImage._meta.app_label, "portal")
 
     def test_uploads_are_disabled_without_durable_storage(self):
         self.assertFalse(settings.CMS_MEDIA_UPLOADS_ENABLED)
