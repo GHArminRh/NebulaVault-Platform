@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "image_uploader_widget",
+    "import_export",
     "tinymce",
     "rating.apps.RatingConfig",
     "comment.apps.CommentConfig",
