@@ -1,0 +1,20 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "staticfiles",
+    "media",
+]
+
+[tool.ruff.lint]
+# Start with correctness-focused checks. Expand the rule set after the baseline
+# has been audited and existing findings have been resolved.
+select = ["E4", "E7", "E9", "F"]
+
+[tool.ruff.lint.per-file-ignores]
+# Django migration files are generated history and should not be reformatted
+# or cleaned up as part of routine source refactoring.
+"**/migrations/*.py" = ["E501"]
