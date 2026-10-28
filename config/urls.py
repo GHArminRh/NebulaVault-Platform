@@ -36,7 +36,7 @@ def healthcheck(request):
 def api_index(request):
     """Private API route directory for authenticated staff members."""
     endpoints = [
-        {"method": "GET", "path": "/api/v1/", "auth": "عمومی", "description": "وضعیت و اطلاعات پایه API"},
+        {"method": "GET", "path": "/api/v1/", "auth": "مدیر فعال", "description": "وضعیت و اطلاعات پایه API"},
         {"method": "GET", "path": "/api/v1/products/", "auth": "عمومی", "description": "فهرست محصولات فعال"},
         {"method": "GET", "path": "/api/v1/products/{slug}/", "auth": "عمومی", "description": "جزئیات محصول"},
         {"method": "GET", "path": "/api/v1/releases/", "auth": "عمومی", "description": "نسخه‌های منتشرشده"},
@@ -55,8 +55,8 @@ def api_index(request):
         {"method": "GET", "path": "/api/v1/account/subscriptions/", "auth": "توکن مشتری یا نشست مشتری", "description": "اشتراک‌های حساب فعلی"},
         {"method": "GET", "path": "/api/v1/account/orders/", "auth": "توکن مشتری یا نشست مشتری", "description": "سفارش‌های حساب فعلی"},
         {"method": "GET", "path": "/api/v1/account/licenses/", "auth": "توکن مشتری یا نشست مشتری", "description": "لایسنس‌ها و اطلاعات امن فعال‌سازی حساب فعلی"},
-        {"method": "GET", "path": "/api/v1/schema/", "auth": "عمومی", "description": "طرح OpenAPI"},
-        {"method": "GET", "path": "/api/v1/docs/", "auth": "عمومی", "description": "مستندات تعاملی Swagger"},
+        {"method": "GET", "path": "/api/v1/schema/", "auth": "مدیر فعال", "description": "طرح OpenAPI"},
+        {"method": "GET", "path": "/api/v1/docs/", "auth": "مدیر فعال", "description": "مستندات تعاملی Swagger"},
         {"method": "POST", "path": "/api/licensing/activate/", "auth": "کلاینت دسکتاپ", "description": "فعال‌سازی لایسنس دسکتاپ (مسیر سازگاری قبلی)"},
         {"method": "POST", "path": "/api/licensing/validate/", "auth": "کلاینت دسکتاپ", "description": "اعتبارسنجی لایسنس دسکتاپ (مسیر سازگاری قبلی)"},
         {"method": "POST", "path": "/api/licensing/deactivate/", "auth": "کلاینت دسکتاپ", "description": "غیرفعال‌سازی لایسنس دسکتاپ (مسیر سازگاری قبلی)"},
