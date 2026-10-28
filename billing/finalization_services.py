@@ -1,5 +1,6 @@
 """Finalize payments only after trusted provider-side verification."""
 
+from copy import copy
 from uuid import UUID
 
 from django.core.mail import send_mail
