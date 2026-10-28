@@ -40,8 +40,13 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
             "portal/plugins/live_releases.html",
             "portal/plugins/live_blog.html",
             "portal/plugins/external_image.html",
+            "portal/plugins/uploaded_image.html",
         ):
             self.assertIsNotNone(get_template(template_name))
+
+    def test_uploads_are_disabled_without_durable_storage(self):
+        self.assertFalse(settings.CMS_MEDIA_UPLOADS_ENABLED)
+        self.assertNotIn("UploadedImagePlugin", plugin_pool.plugins)
 
     def test_existing_customer_and_api_routes_remain_resolvable(self):
         self.assertEqual(resolve("/accounts/login/").url_name, "login")
