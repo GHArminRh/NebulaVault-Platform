@@ -94,7 +94,6 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "accounts.middleware.UUIDCompatibleAuthenticationMiddleware",
     "portal.middleware.SeparateStaffAndCustomerSessionsMiddleware",
-    "api.middleware.AdminOnlyV1ApiMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
