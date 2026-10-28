@@ -1,20 +1,5 @@
 {% extends 'portal/base.html' %}
-{% block title %}ایجاد حساب — نبیولا والت<style>
-.turnstile-security-card{position:relative;isolation:isolate;overflow:hidden;margin-top:13px;padding:15px;border:1px solid rgba(105,157,255,.24);border-radius:15px;background:linear-gradient(135deg,rgba(23,42,77,.62),rgba(9,18,37,.68));box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 12px 30px rgba(0,0,0,.10);transition:border-color .2s,box-shadow .2s}
-.turnstile-security-card:before{content:"";position:absolute;z-index:-1;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,#55c8ff,#8370ff);opacity:.85}
-.turnstile-security-heading{display:flex;align-items:center;gap:11px;margin-bottom:13px}
-.turnstile-shield{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border:1px solid rgba(101,177,255,.27);border-radius:12px;background:linear-gradient(145deg,rgba(55,130,255,.19),rgba(118,87,255,.13));color:#9bcaff}
-.turnstile-shield svg{width:23px;height:23px}
-.turnstile-security-copy{display:grid;gap:3px;min-width:0}
-.turnstile-security-copy strong{font-size:12px;font-weight:700;color:var(--text,#f3f5ff)}
-.turnstile-security-copy small{font-size:10px;line-height:1.7;color:var(--muted,#98a4c0)}
-.turnstile-security-lock{margin-inline-start:auto;white-space:nowrap;padding:5px 8px;border:1px solid rgba(98,228,192,.18);border-radius:8px;background:rgba(50,190,155,.06);color:#83dfc4;font-size:9px}
-.turnstile-widget-frame{display:flex;align-items:center;justify-content:center;min-height:66px;padding:9px 10px;border:1px solid rgba(129,164,220,.13);border-radius:11px;background:rgba(3,9,22,.28);overflow-x:auto}
-.turnstile-widget-frame .cf-turnstile{max-width:100%}
-.turnstile-security-note{margin:10px 2px 0;color:var(--muted,#98a4c0);font-size:9px;line-height:1.7}
-
-@media(max-width:420px){.turnstile-security-card{padding:12px}.turnstile-security-lock{font-size:8px;padding:4px 6px}.turnstile-security-heading{gap:9px}.turnstile-shield{flex-basis:36px;width:36px;height:36px}}
-</style>{% endblock %}
+{% block title %}ایجاد حساب — نبیولا والت{% endblock %}
 {% block content %}
 <section class="auth-layout page-wrap auth-layout-premium">
 <div class="auth-art auth-art-premium"><div class="auth-orbit" aria-hidden="true"><span>◇</span><i></i><b></b></div><div class="eyebrow"><i class="eyebrow-dot"></i> شروعی تازه</div><h2>برای<br>آینده <span class="gradient-text">بهتر جا باز کنید.</span></h2><p>یک حساب برای محصولات و اشتراک‌ها و مدیریت ساده‌تر ابزارهای دیجیتال شما.</p><div class="auth-trust-list"><span><b>✓</b> مدیریت آسان حساب</span><span><b>✓</b> همه‌چیز در کنار هم</span></div><div class="auth-mini-stat"><i class="pulse"></i> فصل تازه شما از اینجا آغاز می‌شود.</div></div>
@@ -24,5 +9,15 @@
 <label for="id_email">نشانی ایمیل</label><input id="id_email" name="email" type="email" autocomplete="email" required value="{{ form.email.value|default:'' }}" placeholder="you@example.com">{% if form.email.errors %}<small class="field-error">{{ form.email.errors|join:', ' }}</small>{% endif %}
 <label for="id_password1">رمز عبور</label><div class="password-wrap"><input id="id_password1" name="password1" type="password" autocomplete="new-password" required placeholder="یک رمز عبور قوی بسازید"><button class="password-toggle" type="button">نمایش</button></div>{% if form.password1.errors %}<small class="field-error">{{ form.password1.errors|join:', ' }}</small>{% endif %}
 <label for="id_password2">تکرار رمز عبور</label><input id="id_password2" name="password2" type="password" autocomplete="new-password" required placeholder="رمز عبور را دوباره وارد کنید">{% if form.password2.errors %}<small class="field-error">{{ form.password2.errors|join:', ' }}</small>{% endif %}
-<input type="hidden" name="human_check" value="on"><section class="turnstile-security-card" aria-labelledby="turnstile-security-title"><div class="turnstile-security-heading"><span class="turnstile-shield" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.1 19 6v5.2c0 4.5-2.8 7.6-7 9.7-4.2-2.1-7-5.2-7-9.7V6l7-2.9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m8.7 11.8 2.1 2.1 4.6-4.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="turnstile-security-copy"><strong id="turnstile-security-title">تأیید امنیتی</strong><small>برای محافظت از حساب کاربری شما</small></span><span class="turnstile-security-lock" aria-hidden="true">محافظت‌شده</span></div><div class="turnstile-widget-frame"><div class="cf-turnstile" data-sitekey="{{ TURNSTILE_SITE_KEY }}" data-language="fa" data-theme="dark"></div></div><p class="turnstile-security-note">این بررسی امنیتی توسط Cloudflare انجام می‌شود.</p></section>{% if form.non_field_errors %}<small class="field-error" role="alert">{{ form.non_field_errors|join:', ' }}</small>{% endif %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script><button class="button button-primary button-full button-large auth-submit" type="submit">ایجاد حساب و ارسال پیوند تأیید <span aria-hidden="true">↗</span></button></form>
-<p class="auth-switch">از قبل حساب دارید؟ <a href="{% url 'login' %}">ورود</a></p><p class="auth-footnote">⌑ پیوند امن تأیید با اعتبار محدود برای شما ایمیل می‌شود.</p></div></section>{% endblock %}
+<input type="hidden" name="human_check" value="on"><section class="turnstile-security-card" aria-labelledby="turnstile-security-title"><span class="turnstile-security-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.1 19 6v5.2c0 4.5-2.8 7.6-7 9.7-4.2-2.1-7-5.2-7-9.7V6l7-2.9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m8.7 11.8 2.1 2.1 4.6-4.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="turnstile-security-content"><strong id="turnstile-security-title">تأیید امنیتی</strong><small>محافظت از حساب شما توسط Cloudflare</small></span><div class="turnstile-widget-frame"><div class="cf-turnstile" data-sitekey="{{ TURNSTILE_SITE_KEY }}" data-language="fa" data-theme="dark"></div></div></section>{% if form.non_field_errors %}<small class="field-error" role="alert">{{ form.non_field_errors|join:', ' }}</small>{% endif %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script><button class="button button-primary button-full button-large auth-submit" type="submit">ایجاد حساب و ارسال پیوند تأیید <span aria-hidden="true">↗</span></button></form>
+<p class="auth-switch">از قبل حساب دارید؟ <a href="{% url 'login' %}">ورود</a></p><p class="auth-footnote">⌑ پیوند امن تأیید با اعتبار محدود برای شما ایمیل می‌شود.</p></div></section><style>
+.turnstile-security-card{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border:1px solid rgba(119,153,216,.2);border-radius:12px;background:rgba(17,29,52,.42)}
+.turnstile-security-icon{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border:1px solid rgba(101,177,255,.22);border-radius:9px;background:rgba(55,130,255,.09);color:#9bcaff}
+.turnstile-security-icon svg{width:18px;height:18px}
+.turnstile-security-content{flex:1;min-width:0}
+.turnstile-security-content strong{display:block;color:var(--text,#f3f5ff);font-size:11px;font-weight:650;line-height:1.5}
+.turnstile-security-content small{display:block;margin-top:2px;color:var(--muted,#98a4c0);font-size:9px;line-height:1.5}
+.turnstile-widget-frame{flex:0 0 auto;max-width:100%;overflow-x:auto}
+.turnstile-widget-frame .cf-turnstile{max-width:100%}
+@media(max-width:460px){.turnstile-security-card{flex-wrap:wrap;gap:8px;padding:9px}.turnstile-security-icon{flex-basis:28px;width:28px;height:28px}.turnstile-widget-frame{flex-basis:100%;display:flex;justify-content:center;padding-top:2px}}
+</style>{% endblock %}
