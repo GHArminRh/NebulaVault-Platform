@@ -12,6 +12,7 @@ from accounts.forms import NebulaAuthenticationForm
 from accounts.views import CustomerLoginView
 from config.admin_toggle import toggle_boolean_field
 from portal.editor_uploads import editor_image_upload
+from portal.cms_home import cms_home
 from staff.admin_forms import AdminTurnstileAuthenticationForm
 
 admin.site.login_form = AdminTurnstileAuthenticationForm
@@ -41,7 +42,7 @@ def api_index(request):
         {"method": "GET", "path": "/api/v1/products/{slug}/", "auth": "عمومی", "description": "جزئیات محصول"},
         {"method": "GET", "path": "/api/v1/releases/", "auth": "عمومی", "description": "نسخه‌های منتشرشده"},
         {"method": "GET", "path": "/api/v1/releases/{id}/", "auth": "عمومی", "description": "جزئیات نسخه"},
-        {"method": "GET", "path": "/api/v1/plans/", "auth": "عمومی", "description": "طرح‌های فعال خرید"},
+        {"method": "GET", "path": "/api/v1/plans/", "auth": "عمومی", "description": "فهرست طرح‌های فعال خرید"},
         {"method": "GET", "path": "/api/v1/plans/{id}/", "auth": "عمومی", "description": "جزئیات طرح"},
         {"method": "GET", "path": "/api/v1/blog/posts/", "auth": "عمومی", "description": "مقالات منتشرشده"},
         {"method": "GET", "path": "/api/v1/blog/posts/{slug}/", "auth": "عمومی", "description": "جزئیات مقاله"},
@@ -80,20 +81,8 @@ urlpatterns = [
     path("api/v1/", include("api.urls")),
     path("api/licensing/", include("licensing.urls")),
     path("billing/", include("billing.urls")),
-    # CMS pages are isolated under /pages/ to preserve all existing routes.
+    # Keep CMS editing routes isolated, and serve only the homepage at /.
     path("pages/", include("cms.urls")),
-    path(
-        "accounts/login/",
-        CustomerLoginView.as_view(
-            template_name="portal/login.html",
-            authentication_form=NebulaAuthenticationForm,
-        ),
-        name="login",
-    ),
-    path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
-    path("accounts/", include("accounts.urls")),
+    path("", include("accounts.urls")),
     path("", include("portal.urls")),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
