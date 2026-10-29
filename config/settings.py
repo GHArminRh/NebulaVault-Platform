@@ -219,7 +219,7 @@ CMS_PLACEHOLDER_CONF = {
     },
     "content": {
         "name": "محتوای تکمیلی",
-        "plugins": ["TextPlugin", "ExternalImagePlugin"],
+        "plugins": ["TextPlugin", "ExternalImagePlugin"] + (["UploadedImagePlugin"] if CMS_MEDIA_UPLOADS_ENABLED else []),
     },
     "products": {
         "name": "محصولات",
