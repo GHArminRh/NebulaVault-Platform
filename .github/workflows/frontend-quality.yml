@@ -1,0 +1,33 @@
+name: Front-end syntax checks
+
+on:
+  push:
+    branches:
+      - deploy/render-ready
+      - "audit/frontend-*"
+  pull_request:
+    branches:
+      - deploy/render-ready
+
+permissions:
+  contents: read
+
+jobs:
+  javascript:
+    name: Validate JavaScript syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Parse front-end JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          find static/portal/js accounts/static -type f -name '*.js' -print0 | xargs -0 -r -n 1 node --check
+          node --check static/portal/service-worker.js
