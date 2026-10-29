@@ -3354,7 +3354,7 @@ body.nv-portal {
 .nv-home-cta {
   white-space: nowrap;
 }
-/* Premium single-line navigation progress: fluid motion, soft glow, gentle exit. */
+/* Page-load progress: a single synchronized track and crisp travelling tip. */
 .nv-page-progress {
   position: fixed;
   inset: 0 0 auto 0;
@@ -3365,44 +3365,53 @@ body.nv-portal {
   overflow: visible;
   background: rgba(169, 154, 255, 0.09);
   transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity;
 }
+
 .nv-page-progress.is-loading {
   opacity: 1;
 }
+
 .nv-page-progress-track {
   position: absolute;
   inset: 0 auto 0 0;
-  width: var(--nv-progress, 0%);
+  width: 100%;
   border-radius: 0 999px 999px 0;
-  background: linear-gradient(90deg, #7567f5 0%, #a99aff 38%, #91e7ef 76%, #d9fbff 100%);
+  background: linear-gradient(90deg, #7567f5 0%, #a99aff 38%, #91e7ef 76%, #baf5fb 100%);
   box-shadow: 0 0 7px rgba(131, 228, 237, 0.48), 0 0 16px rgba(124, 108, 255, 0.22);
-  transition: width 380ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: width;
+  transform: scaleX(var(--nv-progress-ratio, 0));
+  transform-origin: left center;
+  transition: none;
+  will-change: transform;
 }
+
 .nv-page-progress-glow {
   position: absolute;
   top: -2px;
   bottom: -2px;
   left: var(--nv-progress, 0%);
-  width: 92px;
+  width: 34px;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.82), rgba(180, 244, 255, 0.38), transparent);
-  opacity: 0.72;
-  filter: blur(1px);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(131, 228, 237, 0.12) 48%,
+    rgba(145, 231, 239, 0.7) 82%,
+    rgba(217, 251, 255, 0.98) 100%
+  );
+  opacity: 0.9;
+  filter: drop-shadow(0 0 3px rgba(131, 228, 237, 0.55));
   pointer-events: none;
 }
-.nv-page-progress.is-loading .nv-page-progress-glow {
-  animation: nv-progress-glint 1.35s ease-in-out infinite;
-}
+
 .nv-page-progress.is-complete .nv-page-progress-track {
-  transition: width 520ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 0 9px rgba(131, 228, 237, 0.62), 0 0 20px rgba(124, 108, 255, 0.28);
 }
-@keyframes nv-progress-glint {
-  0%, 100% { opacity: 0.38; }
-  50% { opacity: 0.92; }
+
+.nv-page-progress.is-complete .nv-page-progress-glow {
+  transition: left 520ms cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 @media (prefers-reduced-motion: reduce) {
   .nv-page-progress,
   .nv-page-progress-track,
@@ -3453,12 +3462,6 @@ body.nv-portal {
   }
   .nv-logout-link {
     padding: 8px 10px !important;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .nv-page-progress,
-  .nv-page-progress-track {
-    transition: none !important;
   }
 }
 
@@ -3748,7 +3751,7 @@ body.nv-portal {
 
 /* A single slow light travels around the OUTER header frame, not the inner nav pill. */
 @property --nv-header-border-angle {
-  syntax: "<angle>";
+  syntax: '<angle>';
   inherits: false;
   initial-value: 0deg;
 }
@@ -3758,7 +3761,7 @@ body.nv-portal > header.site-header {
 }
 
 body.nv-portal > header.site-header::before {
-  content: "";
+  content: '';
   position: absolute;
   z-index: 1;
   inset: -1px;
