@@ -126,7 +126,7 @@ class Command(BaseCommand):
         # Only seed the structural sections that are absent. Existing editorial
         # text and any live plugins are kept, making this command safe on restarts.
         if not any('id="home"' in body or "id='home'" in body for body in text_bodies):
-            add_plugin(placeholder, "TextPlugin", "fa", body=HERO_HTML, position="first")
+            add_plugin(placeholder, "TextPlugin", "fa", body=HERO_HTML, position="first-child")
             created.append("hero")
 
         live_plugins = (
