@@ -12,7 +12,7 @@ This pass inspected the public portal's shared template, home page, primary styl
 - static/portal/css/cms-builder.css
 - static/portal/js/site.js and static/portal/js/pwa.js
 
-This is a source-level audit, not a claim that every route has been exhaustively exercised in every browser. The production app is Django-rendered and the repository does not currently have a Node package.json or an evident front-end lint/test workflow.
+This is a source-level audit, not a claim that every route has been exhaustively exercised in every browser. The production app is Django-rendered; this change adds a dev-only Node package.json and repeatable front-end validation/browser-test workflows without changing the production build pipeline.
 
 ## Confirmed issues and corrections in this change
 
@@ -26,22 +26,27 @@ This is a source-level audit, not a claim that every route has been exhaustively
 
 ### CSS cascade and duplication
 
-A static selector scan found repeated selector groups in all major stylesheets. Approximate counts from the current source were:
+A static selector scan found many repeated selector groups, most with different declarations or at different cascade points. After removing only exact selector/declaration duplicates within the same media context, the reviewed CSS files have no identical duplicate blocks. Current `!important` text counts are:
 
-| File | Repeated selector groups | !important occurrences found by text scan |
-|---|---:|---:|
-| site.css | 117 | 9 |
-| unified-experience.css | 125 | 424 |
-| responsive-system.css | 32 | 146 |
-| blog.css | 12 | 4 |
-| cms-builder.css | 1 | 2 |
+| File | `!important` occurrences found by text scan |
+|---|---:|
+| site.css | 9 |
+| unified-experience.css | 420 |
+| responsive-system.css | 146 |
+| blog.css | 4 |
+| cms-builder.css | 2 |
+| site-shell.css | 1 |
+| dashboard.css | 2 |
+| orders.css | 0 |
+| payment-result.css | 0 |
+| **Total** | **584** |
 
 Repeated selectors can be appropriate across media queries, so these figures are indicators, not a list of defects. The strongest maintainability concern is unified-experience.css: it contains successive override/fix sections (including responsive hardening and dashboard rail fixes) and relies heavily on !important. Blindly deleting those rules could reintroduce the mobile overflow or break dashboard navigation. Consolidation should be done by component/breakpoint and verified with browser-level visual regression tests.
 
 ### Readability and component ownership
 
-- base.html contains repeated cart-preview markup for authenticated and anonymous states. Consider extracting a shared include after validating context dependencies.
-- Several CSS files mix compact, single-line rules with formatted blocks. Standardizing formatting is valuable, but should be done as a dedicated formatting-only change so behavioral changes remain reviewable.
+- The header now uses a shared `templates/portal/_cart_nav.html` include for authenticated and anonymous states, so cart-preview markup is maintained in one place.
+- Public CSS/JavaScript and most public templates have been normalized for readable diffs. The shared base and cart include are manually kept readable and excluded from Djlint because its formatter reports changes on every pass for these two files; the separate source audit still inspects them.
 - The responsive styles are split across the base stylesheet, unified experience layer, and responsive system. The source order is currently part of the behavior; document and gradually reduce cross-file overrides instead of adding more late fixes.
 - Some styles intentionally override earlier design tokens/rules. Their purpose should be documented or moved to a single component-owned rule during the next consolidation pass.
 
@@ -53,11 +58,11 @@ Repeated selectors can be appropriate across media queries, so these figures are
 
 ## Recommended verification gate for the next consolidation pass
 
-1. Add a front-end lint baseline (CSS parser/linter and JavaScript syntax/lint checks) compatible with this Django repository.
-2. Add browser smoke tests for home, login/register, product detail, cart, blog, and dashboard at narrow mobile, tablet, and desktop widths.
-3. Capture visual baselines before consolidating repeated CSS. Check for horizontal overflow and keyboard/focus regressions.
-4. Consolidate one component at a time, review computed styles at affected breakpoints, and remove only rules proven redundant.
-5. Keep Django admin styles isolated from public-site CSS.
+1. Re-run the Playwright browser suite after deployment and fix remaining real-device/browser findings.
+2. Add authenticated-session browser coverage for dashboard, orders, subscriptions, and license copying after arranging a dedicated test account.
+3. Capture visual baselines before consolidating remaining CSS cascade overrides. Review focus, keyboard use, reduced motion, zoom/reflow, and responsive layout at supported breakpoints.
+4. Consolidate one component at a time and remove only rules proven redundant.
+5. Keep Django Admin styles isolated from public-site CSS.
 
 ## Second pass: inline behavior and page-level separation
 
@@ -73,10 +78,34 @@ The second pass expanded the inspection to account verification, authentication,
 - The page-specific CSS block is rendered after CMS-generated CSS so its narrowly scoped styles can override shared defaults as intended.
 - Feature-specific code has been removed from the shared `site.js` bundle where dedicated entry points are more appropriate.
 
-A text search did not find a committed reference to `static/portal/js/language.js` in the scanned source, so it is flagged as a possible unused asset but was **not deleted**: confirm whether it is loaded through CMS/plugin content or another runtime path before removal.
+The legacy `static/portal/js/language.js` file has no committed reference in the scanned templates, but it is retained because CMS-managed or dynamic content could load it. Confirm runtime usage before any later removal. The public interface remains rendered in Persian.
 
 ## Change boundary and remaining work
 
-The fixes above cover confirmed defects and maintainability problems found while scanning the 56 HTML templates under the main template directories. The scan uses source-level checks; it is not represented as an exhaustive audit of every browser state or every CMS-managed page. A number of legacy page templates are still compressed onto one line; formatting them should be done in an isolated follow-up to keep whitespace-sensitive markup and behavioral changes reviewable. The broader legacy CSS cascade is still the main cleanup target: `unified-experience.css` and `responsive-system.css` have accumulated late overrides and many `!important` declarations. That cleanup should happen component-by-component, after browser-level visual baselines and smoke tests exist, so the working mobile overflow fix and dashboard rail behavior are not regressed.
+The fixes above cover source-level issues found while scanning public templates and frontend assets. The repeatable source audit checks 48 public templates and 244 source files, but does not exhaustively exercise every CMS-managed page, authenticated state, browser, or viewport. The broader legacy CSS cascade remains the main technical-debt area: `unified-experience.css` still has hundreds of `!important` declarations associated with dashboard-rail stacking, mobile navigation, and earlier responsive hardening. Consolidate those rules only component-by-component after browser-level visual checks so the homepage overflow fix and dashboard navigation are not regressed.
 
-The repository did not previously have a dedicated front-end syntax-check workflow. `.github/workflows/frontend-quality.yml` now runs `node --check` against the front-end JavaScript assets without requiring a separate Node build for the Django application.
+The repository now has dedicated source-formatting and front-end validation workflows. The quality workflow runs Prettier checks, Djlint checks on stable public templates, JavaScript syntax validation, ESLint, and a source-level Django template/asset audit. The formatter runs on the maintenance branch with branch-level concurrency control and commits only when formatting changes are needed. Django Admin and email templates stay excluded; email templates retain inline styles for email-client compatibility.
+
+
+## Comprehensive audit pass (29 October 2026)
+
+### Fixes made during browser-driven verification
+
+- Added an automated Playwright suite covering route smoke checks, same-origin CSS/JS loading, JavaScript page errors, RTL/Persian document metadata, horizontal overflow at 320, 375, 768, and 1280 CSS pixels, and WCAG A/AA axe checks on core public pages.
+- The first browser run against the then-deployed baseline found an overflow on the home page at 1280px (document scroll width 1450px for a 1280px viewport), a low-contrast footer label and authentication security note, and an invalid ARIA label on the Turnstile wrapper. The source now clips root-level horizontal overflow with `overflow-x: clip`, adjusts the two muted text colors to `#8292b1`, and gives each Turnstile wrapper a `group` role. These changes remain pending verification against a deployment containing the fixes; the earlier failure is recorded rather than represented as a pass.
+- Extracted the identical cart preview from both authenticated and anonymous header states into `templates/portal/_cart_nav.html`, keeping its context and rendered content shared.
+- Public navigation now handles malformed URL fragments without allowing `decodeURIComponent` exceptions to abort page initialization.
+- Removed exact duplicate CSS blocks only where selector, declarations, and media context all matched. Selector repeats with different declarations remain because they are part of the established responsive cascade.
+
+### Validation status and remaining risk
+
+The maintenance branch now includes browser automation and source-quality tooling, but a successful browser run on the post-fix deployed build is the acceptance gate. The largest technical-debt area remains `unified-experience.css`: it has many late overrides and `!important` declarations tied to dashboard-rail stacking, mobile navigation, and previously fixed viewport overflow. Do not delete or combine those rules in bulk. Reduce them by component and breakpoint only when browser tests and visual comparison prove the result unchanged.
+
+Django Admin templates and email templates were intentionally excluded from public-interface formatting; email templates retain inline styling for email-client compatibility. CMS-managed pages and routes requiring an authenticated session need additional manual review beyond the public-route smoke tests.
+
+
+## Source audit results
+
+The latest successful source audit reported 48 public templates checked, 244 source files scanned, and 18 Django static references checked. It found no inline event-handler attributes, no images missing an `alt` attribute, no buttons missing an explicit `type`, and no inline style attributes in the scanned public templates. The browser-source audit found no confirmed unreferenced CSS/JS assets apart from the retained legacy language helper, which remains flagged for manual CMS/runtime verification.
+
+The source-quality workflow currently validates the public templates and browser scripts. The Playwright suite runs against the production custom domain only after a deployment so Cloudflare Turnstile is evaluated on the correct hostname. Initial baseline browser failures are documented above; the suite must pass again against the post-fix deployment before the frontend cleanup can be considered fully verified.

@@ -1,10 +1,10 @@
-name: Front-end syntax checks
+name: Front-end quality checks
 
 on:
   push:
     branches:
       - deploy/render-ready
-      - "audit/frontend-*"
+      - maintenance/frontend-full-quality-oct-2026
   pull_request:
     branches:
       - deploy/render-ready
@@ -13,9 +13,13 @@ permissions:
   contents: read
 
 jobs:
-  javascript:
-    name: Validate JavaScript syntax
+  frontend:
+    name: Validate formatted frontend, templates, and scripts
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: frontend-quality-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -25,9 +29,27 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Parse front-end JavaScript
-        shell: bash
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install development tools
         run: |
-          set -euo pipefail
-          find static/portal/js accounts/static -type f -name '*.js' -print0 | xargs -0 -r -n 1 node --check
-          node --check static/portal/service-worker.js
+          python -m pip install --disable-pip-version-check -r requirements-dev.txt
+          npm install --no-audit --no-fund
+
+      - name: Check CSS, JavaScript, and tooling formatting
+        run: npm run check:assets
+
+      - name: Check public Django templates
+        run: npm run check:templates
+
+      - name: Validate JavaScript syntax
+        run: npm run check:js
+
+      - name: Lint browser JavaScript
+        run: npm run lint:js
+
+      - name: Audit public templates and asset references
+        run: npm run audit:source

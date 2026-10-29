@@ -1,4 +1,8 @@
 <figure class="nv-cms-image">
-  <img src="{{ cms_image.image_url }}" alt="{{ cms_image.alt_text }}" loading="lazy" decoding="async" class="nv-cms-image__media">
+  <img src="{{ cms_image.image_url }}"
+       alt="{{ cms_image.alt_text }}"
+       loading="lazy"
+       decoding="async"
+       class="nv-cms-image__media">
   {% if cms_image.caption %}<figcaption class="nv-cms-image__caption">{{ cms_image.caption }}</figcaption>{% endif %}
 </figure>

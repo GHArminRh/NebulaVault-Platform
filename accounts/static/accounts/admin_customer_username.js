@@ -1,1 +1,14 @@
-document.addEventListener('DOMContentLoaded', function () { const email = document.getElementById('id_email'); const username = document.getElementById('id_username'); if (!email || !username) return; let edited = username.value.trim() !== ''; email.addEventListener('input', function () { if (edited) return; const at = email.value.lastIndexOf('@'); username.value = at > 0 ? email.value.slice(0, at).trim().slice(0, 150) : ''; }); username.addEventListener('input', function () { edited = username.value !== email.value.slice(0, email.value.lastIndexOf('@')); }); });
+document.addEventListener('DOMContentLoaded', function () {
+  const email = document.getElementById('id_email');
+  const username = document.getElementById('id_username');
+  if (!email || !username) return;
+  let edited = username.value.trim() !== '';
+  email.addEventListener('input', function () {
+    if (edited) return;
+    const at = email.value.lastIndexOf('@');
+    username.value = at > 0 ? email.value.slice(0, at).trim().slice(0, 150) : '';
+  });
+  username.addEventListener('input', function () {
+    edited = username.value !== email.value.slice(0, email.value.lastIndexOf('@'));
+  });
+});

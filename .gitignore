@@ -28,3 +28,8 @@ htmlcov/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Frontend browser-test outputs and installed npm dependencies
+node_modules/
+playwright-report/
+test-results/

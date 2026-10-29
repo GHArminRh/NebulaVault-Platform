@@ -1,16 +1,16 @@
 (() => {
-  "use strict";
+  'use strict';
 
-  const form = document.querySelector("[data-resend-form]");
+  const form = document.querySelector('[data-resend-form]');
   if (!form) return;
 
-  const button = form.querySelector("[data-resend-button]");
-  const label = form.querySelector("[data-countdown]");
+  const button = form.querySelector('[data-resend-button]');
+  const label = form.querySelector('[data-countdown]');
   if (!button || !label) return;
 
-  const purpose = form.dataset.purpose || "";
-  const email = (form.dataset.email || "").trim().toLowerCase();
-  const storageKey = "nv-" + purpose + "-resend:" + email;
+  const purpose = form.dataset.purpose || '';
+  const email = (form.dataset.email || '').trim().toLowerCase();
+  const storageKey = 'nv-' + purpose + '-resend:' + email;
   const cooldownMs = 30_000;
   let until = 0;
   let timerId = 0;
@@ -35,14 +35,14 @@
     window.clearTimeout(timerId);
     const remainingSeconds = Math.max(0, Math.ceil((until - Date.now()) / 1000));
     button.disabled = remainingSeconds > 0;
-    label.textContent = remainingSeconds > 0 ? "(" + remainingSeconds + " ثانیه)" : "";
+    label.textContent = remainingSeconds > 0 ? '(' + remainingSeconds + ' ثانیه)' : '';
 
     if (remainingSeconds > 0) {
       timerId = window.setTimeout(renderCountdown, 250);
     }
   }
 
-  form.addEventListener("submit", () => {
+  form.addEventListener('submit', () => {
     until = Date.now() + cooldownMs;
 
     try {

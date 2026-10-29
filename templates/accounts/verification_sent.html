@@ -1,12 +1,12 @@
-{% extends 'portal/base.html' %}
+{% extends "portal/base.html" %}
 {% block title %}تأیید ایمیل — نبیولا والت{% endblock %}
 {% block content %}
-<section class="auth-layout page-wrap auth-layout-premium">
-  <div class="auth-card auth-card-premium auth-card-centered">
-    <div class="eyebrow">تأیید نشانی ایمیل</div>
-    <h1>کد تأیید خود را وارد کنید</h1>
-    <p class="auth-subtitle">در صورت پیکربندی سرویس ارسال ایمیل، پیام تأیید به نشانی <strong>{{ email }}</strong> فرستاده شده است. کد شش‌رقمی زیر را وارد کنید یا از پیوند موجود در ایمیل استفاده کنید.</p>
-    {% include "accounts/email_code_form.html" %}
-  </div>
-</section>
+  <section class="auth-layout page-wrap auth-layout-premium">
+    <div class="auth-card auth-card-premium auth-card-centered">
+      <div class="eyebrow">تأیید نشانی ایمیل</div>
+      <h1>کد تأیید خود را وارد کنید</h1>
+      <p class="auth-subtitle">در صورت پیکربندی سرویس ارسال ایمیل، پیام تأیید به نشانی <strong>{{ email }}</strong> فرستاده شده است. کد شش‌رقمی زیر را وارد کنید یا از پیوند موجود در ایمیل استفاده کنید.</p>
+      {% include "accounts/email_code_form.html" %}
+    </div>
+  </section>
 {% endblock %}

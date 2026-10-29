@@ -1,4 +1,3 @@
-
 <section class="nv-error-wrap page-wrap" aria-labelledby="nv-error-title">
   <div class="nv-error-card">
     <div class="nv-error-symbol" aria-hidden="true">{{ error_symbol|default:"◇" }}</div>
@@ -7,8 +6,10 @@
     <p class="nv-error-message">{{ error_message }}</p>
     {% if error_hint %}<p class="nv-error-hint">{{ error_hint }}</p>{% endif %}
     <div class="nv-error-actions">
-      <a class="button button-primary button-large" href="{% url 'portal:home' %}">بازگشت به صفحه اصلی <span aria-hidden="true">↗</span></a>
-      <a class="button button-glass button-large" href="{{ request.get_full_path }}">تلاش دوباره</a>
+      <a class="button button-primary button-large"
+         href="{% url 'portal:home' %}">بازگشت به صفحه اصلی <span aria-hidden="true">↗</span></a>
+      <a class="button button-glass button-large"
+         href="{{ request.get_full_path }}">تلاش دوباره</a>
     </div>
     <p class="nv-error-reference">نبیولا والت <span aria-hidden="true">·</span> پلتفرم امن نرم‌افزار</p>
   </div>

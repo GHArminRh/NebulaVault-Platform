@@ -1,0 +1,2 @@
+# Development-only tooling; not installed by the Render build.
+djlint==1.47.1

@@ -1,3 +1,5 @@
-{% extends 'portal/base.html' %}
+{% extends "portal/base.html" %}
 {% block title %}ثبت‌نام و ورود — نبیولا والت{% endblock %}
-{% block content %}{% include 'portal/_auth_flip_card.html' with auth_side='register' %}{% endblock %}
+{% block content %}
+  {% include "portal/_auth_flip_card.html" with auth_side="register" %}
+{% endblock %}
