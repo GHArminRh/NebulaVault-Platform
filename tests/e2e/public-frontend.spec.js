@@ -44,7 +44,10 @@ test('deployed frontend styles are updated before regression checks', async ({ p
         message: 'Wait for Render to publish both updated accessibility color fixes',
       }
     )
-    .toEqual({ brandNote: 'rgb(130, 146, 177)', sectionIndex: 'rgb(130, 146, 177)' });
+    .toEqual({
+        brandNote: 'rgb(130, 146, 177)',
+        sectionIndex: 'rgb(130, 146, 177)',
+      });
 }, 250_000);
 
 test('homepage declares Persian RTL document metadata', async ({ page }) => {
