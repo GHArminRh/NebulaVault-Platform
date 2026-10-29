@@ -1011,10 +1011,11 @@ body.nv-portal > nav.mobile-nav:not([hidden]) {
 }
 
 /*
- * Mobile viewport overflow correction.
- * Keep the document and top-level content constrained to the viewport.
- * The previous 320px body minimum could force horizontal overflow on narrow
- * viewports; the shared experience layer already uses min-width: 0.
+ * Public-site viewport contract.
+ * Keep horizontal sizing in one responsive layer; do not append further global
+ * overflow overrides to the experience stylesheet. The ambient glow elements
+ * are siblings of <main> and use negative inline offsets on desktop, so they
+ * are disabled on compact viewports rather than allowed to enlarge the canvas.
  */
 html {
   width: 100%;
@@ -1045,7 +1046,19 @@ body.nv-portal > main {
   body.nv-portal > main {
     width: 100%;
     max-width: 100%;
-    overflow-x: clip !important;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  body.nv-portal > main {
+    margin-inline: 0;
+    overflow-x: clip;
+  }
+
+  /* These two blurred decorations are outside <main>; their desktop negative
+     offsets are unnecessary on phones and can expand the RTL scrollable area. */
+  body.nv-portal > .ambient {
+    display: none !important;
   }
 
   body.nv-portal .page-wrap,
@@ -1062,85 +1075,44 @@ body.nv-portal > main {
     box-sizing: border-box;
   }
 
-  body.nv-portal .nv-home-hero,
-  body.nv-portal .nv-dashboard-layout,
-  body.nv-portal .nv-dashboard-content {
+  body.nv-portal .nv-home-hero.page-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: calc(100% - 24px);
     max-width: 100%;
+    min-width: 0;
+    margin-inline: auto;
+    padding-inline: 0;
+  }
+
+  body.nv-portal .nv-home-hero > *,
+  body.nv-portal .nv-home-section,
+  body.nv-portal .nv-pricing-band,
+  body.nv-portal .nv-pricing-band > .page-wrap,
+  body.nv-portal .nv-proof-strip,
+  body.nv-portal .nv-proof-inner,
+  body.nv-portal .nv-feature-grid,
+  body.nv-portal .nv-plan-grid,
+  body.nv-portal .nv-home-product-grid {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   body.nv-portal .nv-hero-copy,
-  body.nv-portal .nv-hero-visual,
-  body.nv-portal .nv-dashboard-content > * {
+  body.nv-portal .nv-hero-visual {
+    width: 100%;
     min-width: 0;
     max-width: 100%;
   }
-}
 
-
-/*
- * Homepage-only mobile overflow fix.
- * The live homepage is portal/home.html (nv-home-hero), not the CMS
- * placeholder template. Keep the hero and its decorative artwork inside
- * the mobile layout viewport so the document cannot be horizontally panned.
- */
-@media (max-width: 900px) {
-  body.nv-portal:not(.nv-dashboard-page) > main {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    margin-inline: 0 !important;
-    overflow-x: clip !important;
+  body.nv-portal .nv-hero-visual {
+    overflow: clip;
   }
 
-  body.nv-portal:not(.nv-dashboard-page) .nv-home-hero.page-wrap {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) !important;
-    width: calc(100% - 24px) !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    margin-inline: auto !important;
-    padding-inline: 0 !important;
-    box-sizing: border-box !important;
-    overflow-x: clip !important;
-  }
-
-  body.nv-portal:not(.nv-dashboard-page) .nv-home-hero > *,
-  body.nv-portal:not(.nv-dashboard-page) .nv-home-section,
-  body.nv-portal:not(.nv-dashboard-page) .nv-pricing-band,
-  body.nv-portal:not(.nv-dashboard-page) .nv-pricing-band > .page-wrap,
-  body.nv-portal:not(.nv-dashboard-page) .nv-proof-strip,
-  body.nv-portal:not(.nv-dashboard-page) .nv-proof-inner,
-  body.nv-portal:not(.nv-dashboard-page) .nv-feature-grid,
-  body.nv-portal:not(.nv-dashboard-page) .nv-plan-grid,
-  body.nv-portal:not(.nv-dashboard-page) .nv-home-product-grid {
-    min-width: 0 !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  body.nv-portal:not(.nv-dashboard-page) .nv-hero-copy,
-  body.nv-portal:not(.nv-dashboard-page) .nv-hero-visual {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-  }
-
-  body.nv-portal:not(.nv-dashboard-page) .nv-hero-visual {
-    overflow: clip !important;
-  }
-
-  body.nv-portal:not(.nv-dashboard-page) .nv-visual-orbit,
-  body.nv-portal:not(.nv-dashboard-page) .nv-visual-halo {
-    max-width: 100%;
-  }
-
-  body.nv-portal:not(.nv-dashboard-page) .nv-proof-inner {
-    flex-wrap: wrap !important;
-  }
-
-  body.nv-portal:not(.nv-dashboard-page) .nv-home-product-grid,
-  body.nv-portal:not(.nv-dashboard-page) .nv-plan-grid,
-  body.nv-portal:not(.nv-dashboard-page) .nv-feature-grid {
-    grid-template-columns: minmax(0, 1fr) !important;
+  body.nv-portal .nv-home-product-grid,
+  body.nv-portal .nv-plan-grid,
+  body.nv-portal .nv-feature-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
