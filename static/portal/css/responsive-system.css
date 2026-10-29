@@ -1009,3 +1009,69 @@ body.nv-portal > nav.mobile-nav:not([hidden]) {
     height: 32px !important;
   }
 }
+
+/*
+ * Mobile viewport overflow correction.
+ * Keep the document and top-level content constrained to the viewport.
+ * The previous 320px body minimum could force horizontal overflow on narrow
+ * viewports; the shared experience layer already uses min-width: 0.
+ */
+html {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body.nv-portal {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  overflow-x: clip;
+}
+
+body.nv-portal > main {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin-inline: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  html,
+  body.nv-portal,
+  body.nv-portal > main {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip !important;
+  }
+
+  body.nv-portal .page-wrap,
+  body.nv-portal .site-header,
+  body.nv-portal .site-footer,
+  body.nv-portal .nv-home-hero,
+  body.nv-portal .nv-home-section,
+  body.nv-portal .nv-pricing-band,
+  body.nv-portal .nv-release-section,
+  body.nv-portal .nv-faq-section,
+  body.nv-portal .nv-dashboard-layout,
+  body.nv-portal .nv-dashboard-content {
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  body.nv-portal .nv-home-hero,
+  body.nv-portal .nv-dashboard-layout,
+  body.nv-portal .nv-dashboard-content {
+    max-width: 100%;
+  }
+
+  body.nv-portal .nv-hero-copy,
+  body.nv-portal .nv-hero-visual,
+  body.nv-portal .nv-dashboard-content > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
