@@ -37,23 +37,33 @@
 
   const initializeAppSections = () => {
     if (!document.body.classList.contains('dashboard')) return;
-    document.querySelectorAll('#content-main .app').forEach((app, index) => {
-      const heading = app.querySelector(':scope > table caption, :scope > h2, :scope > caption');
-      const table = app.querySelector(':scope > table');
-      if (!heading || !table || app.dataset.nvCollapsible === 'true') return;
-      app.dataset.nvCollapsible = 'true';
-      table.hidden = true;
+
+    // Django's stock admin index renders one .module per app, each containing
+    // a table whose caption is the app heading. Do not depend on app labels
+    // or alter the table/model markup itself.
+    document.querySelectorAll('#content-main .module').forEach(module => {
+      const table = module.querySelector(':scope > table');
+      const heading = table && table.querySelector(':scope > caption');
+      if (!table || !heading || module.dataset.nvCollapsible === 'true') return;
+
+      module.dataset.nvCollapsible = 'true';
+      const contentRows = Array.from(table.rows).filter(row => !row.closest('thead'));
+      contentRows.forEach(row => { row.hidden = true; });
+
       const toggle = document.createElement('button');
       toggle.type = 'button';
       toggle.className = 'nv-admin-app-toggle';
       toggle.setAttribute('aria-expanded', 'false');
       toggle.textContent = 'نمایش بخش';
+      toggle.setAttribute('aria-label', 'نمایش یا بستن مدل‌های این اپ');
+
       toggle.addEventListener('click', () => {
         const open = toggle.getAttribute('aria-expanded') === 'true';
         toggle.setAttribute('aria-expanded', String(!open));
-        table.hidden = open;
+        contentRows.forEach(row => { row.hidden = open; });
         toggle.textContent = open ? 'نمایش بخش' : 'بستن بخش';
       });
+
       heading.appendChild(toggle);
     });
   };
