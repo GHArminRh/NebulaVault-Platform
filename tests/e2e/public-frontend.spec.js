@@ -24,7 +24,10 @@ test('deployed frontend styles are updated before regression checks', async ({ p
             timeout: 15_000,
           });
           if (!response || response.status() >= 500) return 'unavailable';
-          return await page.evaluate(() => getComputedStyle(document.documentElement).overflowX);
+          return await page.evaluate(() => {
+            const brandNote = document.querySelector('.footer-top .brand small');
+            return brandNote ? getComputedStyle(brandNote).color : 'unavailable';
+          });
         } catch {
           return 'unavailable';
         }
@@ -32,10 +35,10 @@ test('deployed frontend styles are updated before regression checks', async ({ p
       {
         timeout: 240_000,
         intervals: [5_000, 10_000, 15_000],
-        message: 'Wait for Render to publish the new frontend CSS',
+        message: 'Wait for Render to publish the updated accessible footer color',
       }
     )
-    .toBe('clip');
+    .toBe('rgb(130, 146, 177)');
 }, 250_000);
 
 test('homepage declares Persian RTL document metadata', async ({ page }) => {
