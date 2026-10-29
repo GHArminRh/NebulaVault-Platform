@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "dj_celery_panel",
     "dj_urls_panel",
     "dj_signals_panel",
+    "dj_error_panel",
     "dj_control_room",
     "staff.apps.StaffConfig",
     "cms",
