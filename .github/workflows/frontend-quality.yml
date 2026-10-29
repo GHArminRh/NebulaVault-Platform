@@ -33,11 +33,7 @@ jobs:
       - name: Install development tools
         run: |
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
-          if [ -f package-lock.json ]; then
-            npm ci --no-audit --no-fund
-          else
-            npm install --no-audit --no-fund
-          fi
+          npm install --no-audit --no-fund
 
       - name: Verify front-end formatting and JavaScript syntax
         run: npm run check:frontend
