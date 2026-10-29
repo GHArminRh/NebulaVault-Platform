@@ -1,19 +1,23 @@
 name: Format front-end source
 
 on:
+  push:
+    branches:
+      - maintenance/frontend-full-quality-oct-2026
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: frontend-format-run-${{ github.run_id }}
-  cancel-in-progress: false
+  group: frontend-format-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   format:
-    name: Format CSS, JavaScript, and Django templates
+    name: Format CSS, JavaScript, and front-end tooling
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out the maintenance branch
         uses: actions/checkout@v4
@@ -25,18 +29,11 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
       - name: Install development tools
-        run: |
-          python -m pip install --disable-pip-version-check -r requirements-dev.txt
-          npm install --no-audit --no-fund
+        run: npm install --no-audit --no-fund
 
-      - name: Format front-end assets and public templates
-        run: npm run format
+      - name: Format front-end assets
+        run: npm run format:assets
 
       - name: Commit formatting changes
         shell: bash
@@ -44,12 +41,11 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .prettierrc.json .prettierignore .djlintrc package.json package-lock.json requirements-dev.txt eslint.config.js playwright.config.js scripts/check_frontend.py tests/e2e
+          git add .prettierrc.json .prettierignore package.json package-lock.json eslint.config.js playwright.config.js tests/e2e
           git add static/portal/css static/portal/js static/portal/service-worker.js accounts/static
-          git add templates accounts/templates blog/templates comment/templates
           if git diff --cached --quiet; then
-            echo "The front-end source is already formatted."
+            echo "The front-end assets are already formatted."
             exit 0
           fi
-          git commit -m "style(frontend): format source consistently [skip ci]"
+          git commit -m "style(frontend): format browser source [skip ci]"
           git push origin HEAD:maintenance/frontend-full-quality-oct-2026

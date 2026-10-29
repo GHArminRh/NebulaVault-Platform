@@ -5,7 +5,7 @@
   "scripts": {
     "format:assets": "prettier --write \"static/portal/css/**/*.css\" \"static/portal/js/**/*.js\" \"static/portal/service-worker.js\" \"accounts/static/**/*.js\" \"eslint.config.js\" \"playwright.config.js\" \"tests/e2e/**/*.js\" package.json",
     "format:templates": "find templates accounts/templates blog/templates comment/templates -type f -name '*.html' ! -path 'templates/admin/*' ! -path 'templates/registration/password_reset_email.html' ! -path 'templates/registration/email_verification_email.html' ! -path 'templates/registration/license_issued_email.html' ! -path 'registration/password_reset_email.html' -print0 | xargs -0 -r djlint --reformat --profile=django --indent=2 --warn --quiet",
-    "format": "npm run format:assets && npm run format:templates",
+    "format": "npm run format:assets",
     "check:assets": "prettier --check \"static/portal/css/**/*.css\" \"static/portal/js/**/*.js\" \"static/portal/service-worker.js\" \"accounts/static/**/*.js\" \"eslint.config.js\" \"playwright.config.js\" \"tests/e2e/**/*.js\" package.json",
     "check:templates": "find templates accounts/templates blog/templates comment/templates -type f -name '*.html' ! -path 'templates/admin/*' ! -path 'templates/registration/password_reset_email.html' ! -path 'templates/registration/email_verification_email.html' ! -path 'templates/registration/license_issued_email.html' ! -path 'registration/password_reset_email.html' -print0 | xargs -0 -r djlint --check --profile=django --indent=2",
     "check:js": "find static/portal/js accounts/static -type f -name '*.js' -print0 | xargs -0 -r -n 1 node --check && node --check static/portal/service-worker.js",
