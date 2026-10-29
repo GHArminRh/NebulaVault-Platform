@@ -32,7 +32,7 @@
         {% if not email %}<p class="auth-switch">ابتدا نشانی ایمیل خود را وارد کنید و سپس درخواست ارسال دوباره بدهید.</p>{% endif %}
       </form>
     {% else %}
-      <form method="post" action="{% url 'accounts:password_reset' %}" class="form-stack auth-form-premium resend-form" data-resend-form data-email="{{ email|escape }}">
+      <form method="post" action="{% url 'accounts:password_reset' %}" class="form-stack auth-form-premium resend-form" data-resend-form data-purpose="{{ purpose|escape }}" data-email="{{ email|escape }}">
         {% csrf_token %}
         <input type="hidden" name="email" value="{{ email|default:'' }}">
         <button class="button button-quiet button-full" type="submit" data-resend-button {% if not email %}disabled{% endif %}>ارسال دوباره ایمیل بازیابی <span data-countdown></span></button>
