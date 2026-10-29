@@ -67,22 +67,6 @@
       start();
       window.addEventListener('load', complete, { once: true });
     }
-    document.addEventListener('click', event => {
-      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const link = event.target.closest('a[href]');
-      if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self') || link.dataset.noPageProgress !== undefined) return;
-      let destination;
-      try { destination = new URL(link.href, window.location.href); } catch { return; }
-      if (destination.origin !== window.location.origin) return;
-      if (destination.pathname === location.pathname && destination.search === location.search && destination.hash) return;
-      start();
-    }, true);
-    document.addEventListener('submit', event => {
-      if (event.defaultPrevented || !(event.target instanceof HTMLFormElement)) return;
-      const form = event.target;
-      if ((form.target && form.target !== '_self') || form.dataset.noPageProgress !== undefined) return;
-      start();
-    }, true);
     window.addEventListener('pageshow', event => {
       if (!event.persisted) return;
       window.clearTimeout(finishTimer); window.clearTimeout(resetTimer); stopFrame();
