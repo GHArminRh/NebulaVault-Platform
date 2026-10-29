@@ -3745,3 +3745,60 @@ body.nv-portal {
 }
 @media (max-width: 420px) {
 }
+
+/* A single slow light travels around the OUTER header frame, not the inner nav pill. */
+@property --nv-header-border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+body.nv-portal > header.site-header {
+  isolation: isolate !important;
+}
+
+body.nv-portal > header.site-header::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: -1px;
+  box-sizing: border-box;
+  padding: 1.25px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--nv-header-border-angle, 0deg),
+    transparent 0deg 319deg,
+    rgba(99, 207, 239, 0.10) 326deg,
+    rgba(112, 220, 245, 0.48) 333deg,
+    rgba(190, 197, 255, 0.92) 338deg,
+    rgba(116, 226, 246, 0.58) 343deg,
+    transparent 351deg 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: nv-header-border-orbit 24s linear infinite;
+}
+
+body.nv-portal > header.site-header > .brand,
+body.nv-portal > header.site-header > .desktop-nav,
+body.nv-portal > header.site-header > .header-actions {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes nv-header-border-orbit {
+  to {
+    --nv-header-border-angle: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.nv-portal > header.site-header::before {
+    animation: none !important;
+    background: none !important;
+  }
+}
+
