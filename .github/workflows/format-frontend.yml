@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: frontend-format-${{ github.ref }}
+  group: frontend-format-v2-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
