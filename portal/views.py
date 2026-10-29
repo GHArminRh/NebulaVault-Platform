@@ -18,24 +18,33 @@ from subscriptions.models import Subscription
 from subscriptions.services import TrialAlreadyUsed, TrialUnavailable, start_trial as create_trial_subscription
 
 def home(request):
-    # If an editor has explicitly designated a published CMS page as the
-    # site's homepage, let django CMS render it. Otherwise preserve the
-    # established dynamic homepage without requiring any database setup.
-    current_page = getattr(request, "current_page", None)
-    if current_page is not None:
-        try:
-            from cms.models import PageUrl
-            from cms.views import details as cms_page_details
+    # Render the published CMS home page when one exists. The CMS URLs are
+    # mounted below /pages/, so request.current_page is not reliably populated
+    # for the root URL; resolve the configured home page directly as a fallback.
+    try:
+        from cms.models import PageUrl
+        from cms.views import details as cms_page_details
 
-            if PageUrl.objects.filter(
+        language = getattr(request, "LANGUAGE_CODE", settings.LANGUAGE_CODE)
+        current_page = getattr(request, "current_page", None)
+        if current_page is not None:
+            is_cms_home = PageUrl.objects.filter(
                 page=current_page,
-                language=getattr(request, "LANGUAGE_CODE", "fa"),
+                language=language,
                 path__in=("", "/"),
-            ).exists():
-                return cms_page_details(request, slug="")
-        except (ImportError, AttributeError, TypeError, ValueError):
-            # A missing CMS homepage must never break the established homepage.
-            pass
+            ).exists()
+        else:
+            is_cms_home = PageUrl.objects.filter(
+                page__is_home=True,
+                language=language,
+                site_id=settings.SITE_ID,
+                path__in=("", "/"),
+            ).exists()
+        if is_cms_home:
+            return cms_page_details(request, slug="")
+    except (ImportError, AttributeError, TypeError, ValueError):
+        # A missing or unconfigured CMS homepage must not break the live site.
+        pass
 
     products = Product.objects.filter(is_active=True).prefetch_related(Prefetch("plans", queryset=Plan.objects.filter(is_active=True)))[:3]
     releases = Release.objects.filter(is_published=True, product__is_active=True).select_related("product")[:3]
