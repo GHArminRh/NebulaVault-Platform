@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from django.contrib.sites.models import Site
 
 from cms.api import add_plugin, create_page
@@ -38,7 +39,8 @@ class Command(BaseCommand):
         )
         # django CMS 5 exposes homepage assignment as a Page method rather
         # than a create_page() keyword argument.
-        page.set_as_homepage()
+        with transaction.atomic():
+            page.set_as_homepage()
         placeholder = page.get_placeholders(language="fa").get(slot="content")
 
         # Editable copy is stored in CMS text plugins. Live catalogue plugins
