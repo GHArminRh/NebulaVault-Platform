@@ -1,12 +1,9 @@
 from django.urls import path
 from . import views
-from .cms_home import cms_home
 
 app_name = "portal"
 urlpatterns = [
-    # Preserve the portal:home URL name used by the shared header/footer, but
-    # render the published CMS homepage at / with the original storefront as fallback.
-    path("", cms_home, name="home"),
+    path("", views.home, name="home"),
     path("products/", views.products, name="products"),
     path("products/<slug:slug>/", views.product_detail, name="product_detail"),
     path("pricing/", views.pricing, name="pricing"),
