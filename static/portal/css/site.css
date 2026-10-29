@@ -1865,8 +1865,6 @@ html[dir='rtl'] .password-toggle {
     max-width: 500px;
     gap: 20px;
     padding-top: 35px;
-  }
-  .auth-art {
     min-height: unset;
     padding: 28px;
   }

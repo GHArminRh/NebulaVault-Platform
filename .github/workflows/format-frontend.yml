@@ -1,9 +1,7 @@
 name: Format front-end source
 
 on:
-  push:
-    branches:
-      - maintenance/frontend-full-quality-oct-2026
+  workflow_dispatch:
 
 permissions:
   contents: write
