@@ -23,3 +23,6 @@ drf-spectacular>=0.28,<1.0
 
 # Django Control Room and all official operational panels.
 dj-control-room[all]>=1.8.1,<2.0
+
+# Required by the official Django Control Room Celery panel.
+celery>=5.4,<6.0
