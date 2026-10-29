@@ -33,6 +33,9 @@ const browserAndWorkerGlobals = [
   'getComputedStyle',
   'localStorage',
   'sessionStorage',
+  'setInterval',
+  'clearInterval',
+  'performance',
 ].reduce((globals, name) => {
   globals[name] = 'readonly';
   return globals;

@@ -14,14 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
       progress.classList.remove('is-complete');
       progressValue = 0;
       setProgress(8);
-      clearInterval(progressTimer);
-      progressTimer = setInterval(
+      window.clearInterval(progressTimer);
+      progressTimer = window.setInterval(
         () => setProgress(progressValue + Math.max(1, (88 - progressValue) * 0.075)),
         120
       );
     };
     const completeProgress = () => {
-      clearInterval(progressTimer);
+      window.clearInterval(progressTimer);
       setProgress(100, 100);
       progress.classList.add('is-complete');
       window.setTimeout(() => {
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         new URL(link.href, location.href).pathname === location.pathname &&
         Boolean(new URL(link.href, location.href).hash)
       );
-    } catch (_) {
+    } catch {
       return false;
     }
   });
@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return document.querySelector(
               decodeURIComponent(new URL(link.href, location.href).hash)
             );
-          } catch (_) {
+          } catch {
             return null;
           }
         })
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let hash = '';
         try {
           hash = new URL(link.href, location.href).hash;
-        } catch (_) {
+        } catch {
           // Invalid link URLs are ignored for active-section highlighting.
         }
         const active = hash === '#' + current.id;
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!hash) return null;
     try {
       return document.getElementById(decodeURIComponent(hash.replace(/^#/, '')));
-    } catch (_) {
+    } catch {
       // Malformed percent-encoding in a URL fragment should not break page initialization.
       return null;
     }
@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let url;
         try {
           url = new URL(link.href, location.href);
-        } catch (_) {
+        } catch {
           return;
         }
         if (url.pathname !== location.pathname || !url.hash) return;
@@ -362,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (star.x > width + 3) star.x = -3;
         }
         const shimmer =
-          0.82 + 0.18 * Math.sin(performance.now() * 0.00045 * star.speed * 12 + star.phase);
+          0.82 + 0.18 * Math.sin(window.performance.now() * 0.00045 * star.speed * 12 + star.phase);
         let drawX = star.x,
           drawY = star.y;
         if (pointerActive) {

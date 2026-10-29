@@ -41,7 +41,7 @@
           });
           observer.observe(widget, { childList: true, subtree: true });
         }
-      } catch (error) {
+      } catch {
         // Preserve the loading/error surface if the provider is unavailable.
       }
     });

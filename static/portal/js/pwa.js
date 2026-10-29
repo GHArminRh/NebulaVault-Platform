@@ -24,7 +24,7 @@
         await installPrompt.userChoice;
         installPrompt = null;
         return;
-      } catch (error) {
+      } catch {
         installPrompt = null;
         if (window.location.hostname === 'localhost') {
           console.warn('The browser could not open the PWA install prompt.');
