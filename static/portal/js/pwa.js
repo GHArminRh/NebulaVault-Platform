@@ -75,8 +75,9 @@
             await Promise.all(
               registrations
                 .filter(
-                (registration) => registration.scope === `${window.location.origin}/admin/`
-              )
+                  (registration) =>
+                    registration.scope === `${window.location.origin}/admin/`
+                )
                 .map((registration) => registration.unregister())
             );
             await navigator.serviceWorker.register('/service-worker.js', {
