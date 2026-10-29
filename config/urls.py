@@ -12,6 +12,7 @@ from accounts.forms import NebulaAuthenticationForm
 from accounts.views import CustomerLoginView
 from config.admin_toggle import toggle_boolean_field
 from portal.editor_uploads import editor_image_upload
+from portal.cms_home import cms_home
 from staff.admin_forms import AdminTurnstileAuthenticationForm
 
 admin.site.login_form = AdminTurnstileAuthenticationForm
@@ -41,11 +42,11 @@ def api_index(request):
         {"method": "GET", "path": "/api/v1/products/{slug}/", "auth": "عمومی", "description": "جزئیات محصول"},
         {"method": "GET", "path": "/api/v1/releases/", "auth": "عمومی", "description": "نسخه‌های منتشرشده"},
         {"method": "GET", "path": "/api/v1/releases/{id}/", "auth": "عمومی", "description": "جزئیات نسخه"},
-        {"method": "GET", "path": "/api/v1/plans/", "auth": "عمومی", "description": "طرح‌های فعال خرید"},
+        {"method": "GET", "path": "/api/v1/plans/", "auth": "عمومی", "description": "فهرست طرح‌های فعال خرید"},
         {"method": "GET", "path": "/api/v1/plans/{id}/", "auth": "عمومی", "description": "جزئیات طرح"},
         {"method": "GET", "path": "/api/v1/blog/posts/", "auth": "عمومی", "description": "مقالات منتشرشده"},
         {"method": "GET", "path": "/api/v1/blog/posts/{slug}/", "auth": "عمومی", "description": "جزئیات مقاله"},
-        {"method": "GET", "path": "/api/v1/blog/tags/", "auth": "عمومی", "description": "برچسب‌های وبلاگ"},
+        {"method": "GET", "path": "/api/v1/blog/tags/", "auth": "عمومی", "description": "فهرست برچسب‌های وبلاگ"},
         {"method": "GET", "path": "/api/v1/blog/tags/{id}/", "auth": "عمومی", "description": "جزئیات برچسب"},
         {"method": "GET", "path": "/api/v1/blog/posts/{slug}/rating/", "auth": "GET عمومی؛ تغییر امتیاز با توکن", "description": "مشاهده خلاصه امتیاز مقاله"},
         {"method": "POST", "path": "/api/v1/blog/posts/{slug}/rating/", "auth": "توکن مشتری", "description": "ثبت یا ویرایش امتیاز مقاله"},
@@ -80,7 +81,7 @@ urlpatterns = [
     path("api/v1/", include("api.urls")),
     path("api/licensing/", include("licensing.urls")),
     path("billing/", include("billing.urls")),
-    # CMS pages are isolated under /pages/ to preserve all existing routes.
+    # CMS editing routes stay isolated; only the root homepage is bridged to CMS.
     path("pages/", include("cms.urls")),
     path(
         "accounts/login/",
@@ -92,6 +93,7 @@ urlpatterns = [
     ),
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("accounts/", include("accounts.urls")),
+    path("", cms_home, name="home"),
     path("", include("portal.urls")),
 ]
 
