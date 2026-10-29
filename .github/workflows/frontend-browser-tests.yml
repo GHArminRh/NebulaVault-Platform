@@ -36,7 +36,7 @@ jobs:
           cache: npm
 
       - name: Install locked development dependencies
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
