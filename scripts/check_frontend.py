@@ -132,7 +132,7 @@ def main() -> int:
                 continue
             if not any(candidate.is_file() for candidate in static_candidates(asset_path)):
                 failures.append(
-                    f"{rel}: {% static %} reference does not resolve: {asset_path}"
+                    f"{rel}: {{% static %}} reference does not resolve: {asset_path}"
                 )
 
         handlers = len(INLINE_HANDLER.findall(source))
