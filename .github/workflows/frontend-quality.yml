@@ -39,6 +39,19 @@ jobs:
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
           npm install --no-audit --no-fund
 
+      - name: Normalize progress assets for formatter diagnosis
+        run: npx prettier --write static/portal/css/unified-experience.css static/portal/js/site.js
+
+      - name: Save normalized progress assets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: progress-assets-prettier-output
+          path: |
+            static/portal/css/unified-experience.css
+            static/portal/js/site.js
+          if-no-files-found: error
+
       - name: Check CSS, JavaScript, and tooling formatting
         run: npm run check:assets
 
