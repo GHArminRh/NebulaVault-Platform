@@ -1,44 +1,64 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Slim top-edge progress indicator for document loads, navigations and form submissions.
+  // Smooth, single-document progress indicator. It advances gently while
+  // the incoming page loads, then eases to completion and fades away.
   const progress = document.querySelector('.nv-page-progress');
   if (progress) {
     let progressValue = 0;
-    let progressTimer = null;
-    const setProgress = (value, ceiling = 94) => {
-      progressValue = Math.max(progressValue, Math.min(ceiling, value));
+    let progressFrame = 0;
+    let finishTimer = 0;
+    let resetTimer = 0;
+    let isRunning = false;
+    let isFinished = false;
+    const setProgress = (value) => {
+      progressValue = Math.max(progressValue, Math.min(100, value));
       progress.style.setProperty('--nv-progress', progressValue + '%');
       progress.setAttribute('aria-valuenow', String(Math.round(progressValue)));
     };
+    const advanceProgress = () => {
+      if (!isRunning || isFinished) return;
+      // Ease toward 91% without appearing to stall or jumping in visible steps.
+      const remaining = 91 - progressValue;
+      setProgress(progressValue + Math.max(0.035, remaining * 0.012));
+      progressFrame = window.requestAnimationFrame(advanceProgress);
+    };
     const startProgress = () => {
-      progress.classList.add('is-loading');
-      progress.classList.remove('is-complete');
+      window.clearTimeout(finishTimer);
+      window.clearTimeout(resetTimer);
+      if (progressFrame) window.cancelAnimationFrame(progressFrame);
+      isRunning = true;
+      isFinished = false;
       progressValue = 0;
-      setProgress(8);
-      window.clearInterval(progressTimer);
-      progressTimer = window.setInterval(
-        () => setProgress(progressValue + Math.max(1, (88 - progressValue) * 0.075)),
-        120
-      );
+      progress.classList.remove('is-complete');
+      progress.classList.add('is-loading');
+      setProgress(4);
+      progressFrame = window.requestAnimationFrame(advanceProgress);
     };
     const completeProgress = () => {
-      window.clearInterval(progressTimer);
-      setProgress(100, 100);
+      if (isFinished) return;
+      isRunning = false;
+      isFinished = true;
+      if (progressFrame) window.cancelAnimationFrame(progressFrame);
+      setProgress(100);
       progress.classList.add('is-complete');
-      window.setTimeout(() => {
-        progress.classList.remove('is-loading', 'is-complete');
-        progress.style.setProperty('--nv-progress', '0%');
-        progress.setAttribute('aria-valuenow', '0');
-        progressValue = 0;
-      }, 320);
+      // Let the completed state remain briefly, then fade instead of snapping off.
+      finishTimer = window.setTimeout(() => {
+        progress.classList.remove('is-loading');
+        resetTimer = window.setTimeout(() => {
+          progress.classList.remove('is-complete');
+          progress.style.setProperty('--nv-progress', '0%');
+          progress.setAttribute('aria-valuenow', '0');
+          progressValue = 0;
+          isFinished = false;
+        }, 420);
+      }, 420);
     };
-    if (document.readyState === 'complete') completeProgress();
-    else {
+    if (document.readyState !== 'complete') {
       startProgress();
       window.addEventListener('load', completeProgress, { once: true });
     }
-    // Show the indicator only for the incoming document. Starting it on the
-    // outgoing link/form as well makes a second bar appear after navigation.
-    window.addEventListener('pageshow', completeProgress);
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) completeProgress();
+    });
   }
 
   const toggle = document.querySelector('.menu-toggle');
