@@ -341,8 +341,8 @@ html{scroll-padding-top:100px!important}
   --nv-page-gutter:clamp(16px,4vw,56px);
   --nv-section-space:clamp(44px,5.2vw,76px);
 }
-html{max-width:100%;overflow-x:clip;scroll-padding-top:100px}
-body,.nv-portal{max-width:100%;min-width:0;overflow-x:clip}
+html{max-width:100%;scroll-padding-top:100px}
+body,.nv-portal{max-width:100%;min-width:0}
 img,video,iframe,canvas,svg{max-width:100%}
 img,video{height:auto}
 *,*::before,*::after{box-sizing:border-box}
@@ -628,7 +628,7 @@ html{scroll-padding-top:90px!important;scroll-behavior:smooth}
 
 
 /* Sticky rail fix: hidden horizontal overflow on body creates a competing scroll container. */
-html,body{overflow-x:clip!important}
+
 body.nv-portal{overflow-y:visible!important}
 .nv-dashboard-layout,
 .nv-dashboard-layout>.nv-dash-rail,
@@ -642,7 +642,7 @@ body.nv-portal{overflow-y:visible!important}
 
 
 /* Layout correction pass: keep the dashboard rail above page content and remove wasted viewport space. */
-body.nv-portal{overflow-x:clip!important}
+
 .nv-dashboard-layout{
   position:relative!important;
   z-index:60!important;
