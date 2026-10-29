@@ -23,7 +23,12 @@
 
 {% block userlinks %}
   {% if request.user.is_authenticated %}
-    <button type="button" id="nv-install-app" class="nv-admin-install" hidden>نصب اپلیکیشن نبیولا والت</button>
+    <button
+      type="button"
+      id="nv-install-app"
+      class="nv-admin-install"
+      hidden
+    >نصب اپلیکیشن نبیولا والت</button>
   {% endif %}
   {{ block.super }}
 {% endblock %}
