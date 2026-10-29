@@ -67,6 +67,66 @@ document.addEventListener("DOMContentLoaded", () => {
     button.textContent = show ? "پنهان" : "نمایش";
     button.setAttribute("aria-label", show ? "پنهان‌کردن رمز عبور" : "نمایش رمز عبور");
   }));
+  // Copy license keys without inline handlers and give visible feedback.
+  document.querySelectorAll(".nv-copy-license[data-copy-target]").forEach(button => {
+    button.addEventListener("click", async () => {
+      const target = document.getElementById(button.dataset.copyTarget);
+      if (!(target instanceof HTMLInputElement)) return;
+
+      const originalLabel = button.textContent;
+      const announce = (label) => {
+        button.textContent = label;
+        button.setAttribute("aria-label", label);
+      };
+      let copied = false;
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(target.value);
+          copied = true;
+        }
+      } catch (error) {
+        // Use the selection-based fallback if clipboard permissions are denied.
+      }
+
+      if (!copied) {
+        target.focus();
+        target.select();
+        try {
+          copied = document.execCommand("copy");
+        } catch (error) {
+          copied = false;
+        }
+        target.setSelectionRange(0, 0);
+      }
+
+      announce(copied ? "کپی شد" : "کپی نشد");
+      window.setTimeout(() => {
+        button.textContent = originalLabel;
+        button.setAttribute("aria-label", originalLabel || "کپی کلید");
+      }, 1800);
+    });
+  });
+
+  // Bind comment reply toggles and confirmation prompts without template handlers.
+  document.addEventListener("click", event => {
+    const origin = event.target;
+    if (!(origin instanceof Element)) return;
+    const button = origin.closest(".nv-reply-toggle[data-reply-target]");
+    if (!button) return;
+
+    const form = document.getElementById(button.dataset.replyTarget);
+    if (form) {
+      form.hidden = !form.hidden;
+      button.setAttribute("aria-expanded", String(!form.hidden));
+    }
+  });
+
+  document.addEventListener("submit", event => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || !form.dataset.confirm) return;
+    if (!window.confirm(form.dataset.confirm)) event.preventDefault();
+  });
   document.querySelectorAll(".message-close").forEach(button => button.addEventListener("click", () => button.closest(".message")?.remove()));
   if ("IntersectionObserver" in window) {
     const observer = new IntersectionObserver(entries => entries.forEach(entry => {
