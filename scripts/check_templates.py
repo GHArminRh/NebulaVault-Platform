@@ -16,7 +16,7 @@ TEMPLATE_ROOTS = (
     ROOT / "blog" / "templates",
     ROOT / "comment" / "templates",
 )
-TIMEOUT_SECONDS = 10
+TIMEOUT_SECONDS = 30
 
 
 def public_templates() -> list[Path]:

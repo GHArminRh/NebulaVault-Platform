@@ -29,11 +29,18 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Install development tools
-        run: npm install --no-audit --no-fund
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-      - name: Format front-end assets
-        run: npm run format:assets
+      - name: Install development tools
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements-dev.txt
+          npm install --no-audit --no-fund
+
+      - name: Format front-end assets and public templates
+        run: npm run format
 
       - name: Commit formatting changes
         shell: bash
@@ -41,8 +48,9 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .prettierrc.json .prettierignore package.json package-lock.json eslint.config.js playwright.config.js tests/e2e
+          git add .prettierrc.json .prettierignore package.json package-lock.json eslint.config.js playwright.config.js tests/e2e scripts/check_templates.py
           git add static/portal/css static/portal/js static/portal/service-worker.js accounts/static
+          git add templates accounts/templates blog/templates comment/templates
           if git diff --cached --quiet; then
             echo "The front-end assets are already formatted."
             exit 0
