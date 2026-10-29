@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      PLAYWRIGHT_BASE_URL: https://nebula-vault-oesn.onrender.com
+      PLAYWRIGHT_BASE_URL: https://mydigigi.ir
       CI: "true"
     steps:
       - name: Check out source
