@@ -19,7 +19,7 @@ test.describe("public frontend smoke checks", () => {
     test(`${route.name} route renders without a server error`, async ({ page }) => {
       const pageErrors = [];
       const failedLocalAssets = [];
-      const baseURL = new URL(page.context()._options.baseURL || "https://mydigigi.ir");
+      const baseURL = new URL(process.env.PLAYWRIGHT_BASE_URL || "https://mydigigi.ir");
 
       page.on("pageerror", (error) => pageErrors.push(error.message));
       page.on("response", (response) => {
