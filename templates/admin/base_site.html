@@ -6,6 +6,10 @@
 {% block extrahead %}
   {{ block.super }}
   {% if request.user.is_authenticated %}
+    <link rel="manifest" href="{% static 'portal/manifest.webmanifest' %}">
+    <meta name="theme-color" content="#0b1020">
+    <link rel="apple-touch-icon" href="{% static 'portal/img/pwa-icon-192.svg' %}">
+    <script src="{% static 'portal/js/pwa.js' %}" defer></script>
     <link rel="stylesheet" href="{% static 'portal/css/admin-motion.css' %}">
     <script src="{% static 'portal/js/admin-motion.js' %}" defer></script>
   {% endif %}
@@ -17,9 +21,52 @@
 
 {% block nav-global %}{% endblock %}
 
+{% block userlinks %}
+  {% if request.user.is_authenticated %}
+    <button
+      type="button"
+      id="nv-install-app"
+      class="nv-admin-install"
+      hidden
+    >نصب اپلیکیشن نبیولا والت</button>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}
+
 {% block extrastyle %}
   {{ block.super }}
   <style>
+    .nv-admin-install,
+    .nv-admin-app-toggle {
+      font: inherit;
+      cursor: pointer;
+      border: 1px solid rgba(125, 156, 255, .28);
+      border-radius: 7px;
+      padding: 5px 10px;
+      background: rgba(83, 112, 190, .14);
+      color: inherit;
+    }
+
+    .nv-admin-install {
+      margin-inline-end: 10px;
+    }
+
+    .nv-admin-app-toggle {
+      margin-inline-start: 12px;
+      font-size: 11px;
+    }
+
+    .nv-admin-app-toggle:hover,
+    .nv-admin-install:hover {
+      border-color: rgba(84, 215, 255, .7);
+    }
+
+    .nv-admin-app-toggle:focus-visible,
+    .nv-admin-install:focus-visible {
+      outline: 2px solid #54d7ff;
+      outline-offset: 2px;
+    }
+
     /*
      * Login-only visual language follows the public Nebula Vault site:
      * midnight navy, electric blue, violet and cyan. Authenticated admin
