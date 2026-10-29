@@ -4,7 +4,7 @@
   "description": "Formatting and validation tools for Nebula Vault's Django front end",
   "scripts": {
     "format:assets": "prettier --write \"static/portal/css/**/*.css\" \"static/portal/js/**/*.js\" \"static/portal/service-worker.js\" \"accounts/static/**/*.js\" package.json",
-    "format:templates": "find templates accounts/templates blog/templates comment/templates -type f -name '*.html' ! -path 'templates/admin/*' ! -path 'templates/registration/*' -print0 | xargs -0 -r djlint --reformat --profile=django --indent=2",
+    "format:templates": "find templates accounts/templates blog/templates comment/templates -type f -name '*.html' ! -path 'templates/admin/*' ! -path 'templates/registration/*' -print0 | xargs -0 -r djlint --reformat --profile=django --indent=2 --warn --quiet",
     "format": "npm run format:assets && npm run format:templates",
     "check:assets": "prettier --check \"static/portal/css/**/*.css\" \"static/portal/js/**/*.js\" \"static/portal/service-worker.js\" \"accounts/static/**/*.js\" package.json",
     "check:templates": "find templates accounts/templates blog/templates comment/templates -type f -name '*.html' ! -path 'templates/admin/*' ! -path 'templates/registration/*' -print0 | xargs -0 -r djlint --check --profile=django --indent=2",
