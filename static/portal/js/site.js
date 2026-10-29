@@ -4,8 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (progress) {
     let progressValue = 0;
     let progressTimer = null;
-    const setProgress = value => {
-      progressValue = Math.max(progressValue, Math.min(94, value));
+    const setProgress = (value, ceiling = 94) => {
+      progressValue = Math.max(progressValue, Math.min(ceiling, value));
       progress.style.setProperty("--nv-progress", progressValue + "%");
       progress.setAttribute("aria-valuenow", String(Math.round(progressValue)));
     };
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     const completeProgress = () => {
       clearInterval(progressTimer);
-      setProgress(100);
+      setProgress(100, 100);
       progress.classList.add("is-complete");
       window.setTimeout(() => {
         progress.classList.remove("is-loading", "is-complete");
