@@ -37,7 +37,7 @@
                    required
                    placeholder="رمز عبور خود را وارد کنید"><button class="password-toggle" type="button">نمایش</button>
           </div>
-          <div class="turnstile-shell" aria-label="تأیید امنیتی">
+          <div class="turnstile-shell" role="group" aria-label="تأیید امنیتی">
             <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
             <div class="nv-turnstile-widget"
                  data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}"></div>
@@ -77,7 +77,7 @@
        required
        placeholder="رمز عبور را دوباره وارد کنید">{% if auth_side == "register" and form.password2.errors %}<small class="field-error">{{ form.password2.errors|join:', ' }}</small>{% endif %}
           <p class="nv-auth-help">پس از ثبت‌نام، برای فعال‌سازی حساب باید ایمیل خود را تأیید کنید.</p>
-          <div class="turnstile-shell" aria-label="تأیید امنیتی">
+          <div class="turnstile-shell" role="group" aria-label="تأیید امنیتی">
             <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
             <div class="nv-turnstile-widget"
                  data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}"></div>
