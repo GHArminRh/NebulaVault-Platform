@@ -27,6 +27,10 @@ body.nv-portal {
 }
 
 /* Keep decorative glows inside the layout width; a right-side negative offset widens the document. */
+body.nv-portal > .ambient-one {
+  left: 0;
+}
+
 body.nv-portal > .ambient-two {
   right: 0;
 }
