@@ -20,3 +20,6 @@ django-import-export>=4.3,<5.0
 djangorestframework>=3.16,<4.0
 django-filter>=25.1,<26.0
 drf-spectacular>=0.28,<1.0
+
+# Django Control Room and all official operational panels.
+dj-control-room[all]>=1.8.1,<2.0
