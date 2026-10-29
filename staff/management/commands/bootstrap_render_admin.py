@@ -1,19 +1,29 @@
 import os
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.sites.models import Site
 from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    """Create or refresh the Render bootstrap admin only when a secret is supplied.
+    """Repair the required primary Site and optionally bootstrap the Render admin.
 
     Set NEBULA_BOOTSTRAP_ADMIN_PASSWORD temporarily in the Render environment.
-    With the variable absent or empty, this command does nothing.
+    With the variable absent or empty, admin bootstrap is skipped, but the
+    required Django Site row is still ensured before the web server starts.
     """
 
-    help = "Create or refresh the bootstrap admin from a temporary environment secret."
+    help = "Ensure the primary Django Site and optionally bootstrap the Render admin."
 
     def handle(self, *args, **options):
+        site_id = getattr(settings, "SITE_ID", 1)
+        Site.objects.get_or_create(
+            pk=site_id,
+            defaults={"domain": "mydigigi.ir", "name": "Nebula Vault"},
+        )
+        self.stdout.write(self.style.SUCCESS(f"Primary Django Site {site_id} is available."))
+
         password = os.environ.get("NEBULA_BOOTSTRAP_ADMIN_PASSWORD", "")
         if not password:
             self.stdout.write("Bootstrap admin skipped: no temporary password configured.")
