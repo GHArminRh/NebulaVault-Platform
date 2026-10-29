@@ -1075,3 +1075,72 @@ body.nv-portal > main {
     max-width: 100%;
   }
 }
+
+
+/*
+ * Homepage-only mobile overflow fix.
+ * The live homepage is portal/home.html (nv-home-hero), not the CMS
+ * placeholder template. Keep the hero and its decorative artwork inside
+ * the mobile layout viewport so the document cannot be horizontally panned.
+ */
+@media (max-width: 900px) {
+  body.nv-portal:not(.nv-dashboard-page) > main {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-inline: 0 !important;
+    overflow-x: clip !important;
+  }
+
+  body.nv-portal:not(.nv-dashboard-page) .nv-home-hero.page-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: calc(100% - 24px) !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-inline: auto !important;
+    padding-inline: 0 !important;
+    box-sizing: border-box !important;
+    overflow-x: clip !important;
+  }
+
+  body.nv-portal:not(.nv-dashboard-page) .nv-home-hero > *,
+  body.nv-portal:not(.nv-dashboard-page) .nv-home-section,
+  body.nv-portal:not(.nv-dashboard-page) .nv-pricing-band,
+  body.nv-portal:not(.nv-dashboard-page) .nv-pricing-band > .page-wrap,
+  body.nv-portal:not(.nv-dashboard-page) .nv-proof-strip,
+  body.nv-portal:not(.nv-dashboard-page) .nv-proof-inner,
+  body.nv-portal:not(.nv-dashboard-page) .nv-feature-grid,
+  body.nv-portal:not(.nv-dashboard-page) .nv-plan-grid,
+  body.nv-portal:not(.nv-dashboard-page) .nv-home-product-grid {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  body.nv-portal:not(.nv-dashboard-page) .nv-hero-copy,
+  body.nv-portal:not(.nv-dashboard-page) .nv-hero-visual {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  body.nv-portal:not(.nv-dashboard-page) .nv-hero-visual {
+    overflow: clip !important;
+  }
+
+  body.nv-portal:not(.nv-dashboard-page) .nv-visual-orbit,
+  body.nv-portal:not(.nv-dashboard-page) .nv-visual-halo {
+    max-width: 100%;
+  }
+
+  body.nv-portal:not(.nv-dashboard-page) .nv-proof-inner {
+    flex-wrap: wrap !important;
+  }
+
+  body.nv-portal:not(.nv-dashboard-page) .nv-home-product-grid,
+  body.nv-portal:not(.nv-dashboard-page) .nv-plan-grid,
+  body.nv-portal:not(.nv-dashboard-page) .nv-feature-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
