@@ -27,12 +27,10 @@ test('deployed frontend styles are updated before regression checks', async ({ p
           return await page.evaluate(() => {
             const brandNote = document.querySelector('.footer-top .brand small');
             const sectionIndex = document.querySelector('.nv-section-index');
-            return {
-              brandNote: brandNote ? getComputedStyle(brandNote).color : 'unavailable',
-              sectionIndex: sectionIndex
-                ? getComputedStyle(sectionIndex).color
-                : 'unavailable',
-            };
+            return [
+              brandNote ? getComputedStyle(brandNote).color : 'unavailable',
+              sectionIndex ? getComputedStyle(sectionIndex).color : 'unavailable',
+            ];
           });
         } catch {
           return 'unavailable';
@@ -44,10 +42,7 @@ test('deployed frontend styles are updated before regression checks', async ({ p
         message: 'Wait for Render to publish both updated accessibility color fixes',
       }
     )
-    .toEqual({
-        brandNote: 'rgb(130, 146, 177)',
-        sectionIndex: 'rgb(130, 146, 177)',
-      });
+    .toEqual(['rgb(130, 146, 177)', 'rgb(130, 146, 177)']);
 }, 250_000);
 
 test('homepage declares Persian RTL document metadata', async ({ page }) => {
