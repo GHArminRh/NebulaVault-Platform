@@ -1,12 +1,10 @@
 {% load money %}
 <div class="cart-nav-wrap">
-  <a
-    class="cart-nav-link"
-    href="{% url 'portal:cart' %}"
-    aria-label="سبد خرید، {{ cart_count|default:0 }} مورد"
-    title="سبد خرید"
-    aria-haspopup="true"
-  >
+  <a class="cart-nav-link"
+     href="{% url 'portal:cart' %}"
+     aria-label="سبد خرید، {{ cart_count|default:0 }} مورد"
+     title="سبد خرید"
+     aria-haspopup="true">
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path d="M3 4h2l2.1 10.1a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 1.9-1.4L21 8H6" />
       <circle cx="10" cy="20" r="1.25" />
@@ -14,13 +12,11 @@
     </svg>
     <span class="cart-count">{{ cart_count|default:0 }}</span>
   </a>
-
   <div class="cart-hover-panel" role="region" aria-label="خلاصه سبد خرید">
     <div class="cart-hover-heading">
       <strong>سبد خرید شما</strong>
       <span>{{ cart_count|default:0 }} طرح</span>
     </div>
-
     {% if cart_preview_plans %}
       {% for plan in cart_preview_plans %}
         <div class="cart-hover-item">
@@ -42,26 +38,21 @@
           <b>{{ plan.price_minor_units|money }} {{ plan.currency }}</b>
         </div>
       {% endfor %}
-
       {% if cart_preview_has_more %}
         <small class="cart-hover-more">و {{ cart_count|add:"-4" }} طرح دیگر…</small>
       {% endif %}
-
       {% for total in cart_preview_totals %}
         <div class="cart-hover-total">
           <span>مجموع · {{ total.currency }}</span>
           <strong>{{ total.amount_minor_units|money }}</strong>
         </div>
       {% endfor %}
-
-      <a class="button button-primary button-small cart-hover-cta" href="{% url 'portal:cart' %}">
-        مشاهده سبد و پرداخت ↗
-      </a>
+      <a class="button button-primary button-small cart-hover-cta"
+         href="{% url 'portal:cart' %}">مشاهده سبد و پرداخت ↗</a>
     {% else %}
       <p class="cart-hover-empty">سبد خرید هنوز خالی است.</p>
-      <a class="button button-quiet button-small cart-hover-cta" href="{% url 'portal:home' %}#pricing">
-        مشاهده طرح‌ها
-      </a>
+      <a class="button button-quiet button-small cart-hover-cta"
+         href="{% url 'portal:home' %}#pricing">مشاهده طرح‌ها</a>
     {% endif %}
   </div>
 </div>
