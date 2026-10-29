@@ -78,6 +78,7 @@ urlpatterns = [
     path("admin/dj-celery-panel/", include("dj_celery_panel.urls")),
     path("admin/dj-urls-panel/", include("dj_urls_panel.urls")),
     path("admin/dj-signals-panel/", include("dj_signals_panel.urls")),
+    path("admin/dj-error-panel/", include("dj_error_panel.urls")),
     path("admin/dj-control-room/", include("dj_control_room.urls")),
     path("admin/", admin.site.urls),
     path("api", api_index, name="admin-api-index"),
