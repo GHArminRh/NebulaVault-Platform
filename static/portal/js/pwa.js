@@ -70,11 +70,23 @@
     window.addEventListener(
       'load',
       () => {
-        navigator.serviceWorker.register('/service-worker.js', { scope: '/' }).catch(() => {
-          if (window.location.hostname === 'localhost') {
-            console.warn('Service worker registration failed; PWA features may be unavailable.');
+        (async () => {
+          try {
+            // Remove the former admin-only worker so both areas are controlled
+            // by the same root-scoped public-site worker.
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(
+              registrations
+                .filter((registration) => registration.scope === window.location.origin + '/admin/')
+                .map((registration) => registration.unregister())
+            );
+            await navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
+          } catch {
+            if (window.location.hostname === 'localhost') {
+              console.warn('Service worker registration failed; PWA features may be unavailable.');
+            }
           }
-        });
+        })();
       },
       { once: true }
     );
