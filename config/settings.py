@@ -182,6 +182,8 @@ CMS_TEMPLATES = [
     ("portal/cms_page.html", "صفحهٔ عمومی نبیولا والت"),
     ("portal/cms_home_page.html", "صفحهٔ اصلی قابل ویرایش نبیولا والت"),
 ]
+# Route content entered in the page wizard to the general editable content region.
+CMS_PAGE_WIZARD_CONTENT_PLACEHOLDER = "content"
 LANGUAGES = [("en", "English"), ("fa", "Persian")]
 TIME_ZONE = "Asia/Tehran"
 USE_I18N = True
