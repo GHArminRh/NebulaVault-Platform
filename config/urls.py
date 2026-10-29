@@ -46,7 +46,7 @@ def api_index(request):
         {"method": "GET", "path": "/api/v1/plans/{id}/", "auth": "عمومی", "description": "جزئیات طرح"},
         {"method": "GET", "path": "/api/v1/blog/posts/", "auth": "عمومی", "description": "مقالات منتشرشده"},
         {"method": "GET", "path": "/api/v1/blog/posts/{slug}/", "auth": "عمومی", "description": "جزئیات مقاله"},
-        {"method": "GET", "path": "/api/v1/blog/tags/", "auth": "عمومی", "description": "برچسب‌های وبلاگ"},
+        {"method": "GET", "path": "/api/v1/blog/tags/", "auth": "عمومی", "description": "فهرست برچسب‌های وبلاگ"},
         {"method": "GET", "path": "/api/v1/blog/tags/{id}/", "auth": "عمومی", "description": "جزئیات برچسب"},
         {"method": "GET", "path": "/api/v1/blog/posts/{slug}/rating/", "auth": "GET عمومی؛ تغییر امتیاز با توکن", "description": "مشاهده خلاصه امتیاز مقاله"},
         {"method": "POST", "path": "/api/v1/blog/posts/{slug}/rating/", "auth": "توکن مشتری", "description": "ثبت یا ویرایش امتیاز مقاله"},
@@ -81,8 +81,21 @@ urlpatterns = [
     path("api/v1/", include("api.urls")),
     path("api/licensing/", include("licensing.urls")),
     path("billing/", include("billing.urls")),
-    # Keep CMS editing routes isolated, and serve only the homepage at /.
+    # CMS editing routes stay isolated; only the root homepage is bridged to CMS.
     path("pages/", include("cms.urls")),
-    path("", include("accounts.urls")),
+    path(
+        "accounts/login/",
+        CustomerLoginView.as_view(
+            template_name="portal/login.html",
+            authentication_form=NebulaAuthenticationForm,
+        ),
+        name="login",
+    ),
+    path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path("accounts/", include("accounts.urls")),
+    path("", cms_home, name="home"),
     path("", include("portal.urls")),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
