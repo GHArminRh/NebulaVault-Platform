@@ -22,9 +22,7 @@ html {
 }
 
 body.nv-portal {
-  min-width: 320px;
   max-width: 100%;
-  overflow-x: clip;
 }
 
 body.nv-portal main,
