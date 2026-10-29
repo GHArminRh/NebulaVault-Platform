@@ -1,3 +1,8 @@
+"""Create and safely normalize the editable Persian django CMS homepage.
+
+The command is idempotent: it preserves unrelated editor content and migrates
+only the known seed plugins created by older versions of this command.
+"""
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.management.base import BaseCommand
@@ -8,48 +13,31 @@ from cms.models import PageContent, PageUrl
 from cms.models.pluginmodel import CMSPlugin
 
 
-HERO_HTML = """
-<section class="nv-home-hero page-wrap" id="home">
-  <div class="nv-hero-copy">
-    <div class="eyebrow"><i class="pulse"></i> فضای دیجیتال شما، با نظم تازه</div>
-    <h1>همه‌چیز سر جای خودش؛<br><span class="gradient-text">کنترل در دست شما.</span></h1>
-    <p class="hero-lede">محصولات، خریدها، اشتراک‌ها و لایسنس‌ها را در یک تجربهٔ امن و هماهنگ مدیریت کنید؛ ساده، شفاف و بدون شلوغی.</p>
-    <div class="hero-actions"><a class="button button-primary button-large" href="#products">کشف محصولات ↙</a><a class="button button-glass button-large" href="/dashboard/">ورود به فضای من ↗</a></div>
-    <div class="nv-hero-trust"><span><i class="pulse"></i> حساب شخصی امن</span><span>◇ خرید و لایسنس یکپارچه</span><span>⌁ تجربهٔ هماهنگ</span></div>
-  </div>
-  <div class="nv-hero-visual" aria-label="فضای امن نبیولا والت"><div class="nv-visual-halo"></div>
-    <div class="nv-visual-orbit nv-orbit-one"></div><div class="nv-visual-orbit nv-orbit-two"></div><div class="nv-visual-orbit nv-orbit-three"></div>
-    <div class="nv-visual-core"><div class="nv-core-inner">◇</div><span class="nv-core-caption">NEBULA VAULT</span></div>
-    <div class="nv-float-card nv-float-top"><span class="nv-float-icon">⌑</span><span><strong>فضای محافظت‌شده</strong><small>حساب شما، در یک نگاه</small></span><i class="pulse"></i></div>
-    <div class="nv-float-card nv-float-bottom"><span class="nv-float-icon">✦</span><span><strong>همه‌چیز هماهنگ</strong><small>محصول · خرید · لایسنس</small></span></div>
-    <span class="nv-visual-star nv-star-one">✦</span><span class="nv-visual-star nv-star-two">✧</span>
-  </div>
-  <a class="nv-scroll-cue" href="#products"><span></span> برای کشف بیشتر اسکرول کنید</a>
-</section>
-<section class="nv-proof-strip"><div class="page-wrap nv-proof-inner"><span>یک تجربهٔ یکپارچه</span><span><b>01</b> انتخاب محصول</span><span><b>02</b> خرید شفاف</span><span><b>03</b> مدیریت لایسنس</span><span><b>04</b> کنترل از پیشخوان</span></div></section>
+HERO_COPY = """
+<div class="eyebrow"><i class="pulse"></i> فضای دیجیتال شما، با نظم تازه</div>
+<h1>همه‌چیز سر جای خودش؛<br><span class="gradient-text">کنترل در دست شما.</span></h1>
+<p class="hero-lede">محصولات، خریدها، اشتراک‌ها و لایسنس‌ها را در یک تجربهٔ امن و هماهنگ مدیریت کنید؛ ساده، شفاف و بدون شلوغی.</p>
+<div class="hero-actions">
+  <a class="button button-primary button-large" href="/products/">کشف محصولات ↙</a>
+  <a class="button button-glass button-large" href="/pricing/">مشاهده تعرفه‌ها ↗</a>
+</div>
+<div class="nv-hero-trust"><span><i class="pulse"></i> حساب شخصی امن</span><span>◇ خرید و لایسنس یکپارچه</span><span>⌁ تجربهٔ هماهنگ</span></div>
 """
 
-FEATURES_HTML = """
-<section class="section page-wrap nv-home-section" id="features">
-  <div class="section-heading"><div><div class="eyebrow">طراحی حول محور شما</div><h2>یک حساب. همهٔ ابزارهای مهم.</h2><p>تجربه‌ای که از صفحهٔ اصلی تا پیشخوان کاربر، یک زبان بصری دارد.</p></div><span class="nv-section-index">03 / EXPERIENCE</span></div>
-  <div class="nv-feature-grid">
-    <article class="nv-feature-card nv-feature-highlight"><span class="nv-feature-icon">⌘</span><span class="nv-feature-number">01</span><h3>پیشخوان متمرکز</h3><p>اشتراک‌های فعال، سفارش‌های اخیر، وضعیت لایسنس‌ها و تنظیمات حساب در یک فضای مشخص.</p><a href="/dashboard/">رفتن به فضای کار ↗</a></article>
-    <article class="nv-feature-card"><span class="nv-feature-icon">◇</span><span class="nv-feature-number">02</span><h3>خرید شفاف</h3><p>طرح‌ها، مدت اعتبار و مبلغ را پیش از ادامهٔ خرید بررسی کنید.</p><a href="#pricing">دیدن طرح‌ها ↙</a></article>
-    <article class="nv-feature-card"><span class="nv-feature-icon">⌑</span><span class="nv-feature-number">03</span><h3>مدیریت دسترسی</h3><p>اطلاعات لایسنس و وضعیت اشتراک‌ها را در فضای حساب خود دنبال کنید.</p><a href="/dashboard/#my-licenses">لایسنس‌های من ↗</a></article>
-  </div>
-</section>
+FEATURE_GRID = """
+<div class="nv-feature-grid">
+  <article class="nv-feature-card nv-feature-highlight"><span class="nv-feature-icon">⌘</span><span class="nv-feature-number">01</span><h3>پیشخوان متمرکز</h3><p>اشتراک‌های فعال، سفارش‌های اخیر، وضعیت لایسنس‌ها و تنظیمات حساب در یک فضای مشخص.</p><a href="/dashboard/">رفتن به فضای کار ↗</a></article>
+  <article class="nv-feature-card"><span class="nv-feature-icon">◇</span><span class="nv-feature-number">02</span><h3>خرید شفاف</h3><p>طرح‌ها، مدت اعتبار و مبلغ را پیش از ادامهٔ خرید بررسی کنید.</p><a href="/pricing/">دیدن طرح‌ها ↙</a></article>
+  <article class="nv-feature-card"><span class="nv-feature-icon">⌑</span><span class="nv-feature-number">03</span><h3>مدیریت دسترسی</h3><p>اطلاعات لایسنس و وضعیت اشتراک‌ها را در فضای حساب خود دنبال کنید.</p><a href="/dashboard/">لایسنس‌های من ↗</a></article>
+</div>
 """
 
-FAQ_HTML = """
-<section class="section page-wrap nv-home-section nv-faq-section" id="about">
-  <div class="section-heading"><div><div class="eyebrow">پرسش‌های رایج</div><h2>شروعی ساده و روشن.</h2><p>چند پاسخ کوتاه برای شروع کار با نبیولا والت.</p></div><span class="nv-section-index">05 / FAQ</span></div>
-  <div class="nv-faq-list">
-    <details><summary>چطور خریدها و لایسنس‌هایم را ببینم؟<span>＋</span></summary><p>پس از ورود به حساب، از پیشخوان می‌توانید سفارش‌ها، اشتراک‌ها و لایسنس‌های مرتبط با حساب خود را مشاهده کنید.</p></details>
-    <details><summary>برای ساخت حساب چه کاری لازم است؟<span>＋</span></summary><p>با ایمیل و رمز عبور ثبت‌نام کنید و نشانی ایمیل خود را از طریق پیوند یا کد تأیید ارسال‌شده فعال کنید.</p></details>
-    <details><summary>آیا برای دیدن طرح‌ها باید وارد حساب شوم؟<span>＋</span></summary><p>خیر؛ می‌توانید محصولات و طرح‌ها را بررسی کنید. برای مدیریت خریدها و دسترسی‌های شخصی، ورود به حساب لازم است.</p></details>
-  </div>
-</section>
-<section class="closing-cta page-wrap nv-final-cta"><div class="eyebrow"><i class="pulse"></i> فضای شما آماده است</div><h2>تجربهٔ یکپارچه را شروع کنید.</h2><p>یک حساب بسازید و ابزارهای دیجیتال خود را با نظم بیشتری مدیریت کنید.</p><a class="button button-primary button-large" href="/accounts/register/">ایجاد حساب کاربری ↗</a></section>
+FAQ_CONTENT = """
+<div class="nv-faq-list">
+  <details><summary>چطور خریدها و لایسنس‌هایم را ببینم؟<span>＋</span></summary><p>پس از ورود به حساب، از پیشخوان می‌توانید سفارش‌ها، اشتراک‌ها و لایسنس‌های مرتبط با حساب خود را مشاهده کنید.</p></details>
+  <details><summary>برای ساخت حساب چه کاری لازم است؟<span>＋</span></summary><p>با ایمیل و رمز عبور ثبت‌نام کنید و نشانی ایمیل خود را از طریق پیوند یا کد تأیید ارسال‌شده فعال کنید.</p></details>
+  <details><summary>آیا برای دیدن طرح‌ها باید وارد حساب شوم؟<span>＋</span></summary><p>خیر؛ می‌توانید محصولات و طرح‌ها را بررسی کنید. برای مدیریت خریدها و دسترسی‌های شخصی، ورود به حساب لازم است.</p></details>
+</div>
 """
 
 
@@ -60,7 +48,7 @@ class Command(BaseCommand):
         site = Site.objects.filter(pk=settings.SITE_ID).first()
         if site is None:
             self.stdout.write(self.style.WARNING(
-                "CMS homepage bootstrap skipped because the configured Django Site does not exist yet."
+                "CMS homepage bootstrap skipped: the configured Django Site does not exist."
             ))
             return
 
@@ -96,69 +84,82 @@ class Command(BaseCommand):
         with transaction.atomic():
             page.set_as_homepage()
 
-        page_content = PageContent.objects.filter(page=page, language="fa").first()
-        if page_content and page_content.template != "portal/cms_home_page.html":
-            page_content.template = "portal/cms_home_page.html"
-            page_content.save(update_fields=["template"])
+            page_content = PageContent.objects.filter(page=page, language="fa").first()
+            if page_content and page_content.template != "portal/cms_home_page.html":
+                page_content.template = "portal/cms_home_page.html"
+                page_content.save(update_fields=["template"])
 
-        placeholder = page.get_placeholders(language="fa").filter(slot="content").first()
-        if placeholder is None:
-            self.stdout.write(self.style.ERROR(
-                f"CMS homepage page {page.pk} has no content placeholder; no plugins were changed."
-            ))
-            return
+            placeholders = {
+                item.slot: item for item in page.get_placeholders(language="fa")
+            }
+            required = {"hero", "content", "products", "pricing", "features", "releases", "about"}
+            missing = required.difference(placeholders)
+            if missing:
+                self.stdout.write(self.style.ERROR(
+                    "CMS homepage template is missing placeholders: " + ", ".join(sorted(missing))
+                ))
+                return
 
-        existing_plugins = list(
-            CMSPlugin.objects.filter(placeholder=placeholder, language="fa").order_by("position", "pk")
-        )
-        existing_types = {plugin.plugin_type for plugin in existing_plugins}
-        text_bodies = []
-        for plugin in existing_plugins:
-            try:
-                instance, _plugin_class = plugin.get_plugin_instance()
-            except (AttributeError, LookupError, TypeError):
+            # Move only recognizable plugins created by the previous bootstrap.
+            # Unknown/user-authored plugins in the general content region remain untouched.
+            content_placeholder = placeholders["content"]
+            migrated = []
+            legacy_destinations = {
+                "LiveProductGridPlugin": "products",
+                "LivePricingGridPlugin": "pricing",
+                "LiveReleaseListPlugin": "releases",
+            }
+            for plugin in list(
+                CMSPlugin.objects.filter(
+                    placeholder=content_placeholder, language="fa", parent__isnull=True
+                ).order_by("position", "pk")
+            ):
+                target_slot = legacy_destinations.get(plugin.plugin_type)
                 instance = None
-            body = getattr(instance, "body", "")
-            if isinstance(body, str):
-                text_bodies.append(body)
+                if plugin.plugin_type == "TextPlugin":
+                    try:
+                        instance, _plugin_class = plugin.get_plugin_instance()
+                    except (AttributeError, LookupError, TypeError):
+                        instance = None
+                    body = getattr(instance, "body", "") if instance else ""
+                    if isinstance(body, str) and ('id="home"' in body or "id='home'" in body):
+                        target_slot = "hero"
+                        instance.body = HERO_COPY
+                    elif isinstance(body, str) and ('id="features"' in body or "id='features'" in body):
+                        target_slot = "features"
+                        instance.body = FEATURE_GRID
+                    elif isinstance(body, str) and ('id="about"' in body or "id='about'" in body):
+                        target_slot = "about"
+                        instance.body = FAQ_CONTENT
 
-        created = []
-        # Only seed the structural sections that are absent. Existing editorial
-        # text and any live plugins are kept, making this command safe on restarts.
-        if not any('id="home"' in body or "id='home'" in body for body in text_bodies):
-            add_plugin(placeholder, "TextPlugin", "fa", body=HERO_HTML, position="first-child")
-            created.append("hero")
+                if not target_slot:
+                    continue
+                target = placeholders[target_slot]
+                if instance is not None and target_slot in {"hero", "features", "about"}:
+                    instance.save(update_fields=["body"])
+                target_position = target.get_next_plugin_position("fa", insert_order="last")
+                content_placeholder.move_plugin(
+                    plugin, target_position, target_placeholder=target
+                )
+                migrated.append(target_slot)
 
-        live_plugins = (
-            ("LiveProductGridPlugin", "products"),
-            ("LivePricingGridPlugin", "pricing"),
-        )
-        for plugin_type, label in live_plugins:
-            if plugin_type not in existing_types:
-                add_plugin(placeholder, plugin_type, "fa")
-                created.append(label)
+            # Fill only empty regions. Existing content is never replaced.
+            defaults = {
+                "hero": ("TextPlugin", {"body": HERO_COPY}),
+                "features": ("TextPlugin", {"body": FEATURE_GRID}),
+                "about": ("TextPlugin", {"body": FAQ_CONTENT}),
+                "products": ("LiveProductGridPlugin", {}),
+                "pricing": ("LivePricingGridPlugin", {}),
+                "releases": ("LiveReleaseListPlugin", {}),
+            }
+            created = []
+            for slot, (plugin_type, values) in defaults.items():
+                target = placeholders[slot]
+                if not target.has_plugins(language="fa"):
+                    add_plugin(target, plugin_type, "fa", **values)
+                    created.append(slot)
 
-        if not any('id="features"' in body or "id='features'" in body for body in text_bodies):
-            add_plugin(placeholder, "TextPlugin", "fa", body=FEATURES_HTML)
-            created.append("features")
-
-        for plugin_type, label in (
-            ("LiveBlogListPlugin", "blog"),
-            ("LiveReleaseListPlugin", "releases"),
-        ):
-            if plugin_type not in existing_types:
-                add_plugin(placeholder, plugin_type, "fa")
-                created.append(label)
-
-        if not any('id="about"' in body or "id='about'" in body for body in text_bodies):
-            add_plugin(placeholder, "TextPlugin", "fa", body=FAQ_HTML)
-            created.append("faq")
-
-        if created:
-            self.stdout.write(self.style.SUCCESS(
-                f"CMS homepage {page.pk} completed; added missing sections: {', '.join(created)}."
-            ))
-        else:
-            self.stdout.write(self.style.SUCCESS(
-                f"CMS homepage {page.pk} is already complete; no changes needed."
-            ))
+        self.stdout.write(self.style.SUCCESS(
+            f"CMS homepage {page.pk} is ready. Migrated: {', '.join(migrated) or 'none'}; "
+            f"seeded empty regions: {', '.join(created) or 'none'}."
+        ))

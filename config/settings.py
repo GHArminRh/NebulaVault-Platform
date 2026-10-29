@@ -182,6 +182,8 @@ CMS_TEMPLATES = [
     ("portal/cms_page.html", "صفحهٔ عمومی نبیولا والت"),
     ("portal/cms_home_page.html", "صفحهٔ اصلی قابل ویرایش نبیولا والت"),
 ]
+# Route content entered in the page wizard to the general editable content region.
+CMS_PAGE_WIZARD_CONTENT_PLACEHOLDER = "content"
 LANGUAGES = [("en", "English"), ("fa", "Persian")]
 TIME_ZONE = "Asia/Tehran"
 USE_I18N = True
@@ -208,6 +210,40 @@ CMS_MEDIA_UPLOADS_ENABLED = bool(
     and AWS_ACCESS_KEY_ID
     and AWS_SECRET_ACCESS_KEY
 )
+
+# Keep the CMS editor constrained to the layout region it is editing. These
+# slot-specific allow-lists prevent arbitrary plugins from breaking the page
+# structure and make the editor's options predictable.
+CMS_PLACEHOLDER_CONF = {
+    "hero": {
+        "name": "متن و دکمه‌های بنر اصلی",
+        "plugins": ["TextPlugin"],
+    },
+    "content": {
+        "name": "محتوای تکمیلی",
+        "plugins": ["TextPlugin", "ExternalImagePlugin"] + (["UploadedImagePlugin"] if CMS_MEDIA_UPLOADS_ENABLED else []),
+    },
+    "products": {
+        "name": "محصولات",
+        "plugins": ["LiveProductGridPlugin"],
+    },
+    "pricing": {
+        "name": "تعرفه‌ها",
+        "plugins": ["LivePricingGridPlugin"],
+    },
+    "features": {
+        "name": "امکانات",
+        "plugins": ["TextPlugin", "ExternalImagePlugin"],
+    },
+    "releases": {
+        "name": "نسخه‌های منتشرشده",
+        "plugins": ["LiveReleaseListPlugin"],
+    },
+    "about": {
+        "name": "معرفی و پرسش‌های متداول",
+        "plugins": ["TextPlugin", "ExternalImagePlugin"],
+    },
+}
 DEFAULT_MEDIA_STORAGE = (
     {
         "BACKEND": "storages.backends.s3.S3Storage",
