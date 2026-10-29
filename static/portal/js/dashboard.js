@@ -1,12 +1,12 @@
 (() => {
-  "use strict";
+  'use strict';
 
-  document.querySelectorAll(".nv-copy-license[data-copy-target]").forEach((button) => {
-    button.addEventListener("click", async () => {
+  document.querySelectorAll('.nv-copy-license[data-copy-target]').forEach((button) => {
+    button.addEventListener('click', async () => {
       const target = document.getElementById(button.dataset.copyTarget);
       if (!(target instanceof HTMLInputElement)) return;
 
-      const originalLabel = button.textContent || "کپی کلید";
+      const originalLabel = button.textContent || 'کپی کلید';
       let copied = false;
 
       if (navigator.clipboard && window.isSecureContext) {
@@ -22,7 +22,7 @@
         target.focus();
         target.select();
         try {
-          copied = document.execCommand("copy");
+          copied = document.execCommand('copy');
         } catch {
           copied = false;
         }
@@ -34,12 +34,12 @@
         }
       }
 
-      const feedback = copied ? "کپی شد" : "کپی نشد";
+      const feedback = copied ? 'کپی شد' : 'کپی نشد';
       button.textContent = feedback;
-      button.setAttribute("aria-label", feedback);
+      button.setAttribute('aria-label', feedback);
       window.setTimeout(() => {
         button.textContent = originalLabel;
-        button.setAttribute("aria-label", originalLabel);
+        button.setAttribute('aria-label', originalLabel);
       }, 1800);
     });
   });

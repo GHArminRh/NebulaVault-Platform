@@ -1,37 +1,37 @@
 (() => {
-  "use strict";
+  'use strict';
 
-  const shell = document.querySelector(".nv-auth-shell");
+  const shell = document.querySelector('.nv-auth-shell');
   if (!shell) return;
 
   function renderActiveTurnstile() {
     if (!window.turnstile) return;
 
-    const side = shell.getAttribute("data-auth-side") || "login";
-    const face = shell.querySelector(side === "register" ? ".nv-auth-register" : ".nv-auth-login");
+    const side = shell.getAttribute('data-auth-side') || 'login';
+    const face = shell.querySelector(side === 'register' ? '.nv-auth-register' : '.nv-auth-login');
     if (!face) return;
 
     face.querySelectorAll('.nv-turnstile-widget:not([data-rendered="true"])').forEach((widget) => {
-      const siteKey = widget.getAttribute("data-sitekey");
+      const siteKey = widget.getAttribute('data-sitekey');
       if (!siteKey) return;
 
       try {
         window.turnstile.render(widget, {
           sitekey: siteKey,
-          theme: "dark",
-          language: "fa",
-          size: "normal",
-          appearance: "always",
+          theme: 'dark',
+          language: 'fa',
+          size: 'normal',
+          appearance: 'always',
         });
-        widget.setAttribute("data-rendered", "true");
+        widget.setAttribute('data-rendered', 'true');
 
-        const box = widget.closest(".turnstile-shell");
-        const loading = box && box.querySelector(".turnstile-loading");
+        const box = widget.closest('.turnstile-shell');
+        const loading = box && box.querySelector('.turnstile-loading');
         if (!loading) return;
 
         const hideLoaderWhenReady = () => {
-          if (!widget.querySelector("iframe")) return false;
-          loading.style.display = "none";
+          if (!widget.querySelector('iframe')) return false;
+          loading.style.display = 'none';
           return true;
         };
 
@@ -49,7 +49,7 @@
 
   window.nvRenderAuthTurnstile = renderActiveTurnstile;
   window.nvTurnstileReady = () => {
-    document.documentElement.classList.add("turnstile-script-loaded");
+    document.documentElement.classList.add('turnstile-script-loaded');
     renderActiveTurnstile();
   };
 })();

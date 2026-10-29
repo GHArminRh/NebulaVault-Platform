@@ -9,31 +9,81 @@
     <div class="nv-auth-orbit" aria-hidden="true"><span>◇</span><i></i><b></b></div>
   </div>
   <div class="nv-auth-stage">
-    <div class="nv-auth-flip-card{% if auth_side == 'register' %} is-register{% endif %}" data-auth-card>
+    <div class="nv-auth-flip-card{% if auth_side == 'register' %} is-register{% endif %}"
+         data-auth-card>
       <div class="nv-auth-face nv-auth-login">
         <div class="nv-auth-face-head"><span class="nv-auth-kicker">خوش آمدید</span><span class="nv-auth-step">01 <i>/</i> 02</span></div>
-        <h2>ورود به حساب</h2><p class="nv-auth-subtitle">برای ادامه، وارد فضای شخصی خود شوید.</p>
+        <h2>ورود به حساب</h2>
+        <p class="nv-auth-subtitle">برای ادامه، وارد فضای شخصی خود شوید.</p>
         {% if auth_side == "login" %}{% if login_throttled %}<div class="form-error" role="alert">ورود شما موقتاً محدود شده است؛ پنج تلاش ناموفق ثبت شده. لطفاً ۱۵ دقیقه صبر کنید و سپس دوباره تلاش کنید.</div>{% elif banned_account %}<div class="form-error" role="alert">شما توسط ادمین بن شده‌اید و امکان ورود به حساب را ندارید.</div>{% elif form.turnstile_error %}<div class="form-error" role="alert">تأیید امنیتی ناموفق بود. لطفاً کپچا را تکمیل کنید و دوباره تلاش کنید.</div>{% elif form.errors %}<div class="form-error" role="alert">نام کاربری یا رمز عبور اشتباه است. اطلاعات را بررسی و دوباره تلاش کنید.</div>{% endif %}{% endif %}
-        <form method="post" action="{% url 'login' %}" class="form-stack nv-auth-form">{% csrf_token %}<input type="hidden" name="next" value="{{ next|default:'' }}">
-          <label for="nv-login-email">نشانی ایمیل</label><input id="nv-login-email" name="username" type="email" autocomplete="username" required placeholder="ایمیل خود را وارد کنید" value="{% if auth_side == 'login' %}{{ form.username.value|default:'' }}{% endif %}">
-          <label for="nv-login-password">رمز عبور</label><div class="password-wrap"><input id="nv-login-password" name="password" type="password" autocomplete="current-password" required placeholder="رمز عبور خود را وارد کنید"><button class="password-toggle" type="button">نمایش</button></div>
-          <div class="turnstile-shell" aria-label="تأیید امنیتی"><div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div><div class="nv-turnstile-widget" data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}"></div></div>
-          <button class="button button-primary button-full button-large auth-submit" type="submit">ورود به حساب <span>↗</span></button>
+        <form method="post"
+              action="{% url 'login' %}"
+              class="form-stack nv-auth-form">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next|default:'' }}">
+          <label for="nv-login-email">نشانی ایمیل</label><input id="nv-login-email"
+       name="username"
+       type="email"
+       autocomplete="username"
+       required
+       placeholder="ایمیل خود را وارد کنید"
+       value="{% if auth_side == 'login' %}{{ form.username.value|default:'' }}{% endif %}">
+          <label for="nv-login-password">رمز عبور</label>
+          <div class="password-wrap">
+            <input id="nv-login-password"
+                   name="password"
+                   type="password"
+                   autocomplete="current-password"
+                   required
+                   placeholder="رمز عبور خود را وارد کنید"><button class="password-toggle" type="button">نمایش</button>
+          </div>
+          <div class="turnstile-shell" aria-label="تأیید امنیتی">
+            <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
+            <div class="nv-turnstile-widget"
+                 data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}"></div>
+          </div>
+          <button class="button button-primary button-full button-large auth-submit"
+                  type="submit">ورود به حساب <span>↗</span></button>
         </form>
         <p class="nv-auth-small-link"><a href="{% url 'accounts:password_reset' %}">رمز عبور را فراموش کرده‌اید؟</a></p>
         <div class="nv-auth-flip-prompt"><span>هنوز حساب ندارید؟</span><button type="button" data-auth-flip="register">ساخت حساب <span>↶</span></button><a class="nv-auth-nojs-link" href="{% url 'accounts:register' %}">ساخت حساب</a></div>
       </div>
       <div class="nv-auth-face nv-auth-register">
         <div class="nv-auth-face-head"><span class="nv-auth-kicker">به نبیولا بپیوندید</span><span class="nv-auth-step">02 <i>/</i> 02</span></div>
-        <h2>ساخت حساب</h2><p class="nv-auth-subtitle">یک قدم تا فضای شخصی یکپارچه‌ی شما.</p>
+        <h2>ساخت حساب</h2>
+        <p class="nv-auth-subtitle">یک قدم تا فضای شخصی یکپارچه‌ی شما.</p>
         {% if auth_side == "register" %}{% if form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}{% endif %}
-        <form method="post" action="{% url 'accounts:register' %}" class="form-stack nv-auth-form">{% csrf_token %}
-          <label for="nv-register-email">نشانی ایمیل</label><input id="nv-register-email" name="email" type="email" autocomplete="email" required value="{% if auth_side == 'register' %}{{ form.email.value|default:'' }}{% endif %}" placeholder="you@example.com">{% if auth_side == "register" and form.email.errors %}<small class="field-error">{{ form.email.errors|join:', ' }}</small>{% endif %}
-          <label for="nv-register-password1">رمز عبور</label><div class="password-wrap"><input id="nv-register-password1" name="password1" type="password" autocomplete="new-password" required placeholder="یک رمز عبور قوی بسازید"><button class="password-toggle" type="button">نمایش</button></div>{% if auth_side == "register" and form.password1.errors %}<small class="field-error">{{ form.password1.errors|join:', ' }}</small>{% endif %}
-          <label for="nv-register-password2">تکرار رمز عبور</label><input id="nv-register-password2" name="password2" type="password" autocomplete="new-password" required placeholder="رمز عبور را دوباره وارد کنید">{% if auth_side == "register" and form.password2.errors %}<small class="field-error">{{ form.password2.errors|join:', ' }}</small>{% endif %}
+        <form method="post"
+              action="{% url 'accounts:register' %}"
+              class="form-stack nv-auth-form">
+          {% csrf_token %}
+          <label for="nv-register-email">نشانی ایمیل</label><input id="nv-register-email"
+       name="email"
+       type="email"
+       autocomplete="email"
+       required
+       value="{% if auth_side == 'register' %}{{ form.email.value|default:'' }}{% endif %}"
+       placeholder="you@example.com">{% if auth_side == "register" and form.email.errors %}<small class="field-error">{{ form.email.errors|join:', ' }}</small>{% endif %}
+          <label for="nv-register-password1">رمز عبور</label><div class="password-wrap"><input id="nv-register-password1"
+       name="password1"
+       type="password"
+       autocomplete="new-password"
+       required
+       placeholder="یک رمز عبور قوی بسازید"><button class="password-toggle" type="button">نمایش</button></div>{% if auth_side == "register" and form.password1.errors %}<small class="field-error">{{ form.password1.errors|join:', ' }}</small>{% endif %}
+          <label for="nv-register-password2">تکرار رمز عبور</label><input id="nv-register-password2"
+       name="password2"
+       type="password"
+       autocomplete="new-password"
+       required
+       placeholder="رمز عبور را دوباره وارد کنید">{% if auth_side == "register" and form.password2.errors %}<small class="field-error">{{ form.password2.errors|join:', ' }}</small>{% endif %}
           <p class="nv-auth-help">پس از ثبت‌نام، برای فعال‌سازی حساب باید ایمیل خود را تأیید کنید.</p>
-          <div class="turnstile-shell" aria-label="تأیید امنیتی"><div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div><div class="nv-turnstile-widget" data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}"></div></div>
-          <button class="button button-primary button-full button-large auth-submit" type="submit">ایجاد حساب و تأیید ایمیل <span>↗</span></button>
+          <div class="turnstile-shell" aria-label="تأیید امنیتی">
+            <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
+            <div class="nv-turnstile-widget"
+                 data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}"></div>
+          </div>
+          <button class="button button-primary button-full button-large auth-submit"
+                  type="submit">ایجاد حساب و تأیید ایمیل <span>↗</span></button>
         </form>
         <div class="nv-auth-flip-prompt"><span>از قبل حساب دارید؟</span><button type="button" data-auth-flip="login">ورود به حساب <span>↷</span></button><a class="nv-auth-nojs-link" href="{% url 'login' %}">ورود به حساب</a></div>
       </div>
@@ -41,6 +91,6 @@
     <p class="nv-auth-security-note"><span>⌑</span> اطلاعات حساب شما از طریق اتصال امن ارسال می‌شود.</p>
   </div>
 </section>
-
 <script src="{% static 'portal/js/auth-turnstile.js' %}" defer></script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=nvTurnstileReady&amp;render=explicit" defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=nvTurnstileReady&amp;render=explicit"
+        defer></script>

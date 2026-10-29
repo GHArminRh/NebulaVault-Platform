@@ -49,7 +49,9 @@
   letter-spacing: 0.035em;
   direction: ltr;
   text-align: left;
-  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(95, 230, 170, 0.06);
+  box-shadow:
+    inset 0 1px 4px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(95, 230, 170, 0.06);
   outline: none;
   color-scheme: dark;
 }

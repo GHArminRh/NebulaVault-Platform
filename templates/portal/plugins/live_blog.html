@@ -1,4 +1,9 @@
 <section class="section page-wrap compact-section nv-cms-live-section">
-  <div class="section-heading"><div><div class="eyebrow">دانش و تازه‌ها</div><h2>آخرین نوشته‌های وبلاگ</h2><p>مقالات منتشرشده بدون کپی‌کردن محتوا در CMS نمایش داده می‌شوند.</p></div><a class="button button-quiet button-small" href="{% url 'blog:post_list' %}">همهٔ مقالات ↗</a></div>
-  {% if cms_blog_posts %}<div class="product-grid">{% for post in cms_blog_posts %}<article class="product-card">{% if post.img %}<img src="{{ post.img.url }}" alt="{{ post.title }}" loading="lazy" class="nv-cms-blog-image">{% endif %}<div class="card-kicker">{{ post.category|default:"وبلاگ نبیولا" }}</div><h3><a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a></h3><p>{{ post.excerpt|default:post.content|striptags|truncatewords:24 }}</p><div class="card-bottom"><span class="muted-small">{{ post.published_at|date:"Y/m/d" }}</span><a class="button button-quiet button-small" href="{% url 'blog:post_detail' post.slug %}">مطالعه ↗</a></div></article>{% endfor %}</div>{% else %}<p class="nv-section-empty">مقالهٔ منتشرشده‌ای برای نمایش وجود ندارد.</p>{% endif %}
+  <div class="section-heading"><div><div class="eyebrow">دانش و تازه‌ها</div><h2>آخرین نوشته‌های وبلاگ</h2><p>مقالات منتشرشده بدون کپی‌کردن محتوا در CMS نمایش داده می‌شوند.</p></div><a class="button button-quiet button-small"
+   href="{% url 'blog:post_list' %}">همهٔ مقالات ↗</a></div>
+  {% if cms_blog_posts %}<div class="product-grid">{% for post in cms_blog_posts %}<article class="product-card">{% if post.img %}<img src="{{ post.img.url }}"
+     alt="{{ post.title }}"
+     loading="lazy"
+     class="nv-cms-blog-image">{% endif %}<div class="card-kicker">{{ post.category|default:"وبلاگ نبیولا" }}</div><h3><a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a></h3><p>{{ post.excerpt|default:post.content|striptags|truncatewords:24 }}</p><div class="card-bottom"><span class="muted-small">{{ post.published_at|date:"Y/m/d" }}</span><a class="button button-quiet button-small"
+   href="{% url 'blog:post_detail' post.slug %}">مطالعه ↗</a></div></article>{% endfor %}</div>{% else %}<p class="nv-section-empty">مقالهٔ منتشرشده‌ای برای نمایش وجود ندارد.</p>{% endif %}
 </section>

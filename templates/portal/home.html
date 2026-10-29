@@ -1,50 +1,115 @@
-{% extends 'portal/base.html' %}
+{% extends "portal/base.html" %}
 {% load money %}
 {% block title %}نبیولا والت — یک فضای یکپارچه برای دنیای دیجیتال شما{% endblock %}
 {% block content %}
-<section class="nv-home-hero page-wrap" id="home">
-  <div class="nv-hero-copy">
-    <div class="eyebrow"><i class="pulse"></i> فضای دیجیتال شما، با نظم تازه</div>
-    <h1>همه‌چیز سر جای خودش؛<br><span class="gradient-text">کنترل در دست شما.</span></h1>
-    <p class="hero-lede">محصولات، خریدها، اشتراک‌ها و لایسنس‌ها را در یک تجربه‌ی امن و هماهنگ مدیریت کنید؛ ساده، شفاف و بدون شلوغی.</p>
-    <div class="hero-actions"><a class="button button-primary button-large" href="#products">کشف محصولات <span aria-hidden="true">↙</span></a><a class="button button-glass button-large" href="{% if user.is_authenticated %}{% url 'portal:dashboard' %}{% else %}{% url 'login' %}{% endif %}">{% if user.is_authenticated %}ورود به فضای من{% else %}ورود به حساب{% endif %} ↗</a></div>
-    <div class="nv-hero-trust"><span><i class="pulse"></i> حساب شخصی امن</span><span>◇ خرید و لایسنس یکپارچه</span><span>⌁ تجربه‌ی هماهنگ</span></div>
-  </div>
-  <div class="nv-hero-visual" aria-label="تصویر انتزاعی فضای امن نبیولا والت">
-    <div class="nv-visual-halo"></div><div class="nv-visual-orbit nv-orbit-one"></div><div class="nv-visual-orbit nv-orbit-two"></div><div class="nv-visual-orbit nv-orbit-three"></div>
-    <div class="nv-visual-core"><div class="nv-core-inner">◇</div><span class="nv-core-caption">NEBULA VAULT</span></div>
-    <div class="nv-float-card nv-float-top"><span class="nv-float-icon">⌑</span><span><strong>فضای محافظت‌شده</strong><small>حساب شما، در یک نگاه</small></span><i class="pulse"></i></div>
-    <div class="nv-float-card nv-float-bottom"><span class="nv-float-icon">✦</span><span><strong>همه‌چیز هماهنگ</strong><small>محصول · خرید · لایسنس</small></span></div>
-    <span class="nv-visual-star nv-star-one">✦</span><span class="nv-visual-star nv-star-two">✧</span>
-  </div>
-  <a class="nv-scroll-cue" href="#products"><span></span> برای کشف بیشتر اسکرول کنید</a>
-</section>
-
-<section class="nv-proof-strip"><div class="page-wrap nv-proof-inner"><span>یک تجربه‌ی یکپارچه</span><span><b>01</b> انتخاب محصول</span><span><b>02</b> خرید شفاف</span><span><b>03</b> مدیریت لایسنس</span><span><b>04</b> کنترل از پیشخوان</span></div></section>
-
-<section class="section page-wrap nv-home-section" id="products">
-  <div class="section-heading"><div><div class="eyebrow">مجموعه محصولات</div><h2>ابزارهایی که با شما هماهنگ‌اند.</h2><p>محصولات نبیولا والت را در یک فضای منظم کشف کنید.</p></div><span class="nv-section-index">01 / PRODUCTS</span></div>
-  {% if products %}<div class="product-grid nv-home-product-grid">{% for product in products %}<article class="product-card nv-product-card"><div class="nv-product-topline"><span class="product-icon product-icon-{{ forloop.counter }}">◈</span><span class="nv-product-index">NV · 0{{ forloop.counter }}</span></div><h3>{{ product.name }}</h3><p>{{ product.description|striptags|default:'ابزاری سنجیده برای ساده‌تر کردن کارهای دیجیتال شما.'|truncatewords:25 }}</p><div class="nv-product-meta"><span class="pill pill-live"><i></i> آماده‌ی بررسی</span><span>{{ product.plans.all|length }} طرح</span></div><a class="nv-card-link" href="{% url 'portal:product_detail' product.slug %}">بررسی محصول <span>↗</span></a></article>{% endfor %}</div>{% else %}<div class="empty-state"><span class="empty-symbol">◈</span><h3>محصول بعدی از اینجا شروع می‌شود.</h3><p>محصولات پس از انتشار توسط تیم در این بخش نمایش داده می‌شوند.</p>{% if user.is_staff %}<a class="button button-primary" href="/admin/">مدیریت محصولات ↗</a>{% endif %}</div>{% endif %}
-</section>
-
-<section class="nv-pricing-band" id="pricing"><div class="page-wrap section nv-home-section">
-  <div class="section-heading"><div><div class="eyebrow">تعرفه‌های شفاف</div><h2>طرح مناسب خودتان را انتخاب کنید.</h2><p>پیش از خرید، مدت و مبلغ هر طرح را ببینید؛ بدون غافلگیری.</p></div><span class="nv-section-index">02 / PLANS</span></div>
-  {% if plans %}<div class="nv-plan-grid">{% for plan in plans %}<article class="nv-plan-card"><div class="nv-plan-product">{{ plan.product.name }}</div><h3>{{ plan.name }}</h3><div class="nv-plan-price"><strong>{{ plan.price_minor_units|money }}</strong><span>{{ plan.currency|default:"ریال" }}</span></div><div class="nv-plan-duration">{% if plan.duration_value %}{{ plan.duration_value }} {% if plan.duration_unit == "days" %}روز{% elif plan.duration_unit == "months" %}ماه{% elif plan.duration_unit == "years" %}سال{% else %}واحد زمانی{% endif %}{% else %}مدت طبق جزئیات طرح{% endif %}</div><a class="button button-glass nv-plan-button" href="{% url 'portal:product_detail' plan.product.slug %}">{% if plan.is_renewal %}جزئیات و تمدید{% else %}جزئیات و خرید{% endif %} <span>↗</span></a></article>{% endfor %}</div>{% else %}<div class="nv-section-empty">در حال حاضر طرح فعالی برای خرید منتشر نشده است.</div>{% endif %}
-  <p class="nv-pricing-footnote">مبلغ نهایی و جزئیات هر طرح پیش از پرداخت نمایش داده می‌شود.</p>
-</div></section>
-
-<section class="section page-wrap nv-home-section" id="features"><div class="section-heading"><div><div class="eyebrow">طراحی حول محور شما</div><h2>یک حساب. همه‌ی ابزارهای مهم.</h2><p>تجربه‌ای که از صفحه‌ی اصلی تا پیشخوان کاربر، یک زبان بصری دارد.</p></div><span class="nv-section-index">03 / EXPERIENCE</span></div>
-<div class="nv-feature-grid">
-  <article class="nv-feature-card nv-feature-highlight"><span class="nv-feature-icon">⌘</span><span class="nv-feature-number">01</span><h3>پیشخوان متمرکز</h3><p>اشتراک‌های فعال، سفارش‌های اخیر، وضعیت لایسنس‌ها و تنظیمات حساب در یک فضای مشخص.</p><a href="{% if user.is_authenticated %}{% url 'portal:dashboard' %}{% else %}{% url 'login' %}{% endif %}">رفتن به فضای کار <span>↗</span></a></article>
-  <article class="nv-feature-card"><span class="nv-feature-icon">◇</span><span class="nv-feature-number">02</span><h3>خرید شفاف</h3><p>طرح‌ها، مدت اعتبار و مبلغ را پیش از ادامه‌ی خرید بررسی کنید.</p><a href="#pricing">دیدن طرح‌ها <span>↙</span></a></article>
-  <article class="nv-feature-card"><span class="nv-feature-icon">⌑</span><span class="nv-feature-number">03</span><h3>مدیریت دسترسی</h3><p>اطلاعات لایسنس و وضعیت اشتراک‌ها را در فضای حساب خود دنبال کنید.</p><a href="{% if user.is_authenticated %}{% url 'portal:dashboard' %}#my-licenses{% else %}{% url 'login' %}{% endif %}">لایسنس‌های من <span>↗</span></a></article>
-</div></section>
-
-<section class="section page-wrap nv-home-section nv-blog-home" id="blog"><div class="section-heading"><div><div class="eyebrow">مجله‌ی نبیولا</div><h2>تازه‌ترین نوشته‌ها.</h2><p>راهنماها، خبرها و نکته‌های کاربردی در یک جا.</p></div><a class="button button-quiet button-small" href="{% url 'blog:post_list' %}">همه‌ی نوشته‌ها ↗</a></div>{% if latest_blog_posts %}<div class="nv-blog-grid">{% for post in latest_blog_posts %}<article class="nv-blog-card"><a class="nv-blog-cover" href="{% url 'blog:post_detail' post.slug %}">{% if post.cover_image %}<img src="{{ post.cover_image.url }}" alt="{{ post.title }}" loading="lazy">{% else %}<span class="nv-blog-cover-placeholder">◇<small>NEBULA JOURNAL</small></span>{% endif %}</a><div class="nv-blog-card-body"><div class="nv-blog-meta">{{ post.published_at|date:"Y/m/d" }}{% if post.category %} · {{ post.category }}{% endif %}</div><h3><a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a></h3><p>{{ post.excerpt|default:post.content|striptags|truncatewords:24 }}</p><a class="nv-card-link" href="{% url 'blog:post_detail' post.slug %}">ادامه‌ی مطلب <span>↗</span></a></div></article>{% endfor %}</div>{% else %}<div class="nv-section-empty">نوشته‌های بلاگ پس از انتشار در این بخش نمایش داده می‌شوند.</div>{% endif %}</section><section class="nv-release-section" id="releases"><div class="page-wrap section nv-home-section"><div class="section-heading"><div><div class="eyebrow">نسخه‌های منتشرشده</div><h2>همیشه آماده‌ی قدم بعدی.</h2><p>نسخه‌های منتشرشده را از یک نقطه پیدا کنید.</p></div><span class="nv-section-index">04 / RELEASES</span></div>
-{% if releases %}<div class="release-list nv-release-list">{% for release in releases %}<div class="release-row"><div class="release-mark">↓</div><div class="release-info"><strong>{{ release.product.name }} <span>v{{ release.version }}</span></strong><small>{% if release.platform == "windows" %}ویندوز{% elif release.platform == "macos" %}مک‌اواس{% elif release.platform == "linux" %}لینوکس{% else %}سایر سامانه‌ها{% endif %} · {% if release.architecture == "universal" %}همه معماری‌ها{% elif release.architecture == "x64" %}x64{% elif release.architecture == "arm64" %}ARM64{% else %}معماری نامشخص{% endif %}{% if release.published_at %} · {{ release.published_at|date:'Y/m/d' }}{% endif %}</small></div><a class="button button-quiet button-small" href="{{ release.download_url }}" rel="noopener noreferrer">دریافت ↗</a></div>{% endfor %}</div>{% else %}<div class="nv-section-empty">نسخه‌های جدید پس از انتشار در اینجا فهرست می‌شوند.</div>{% endif %}</div></section>
-
-<section class="section page-wrap nv-home-section nv-faq-section" id="about"><div class="section-heading"><div><div class="eyebrow">پرسش‌های رایج</div><h2>شروعی ساده و روشن.</h2><p>چند پاسخ کوتاه برای شروع کار با نبیولا والت.</p></div><span class="nv-section-index">05 / FAQ</span></div>
-<div class="nv-faq-list"><details><summary>چطور خریدها و لایسنس‌هایم را ببینم؟<span>＋</span></summary><p>پس از ورود به حساب، از پیشخوان می‌توانید سفارش‌ها، اشتراک‌ها و لایسنس‌های مرتبط با حساب خود را مشاهده کنید.</p></details><details><summary>برای ساخت حساب چه کاری لازم است؟<span>＋</span></summary><p>با ایمیل و رمز عبور ثبت‌نام کنید و نشانی ایمیل خود را از طریق پیوند یا کد تأیید ارسال‌شده فعال کنید.</p></details><details><summary>آیا برای دیدن طرح‌ها باید وارد حساب شوم؟<span>＋</span></summary><p>خیر؛ می‌توانید محصولات و طرح‌ها را بررسی کنید. برای مدیریت خریدها و دسترسی‌های شخصی، ورود به حساب لازم است.</p></details></div></section>
-
-<section class="closing-cta page-wrap nv-final-cta"><div class="eyebrow"><i class="pulse"></i> فضای شما آماده است</div><h2>تجربه‌ی یکپارچه را شروع کنید.</h2><p>یک حساب بسازید و ابزارهای دیجیتال خود را با نظم بیشتری مدیریت کنید.</p><a class="button button-primary button-large" href="{% if user.is_authenticated %}{% url 'portal:dashboard' %}{% else %}{% url 'accounts:register' %}{% endif %}">{% if user.is_authenticated %}ورود به پیشخوان{% else %}ایجاد حساب کاربری{% endif %} ↗</a></section>
+  <section class="nv-home-hero page-wrap" id="home">
+    <div class="nv-hero-copy">
+      <div class="eyebrow"><i class="pulse"></i> فضای دیجیتال شما، با نظم تازه</div>
+      <h1>
+        همه‌چیز سر جای خودش؛
+        <br>
+        <span class="gradient-text">کنترل در دست شما.</span>
+      </h1>
+      <p class="hero-lede">محصولات، خریدها، اشتراک‌ها و لایسنس‌ها را در یک تجربه‌ی امن و هماهنگ مدیریت کنید؛ ساده، شفاف و بدون شلوغی.</p>
+      <div class="hero-actions"><a class="button button-primary button-large" href="#products">کشف محصولات <span aria-hidden="true">↙</span></a><a class="button button-glass button-large"
+   href="{% if user.is_authenticated %}{% url 'portal:dashboard' %}{% else %}{% url 'login' %}{% endif %}">{% if user.is_authenticated %}ورود به فضای من{% else %}ورود به حساب{% endif %} ↗</a></div>
+      <div class="nv-hero-trust"><span><i class="pulse"></i> حساب شخصی امن</span><span>◇ خرید و لایسنس یکپارچه</span><span>⌁ تجربه‌ی هماهنگ</span></div>
+    </div>
+    <div class="nv-hero-visual"
+         aria-label="تصویر انتزاعی فضای امن نبیولا والت">
+      <div class="nv-visual-halo"></div>
+      <div class="nv-visual-orbit nv-orbit-one"></div>
+      <div class="nv-visual-orbit nv-orbit-two"></div>
+      <div class="nv-visual-orbit nv-orbit-three"></div>
+      <div class="nv-visual-core">
+        <div class="nv-core-inner">◇</div>
+        <span class="nv-core-caption">NEBULA VAULT</span>
+      </div>
+      <div class="nv-float-card nv-float-top"><span class="nv-float-icon">⌑</span><span><strong>فضای محافظت‌شده</strong><small>حساب شما، در یک نگاه</small></span><i class="pulse"></i></div>
+      <div class="nv-float-card nv-float-bottom"><span class="nv-float-icon">✦</span><span><strong>همه‌چیز هماهنگ</strong><small>محصول · خرید · لایسنس</small></span></div>
+      <span class="nv-visual-star nv-star-one">✦</span><span class="nv-visual-star nv-star-two">✧</span>
+    </div>
+    <a class="nv-scroll-cue" href="#products"><span></span> برای کشف بیشتر اسکرول کنید</a>
+  </section>
+  <section class="nv-proof-strip">
+    <div class="page-wrap nv-proof-inner"><span>یک تجربه‌ی یکپارچه</span><span><b>01</b> انتخاب محصول</span><span><b>02</b> خرید شفاف</span><span><b>03</b> مدیریت لایسنس</span><span><b>04</b> کنترل از پیشخوان</span></div>
+  </section>
+  <section class="section page-wrap nv-home-section" id="products">
+    <div class="section-heading">
+      <div>
+        <div class="eyebrow">مجموعه محصولات</div>
+        <h2>ابزارهایی که با شما هماهنگ‌اند.</h2>
+        <p>محصولات نبیولا والت را در یک فضای منظم کشف کنید.</p>
+      </div>
+      <span class="nv-section-index">01 / PRODUCTS</span>
+    </div>
+    {% if products %}<div class="product-grid nv-home-product-grid">{% for product in products %}<article class="product-card nv-product-card"><div class="nv-product-topline"><span class="product-icon product-icon-{{ forloop.counter }}">◈</span><span class="nv-product-index">NV · 0{{ forloop.counter }}</span></div><h3>{{ product.name }}</h3><p>{{ product.description|striptags|default:'ابزاری سنجیده برای ساده‌تر کردن کارهای دیجیتال شما.'|truncatewords:25 }}</p><div class="nv-product-meta"><span class="pill pill-live"><i></i> آماده‌ی بررسی</span><span>{{ product.plans.all|length }} طرح</span></div><a class="nv-card-link"
+   href="{% url 'portal:product_detail' product.slug %}">بررسی محصول <span>↗</span></a></article>{% endfor %}</div>{% else %}<div class="empty-state"><span class="empty-symbol">◈</span><h3>محصول بعدی از اینجا شروع می‌شود.</h3><p>محصولات پس از انتشار توسط تیم در این بخش نمایش داده می‌شوند.</p>{% if user.is_staff %}<a class="button button-primary" href="/admin/">مدیریت محصولات ↗</a>{% endif %}</div>{% endif %}
+  </section>
+  <section class="nv-pricing-band" id="pricing">
+    <div class="page-wrap section nv-home-section">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">تعرفه‌های شفاف</div>
+          <h2>طرح مناسب خودتان را انتخاب کنید.</h2>
+          <p>پیش از خرید، مدت و مبلغ هر طرح را ببینید؛ بدون غافلگیری.</p>
+        </div>
+        <span class="nv-section-index">02 / PLANS</span>
+      </div>
+      {% if plans %}<div class="nv-plan-grid">{% for plan in plans %}<article class="nv-plan-card"><div class="nv-plan-product">{{ plan.product.name }}</div><h3>{{ plan.name }}</h3><div class="nv-plan-price"><strong>{{ plan.price_minor_units|money }}</strong><span>{{ plan.currency|default:"ریال" }}</span></div><div class="nv-plan-duration">{% if plan.duration_value %}{{ plan.duration_value }} {% if plan.duration_unit == "days" %}روز{% elif plan.duration_unit == "months" %}ماه{% elif plan.duration_unit == "years" %}سال{% else %}واحد زمانی{% endif %}{% else %}مدت طبق جزئیات طرح{% endif %}</div><a class="button button-glass nv-plan-button"
+   href="{% url 'portal:product_detail' plan.product.slug %}">{% if plan.is_renewal %}جزئیات و تمدید{% else %}جزئیات و خرید{% endif %} <span>↗</span></a></article>{% endfor %}</div>{% else %}<div class="nv-section-empty">در حال حاضر طرح فعالی برای خرید منتشر نشده است.</div>{% endif %}
+      <p class="nv-pricing-footnote">مبلغ نهایی و جزئیات هر طرح پیش از پرداخت نمایش داده می‌شود.</p>
+    </div>
+  </section>
+  <section class="section page-wrap nv-home-section" id="features">
+    <div class="section-heading">
+      <div>
+        <div class="eyebrow">طراحی حول محور شما</div>
+        <h2>یک حساب. همه‌ی ابزارهای مهم.</h2>
+        <p>تجربه‌ای که از صفحه‌ی اصلی تا پیشخوان کاربر، یک زبان بصری دارد.</p>
+      </div>
+      <span class="nv-section-index">03 / EXPERIENCE</span>
+    </div>
+    <div class="nv-feature-grid">
+      <article class="nv-feature-card nv-feature-highlight"><span class="nv-feature-icon">⌘</span><span class="nv-feature-number">01</span><h3>پیشخوان متمرکز</h3><p>اشتراک‌های فعال، سفارش‌های اخیر، وضعیت لایسنس‌ها و تنظیمات حساب در یک فضای مشخص.</p><a href="{% if user.is_authenticated %}{% url 'portal:dashboard' %}{% else %}{% url 'login' %}{% endif %}">رفتن به فضای کار <span>↗</span></a></article>
+      <article class="nv-feature-card"><span class="nv-feature-icon">◇</span><span class="nv-feature-number">02</span>
+        <h3>خرید شفاف</h3>
+        <p>طرح‌ها، مدت اعتبار و مبلغ را پیش از ادامه‌ی خرید بررسی کنید.</p>
+        <a href="#pricing">دیدن طرح‌ها <span>↙</span></a></article>
+      <article class="nv-feature-card"><span class="nv-feature-icon">⌑</span><span class="nv-feature-number">03</span><h3>مدیریت دسترسی</h3><p>اطلاعات لایسنس و وضعیت اشتراک‌ها را در فضای حساب خود دنبال کنید.</p><a href="{% if user.is_authenticated %}{% url 'portal:dashboard' %}#my-licenses{% else %}{% url 'login' %}{% endif %}">لایسنس‌های من <span>↗</span></a></article>
+    </div>
+  </section>
+  <section class="section page-wrap nv-home-section nv-blog-home" id="blog"><div class="section-heading"><div><div class="eyebrow">مجله‌ی نبیولا</div><h2>تازه‌ترین نوشته‌ها.</h2><p>راهنماها، خبرها و نکته‌های کاربردی در یک جا.</p></div><a class="button button-quiet button-small"
+   href="{% url 'blog:post_list' %}">همه‌ی نوشته‌ها ↗</a></div>{% if latest_blog_posts %}<div class="nv-blog-grid">{% for post in latest_blog_posts %}<article class="nv-blog-card"><a class="nv-blog-cover" href="{% url 'blog:post_detail' post.slug %}">{% if post.cover_image %}<img src="{{ post.cover_image.url }}"
+     alt="{{ post.title }}"
+     loading="lazy">{% else %}<span class="nv-blog-cover-placeholder">◇<small>NEBULA JOURNAL</small></span>{% endif %}</a><div class="nv-blog-card-body"><div class="nv-blog-meta">{{ post.published_at|date:"Y/m/d" }}{% if post.category %} · {{ post.category }}{% endif %}</div><h3><a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a></h3><p>{{ post.excerpt|default:post.content|striptags|truncatewords:24 }}</p><a class="nv-card-link" href="{% url 'blog:post_detail' post.slug %}">ادامه‌ی مطلب <span>↗</span></a></div></article>{% endfor %}</div>{% else %}<div class="nv-section-empty">نوشته‌های بلاگ پس از انتشار در این بخش نمایش داده می‌شوند.</div>{% endif %}</section><section class="nv-release-section" id="releases"><div class="page-wrap section nv-home-section"><div class="section-heading"><div><div class="eyebrow">نسخه‌های منتشرشده</div><h2>همیشه آماده‌ی قدم بعدی.</h2><p>نسخه‌های منتشرشده را از یک نقطه پیدا کنید.</p></div><span class="nv-section-index">04 / RELEASES</span></div>
+  {% if releases %}<div class="release-list nv-release-list">{% for release in releases %}<div class="release-row"><div class="release-mark">↓</div><div class="release-info"><strong>{{ release.product.name }} <span>v{{ release.version }}</span></strong><small>{% if release.platform == "windows" %}ویندوز{% elif release.platform == "macos" %}مک‌اواس{% elif release.platform == "linux" %}لینوکس{% else %}سایر سامانه‌ها{% endif %} · {% if release.architecture == "universal" %}همه معماری‌ها{% elif release.architecture == "x64" %}x64{% elif release.architecture == "arm64" %}ARM64{% else %}معماری نامشخص{% endif %}{% if release.published_at %} · {{ release.published_at|date:'Y/m/d' }}{% endif %}</small></div><a class="button button-quiet button-small"
+   href="{{ release.download_url }}"
+   rel="noopener noreferrer">دریافت ↗</a></div>{% endfor %}</div>{% else %}<div class="nv-section-empty">نسخه‌های جدید پس از انتشار در اینجا فهرست می‌شوند.</div>{% endif %}</div></section>
+  <section class="section page-wrap nv-home-section nv-faq-section" id="about">
+    <div class="section-heading">
+      <div>
+        <div class="eyebrow">پرسش‌های رایج</div>
+        <h2>شروعی ساده و روشن.</h2>
+        <p>چند پاسخ کوتاه برای شروع کار با نبیولا والت.</p>
+      </div>
+      <span class="nv-section-index">05 / FAQ</span>
+    </div>
+    <div class="nv-faq-list">
+      <details>
+        <summary>چطور خریدها و لایسنس‌هایم را ببینم؟<span>＋</span></summary>
+        <p>پس از ورود به حساب، از پیشخوان می‌توانید سفارش‌ها، اشتراک‌ها و لایسنس‌های مرتبط با حساب خود را مشاهده کنید.</p>
+      </details>
+      <details>
+        <summary>برای ساخت حساب چه کاری لازم است؟<span>＋</span></summary>
+        <p>با ایمیل و رمز عبور ثبت‌نام کنید و نشانی ایمیل خود را از طریق پیوند یا کد تأیید ارسال‌شده فعال کنید.</p>
+      </details>
+      <details>
+        <summary>آیا برای دیدن طرح‌ها باید وارد حساب شوم؟<span>＋</span></summary>
+        <p>خیر؛ می‌توانید محصولات و طرح‌ها را بررسی کنید. برای مدیریت خریدها و دسترسی‌های شخصی، ورود به حساب لازم است.</p>
+      </details>
+    </div>
+  </section>
+  <section class="closing-cta page-wrap nv-final-cta"><div class="eyebrow"><i class="pulse"></i> فضای شما آماده است</div><h2>تجربه‌ی یکپارچه را شروع کنید.</h2><p>یک حساب بسازید و ابزارهای دیجیتال خود را با نظم بیشتری مدیریت کنید.</p><a class="button button-primary button-large"
+   href="{% if user.is_authenticated %}{% url 'portal:dashboard' %}{% else %}{% url 'accounts:register' %}{% endif %}">{% if user.is_authenticated %}ورود به پیشخوان{% else %}ایجاد حساب کاربری{% endif %} ↗</a></section>
 {% endblock %}
