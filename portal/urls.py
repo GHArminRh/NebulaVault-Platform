@@ -1,9 +1,12 @@
 from django.urls import path
 from . import views
+from .cms_home import cms_home
 
 app_name = "portal"
 urlpatterns = [
-    path("", views.home, name="home"),
+    # The CMS homepage is seeded/repaired after migrations. Keep the existing
+    # storefront view as a safe fallback if the CMS homepage is unavailable.
+    path("", cms_home, name="home"),
     path("products/", views.products, name="products"),
     path("products/<slug:slug>/", views.product_detail, name="product_detail"),
     path("pricing/", views.pricing, name="pricing"),
