@@ -18,41 +18,13 @@ from subscriptions.models import Subscription
 from subscriptions.services import TrialAlreadyUsed, TrialUnavailable, start_trial as create_trial_subscription
 
 def home(request):
-    # Render the published CMS home page when one exists. The CMS URLs are
-    # mounted below /pages/, so request.current_page is not reliably populated
-    # for the root URL; resolve the configured home page directly as a fallback.
-    try:
-        from cms.models import PageUrl
-        from cms.views import details as cms_page_details
-
-        language = getattr(request, "LANGUAGE_CODE", settings.LANGUAGE_CODE)
-        current_page = getattr(request, "current_page", None)
-        if current_page is not None:
-            is_cms_home = PageUrl.objects.filter(
-                page=current_page,
-                language=language,
-                path__in=("", "/"),
-            ).exists()
-        else:
-            is_cms_home = PageUrl.objects.filter(
-                page__is_home=True,
-                language=language,
-                site_id=settings.SITE_ID,
-                path__in=("", "/"),
-            ).exists()
-        if is_cms_home:
-            return cms_page_details(request, slug="")
-    except (ImportError, AttributeError, TypeError, ValueError):
-        # A missing or unconfigured CMS homepage must not break the live site.
-        pass
-
+    # Keep the established storefront homepage as the public root page.
+    # CMS pages remain available under /pages/; an incomplete CMS page must
+    # never replace the production storefront.
     products = Product.objects.filter(is_active=True).prefetch_related(Prefetch("plans", queryset=Plan.objects.filter(is_active=True)))[:3]
     releases = Release.objects.filter(is_published=True, product__is_active=True).select_related("product")[:3]
     plans = list(Plan.objects.filter(is_active=True, product__is_active=True).select_related("product"))
     renewable_plan_ids = set()
-    # Staff sessions may remain authenticated on the CMS homepage so editors
-    # can use the frontend toolbar. Subscriptions belong to customer accounts,
-    # so never query them with a staff identity (which can raise a 500).
     if request.user.is_authenticated and not getattr(request.user, "is_staff", False):
         now = timezone.now()
         renewable_plan_ids = set(
