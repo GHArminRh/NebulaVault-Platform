@@ -3751,7 +3751,7 @@ body.nv-portal {
 
 /* A single slow light travels around the OUTER header frame, not the inner nav pill. */
 @property --nv-header-border-angle {
-  syntax: "<angle>";
+  syntax: '<angle>';
   inherits: false;
   initial-value: 0deg;
 }
@@ -3761,7 +3761,7 @@ body.nv-portal > header.site-header {
 }
 
 body.nv-portal > header.site-header::before {
-  content: "";
+  content: '';
   position: absolute;
   z-index: 1;
   inset: -1px;
