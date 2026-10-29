@@ -21,10 +21,8 @@ jobs:
       group: frontend-quality-${{ github.ref }}
       cancel-in-progress: true
     steps:
-      - name: Check out progress-fix branch for formatter diagnosis
+      - name: Check out source
         uses: actions/checkout@v4
-        with:
-          ref: fix/page-progress-tip-synchronization
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -40,19 +38,6 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
           npm install --no-audit --no-fund
-
-      - name: Format the two progress assets for diagnosis
-        run: npx prettier --write static/portal/css/unified-experience.css static/portal/js/site.js
-
-      - name: Upload formatter output
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: progress-assets-prettier-output
-          path: |
-            static/portal/css/unified-experience.css
-            static/portal/js/site.js
-          if-no-files-found: error
 
       - name: Check CSS, JavaScript, and tooling formatting
         run: npm run check:assets
