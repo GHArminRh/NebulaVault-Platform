@@ -1935,8 +1935,8 @@ html {
     min-width: 16px;
     height: 16px;
     font-size: 8px;
-    display: none;
   }
+  
   .cart-hover-panel {
     top: 72px;
     left: 12px;
@@ -2016,6 +2016,12 @@ html {
 @media (max-width: 1050px) {
   .nv-dashboard-layout {
     grid-template-columns: 185px minmax(0, 1fr);
+  }
+}
+@media (max-width: 820px) {
+  
+  #dashboard-activity {
+    scroll-margin-top: 86px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2783,6 +2789,30 @@ html {
 .nv-dashboard-content .nv-main-columns {
   scroll-margin-top: 0 !important;
 }
+@media (max-width: 820px) {
+  
+  
+  .nv-dashboard-layout {
+    overflow: visible !important;
+  }
+  .nv-dash-rail {
+    position: sticky !important;
+    top: 72px !important;
+    z-index: 30 !important;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap !important;
+    white-space: nowrap;
+    background: rgba(13, 19, 35, 0.97);
+    backdrop-filter: blur(18px);
+  }
+  .nv-rail-link {
+    flex: 0 0 auto !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
     scroll-behavior: auto !important;
   }
 }
@@ -2925,8 +2955,8 @@ html {
     border-radius: 18px !important;
     padding: 8px !important;
     margin-bottom: 8px;
-    flex: 0 0 auto !important;
   }
+  
 }
 @media (prefers-reduced-motion: reduce) {
   .nv-rail-link,
@@ -3687,10 +3717,13 @@ body.nv-portal {
   .nv-dashboard-page .nv-dash-rail .nv-rail-link {
     flex: 1 1 calc(50% - 8px) !important;
     min-width: 0 !important;
-    display: contents !important;
   }
+  
   .nv-dashboard-page .nv-dash-rail .nv-dashboard-logout {
     flex: 1 1 calc(50% - 8px) !important;
     margin: 0 !important;
   }
+}
+@media (max-width: 420px) {
+  
 }
