@@ -1,0 +1,56 @@
+name: Public frontend browser audit
+
+on:
+  push:
+    branches:
+      - maintenance/frontend-full-quality-oct-2026
+      - deploy/render-ready
+  pull_request:
+    branches:
+      - deploy/render-ready
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-frontend-browser-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    name: Smoke, responsive, and accessibility tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PLAYWRIGHT_BASE_URL: https://nebula-vault-oesn.onrender.com
+      CI: "true"
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install locked development dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser regression suite
+        run: npm run test:e2e
+
+      - name: Upload browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-browser-diagnostics
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7
