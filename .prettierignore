@@ -1,0 +1,13 @@
+# Generated Python assets
+**/migrations/**
+**/__pycache__/**
+
+# Vendored or generated assets
+node_modules/
+staticfiles/
+media/
+
+# Keep Django Admin templates and email HTML untouched by public-site formatting
+templates/admin/
+templates/registration/
+registration/
