@@ -14,6 +14,30 @@ const PUBLIC_ROUTES = [
   { name: "subscriptions entry", path: "/subscriptions/" },
 ];
 
+test("deployed frontend styles are updated before regression checks", async ({ page }) => {
+  await expect
+    .poll(
+      async () => {
+        try {
+          const response = await page.goto("/", {
+            waitUntil: "domcontentloaded",
+            timeout: 15_000,
+          });
+          if (!response || response.status() >= 500) return "unavailable";
+          return await page.evaluate(() => getComputedStyle(document.documentElement).overflowX);
+        } catch {
+          return "unavailable";
+        }
+      },
+      {
+        timeout: 240_000,
+        intervals: [5_000, 10_000, 15_000],
+        message: "Wait for Render to publish the new frontend CSS",
+      },
+    )
+    .toBe("clip");
+}, 250_000);
+
 test.describe("public frontend smoke checks", () => {
   for (const route of PUBLIC_ROUTES) {
     test(`${route.name} route renders without a server error`, async ({ page }) => {
@@ -63,11 +87,30 @@ test.describe("responsive layout", () => {
       for (const route of responsiveRoutes) {
         await page.goto(route, { waitUntil: "domcontentloaded" });
         await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-        const dimensions = await page.evaluate(() => ({
-          viewport: window.innerWidth,
-          document: document.documentElement.scrollWidth,
-          body: document.body.scrollWidth,
-        }));
+        const dimensions = await page.evaluate(() => {
+          const viewport = window.innerWidth;
+          const overflowingElements = Array.from(document.querySelectorAll("*"))
+            .map((element) => {
+              const rect = element.getBoundingClientRect();
+              return {
+                tag: element.tagName.toLowerCase(),
+                id: element.id,
+                className: typeof element.className === "string" ? element.className : "",
+                left: Math.round(rect.left),
+                right: Math.round(rect.right),
+                width: Math.round(rect.width),
+                position: getComputedStyle(element).position,
+              };
+            })
+            .filter((element) => element.left < -1 || element.right > viewport + 1)
+            .slice(0, 20);
+          return {
+            viewport,
+            document: document.documentElement.scrollWidth,
+            body: document.body.scrollWidth,
+            overflowingElements,
+          };
+        });
 
         expect(
           Math.max(dimensions.document, dimensions.body),
