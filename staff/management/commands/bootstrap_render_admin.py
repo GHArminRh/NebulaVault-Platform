@@ -3,6 +3,7 @@ import os
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 
@@ -23,6 +24,12 @@ class Command(BaseCommand):
             defaults={"domain": "mydigigi.ir", "name": "Nebula Vault"},
         )
         self.stdout.write(self.style.SUCCESS(f"Primary Django Site {site_id} is ready."))
+
+        # The Render service's configured start command already invokes this
+        # command. Bootstrap the editable CMS homepage here as well, so the
+        # live service does not depend on a Blueprint sync to pick up changes
+        # made to render.yaml's startCommand.
+        call_command("bootstrap_cms_homepage")
 
         password = os.environ.get("NEBULA_BOOTSTRAP_ADMIN_PASSWORD", "")
         if not password:
