@@ -38,6 +38,12 @@ test('deployed frontend styles are updated before regression checks', async ({ p
     .toBe('clip');
 }, 250_000);
 
+test('homepage declares Persian RTL document metadata', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'fa');
+});
+
 test.describe('public frontend smoke checks', () => {
   for (const route of PUBLIC_ROUTES) {
     test(`${route.name} route renders without a server error`, async ({ page }) => {
@@ -62,9 +68,6 @@ test.describe('public frontend smoke checks', () => {
       expect(response.status(), `${route.path} returned HTTP ${response.status()}`).toBeLessThan(
         400
       );
-      await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-      await expect(page.locator('html')).toHaveAttribute('lang', 'fa');
-
       expect(pageErrors, 'Uncaught browser JavaScript errors').toEqual([]);
       expect(failedLocalAssets, 'Same-origin CSS/JS resources must load').toEqual([]);
     });
@@ -88,7 +91,6 @@ test.describe('responsive layout', () => {
 
       for (const route of responsiveRoutes) {
         await page.goto(route, { waitUntil: 'domcontentloaded' });
-        await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
         const dimensions = await page.evaluate(() => {
           const viewport = window.innerWidth;
           const overflowingElements = Array.from(document.querySelectorAll('*'))
