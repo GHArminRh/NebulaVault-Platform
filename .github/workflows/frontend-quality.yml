@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - deploy/render-ready
+      - maintenance/frontend-full-quality-oct-2026
   pull_request:
     branches:
       - deploy/render-ready
