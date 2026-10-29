@@ -1,0 +1,28 @@
+/* Payment result panel and actions. */
+.nv-payment-result-panel {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.nv-payment-license-note {
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+
+.nv-payment-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 560px) {
+  .nv-payment-result-panel {
+    padding: 1.25rem;
+  }
+
+  .nv-payment-result-actions > .button {
+    width: 100%;
+  }
+}
