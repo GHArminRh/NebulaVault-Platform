@@ -33,7 +33,7 @@ test('deployed frontend styles are updated before regression checks', async ({ p
         timeout: 240_000,
         intervals: [5_000, 10_000, 15_000],
         message: 'Wait for Render to publish the new frontend CSS',
-      },
+      }
     )
     .toBe('clip');
 }, 250_000);
@@ -59,10 +59,9 @@ test.describe('public frontend smoke checks', () => {
 
       const response = await page.goto(route.path, { waitUntil: 'domcontentloaded' });
       expect(response, 'The browser should receive an HTTP response').not.toBeNull();
-      expect(
-        response.status(),
-        `${route.path} returned HTTP ${response.status()}`,
-      ).toBeLessThan(500);
+      expect(response.status(), `${route.path} returned HTTP ${response.status()}`).toBeLessThan(
+        500
+      );
       await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
       await expect(page.locator('html')).toHaveAttribute('lang', 'fa');
 
@@ -117,7 +116,7 @@ test.describe('responsive layout', () => {
 
         expect(
           Math.max(dimensions.document, dimensions.body),
-          `${route} overflows horizontally: ${JSON.stringify(dimensions)}`,
+          `${route} overflows horizontally: ${JSON.stringify(dimensions)}`
         ).toBeLessThanOrEqual(dimensions.viewport + 1);
       }
     });
@@ -140,7 +139,7 @@ test.describe('accessibility', () => {
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
         .analyze();
       const blocking = results.violations.filter((violation) =>
-        ['critical', 'serious'].includes(violation.impact || ''),
+        ['critical', 'serious'].includes(violation.impact || '')
       );
 
       expect(
@@ -153,7 +152,7 @@ test.describe('accessibility', () => {
             summary: node.failureSummary,
           })),
         })),
-        'Resolve serious and critical accessibility violations',
+        'Resolve serious and critical accessibility violations'
       ).toEqual([]);
     });
   }
