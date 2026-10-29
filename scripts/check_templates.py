@@ -57,8 +57,12 @@ def main() -> int:
         relative = template.relative_to(ROOT).as_posix()
         print(f"  {action[2:].capitalize()}: {relative}", flush=True)
         try:
+            command = [executable, action, "--profile=django", "--indent=2"]
+            if args.reformat:
+                command.extend(["--warn", "--quiet"])
+            command.append(str(template))
             result = subprocess.run(
-                [executable, action, "--profile=django", "--indent=2", str(template)],
+                command,
                 capture_output=True,
                 text=True,
                 check=False,
