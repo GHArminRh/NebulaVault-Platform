@@ -208,6 +208,40 @@ CMS_MEDIA_UPLOADS_ENABLED = bool(
     and AWS_ACCESS_KEY_ID
     and AWS_SECRET_ACCESS_KEY
 )
+
+# Keep the CMS editor constrained to the layout region it is editing. These
+# slot-specific allow-lists prevent arbitrary plugins from breaking the page
+# structure and make the editor's options predictable.
+CMS_PLACEHOLDER_CONF = {
+    "hero": {
+        "name": "متن و دکمه‌های بنر اصلی",
+        "plugins": ["TextPlugin"],
+    },
+    "content": {
+        "name": "محتوای تکمیلی",
+        "plugins": ["TextPlugin", "ExternalImagePlugin"],
+    },
+    "products": {
+        "name": "محصولات",
+        "plugins": ["LiveProductGridPlugin"],
+    },
+    "pricing": {
+        "name": "تعرفه‌ها",
+        "plugins": ["LivePricingGridPlugin"],
+    },
+    "features": {
+        "name": "امکانات",
+        "plugins": ["TextPlugin", "ExternalImagePlugin"],
+    },
+    "releases": {
+        "name": "نسخه‌های منتشرشده",
+        "plugins": ["LiveReleaseListPlugin"],
+    },
+    "about": {
+        "name": "معرفی و پرسش‌های متداول",
+        "plugins": ["TextPlugin", "ExternalImagePlugin"],
+    },
+}
 DEFAULT_MEDIA_STORAGE = (
     {
         "BACKEND": "storages.backends.s3.S3Storage",
