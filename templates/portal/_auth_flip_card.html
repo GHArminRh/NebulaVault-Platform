@@ -41,7 +41,6 @@
     <p class="nv-auth-security-note"><span>⌑</span> اطلاعات حساب شما از طریق اتصال امن ارسال می‌شود.</p>
   </div>
 </section>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer onload="document.documentElement.classList.add('turnstile-script-loaded')"></script>
 <script>
 (function(){
   var shell=document.querySelector('.nv-auth-shell');
@@ -68,7 +67,10 @@
     });
   }
   window.nvRenderAuthTurnstile=renderActiveTurnstile;
-  window.nvTurnstileReady=renderActiveTurnstile;
+  window.nvTurnstileReady=function(){
+    document.documentElement.classList.add('turnstile-script-loaded');
+    renderActiveTurnstile();
+  };
   renderActiveTurnstile();
 })();
 </script>
