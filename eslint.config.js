@@ -7,6 +7,7 @@ const browserAndWorkerGlobals = [
   'location',
   'history',
   'Node',
+  'NodeFilter',
   'Element',
   'HTMLElement',
   'HTMLInputElement',
