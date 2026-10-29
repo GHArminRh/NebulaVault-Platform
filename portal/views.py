@@ -41,7 +41,10 @@ def home(request):
     releases = Release.objects.filter(is_published=True, product__is_active=True).select_related("product")[:3]
     plans = list(Plan.objects.filter(is_active=True, product__is_active=True).select_related("product"))
     renewable_plan_ids = set()
-    if request.user.is_authenticated:
+    # Staff sessions may remain authenticated on the CMS homepage so editors
+    # can use the frontend toolbar. Subscriptions belong to customer accounts,
+    # so never query them with a staff identity (which can raise a 500).
+    if request.user.is_authenticated and not getattr(request.user, "is_staff", False):
         now = timezone.now()
         renewable_plan_ids = set(
             Subscription.objects.filter(
