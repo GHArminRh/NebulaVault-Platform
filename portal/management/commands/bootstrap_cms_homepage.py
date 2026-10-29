@@ -4,7 +4,8 @@ from django.db import transaction
 from django.contrib.sites.models import Site
 
 from cms.api import add_plugin, create_page
-from cms.models import PageUrl
+from cms.models import PageContent, PageUrl
+from cms.models.pluginmodel import CMSPlugin
 
 
 class Command(BaseCommand):
@@ -25,23 +26,39 @@ class Command(BaseCommand):
             )
             return
 
-        page = create_page(
-            title="خانه",
-            template="portal/cms_home_page.html",
+        # Recover a page left behind by an interrupted earlier startup, rather
+        # than creating another page with the same intended homepage content.
+        existing_content = PageContent.objects.filter(
+            page__site=site,
+            page__parent__isnull=True,
             language="fa",
             slug="home",
-            created_by="bootstrap_cms_homepage",
-            in_navigation=True,
-            published=True,
-            site=site,
-            page_title="نبیولا والت — یک فضای یکپارچه برای دنیای دیجیتال شما",
-            meta_description="محصولات، تعرفه‌ها، نسخه‌ها و محتوای نبیولا والت را در یک فضای امن و یکپارچه ببینید.",
-        )
-        # django CMS 5 exposes homepage assignment as a Page method rather
-        # than a create_page() keyword argument.
+            template="portal/cms_home_page.html",
+        ).select_related("page").first()
+        if existing_content:
+            page = existing_content.page
+        else:
+            page = create_page(
+                title="خانه",
+                template="portal/cms_home_page.html",
+                language="fa",
+                slug="home",
+                created_by="bootstrap_cms_homepage",
+                in_navigation=True,
+                published=True,
+                site=site,
+                page_title="نبیولا والت — یک فضای یکپارچه برای دنیای دیجیتال شما",
+                meta_description="محصولات، تعرفه‌ها، نسخه‌ها و محتوای نبیولا والت را از یک فضای امن و یکپارچه ببینید.",
+            )
+        # django CMS 5 requires homepage assignment inside a transaction.
         with transaction.atomic():
             page.set_as_homepage()
         placeholder = page.get_placeholders(language="fa").get(slot="content")
+        if CMSPlugin.objects.filter(placeholder=placeholder, language="fa").exists():
+            self.stdout.write(self.style.SUCCESS(
+                f"CMS homepage already has content (page id {page.pk}); left unchanged."
+            ))
+            return
 
         # Editable copy is stored in CMS text plugins. Live catalogue plugins
         # continue to read products, plans, releases, and published blog posts
