@@ -31,14 +31,6 @@ CSRF_COOKIE_SECURE = not DEBUG
 # Django apps
 INSTALLED_APPS = [
     "django_admin_dracula",
-    # Django Control Room: register the shared base, official panels, then hub.
-    "dj_control_room_base",
-    "dj_redis_panel",
-    "dj_cache_panel",
-    "dj_celery_panel",
-    "dj_urls_panel",
-    "dj_signals_panel",
-    "dj_control_room",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -47,6 +39,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Django Control Room: register the shared base, official panels, then hub.
+    "dj_control_room_base",
+    "dj_redis_panel",
+    "dj_cache_panel",
+    "dj_celery_panel",
+    "dj_urls_panel",
+    "dj_signals_panel",
+    "dj_control_room",
     "staff.apps.StaffConfig",
     "cms",
     "menus",
