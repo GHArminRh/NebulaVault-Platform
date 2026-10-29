@@ -1,0 +1,44 @@
+/* Order-page layout details and one-time license presentation. */
+.nv-order-payment-form,
+.nv-order-payment-note {
+  margin: 0 0 18px;
+}
+
+.nv-order-payment-note {
+  display: block;
+}
+
+.nv-order-license-notice {
+  margin: 0 0 18px;
+  padding: 18px;
+  border: 1px solid #b9e4d0;
+  border-radius: 12px;
+  background: #f2fbf6;
+  color: #163d2b;
+}
+
+.nv-order-license-title {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.nv-order-license-description {
+  margin: 0 0 10px;
+}
+
+.nv-order-license-key {
+  display: block;
+  overflow-wrap: anywhere;
+  padding: 12px;
+  border: 1px solid #d5e8dd;
+  border-radius: 8px;
+  background: #fff;
+  color: #163d2b;
+  font-size: 15px;
+  user-select: all;
+}
+
+.nv-order-license-footnote {
+  display: block;
+  margin-top: 8px;
+}
