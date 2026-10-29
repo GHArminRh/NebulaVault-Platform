@@ -39,5 +39,17 @@ jobs:
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
           npm install --no-audit --no-fund
 
-      - name: Verify front-end formatting and JavaScript syntax
-        run: npm run check:frontend
+      - name: Check CSS, JavaScript, and tooling formatting
+        run: npm run check:assets
+
+      - name: Check public Django templates
+        run: npm run check:templates
+
+      - name: Validate JavaScript syntax
+        run: npm run check:js
+
+      - name: Lint browser JavaScript
+        run: npm run lint:js
+
+      - name: Audit public templates and asset references
+        run: npm run audit:source
