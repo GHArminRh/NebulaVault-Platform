@@ -1,0 +1,73 @@
+/* Native cross-document transitions; navigation/history remain browser-managed. */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: nv-page-out 140ms ease-in both;
+}
+
+::view-transition-new(root) {
+  animation: nv-page-in 240ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes nv-page-out {
+  to {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes nv-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}
+
+/* RTL typography and shared public-site direction. */
+html {
+  direction: rtl;
+}
+
+body,
+.nv-portal {
+  font-family: "Vazirmatn", Tahoma, sans-serif;
+  direction: rtl;
+  text-align: right;
+}
+
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+}
+
+.site-header,
+.desktop-nav,
+.header-actions,
+.footer-top,
+.footer-bottom,
+.hero-actions,
+.card-bottom,
+.mobile-nav {
+  direction: rtl;
+}
+
+.brand small {
+  letter-spacing: 0;
+  text-transform: none;
+}

@@ -19,10 +19,17 @@
 
   button.addEventListener("click", async () => {
     if (installPrompt) {
-      installPrompt.prompt();
-      await installPrompt.userChoice;
-      installPrompt = null;
-      return;
+      try {
+        await installPrompt.prompt();
+        await installPrompt.userChoice;
+        installPrompt = null;
+        return;
+      } catch (error) {
+        installPrompt = null;
+        if (window.location.hostname === "localhost") {
+          console.warn("The browser could not open the PWA install prompt.");
+        }
+      }
     }
     const ua = navigator.userAgent || "";
     const isAppleMobile = /iPhone|iPad|iPod/i.test(ua) ||
@@ -35,7 +42,11 @@
 
   if ("serviceWorker" in navigator && window.isSecureContext) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/service-worker.js", { scope: "/" }).catch(() => {});
+      navigator.serviceWorker.register("/service-worker.js", { scope: "/" }).catch(() => {
+      if (window.location.hostname === "localhost") {
+        console.warn("Service worker registration failed; offline/PWA features may be unavailable.");
+      }
+    });
     }, { once: true });
   }
 })();
