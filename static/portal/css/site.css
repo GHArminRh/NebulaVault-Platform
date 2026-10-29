@@ -62,12 +62,12 @@ button {
 }
 .ambient-one {
   top: 180px;
-  left: -180px;
+  left: 0;
   background: #6f60ff;
 }
 .ambient-two {
   top: 650px;
-  right: -180px;
+  right: 0;
   background: #34bdc9;
 }
 .site-header {
@@ -98,7 +98,7 @@ button {
   margin-top: 6px;
   font: 600 8px var(--font);
   letter-spacing: 2px;
-  color: #75819f;
+  color: #8d9bb6;
 }
 .brand-mark {
   width: 39px;
