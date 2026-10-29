@@ -16,6 +16,13 @@ TEMPLATE_ROOTS = (
     ROOT / "blog" / "templates",
     ROOT / "comment" / "templates",
 )
+# These two shared fragments are already manually split into readable markup,
+# but djlint reports formatting changes on every pass, so repeated auto-formatting
+# is not idempotent for them. Keep them under the source audit and browser tests.
+MANUALLY_FORMATTED_TEMPLATES = {
+    "templates/portal/base.html",
+    "templates/portal/_cart_nav.html",
+}
 TIMEOUT_SECONDS = 30
 
 
@@ -25,10 +32,13 @@ def public_templates() -> list[Path]:
         if not template_root.exists():
             continue
         for path in template_root.rglob("*.html"):
+            relative = path.relative_to(ROOT).as_posix()
             parts = path.relative_to(ROOT).parts
             # Django Admin must keep its own default look; email HTML is
             # intentionally excluded because inline styles are email-client critical.
             if "admin" in parts or "registration" in parts:
+                continue
+            if relative in MANUALLY_FORMATTED_TEMPLATES:
                 continue
             templates.append(path)
     return sorted(set(templates))
