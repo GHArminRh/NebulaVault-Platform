@@ -192,7 +192,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let hash = '';
         try {
           hash = new URL(link.href, location.href).hash;
-        } catch (_) {}
+        } catch (_) {
+          // Invalid link URLs are ignored for active-section highlighting.
+        }
         const active = hash === '#' + current.id;
         link.classList.toggle('is-current', active);
         if (active) link.setAttribute('aria-current', 'location');
@@ -201,6 +203,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     sync(railLinks, railTargets, 'dashboard-overview');
     sync(homeLinks, homeTargets, 'home');
+  };
+  const getHashTarget = (hash) => {
+    if (!hash) return null;
+    try {
+      return document.getElementById(decodeURIComponent(hash.replace(/^#/, '')));
+    } catch (_) {
+      // Malformed percent-encoding in a URL fragment should not break page initialization.
+      return null;
+    }
   };
   const requestNavSync = (() => {
     let pending = false;
@@ -227,9 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', requestNavSync, { passive: true });
     window.addEventListener('hashchange', requestNavSync);
     window.addEventListener('popstate', () => {
-      const target = location.hash
-        ? document.getElementById(decodeURIComponent(location.hash.slice(1)))
-        : null;
+      const target = getHashTarget(location.hash);
       if (target) scrollToAnchor(target);
       else requestNavSync();
     });
@@ -242,8 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
         if (url.pathname !== location.pathname || !url.hash) return;
-        const targetId = decodeURIComponent(url.hash.slice(1));
-        const target = document.getElementById(targetId);
+        const target = getHashTarget(url.hash);
         if (!target) return;
         event.preventDefault();
         if (toggle && nav && link.closest('.mobile-nav')) {
@@ -260,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Correct direct links such as /dashboard/#my-licenses after layout settles.
     if (location.hash) {
       window.setTimeout(() => {
-        const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+        const target = getHashTarget(location.hash);
         if (target) scrollToAnchor(target, false);
         else requestNavSync();
       }, 100);
