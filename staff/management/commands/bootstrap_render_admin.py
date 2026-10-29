@@ -11,18 +11,18 @@ class Command(BaseCommand):
 
     Set NEBULA_BOOTSTRAP_ADMIN_PASSWORD temporarily in the Render environment.
     With the variable absent or empty, admin bootstrap is skipped, but the
-    required Django Site row is still ensured before the web server starts.
+    required Django Site row is still repaired before the web server starts.
     """
 
     help = "Ensure the primary Django Site and optionally bootstrap the Render admin."
 
     def handle(self, *args, **options):
         site_id = getattr(settings, "SITE_ID", 1)
-        Site.objects.get_or_create(
+        Site.objects.update_or_create(
             pk=site_id,
             defaults={"domain": "mydigigi.ir", "name": "Nebula Vault"},
         )
-        self.stdout.write(self.style.SUCCESS(f"Primary Django Site {site_id} is available."))
+        self.stdout.write(self.style.SUCCESS(f"Primary Django Site {site_id} is ready."))
 
         password = os.environ.get("NEBULA_BOOTSTRAP_ADMIN_PASSWORD", "")
         if not password:
