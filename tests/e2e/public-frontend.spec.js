@@ -60,7 +60,7 @@ test.describe('public frontend smoke checks', () => {
       const response = await page.goto(route.path, { waitUntil: 'domcontentloaded' });
       expect(response, 'The browser should receive an HTTP response').not.toBeNull();
       expect(response.status(), `${route.path} returned HTTP ${response.status()}`).toBeLessThan(
-        500
+        400
       );
       await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
       await expect(page.locator('html')).toHaveAttribute('lang', 'fa');
