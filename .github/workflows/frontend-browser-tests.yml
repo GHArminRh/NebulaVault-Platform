@@ -3,10 +3,6 @@ name: Public frontend browser audit
 on:
   push:
     branches:
-      - maintenance/frontend-full-quality-oct-2026
-      - deploy/render-ready
-  pull_request:
-    branches:
       - deploy/render-ready
   workflow_dispatch:
 
