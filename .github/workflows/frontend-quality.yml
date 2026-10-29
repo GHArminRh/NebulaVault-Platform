@@ -14,8 +14,12 @@ permissions:
 
 jobs:
   frontend:
-    name: Check formatting and JavaScript
+    name: Validate formatted frontend, templates, and scripts
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: frontend-quality-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Check out source
         uses: actions/checkout@v4
