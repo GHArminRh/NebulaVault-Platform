@@ -2,12 +2,14 @@
 {% load cms_tags %}
 {% block title %}{% page_attribute "page_title" %} — نبیولا والت{% endblock %}
 {% block meta_description %}{% page_attribute "meta_description" %}{% endblock %}
+{% block body_class %}nv-cms-home-page{% endblock %}
 {% block content %}
-  {# This template is intentionally isolated from portal/home.html, which serves the live storefront at /. #}
+  {# CMS-only layout. Keep the live storefront template portal/home.html unchanged. #}
   <div class="nv-cms-home">
     <section class="nv-home-hero page-wrap" id="home">
-      {% placeholder "hero" or %}
-        <div class="nv-hero-copy">
+      <div class="nv-hero-copy">
+        {# Keep the placeholder inside the layout wrapper so CMS plugins cannot remove the grid structure. #}
+        {% placeholder "hero" or %}
           <div class="eyebrow"><i class="pulse"></i> فضای دیجیتال شما، با نظم تازه</div>
           <h1>همه‌چیز سر جای خودش؛<br><span class="gradient-text">کنترل در دست شما.</span></h1>
           <p class="hero-lede">محصولات، خریدها، اشتراک‌ها و لایسنس‌ها را در یک تجربه‌ی امن و هماهنگ مدیریت کنید؛ ساده، شفاف و بدون شلوغی.</p>
@@ -16,70 +18,89 @@
             <a class="button button-glass button-large" href="{% url 'portal:pricing' %}">مشاهده تعرفه‌ها ↗</a>
           </div>
           <div class="nv-hero-trust"><span><i class="pulse"></i> حساب شخصی امن</span><span>◇ خرید و لایسنس یکپارچه</span><span>⌁ تجربه‌ی هماهنگ</span></div>
-        </div>
-        <div class="nv-hero-visual" aria-label="تصویر انتزاعی فضای امن نبیولا والت">
-          <div class="nv-visual-halo"></div><div class="nv-visual-orbit nv-orbit-one"></div><div class="nv-visual-orbit nv-orbit-two"></div><div class="nv-visual-orbit nv-orbit-three"></div>
-          <div class="nv-visual-core"><div class="nv-core-inner">◇</div><span class="nv-core-caption">NEBULA VAULT</span></div>
-          <div class="nv-float-card nv-float-top"><span class="nv-float-icon">⌑</span><span><strong>فضای محافظت‌شده</strong><small>حساب شما، در یک نگاه</small></span><i class="pulse"></i></div>
-          <div class="nv-float-card nv-float-bottom"><span class="nv-float-icon">✦</span><span><strong>همه‌چیز هماهنگ</strong><small>محصول · خرید · لایسنس</small></span></div>
-          <span class="nv-visual-star nv-star-one">✦</span><span class="nv-visual-star nv-star-two">✧</span>
-        </div>
-      {% endplaceholder %}
-      <a class="nv-scroll-cue" href="#cms-content"><span></span> برای کشف بیشتر اسکرول کنید</a>
+        {% endplaceholder %}
+      </div>
+      <div class="nv-hero-visual" aria-label="تصویر انتزاعی فضای امن نبیولا والت">
+        <div class="nv-visual-halo"></div>
+        <div class="nv-visual-orbit nv-orbit-one"></div>
+        <div class="nv-visual-orbit nv-orbit-two"></div>
+        <div class="nv-visual-orbit nv-orbit-three"></div>
+        <div class="nv-visual-core"><div class="nv-core-inner">◇</div><span class="nv-core-caption">NEBULA VAULT</span></div>
+        <div class="nv-float-card nv-float-top"><span class="nv-float-icon">⌑</span><span><strong>فضای محافظت‌شده</strong><small>حساب شما، در یک نگاه</small></span><i class="pulse"></i></div>
+        <div class="nv-float-card nv-float-bottom"><span class="nv-float-icon">✦</span><span><strong>همه‌چیز هماهنگ</strong><small>محصول · خرید · لایسنس</small></span></div>
+        <span class="nv-visual-star nv-star-one">✦</span><span class="nv-visual-star nv-star-two">✧</span>
+      </div>
+      <a class="nv-scroll-cue" href="#products"><span></span> برای کشف بیشتر اسکرول کنید</a>
     </section>
 
     <section class="nv-proof-strip">
       <div class="page-wrap nv-proof-inner"><span>یک تجربه‌ی یکپارچه</span><span><b>01</b> انتخاب محصول</span><span><b>02</b> خرید شفاف</span><span><b>03</b> مدیریت لایسنس</span><span><b>04</b> کنترل از پیشخوان</span></div>
     </section>
 
-    {# Keep the existing content placeholder name so its saved plugins remain attached. #}
     <section class="section page-wrap nv-home-section nv-cms-content" id="cms-content">
-      {% placeholder "content" or %}
-        <div class="section-heading"><div><div class="eyebrow">محتوای صفحه</div><h2>فضایی برای محتوای شما.</h2><p>این بخش در django CMS قابل ویرایش است؛ متن، تصویر و بلوک‌های موردنیازتان را از نوار ابزار اضافه کنید.</p></div><span class="nv-section-index">01 / CONTENT</span></div>
-      {% endplaceholder %}
+      <div class="section-heading">
+        <div><div class="eyebrow">محتوای صفحه</div><h2>فضایی برای محتوای شما.</h2><p>این بخش در django CMS قابل ویرایش است؛ متن، تصویر و بلوک‌های موردنیازتان را از نوار ابزار اضافه کنید.</p></div>
+        <span class="nv-section-index">01 / CONTENT</span>
+      </div>
+      <div class="nv-cms-editable-content">
+        {% placeholder "content" or %}
+          <div class="nv-section-empty">از نوار ابزار CMS برای افزودن متن، تصویر یا بلوک‌های محتوایی استفاده کنید.</div>
+        {% endplaceholder %}
+      </div>
     </section>
 
     <section class="section page-wrap nv-home-section" id="products">
-      {% placeholder "products" or %}
-        <div class="section-heading"><div><div class="eyebrow">مجموعه محصولات</div><h2>ابزارهایی که با شما هماهنگ‌اند.</h2><p>محصولات نبیولا والت را در یک فضای منظم کشف کنید.</p></div><span class="nv-section-index">02 / PRODUCTS</span></div>
-        <div class="nv-section-empty">برای مشاهده محصولات و جزئیات هر طرح، از فهرست محصولات دیدن کنید.</div>
-        <p><a class="button button-primary" href="{% url 'portal:products' %}">مشاهده محصولات ↗</a></p>
-      {% endplaceholder %}
+      <div class="section-heading"><div><div class="eyebrow">مجموعه محصولات</div><h2>ابزارهایی که با شما هماهنگ‌اند.</h2><p>محصولات نبیولا والت را در یک فضای منظم کشف کنید.</p></div><span class="nv-section-index">02 / PRODUCTS</span></div>
+      <div class="nv-cms-editable-content">
+        {% placeholder "products" or %}
+          <div class="nv-section-empty">برای معرفی محصولات این بخش را از طریق CMS ویرایش کنید.</div>
+          <p><a class="button button-primary" href="{% url 'portal:products' %}">مشاهده محصولات ↗</a></p>
+        {% endplaceholder %}
+      </div>
     </section>
 
     <section class="nv-pricing-band" id="pricing">
       <div class="page-wrap section nv-home-section">
-        {% placeholder "pricing" or %}
-          <div class="section-heading"><div><div class="eyebrow">تعرفه‌های شفاف</div><h2>طرح مناسب خودتان را انتخاب کنید.</h2><p>پیش از خرید، مدت و مبلغ هر طرح را بررسی کنید.</p></div><span class="nv-section-index">03 / PLANS</span></div>
-          <p><a class="button button-primary" href="{% url 'portal:pricing' %}">مشاهده تعرفه‌ها ↗</a></p>
-        {% endplaceholder %}
+        <div class="section-heading"><div><div class="eyebrow">تعرفه‌های شفاف</div><h2>طرح مناسب خودتان را انتخاب کنید.</h2><p>پیش از خرید، مدت و مبلغ هر طرح را بررسی کنید.</p></div><span class="nv-section-index">03 / PLANS</span></div>
+        <div class="nv-cms-editable-content">
+          {% placeholder "pricing" or %}
+            <p><a class="button button-primary" href="{% url 'portal:pricing' %}">مشاهده تعرفه‌ها ↗</a></p>
+          {% endplaceholder %}
+        </div>
       </div>
     </section>
 
     <section class="section page-wrap nv-home-section" id="features">
-      {% placeholder "features" or %}
-        <div class="section-heading"><div><div class="eyebrow">طراحی حول محور شما</div><h2>یک حساب. همه‌ی ابزارهای مهم.</h2><p>تجربه‌ای هماهنگ از خرید تا مدیریت حساب.</p></div><span class="nv-section-index">04 / EXPERIENCE</span></div>
-        <div class="nv-feature-grid">
-          <article class="nv-feature-card nv-feature-highlight"><span class="nv-feature-icon">⌘</span><span class="nv-feature-number">01</span><h3>پیشخوان متمرکز</h3><p>اشتراک‌ها، سفارش‌ها و لایسنس‌ها را در یک فضای مشخص دنبال کنید.</p><a href="{% url 'portal:dashboard' %}">رفتن به پیشخوان ↗</a></article>
-          <article class="nv-feature-card"><span class="nv-feature-icon">◇</span><span class="nv-feature-number">02</span><h3>خرید شفاف</h3><p>طرح‌ها، مدت اعتبار و مبلغ را پیش از پرداخت بررسی کنید.</p><a href="{% url 'portal:pricing' %}">دیدن طرح‌ها ↗</a></article>
-          <article class="nv-feature-card"><span class="nv-feature-icon">⌑</span><span class="nv-feature-number">03</span><h3>مدیریت دسترسی</h3><p>اطلاعات لایسنس و وضعیت اشتراک‌ها را در فضای حساب دنبال کنید.</p><a href="{% url 'portal:dashboard' %}">حساب من ↗</a></article>
-        </div>
-      {% endplaceholder %}
-    </section>
-
-    <section class="nv-release-section" id="releases">
-      <div class="page-wrap section nv-home-section">
-        {% placeholder "releases" or %}
-          <div class="section-heading"><div><div class="eyebrow">نسخه‌های منتشرشده</div><h2>همیشه آماده‌ی قدم بعدی.</h2><p>نسخه‌ها و اطلاعات محصولات را در بخش محصولات دنبال کنید.</p></div><span class="nv-section-index">05 / RELEASES</span></div>
-          <p><a class="button button-primary" href="{% url 'portal:products' %}">بررسی محصولات ↗</a></p>
+      <div class="section-heading"><div><div class="eyebrow">طراحی حول محور شما</div><h2>یک حساب. همه‌ی ابزارهای مهم.</h2><p>تجربه‌ای هماهنگ از خرید تا مدیریت حساب.</p></div><span class="nv-section-index">04 / EXPERIENCE</span></div>
+      <div class="nv-cms-editable-content">
+        {% placeholder "features" or %}
+          <div class="nv-feature-grid">
+            <article class="nv-feature-card nv-feature-highlight"><span class="nv-feature-icon">⌘</span><span class="nv-feature-number">01</span><h3>پیشخوان متمرکز</h3><p>اشتراک‌ها، سفارش‌ها و لایسنس‌ها را در یک فضای مشخص دنبال کنید.</p><a href="{% url 'portal:dashboard' %}">رفتن به پیشخوان ↗</a></article>
+            <article class="nv-feature-card"><span class="nv-feature-icon">◇</span><span class="nv-feature-number">02</span><h3>خرید شفاف</h3><p>طرح‌ها، مدت اعتبار و مبلغ را پیش از پرداخت بررسی کنید.</p><a href="{% url 'portal:pricing' %}">دیدن طرح‌ها ↗</a></article>
+            <article class="nv-feature-card"><span class="nv-feature-icon">⌑</span><span class="nv-feature-number">03</span><h3>مدیریت دسترسی</h3><p>اطلاعات لایسنس و وضعیت اشتراک‌ها را در فضای حساب دنبال کنید.</p><a href="{% url 'portal:dashboard' %}">حساب من ↗</a></article>
+          </div>
         {% endplaceholder %}
       </div>
     </section>
 
+    <section class="nv-release-section" id="releases">
+      <div class="page-wrap section nv-home-section">
+        <div class="section-heading"><div><div class="eyebrow">نسخه‌های منتشرشده</div><h2>همیشه آماده‌ی قدم بعدی.</h2><p>نسخه‌ها و اطلاعات محصولات را در بخش محصولات دنبال کنید.</p></div><span class="nv-section-index">05 / RELEASES</span></div>
+        <div class="nv-cms-editable-content">
+          {% placeholder "releases" or %}
+            <p><a class="button button-primary" href="{% url 'portal:products' %}">بررسی محصولات ↗</a></p>
+          {% endplaceholder %}
+        </div>
+      </div>
+    </section>
+
     <section class="section page-wrap nv-home-section" id="about">
-      {% placeholder "about" or %}
-        <div class="section-heading"><div><div class="eyebrow">نبیولا والت</div><h2>تجربه‌ای امن، روشن و یکپارچه.</h2><p>برای پرسش‌ها و اطلاعات بیشتر، از مسیرهای رسمی سایت استفاده کنید.</p></div><span class="nv-section-index">06 / ABOUT</span></div>
-      {% endplaceholder %}
+      <div class="section-heading"><div><div class="eyebrow">نبیولا والت</div><h2>تجربه‌ای امن، روشن و یکپارچه.</h2><p>برای پرسش‌ها و اطلاعات بیشتر، از مسیرهای رسمی سایت استفاده کنید.</p></div><span class="nv-section-index">06 / ABOUT</span></div>
+      <div class="nv-cms-editable-content">
+        {% placeholder "about" or %}
+          <div class="nv-section-empty">محتوای معرفی و پرسش‌های متداول را می‌توانید در این بخش اضافه کنید.</div>
+        {% endplaceholder %}
+      </div>
     </section>
   </div>
 {% endblock %}
