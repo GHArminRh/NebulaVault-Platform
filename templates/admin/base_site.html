@@ -6,10 +6,10 @@
 {% block extrahead %}
   {{ block.super }}
   {% if request.user.is_authenticated %}
-    <link rel="manifest" href="{% url 'admin-manifest' %}">
+    <link rel="manifest" href="{% static 'portal/manifest.webmanifest' %}">
     <meta name="theme-color" content="#0b1020">
     <link rel="apple-touch-icon" href="{% static 'portal/img/pwa-icon-192.svg' %}">
-    <script src="{% static 'portal/js/admin-pwa.js' %}" defer></script>
+    <script src="{% static 'portal/js/pwa.js' %}" defer></script>
     <link rel="stylesheet" href="{% static 'portal/css/admin-motion.css' %}">
     <script src="{% static 'portal/js/admin-motion.js' %}" defer></script>
   {% endif %}
@@ -23,7 +23,7 @@
 
 {% block userlinks %}
   {% if request.user.is_authenticated %}
-    <button type="button" id="nv-admin-install" class="nv-admin-install" hidden>نصب پنل</button>
+    <button type="button" id="nv-install-app" class="nv-admin-install" hidden>نصب اپلیکیشن نبیولا والت</button>
   {% endif %}
   {{ block.super }}
 {% endblock %}
