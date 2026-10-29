@@ -32,6 +32,9 @@ IGNORED_PARTS = {
     "staticfiles",
     "media",
     "docs",
+    ".pytest_cache",
+    "playwright-report",
+    "test-results",
 }
 ASSET_EXTENSIONS = {".css", ".js"}
 INLINE_HANDLER = re.compile(
@@ -56,13 +59,18 @@ def is_ignored(path: Path) -> bool:
 
 def source_files() -> list[Path]:
     allowed = {".py", ".html", ".js", ".css", ".json", ".yml", ".yaml"}
-    return [
-        path
-        for path in ROOT.rglob("*")
-        if path.is_file()
-        and path.suffix.lower() in allowed
-        and not is_ignored(path.relative_to(ROOT))
-    ]
+    found: list[Path] = []
+    for directory, child_directories, filenames in os.walk(ROOT):
+        child_directories[:] = [
+            name for name in child_directories if name not in IGNORED_PARTS
+        ]
+        parent = Path(directory)
+        found.extend(
+            parent / filename
+            for filename in filenames
+            if Path(filename).suffix.lower() in allowed
+        )
+    return sorted(found)
 
 
 def public_templates() -> list[Path]:
@@ -89,31 +97,22 @@ def static_candidates(asset_path: str) -> list[Path]:
     return candidates
 
 
-def referenced_source_text(files: list[Path], exclude: Path) -> str:
-    fragments: list[str] = []
+def read_source_contents(files: list[Path]) -> dict[Path, str]:
+    contents: dict[Path, str] = {}
     for path in files:
-        if path == exclude or path.suffix.lower() not in {
-            ".py",
-            ".html",
-            ".js",
-            ".css",
-            ".json",
-            ".yml",
-            ".yaml",
-        }:
-            continue
-        if path.name in {"package-lock.json"}:
+        if path.name == "package-lock.json":
             continue
         try:
-            fragments.append(path.read_text(encoding="utf-8"))
+            contents[path] = path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
-    return "\\n".join(fragments)
+    return contents
 
 
 def main() -> int:
     templates = public_templates()
     files = source_files()
+    source_contents = read_source_contents(files)
     failures: list[str] = []
     warnings: list[str] = []
     inline_style_count = 0
@@ -173,8 +172,11 @@ def main() -> int:
         for asset in sorted(directory.rglob("*")):
             if not asset.is_file() or asset.suffix.lower() not in ASSET_EXTENSIONS:
                 continue
-            references = referenced_source_text(files, asset)
-            if asset.name not in references:
+            if not any(
+                asset.name in source
+                for source_path, source in source_contents.items()
+                if source_path != asset
+            ):
                 unreferenced_assets.append(relative(asset))
 
     for asset in unreferenced_assets:
