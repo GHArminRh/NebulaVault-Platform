@@ -1,9 +1,7 @@
 (() => {
   'use strict';
 
-  const buttons = [
-    document.getElementById('nv-install-app'),
-  ].filter(Boolean);
+  const buttons = [document.getElementById('nv-install-app')].filter(Boolean);
 
   const standalone =
     window.matchMedia('(display-mode: standalone)').matches ||
@@ -76,7 +74,9 @@
             const registrations = await navigator.serviceWorker.getRegistrations();
             await Promise.all(
               registrations
-                .filter((registration) => registration.scope === `${window.location.origin}/admin/`)
+                .filter(
+                (registration) => registration.scope === `${window.location.origin}/admin/`
+              )
                 .map((registration) => registration.unregister())
             );
             await navigator.serviceWorker.register('/service-worker.js', {
