@@ -26,7 +26,13 @@ test('deployed frontend styles are updated before regression checks', async ({ p
           if (!response || response.status() >= 500) return 'unavailable';
           return await page.evaluate(() => {
             const brandNote = document.querySelector('.footer-top .brand small');
-            return brandNote ? getComputedStyle(brandNote).color : 'unavailable';
+            const sectionIndex = document.querySelector('.nv-section-index');
+            return {
+              brandNote: brandNote ? getComputedStyle(brandNote).color : 'unavailable',
+              sectionIndex: sectionIndex
+                ? getComputedStyle(sectionIndex).color
+                : 'unavailable',
+            };
           });
         } catch {
           return 'unavailable';
@@ -35,10 +41,10 @@ test('deployed frontend styles are updated before regression checks', async ({ p
       {
         timeout: 240_000,
         intervals: [5_000, 10_000, 15_000],
-        message: 'Wait for Render to publish the updated accessible footer color',
+        message: 'Wait for Render to publish both updated accessibility color fixes',
       }
     )
-    .toBe('rgb(130, 146, 177)');
+    .toEqual({ brandNote: 'rgb(130, 146, 177)', sectionIndex: 'rgb(130, 146, 177)' });
 }, 250_000);
 
 test('homepage declares Persian RTL document metadata', async ({ page }) => {
