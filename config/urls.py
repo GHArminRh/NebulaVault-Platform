@@ -4,7 +4,6 @@ from django.shortcuts import render
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
-import json
 
 from django.http import HttpResponse
 
@@ -29,40 +28,6 @@ def service_worker(request):
     response["Cache-Control"] = "no-cache"
     return response
 
-
-
-def admin_manifest(request):
-    manifest = {
-        "id": "/admin/", "name": "نبیولا والت | پنل مدیریت",
-        "short_name": "مدیریت نبیولا", "description": "پنل مدیریت نبیولا والت",
-        "lang": "fa", "dir": "rtl", "start_url": "/admin/", "scope": "/admin/",
-        "display": "standalone", "orientation": "any",
-        "background_color": "#0b1020", "theme_color": "#0b1020",
-        "icons": [
-            {"src": "/static/portal/img/pwa-icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable"},
-            {"src": "/static/portal/img/pwa-icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable"},
-        ],
-    }
-    response = HttpResponse(json.dumps(manifest, ensure_ascii=False), content_type="application/manifest+json; charset=utf-8")
-    response["Cache-Control"] = "no-cache"
-    return response
-
-
-def admin_service_worker(request):
-    script = """'use strict';
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
-self.addEventListener('fetch', event => {
-  const request = event.request;
-  if (request.method === 'GET' && request.mode === 'navigate') {
-    event.respondWith(fetch(request));
-  }
-});
-"""
-    response = HttpResponse(script, content_type="application/javascript; charset=utf-8")
-    response["Service-Worker-Allowed"] = "/admin/"
-    response["Cache-Control"] = "no-cache"
-    return response
 
 
 def healthcheck(request):
@@ -105,8 +70,6 @@ def api_index(request):
 
 urlpatterns = [
     path("healthz/", healthcheck, name="healthcheck"),
-    path("admin/manifest.webmanifest", admin_manifest, name="admin-manifest"),
-    path("admin/service-worker.js", admin_service_worker, name="admin-service-worker"),
     path("service-worker.js", service_worker, name="service-worker"),
     path("admin/quick-toggle/", toggle_boolean_field, name="admin-quick-toggle"),
     path("admin/editor-upload/", editor_image_upload, name="editor-image-upload"),
