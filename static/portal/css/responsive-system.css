@@ -26,6 +26,11 @@ body.nv-portal {
   max-width: 100%;
 }
 
+/* Keep decorative glows inside the layout width; a right-side negative offset widens the document. */
+body.nv-portal > .ambient-two {
+  right: 0;
+}
+
 body.nv-portal main,
 body.nv-portal .nv-dashboard-layout,
 body.nv-portal .nv-dashboard-content,
