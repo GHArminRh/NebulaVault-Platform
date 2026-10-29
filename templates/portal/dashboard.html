@@ -1,6 +1,7 @@
 {% extends 'portal/base.html' %}
-{% load money %}
-{% block title %}پیشخوان — نبیولا والت{% endblock %}
+{% load money static %}
+{% block title %}پیشخوان — نبیولا والت<script src="{% static 'portal/js/dashboard.js' %}" defer></script>
+{% endblock %}
 {% block body_class %}nv-dashboard-page{% endblock %}
 {% block content %}
 <div class="nv-dashboard-layout page-wrap">
