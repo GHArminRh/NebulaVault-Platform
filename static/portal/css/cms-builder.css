@@ -119,3 +119,33 @@
     white-space: normal;
   }
 }
+
+/* Reusable media components for CMS plugins. */
+.nv-cms-image {
+  max-width: 100%;
+  margin: 1.5rem auto;
+  text-align: center;
+}
+
+.nv-cms-image__media {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+  border-radius: 16px;
+}
+
+.nv-cms-image__caption {
+  margin-top: 0.65rem;
+  color: var(--muted, #94a3b8);
+  font-size: 0.92rem;
+}
+
+.nv-cms-blog-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 14px;
+}

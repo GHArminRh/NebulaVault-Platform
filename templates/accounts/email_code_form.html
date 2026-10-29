@@ -1,4 +1,5 @@
 {% extends 'portal/base.html' %}
+{% load static %}
 {% block title %}کد حساب — نبیولا والت{% endblock %}
 {% block content %}
 <section class="auth-layout page-wrap auth-layout-premium">
@@ -24,14 +25,14 @@
       <button class="button button-primary button-full button-large" type="submit">ادامه ↗</button>
     </form>
     {% if purpose == "verification" %}
-      <form method="post" action="{% url 'accounts:resend_verification' %}" class="form-stack auth-form-premium resend-form" data-resend-form data-email="{{ email|escape }}">
+      <form method="post" action="{% url 'accounts:resend_verification' %}" class="form-stack auth-form-premium resend-form" data-resend-form data-purpose="{{ purpose|escape }}" data-email="{{ email|escape }}">
         {% csrf_token %}
         <input type="hidden" name="email" value="{{ email|default:'' }}">
         <button class="button button-quiet button-full" type="submit" data-resend-button {% if not email %}disabled{% endif %}>ارسال دوباره ایمیل تأیید <span data-countdown></span></button>
         {% if not email %}<p class="auth-switch">ابتدا نشانی ایمیل خود را وارد کنید و سپس درخواست ارسال دوباره بدهید.</p>{% endif %}
       </form>
     {% else %}
-      <form method="post" action="{% url 'accounts:password_reset' %}" class="form-stack auth-form-premium resend-form" data-resend-form data-email="{{ email|escape }}">
+      <form method="post" action="{% url 'accounts:password_reset' %}" class="form-stack auth-form-premium resend-form" data-resend-form data-purpose="{{ purpose|escape }}" data-email="{{ email|escape }}">
         {% csrf_token %}
         <input type="hidden" name="email" value="{{ email|default:'' }}">
         <button class="button button-quiet button-full" type="submit" data-resend-button {% if not email %}disabled{% endif %}>ارسال دوباره ایمیل بازیابی <span data-countdown></span></button>
@@ -40,37 +41,6 @@
   </div>
 </section>
 {% if email and purpose == "verification" or email and purpose == "password_reset" %}
-<script>
-(function () {
-  const form = document.querySelector("[data-resend-form]");
-  const button = form && form.querySelector("[data-resend-button]");
-  const label = form && form.querySelector("[data-countdown]");
-  if (!button || !label) return;
-  const purpose = "{{ purpose|escapejs }}";
-  const key = "nv-" + purpose + "-resend:" + (form.dataset.email || "").toLowerCase();
-  let until = 0;
-  try {
-    until = Number(sessionStorage.getItem(key) || 0);
-    if (!until) {
-      until = Date.now() + 30000;
-      sessionStorage.setItem(key, String(until));
-    }
-  } catch (_) {
-    until = Date.now() + 30000;
-  }
-  function render() {
-    const remaining = Math.max(0, Math.ceil((until - Date.now()) / 1000));
-    button.disabled = remaining > 0;
-    label.textContent = remaining > 0 ? "(" + remaining + " ثانیه)" : "";
-    if (remaining > 0) window.setTimeout(render, 250);
-  }
-  form.addEventListener("submit", function () {
-    until = Date.now() + 30000;
-    try { sessionStorage.setItem(key, String(until)); } catch (_) {}
-    render();
-  });
-  render();
-})();
-</script>
+<script src="{% static 'portal/js/email-code-resend.js' %}" defer></script>
 {% endif %}
 {% endblock %}

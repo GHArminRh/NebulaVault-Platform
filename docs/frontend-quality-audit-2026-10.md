@@ -4,7 +4,7 @@
 
 This pass inspected the public portal's shared template, home page, primary stylesheets, browser JavaScript, and PWA entry point on the deploy/render-ready branch:
 
-- templates/portal/base.html and templates/portal/home.html
+- shared public templates, error pages, account forms, dashboard, orders, payment result, CMS media plugins, and blog/comment templates
 - static/portal/css/site.css
 - static/portal/css/unified-experience.css
 - static/portal/css/responsive-system.css
@@ -30,7 +30,7 @@ A static selector scan found repeated selector groups in all major stylesheets. 
 
 | File | Repeated selector groups | !important occurrences found by text scan |
 |---|---:|---:|
-| site.css | 119 | 9 |
+| site.css | 117 | 9 |
 | unified-experience.css | 125 | 424 |
 | responsive-system.css | 32 | 146 |
 | blog.css | 12 | 4 |
@@ -47,7 +47,7 @@ Repeated selectors can be appropriate across media queries, so these figures are
 
 ### JavaScript and accessibility
 
-- The inspected scripts do not use eval, document.write, or innerHTML; they contain no inline event-handler attributes. The starfield respects reduced motion and background-tab visibility.
+- The inspected JavaScript assets do not use `eval`, `document.write`, or `innerHTML`. The audited public template interactions have been moved away from inline event-handler attributes. The Django Admin templates are deliberately left unchanged, and email-message templates retain inline CSS for compatibility with email clients. The starfield respects reduced motion and background-tab visibility.
 - The mobile menu now exposes its controlled element explicitly. Continue testing keyboard operation, focus visibility, reduced motion, zoom/reflow, and color contrast on public pages and account flows.
 - The starfield and ambient pointer effects are decorative; retain their reduced-motion and touch-device safeguards.
 
@@ -59,6 +59,24 @@ Repeated selectors can be appropriate across media queries, so these figures are
 4. Consolidate one component at a time, review computed styles at affected breakpoints, and remove only rules proven redundant.
 5. Keep Django admin styles isolated from public-site CSS.
 
-## Change boundary
+## Second pass: inline behavior and page-level separation
 
-This pass removes a confirmed JavaScript state bug and redundant global styling, improves menu semantics and PWA diagnostics, and extracts shared shell styles. It deliberately does not mass-delete the legacy CSS overrides without visual regression coverage.
+The second pass expanded the inspection to account verification, authentication, the dashboard license section, comments, and the offline fallback:
+
+- Cloudflare Turnstile was being loaded twice from the shared login/register fragment. There is now one provider script with explicit rendering, and the initialization callback is in `static/portal/js/auth-turnstile.js`.
+- The license-key copy button no longer contains an inline event handler. Its behavior is isolated in `static/portal/js/dashboard.js`, with visible copy-success/failure feedback.
+- The dashboard template had multiple inline style attributes for license layout and key presentation. They now use semantic classes and `static/portal/css/dashboard.css`; the base template exposes an `extra_css` block for page-owned styles.
+- Comment reply toggles and delete-confirmation behavior are in `static/portal/js/comments.js`. The reply toggle exposes `aria-controls` and `aria-expanded`, and delete confirmation uses a data attribute rather than an inline submit handler.
+- Email resend cooldown logic is in `static/portal/js/email-code-resend.js`. Both verification and reset forms expose their purpose and email through data attributes.
+- The offline fallback uses a normal link for retry instead of an inline `onclick` handler. Inline CSS remains inside the generated offline response intentionally so it stays readable when the network is unavailable.
+- Styles were also extracted from the order list, payment-result page, and error-page fragment. CMS media templates now use reusable component classes in `cms-builder.css` instead of repeated inline styling.
+- The page-specific CSS block is rendered after CMS-generated CSS so its narrowly scoped styles can override shared defaults as intended.
+- Feature-specific code has been removed from the shared `site.js` bundle where dedicated entry points are more appropriate.
+
+A text search did not find a committed reference to `static/portal/js/language.js` in the scanned source, so it is flagged as a possible unused asset but was **not deleted**: confirm whether it is loaded through CMS/plugin content or another runtime path before removal.
+
+## Change boundary and remaining work
+
+The fixes above cover confirmed defects and maintainability problems found while scanning the 56 HTML templates under the main template directories. The scan uses source-level checks; it is not represented as an exhaustive audit of every browser state or every CMS-managed page. A number of legacy page templates are still compressed onto one line; formatting them should be done in an isolated follow-up to keep whitespace-sensitive markup and behavioral changes reviewable. The broader legacy CSS cascade is still the main cleanup target: `unified-experience.css` and `responsive-system.css` have accumulated late overrides and many `!important` declarations. That cleanup should happen component-by-component, after browser-level visual baselines and smoke tests exist, so the working mobile overflow fix and dashboard rail behavior are not regressed.
+
+The repository did not previously have a dedicated front-end syntax-check workflow. `.github/workflows/frontend-quality.yml` now runs `node --check` against the front-end JavaScript assets without requiring a separate Node build for the Django application.

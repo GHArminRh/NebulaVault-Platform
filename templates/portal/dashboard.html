@@ -1,5 +1,6 @@
 {% extends 'portal/base.html' %}
-{% load money %}
+{% load money static %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'portal/css/dashboard.css' %}">{% endblock %}
 {% block title %}پیشخوان — نبیولا والت{% endblock %}
 {% block body_class %}nv-dashboard-page{% endblock %}
 {% block content %}
@@ -50,7 +51,7 @@
     </section>
   </div>
 
-  <section class="panel nv-panel" id="my-licenses" style="margin-top:24px">
+  <section class="panel nv-panel" id="my-licenses" class="nv-licenses-panel">
     <div class="panel-heading">
       <div><h2>لایسنس‌های من</h2><p>کلیدهای لایسنس صادرشده برای خریدهای حساب شما</p></div>
       <span class="status-pill status-active">{{ dashboard_licenses|length }} لایسنس</span>
@@ -58,22 +59,22 @@
     {% if dashboard_licenses %}
       <div class="table-list">
       {% for license in dashboard_licenses %}
-        <article class="table-row roomy-row" style="align-items:flex-start">
+        <article class="table-row roomy-row nv-license-row">
           <div class="table-symbol">🔑</div>
-          <div class="table-main" style="min-width:0;width:100%">
+          <div class="table-main nv-license-main">
             <strong>{{ license.subscription.product.name }}</strong>
             <small>{% if license.subscription.plan %}{{ license.subscription.plan.name }}{% else %}دوره آزمایشی{% endif %} · صادرشده در {{ license.created_at|date:'Y/m/d' }}</small>
             {% if license.subscription.is_waiting_for_activation %}<small>مدت اعتبار از اولین فعال‌سازی در برنامه دسکتاپ شروع می‌شود.</small>{% else %}<small>انقضا: {{ license.subscription.expires_at|date:'Y/m/d' }}</small>{% endif %}
             {% if license.display_key %}
-              <div style="margin-top:12px;padding:14px;border:1px solid rgba(100,210,160,.35);border-radius:12px;background:rgba(35,150,100,.08)">
-                <label for="license-key-{{ license.id }}" style="display:block;margin-bottom:8px;font-weight:700">کلید لایسنس</label>
-                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                  <input id="license-key-{{ license.id }}" type="text" readonly dir="ltr" value="{{ license.display_key }}" style="flex:1;min-width:260px;max-width:100%;padding:13px 15px;border-radius:10px;border:1px solid rgba(95,230,170,.55);background:#101827 !important;color:#d9ffeb !important;-webkit-text-fill-color:#d9ffeb;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.94rem;font-weight:600;letter-spacing:.035em;direction:ltr;text-align:left;box-shadow:inset 0 1px 4px rgba(0,0,0,.28),0 0 0 1px rgba(95,230,170,.06);outline:none;color-scheme:dark">
-                  <button class="button button-primary button-small" type="button" onclick="(function(){var e=document.getElementById('license-key-{{ license.id }}');e.select();if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(e.value)}else{document.execCommand('copy')}})()">کپی کلید</button>
+              <div class="nv-license-key-card">
+                <label class="nv-license-key-label" for="license-key-{{ license.id }}">کلید لایسنس</label>
+                <div class="nv-license-key-controls">
+                  <input id="license-key-{{ license.id }}" type="text" class="nv-license-key-input" readonly dir="ltr" value="{{ license.display_key }}">
+                  <button class="button button-primary button-small nv-copy-license" type="button" data-copy-target="license-key-{{ license.id }}">کپی کلید</button>
                 </div>
               </div>
             {% else %}
-              <div class="notice-line" style="margin-top:12px">این لایسنس پیش از فعال‌شدن نمایش امن کلید صادر شده است؛ کلید اصلی در پایگاه داده ذخیره نشده و از روی هش قابل بازیابی نیست. کلید موجود در ایمیل زمان خرید را بررسی کنید.</div>
+              <div class="notice-line nv-license-key-note">این لایسنس پیش از فعال‌شدن نمایش امن کلید صادر شده است؛ کلید اصلی در پایگاه داده ذخیره نشده و از روی هش قابل بازیابی نیست. کلید موجود در ایمیل زمان خرید را بررسی کنید.</div>
             {% endif %}
           </div>
           <div class="row-end"><span class="status-pill status-{% if license.subscription.is_waiting_for_activation %}active{% elif license.is_entitled %}active{% else %}expired{% endif %}">{% if license.subscription.is_waiting_for_activation %}در انتظار فعال‌سازی{% elif license.is_entitled %}معتبر{% elif license.status == "suspended" %}تعلیق‌شده{% elif license.status == "revoked" %}لغوشده{% else %}منقضی یا غیرفعال{% endif %}</span></div>
@@ -114,4 +115,5 @@
 </section>
   </div>
 </div>
+<script src="{% static 'portal/js/dashboard.js' %}" defer></script>
 {% endblock %}
