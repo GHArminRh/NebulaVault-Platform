@@ -6,8 +6,14 @@
 node_modules/
 staticfiles/
 media/
+playwright-report/
+test-results/
 
-# Keep Django Admin templates and email HTML untouched by public-site formatting
+# Keep Django Admin templates untouched
 templates/admin/
-templates/registration/
-registration/
+
+# Email HTML requires inline styling for email-client compatibility
+templates/registration/password_reset_email.html
+templates/registration/email_verification_email.html
+templates/registration/license_issued_email.html
+registration/password_reset_email.html
