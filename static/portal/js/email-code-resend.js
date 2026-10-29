@@ -17,16 +17,16 @@
 
   try {
     until = Number(window.sessionStorage.getItem(storageKey)) || 0;
-  } catch (error) {
+  } catch {
     // Storage is optional; the in-memory cooldown still protects this page view.
     until = 0;
   }
 
-  if (until <= Date.now()) {
+  if (!until) {
     until = Date.now() + cooldownMs;
     try {
       window.sessionStorage.setItem(storageKey, String(until));
-    } catch (error) {
+    } catch {
       // Continue with the in-memory cooldown when browser storage is unavailable.
     }
   }
@@ -47,7 +47,7 @@
 
     try {
       window.sessionStorage.setItem(storageKey, String(until));
-    } catch (error) {
+    } catch {
       // The timer still updates for this page view if storage is unavailable.
     }
 
