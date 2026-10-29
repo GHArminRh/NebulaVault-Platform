@@ -1,61 +1,102 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Smooth, single-document progress indicator. It advances gently while
-  // the incoming page loads, then eases to completion and fades away.
+  // Page-load progress: animate with requestAnimationFrame and stop cleanly at 91%
+  // until the browser confirms the load event. Keep the tip synchronized with the track.
   const progress = document.querySelector('.nv-page-progress');
   if (progress) {
+    const targetProgress = 91;
+    const referenceFrameMs = 1000 / 60;
     let progressValue = 0;
     let progressFrame = 0;
+    let lastProgressFrameTime = 0;
     let finishTimer = 0;
     let resetTimer = 0;
     let isRunning = false;
     let isFinished = false;
+
     const setProgress = (value) => {
       progressValue = Math.max(progressValue, Math.min(100, value));
       progress.style.setProperty('--nv-progress', progressValue + '%');
+      progress.style.setProperty('--nv-progress-ratio', String(progressValue / 100));
       progress.setAttribute('aria-valuenow', String(Math.round(progressValue)));
     };
-    const advanceProgress = () => {
-      if (!isRunning || isFinished) return;
-      // Ease toward 91% without appearing to stall or jumping in visible steps.
-      const remaining = 91 - progressValue;
-      setProgress(progressValue + Math.max(0.035, remaining * 0.012));
-      progressFrame = window.requestAnimationFrame(advanceProgress);
+
+    const advanceProgress = (timestamp) => {
+      if (!isRunning || isFinished) {
+        progressFrame = 0;
+        return;
+      }
+
+      // Time-based easing is stable across 60 Hz, 120 Hz and throttled frames.
+      const elapsed = lastProgressFrameTime
+        ? Math.min(timestamp - lastProgressFrameTime, 100)
+        : referenceFrameMs;
+      lastProgressFrameTime = timestamp;
+
+      const remaining = targetProgress - progressValue;
+      if (remaining <= 0.05) {
+        setProgress(targetProgress);
+        progressFrame = 0;
+        return;
+      }
+
+      const frameRatio = 1 - Math.pow(1 - 0.012, elapsed / referenceFrameMs);
+      setProgress(Math.min(targetProgress, progressValue + remaining * frameRatio));
+      progressFrame = progressValue < targetProgress
+        ? window.requestAnimationFrame(advanceProgress)
+        : 0;
     };
+
     const startProgress = () => {
       window.clearTimeout(finishTimer);
       window.clearTimeout(resetTimer);
-      if (progressFrame) window.cancelAnimationFrame(progressFrame);
+      if (progressFrame) {
+        window.cancelAnimationFrame(progressFrame);
+        progressFrame = 0;
+      }
+
+      lastProgressFrameTime = 0;
+      progressValue = 0;
       isRunning = true;
       isFinished = false;
-      progressValue = 0;
       progress.classList.remove('is-complete');
       progress.classList.add('is-loading');
       setProgress(4);
       progressFrame = window.requestAnimationFrame(advanceProgress);
     };
+
     const completeProgress = () => {
       if (isFinished) return;
+
       isRunning = false;
       isFinished = true;
-      if (progressFrame) window.cancelAnimationFrame(progressFrame);
+      if (progressFrame) {
+        window.cancelAnimationFrame(progressFrame);
+        progressFrame = 0;
+      }
+      lastProgressFrameTime = 0;
       setProgress(100);
       progress.classList.add('is-complete');
-      // Let the completed state remain briefly, then fade instead of snapping off.
+
+      // Keep the completed state briefly, then fade and reset for a possible restore.
       finishTimer = window.setTimeout(() => {
         progress.classList.remove('is-loading');
         resetTimer = window.setTimeout(() => {
           progress.classList.remove('is-complete');
           progress.style.setProperty('--nv-progress', '0%');
+          progress.style.setProperty('--nv-progress-ratio', '0');
           progress.setAttribute('aria-valuenow', '0');
           progressValue = 0;
+          lastProgressFrameTime = 0;
           isFinished = false;
         }, 420);
       }, 420);
     };
+
     if (document.readyState !== 'complete') {
       startProgress();
       window.addEventListener('load', completeProgress, { once: true });
     }
+
     window.addEventListener('pageshow', (event) => {
       if (event.persisted) completeProgress();
     });
