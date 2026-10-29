@@ -46,7 +46,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .prettierrc.json .prettierignore .djlintrc package.json package-lock.json requirements-dev.txt
+          git add .prettierrc.json .prettierignore .djlintrc package.json package-lock.json requirements-dev.txt eslint.config.js playwright.config.js scripts/check_frontend.py tests/e2e
           git add static/portal/css static/portal/js static/portal/service-worker.js accounts/static
           git add templates accounts/templates blog/templates comment/templates
           if git diff --cached --quiet; then
