@@ -73,7 +73,7 @@ The second pass expanded the inspection to account verification, authentication,
 - The page-specific CSS block is rendered after CMS-generated CSS so its narrowly scoped styles can override shared defaults as intended.
 - Feature-specific code has been removed from the shared `site.js` bundle where dedicated entry points are more appropriate.
 
-The legacy `static/portal/js/language.js` file was removed after confirming that the shared base template did not load it and the scanned templates contained no language-toggle references. The public interface is rendered in Persian; keep site language behavior in Django/template code rather than an unreferenced client-side translation map.
+The legacy `static/portal/js/language.js` file has no committed reference in the scanned templates, but it is retained because CMS-managed or dynamic content could load it. Confirm runtime usage before any later removal. The public interface remains rendered in Persian.
 
 ## Change boundary and remaining work
 
