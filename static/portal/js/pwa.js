@@ -3,7 +3,6 @@
 
   const buttons = [
     document.getElementById('nv-install-app'),
-    document.getElementById('nv-admin-install'),
   ].filter(Boolean);
 
   const standalone =
@@ -77,13 +76,17 @@
             const registrations = await navigator.serviceWorker.getRegistrations();
             await Promise.all(
               registrations
-                .filter((registration) => registration.scope === window.location.origin + '/admin/')
+                .filter((registration) => registration.scope === `${window.location.origin}/admin/`)
                 .map((registration) => registration.unregister())
             );
-            await navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
+            await navigator.serviceWorker.register('/service-worker.js', {
+              scope: '/',
+            });
           } catch {
             if (window.location.hostname === 'localhost') {
-              console.warn('Service worker registration failed; PWA features may be unavailable.');
+              console.warn(
+                'Service worker registration failed; PWA features may be unavailable.'
+              );
             }
           }
         })();
