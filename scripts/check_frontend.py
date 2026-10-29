@@ -7,6 +7,7 @@ checks safe, source-level invariants and leaves runtime behavior to Playwright.
 
 from __future__ import annotations
 
+import os
 import re
 import sys
 from pathlib import Path
@@ -38,23 +39,19 @@ IGNORED_PARTS = {
 }
 ASSET_EXTENSIONS = {".css", ".js"}
 INLINE_HANDLER = re.compile(
-    r"\\son(?:click|submit|load|change|input|error|keydown|keyup)\\s*=",
+    r"\son(?:click|submit|load|change|input|error|keydown|keyup)\s*=",
     re.IGNORECASE,
 )
-MISSING_ALT = re.compile(r"<img\\b(?![^>]*\\balt\\s*=)[^>]*>", re.IGNORECASE)
+MISSING_ALT = re.compile(r"<img\b(?![^>]*\balt\s*=)[^>]*>", re.IGNORECASE)
 UNTYPED_BUTTON = re.compile(
-    r"<button\\b(?![^>]*\\btype\\s*=)[^>]*>", re.IGNORECASE
+    r"<button\b(?![^>]*\btype\s*=)[^>]*>", re.IGNORECASE
 )
-STATIC_TAG = re.compile(r"{%\\s*static\\s+['\"]([^'\"]+)['\"]")
-STYLE_ATTRIBUTE = re.compile(r"\\sstyle\\s*=", re.IGNORECASE)
+STATIC_TAG = re.compile(r"{%\s*static\s+['\"]([^'\"]+)['\"]")
+STYLE_ATTRIBUTE = re.compile(r"\sstyle\s*=", re.IGNORECASE)
 
 
 def relative(path: Path) -> str:
     return path.relative_to(ROOT).as_posix()
-
-
-def is_ignored(path: Path) -> bool:
-    return any(part in IGNORED_PARTS for part in path.parts)
 
 
 def source_files() -> list[Path]:
@@ -186,7 +183,7 @@ def main() -> int:
 
     css_files = list((ROOT / "static" / "portal" / "css").glob("*.css"))
     css_important_count = sum(
-        len(re.findall(r"!\\s*important\\b", path.read_text(encoding="utf-8"), re.I))
+        len(re.findall(r"!\s*important\b", path.read_text(encoding="utf-8"), re.I))
         for path in css_files
     )
 
