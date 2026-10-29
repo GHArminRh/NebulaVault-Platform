@@ -40,8 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
       'click',
       (event) => {
         const link = event.target.closest('a[href]');
+        // CMS toolbar actions can be handled asynchronously without navigation.
+        // Keep them out of the public-site document progress indicator.
         if (
           !link ||
+          link.closest('#cms-toolbar, .cms-toolbar, [data-cms-toolbar]') ||
           event.defaultPrevented ||
           event.button !== 0 ||
           event.metaKey ||
@@ -68,7 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
       'submit',
       (event) => {
         const form = event.target;
-        if (form instanceof HTMLFormElement && form.method.toLowerCase() !== 'dialog')
+        if (
+          form instanceof HTMLFormElement &&
+          !form.closest('#cms-toolbar, .cms-toolbar, [data-cms-toolbar]') &&
+          form.method.toLowerCase() !== 'dialog'
+        )
           startProgress();
       },
       true
