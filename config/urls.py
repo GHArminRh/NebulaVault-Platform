@@ -4,7 +4,6 @@ from django.shortcuts import render
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
-
 from django.http import HttpResponse
 
 from api.admin_pages import admin_page_required
@@ -27,7 +26,6 @@ def service_worker(request):
     response["Service-Worker-Allowed"] = "/"
     response["Cache-Control"] = "no-cache"
     return response
-
 
 
 def healthcheck(request):
