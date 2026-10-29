@@ -46,21 +46,6 @@
     {% if products %}<div class="product-grid nv-home-product-grid">{% for product in products %}<article class="product-card nv-product-card"><div class="nv-product-topline"><span class="product-icon product-icon-{{ forloop.counter }}">◈</span><span class="nv-product-index">NV · 0{{ forloop.counter }}</span></div><h3>{{ product.name }}</h3><p>{{ product.description|striptags|default:'ابزاری سنجیده برای ساده‌تر کردن کارهای دیجیتال شما.'|truncatewords:25 }}</p><div class="nv-product-meta"><span class="pill pill-live"><i></i> آماده‌ی بررسی</span><span>{{ product.plans.all|length }} طرح</span></div><a class="nv-card-link"
    href="{% url 'portal:product_detail' product.slug %}">بررسی محصول <span>↗</span></a></article>{% endfor %}</div>{% else %}<div class="empty-state"><span class="empty-symbol">◈</span><h3>محصول بعدی از اینجا شروع می‌شود.</h3><p>محصولات پس از انتشار توسط تیم در این بخش نمایش داده می‌شوند.</p>{% if user.is_staff %}<a class="button button-primary" href="/admin/">مدیریت محصولات ↗</a>{% endif %}</div>{% endif %}
   </section>
-  <section class="nv-pricing-band" id="pricing">
-    <div class="page-wrap section nv-home-section">
-      <div class="section-heading">
-        <div>
-          <div class="eyebrow">تعرفه‌های شفاف</div>
-          <h2>طرح مناسب خودتان را انتخاب کنید.</h2>
-          <p>پیش از خرید، مدت و مبلغ هر طرح را ببینید؛ بدون غافلگیری.</p>
-        </div>
-        <span class="nv-section-index">02 / PLANS</span>
-      </div>
-      {% if plans %}<div class="nv-plan-grid">{% for plan in plans %}<article class="nv-plan-card"><div class="nv-plan-product">{{ plan.product.name }}</div><h3>{{ plan.name }}</h3><div class="nv-plan-price"><strong>{{ plan.price_minor_units|money }}</strong><span>{{ plan.currency|default:"ریال" }}</span></div><div class="nv-plan-duration">{% if plan.duration_value %}{{ plan.duration_value }} {% if plan.duration_unit == "days" %}روز{% elif plan.duration_unit == "months" %}ماه{% elif plan.duration_unit == "years" %}سال{% else %}واحد زمانی{% endif %}{% else %}مدت طبق جزئیات طرح{% endif %}</div><a class="button button-glass nv-plan-button"
-   href="{% url 'portal:product_detail' plan.product.slug %}">{% if plan.is_renewal %}جزئیات و تمدید{% else %}جزئیات و خرید{% endif %} <span>↗</span></a></article>{% endfor %}</div>{% else %}<div class="nv-section-empty">در حال حاضر طرح فعالی برای خرید منتشر نشده است.</div>{% endif %}
-      <p class="nv-pricing-footnote">مبلغ نهایی و جزئیات هر طرح پیش از پرداخت نمایش داده می‌شود.</p>
-    </div>
-  </section>
   <section class="section page-wrap nv-home-section" id="features">
     <div class="section-heading">
       <div>
@@ -73,9 +58,9 @@
     <div class="nv-feature-grid">
       <article class="nv-feature-card nv-feature-highlight"><span class="nv-feature-icon">⌘</span><span class="nv-feature-number">01</span><h3>پیشخوان متمرکز</h3><p>اشتراک‌های فعال، سفارش‌های اخیر، وضعیت لایسنس‌ها و تنظیمات حساب در یک فضای مشخص.</p><a href="{% if user.is_authenticated %}{% url 'portal:dashboard' %}{% else %}{% url 'login' %}{% endif %}">رفتن به فضای کار <span>↗</span></a></article>
       <article class="nv-feature-card"><span class="nv-feature-icon">◇</span><span class="nv-feature-number">02</span>
-        <h3>خرید شفاف</h3>
-        <p>طرح‌ها، مدت اعتبار و مبلغ را پیش از ادامه‌ی خرید بررسی کنید.</p>
-        <a href="#pricing">دیدن طرح‌ها <span>↙</span></a></article>
+        <h3>انتخاب آگاهانه</h3>
+        <p>جزئیات و طرح‌های هر محصول را در صفحه‌ی اختصاصی همان محصول بررسی کنید.</p>
+        <a href="#products">مشاهده محصولات <span>↙</span></a></article>
       <article class="nv-feature-card"><span class="nv-feature-icon">⌑</span><span class="nv-feature-number">03</span><h3>مدیریت دسترسی</h3><p>اطلاعات لایسنس و وضعیت اشتراک‌ها را در فضای حساب خود دنبال کنید.</p><a href="{% if user.is_authenticated %}{% url 'portal:dashboard' %}#my-licenses{% else %}{% url 'login' %}{% endif %}">لایسنس‌های من <span>↗</span></a></article>
     </div>
   </section>
