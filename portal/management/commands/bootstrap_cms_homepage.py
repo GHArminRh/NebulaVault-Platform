@@ -32,11 +32,13 @@ class Command(BaseCommand):
             created_by="bootstrap_cms_homepage",
             in_navigation=True,
             published=True,
-            is_home=True,
             site=site,
             page_title="نبیولا والت — یک فضای یکپارچه برای دنیای دیجیتال شما",
             meta_description="محصولات، تعرفه‌ها، نسخه‌ها و محتوای نبیولا والت را در یک فضای امن و یکپارچه ببینید.",
         )
+        # django CMS 5 exposes homepage assignment as a Page method rather
+        # than a create_page() keyword argument.
+        page.set_as_homepage()
         placeholder = page.get_placeholders(language="fa").get(slot="content")
 
         # Editable copy is stored in CMS text plugins. Live catalogue plugins
