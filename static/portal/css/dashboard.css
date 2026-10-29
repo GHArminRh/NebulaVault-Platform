@@ -1,0 +1,70 @@
+/* Page-specific styles for the account dashboard's license section. */
+.nv-dashboard-page .nv-licenses-panel {
+  margin-top: 24px;
+}
+
+.nv-dashboard-page .nv-license-row {
+  align-items: flex-start;
+}
+
+.nv-dashboard-page .nv-license-main {
+  width: 100%;
+  min-width: 0;
+}
+
+.nv-dashboard-page .nv-license-key-card {
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid rgba(100, 210, 160, 0.35);
+  border-radius: 12px;
+  background: rgba(35, 150, 100, 0.08);
+}
+
+.nv-dashboard-page .nv-license-key-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.nv-dashboard-page .nv-license-key-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.nv-dashboard-page .nv-license-key-input {
+  flex: 1;
+  min-width: 260px;
+  max-width: 100%;
+  padding: 13px 15px;
+  border: 1px solid rgba(95, 230, 170, 0.55);
+  border-radius: 10px;
+  background: #101827 !important;
+  color: #d9ffeb !important;
+  -webkit-text-fill-color: #d9ffeb;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.94rem;
+  font-weight: 600;
+  letter-spacing: 0.035em;
+  direction: ltr;
+  text-align: left;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(95, 230, 170, 0.06);
+  outline: none;
+  color-scheme: dark;
+}
+
+.nv-dashboard-page .nv-license-key-note {
+  margin-top: 12px;
+}
+
+@media (max-width: 560px) {
+  .nv-dashboard-page .nv-license-key-input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .nv-dashboard-page .nv-license-key-controls .button {
+    width: 100%;
+  }
+}
