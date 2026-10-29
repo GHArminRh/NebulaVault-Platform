@@ -36,50 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
       startProgress();
       window.addEventListener('load', completeProgress, { once: true });
     }
-    document.addEventListener(
-      'click',
-      (event) => {
-        const link = event.target.closest('a[href]');
-        // CMS toolbar actions can be handled asynchronously without navigation.
-        // Keep them out of the public-site document progress indicator.
-        if (
-          !link ||
-          link.closest('#cms-toolbar, .cms-toolbar, [data-cms-toolbar]') ||
-          event.defaultPrevented ||
-          event.button !== 0 ||
-          event.metaKey ||
-          event.ctrlKey ||
-          event.shiftKey ||
-          event.altKey ||
-          link.target === '_blank' ||
-          link.hasAttribute('download')
-        )
-          return;
-        const destination = new URL(link.href, window.location.href);
-        if (
-          destination.origin !== window.location.origin ||
-          (destination.pathname === location.pathname &&
-            destination.search === location.search &&
-            destination.hash)
-        )
-          return;
-        startProgress();
-      },
-      true
-    );
-    document.addEventListener(
-      'submit',
-      (event) => {
-        const form = event.target;
-        if (
-          form instanceof HTMLFormElement &&
-          !form.closest('#cms-toolbar, .cms-toolbar, [data-cms-toolbar]') &&
-          form.method.toLowerCase() !== 'dialog'
-        )
-          startProgress();
-      },
-      true
-    );
+    // Show the indicator only for the incoming document. Starting it on the
+    // outgoing link/form as well makes a second bar appear after navigation.
     window.addEventListener('pageshow', completeProgress);
   }
 
