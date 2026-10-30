@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "menus",
     "sekizai",
     "easy_thumbnails",
+    "filer",  # Required by djangocms-link file-link migrations and plugin support.
     "djangocms_text",
     "djangocms_link",
     "djangocms_frontend",
