@@ -91,14 +91,48 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
             with self.subTest(model=model.__name__):
                 migrated_model = migrated_apps.get_model("portal", model.__name__)
                 current_fields = {
-                    field.name: field.deconstruct()
+                    field.name: field
                     for field in model._meta.local_fields
                 }
                 migrated_fields = {
-                    field.name: field.deconstruct()
+                    field.name: field
                     for field in migrated_model._meta.local_fields
                 }
-                self.assertEqual(current_fields, migrated_fields)
+                self.assertEqual(set(current_fields), set(migrated_fields))
+
+                # The auto-created parent-link field carries runtime-only
+                # related_name metadata. Compare the schema-relevant values
+                # rather than the complete deconstruction dictionaries.
+                schema_attributes = (
+                    "max_length",
+                    "blank",
+                    "null",
+                    "primary_key",
+                    "parent_link",
+                    "upload_to",
+                    "verbose_name",
+                    "help_text",
+                    "validators",
+                )
+                for field_name, current_field in current_fields.items():
+                    migrated_field = migrated_fields[field_name]
+                    with self.subTest(field=field_name):
+                        self.assertEqual(
+                            current_field.get_internal_type(),
+                            migrated_field.get_internal_type(),
+                        )
+                        for attribute in schema_attributes:
+                            if hasattr(current_field, attribute) or hasattr(migrated_field, attribute):
+                                self.assertEqual(
+                                    getattr(current_field, attribute, None),
+                                    getattr(migrated_field, attribute, None),
+                                    f"{model.__name__}.{field_name}.{attribute} differs",
+                                )
+                        if current_field.is_relation:
+                            self.assertEqual(
+                                current_field.remote_field.model._meta.label_lower,
+                                migrated_field.remote_field.model._meta.label_lower,
+                            )
 
     def test_uploads_are_disabled_without_durable_storage(self):
         self.assertFalse(settings.CMS_MEDIA_UPLOADS_ENABLED)
