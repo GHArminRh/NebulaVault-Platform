@@ -12,6 +12,7 @@ from cms.api import add_plugin
 from cms.models import PageUrl, Placeholder
 from cms.models.pluginmodel import CMSPlugin
 from portal.cms_home import cms_home
+from catalog.models import Plan, Product
 
 
 class CmsIntegrationSmokeTests(SimpleTestCase):
@@ -238,6 +239,36 @@ class CmsHomepageRoutingTests(TestCase):
                     1,
                     f"CMS section '{section_id}' must not be nested or duplicated.",
                 )
+
+    def test_live_product_grid_counts_only_active_plans(self):
+        product = Product.objects.create(
+            name="CMS test product",
+            slug="cms-test-product",
+            description="Product rendered from the CMS plugin.",
+        )
+        plan_fields = {
+            "product": product,
+            "duration_unit": Plan.DurationUnit.MONTHS,
+            "duration_value": 1,
+            "price_minor_units": 1000,
+            "currency": "IRR",
+            "device_limit": 1,
+        }
+        Plan.objects.create(name="Active plan", slug="active-plan", **plan_fields)
+        Plan.objects.create(
+            name="Inactive plan",
+            slug="inactive-plan",
+            is_active=False,
+            **plan_fields,
+        )
+
+        call_command("bootstrap_cms_homepage", verbosity=0)
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, product.name)
+        self.assertContains(response, "1 طرح")
+        self.assertNotContains(response, "2 طرح")
 
     def test_bootstrap_never_overwrites_or_deletes_editor_authored_content(self):
         call_command("bootstrap_cms_homepage", verbosity=0)
