@@ -1,4 +1,5 @@
 """Force a consistent Persian interface across the public site."""
+from django.core.exceptions import ValidationError
 from django.utils.deprecation import MiddlewareMixin
 from django.utils import translation
 
