@@ -11,8 +11,8 @@ from django.urls import resolve
 
 from cms.api import add_plugin, create_page
 from cms.models import PageUrl, Placeholder
-from cms.plugin_pool import plugin_pool
 from cms.models.pluginmodel import CMSPlugin
+from cms.plugin_pool import plugin_pool
 from catalog.models import Plan, Product
 from portal.cms_home import cms_home
 from portal.models import CMSExternalImage, CMSUploadedImage
@@ -38,6 +38,7 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
         self.assertIn("djangocms_frontend.contrib.grid", settings.INSTALLED_APPS)
         self.assertIn("cms_site_seed", settings.INSTALLED_APPS)
         self.assertEqual(settings.CMS_TREE_BACKEND, "mptree")
+        self.assertNotIn("treebeard", settings.INSTALLED_APPS)
         self.assertIn(
             ("portal/cms_page.html", "صفحهٔ عمومی نبیولا والت"),
             settings.CMS_TEMPLATES,
