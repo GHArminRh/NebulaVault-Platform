@@ -1,15 +1,10 @@
-"""Create and safely normalize the editable Persian django CMS homepage.
-
-The command is idempotent: it preserves unrelated editor content and migrates
-only the known seed plugins created by older versions of this command.
-"""
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from cms.api import add_plugin, create_page
-from cms.models import PageContent, PageUrl
+from cms.models import PageContent, PageUrl, Placeholder
 from cms.models.pluginmodel import CMSPlugin
 from cms.utils.placeholder import rescan_placeholders_for_obj
 
@@ -57,6 +52,7 @@ class Command(BaseCommand):
             site=site, language="fa", path__in=("", "/")
         ).select_related("page").first()
 
+        created_page = False
         if root_url:
             page = root_url.page
         else:
@@ -81,7 +77,9 @@ class Command(BaseCommand):
                     page_title="نبیولا والت — یک فضای یکپارچه برای دنیای دیجیتال شما",
                     meta_description="محصولات، تعرفه‌ها، نسخه‌ها و محتوای نبیولا والت را از یک فضای امن و یکپارچه ببینید.",
                 )
+                created_page = True
 
+        seeded = []
         with transaction.atomic():
             page.set_as_homepage()
 
@@ -92,15 +90,22 @@ class Command(BaseCommand):
                 ))
                 return
 
+            # Remember which slots already existed before changing the template.
+            # An empty old slot may mean that an editor intentionally removed its
+            # plugin; startup must not silently recreate it on every deployment.
+            existing_slots = set(
+                Placeholder.objects.get_for_obj(page_content).values_list("slot", flat=True)
+            )
+
             if page_content.template != "portal/cms_home_page.html":
                 page_content.template = "portal/cms_home_page.html"
                 page_content.save(update_fields=["template"])
 
-            # Existing PageContent objects retain their historical placeholder
-            # relation when a template changes. Rescan to create newly declared
-            # slots (such as "blog") without deleting existing editor content.
             placeholders = rescan_placeholders_for_obj(page_content)
-            required = {"hero", "content", "products", "pricing", "features", "releases", "blog", "about"}
+            required = {
+                "hero", "content", "products", "pricing",
+                "features", "releases", "blog", "about",
+            }
             missing = required.difference(placeholders)
             if missing:
                 self.stdout.write(self.style.ERROR(
@@ -108,64 +113,9 @@ class Command(BaseCommand):
                 ))
                 return
 
-            # Move or remove only the recognizable legacy homepage sections
-            # left in the generic content slot by earlier CMS bootstrap versions.
-            # The current template already has dedicated placeholders for these
-            # sections. Unknown/editor-authored content is deliberately preserved.
-            content_placeholder = placeholders["content"]
-            migrated = []
-            removed_legacy = []
-            legacy_text_sections = (
-                ("nv-hero-copy", "hero", HERO_COPY),
-                ("nv-feature-grid", "features", FEATURE_GRID),
-                ("nv-faq-list", "about", FAQ_CONTENT),
-            )
-            legacy_destinations = {
-                "LiveProductGridPlugin": "products",
-                "LivePricingGridPlugin": "pricing",
-                "LiveReleaseListPlugin": "releases",
-                "LiveBlogListPlugin": "blog",
-            }
-            for plugin in list(
-                CMSPlugin.objects.filter(
-                    placeholder=content_placeholder, language="fa", parent__isnull=True
-                ).order_by("position", "pk")
-            ):
-                target_slot = legacy_destinations.get(plugin.plugin_type)
-                instance = None
-                if plugin.plugin_type == "TextPlugin":
-                    try:
-                        instance, _plugin_class = plugin.get_plugin_instance()
-                    except (AttributeError, LookupError, TypeError):
-                        instance = None
-                    body = getattr(instance, "body", "") if instance else ""
-                    if isinstance(body, str):
-                        for marker, candidate_slot, canonical_body in legacy_text_sections:
-                            if marker in body:
-                                target_slot = candidate_slot
-                                instance.body = canonical_body
-                                break
-
-                if not target_slot:
-                    continue
-
-                target = placeholders[target_slot]
-                if target.has_plugins(language="fa"):
-                    # A canonical plugin already exists in the dedicated slot;
-                    # this is an obsolete duplicate, not user content.
-                    plugin.delete()
-                    removed_legacy.append(target_slot)
-                    continue
-
-                if instance is not None and target_slot in {"hero", "features", "about"}:
-                    instance.save(update_fields=["body"])
-                target_position = target.get_next_plugin_position("fa", insert_order="last")
-                content_placeholder.move_plugin(
-                    plugin, target_position, target_placeholder=target
-                )
-                migrated.append(target_slot)
-
-            # Fill only empty regions. Existing content is never replaced.
+            # Seed defaults only for a brand-new homepage or placeholders first
+            # introduced by a template update. Never move, rewrite, or delete
+            # existing plugin rows: those belong to the site editor.
             defaults = {
                 "hero": ("TextPlugin", {"body": HERO_COPY}),
                 "features": ("TextPlugin", {"body": FEATURE_GRID}),
@@ -175,15 +125,25 @@ class Command(BaseCommand):
                 "releases": ("LiveReleaseListPlugin", {}),
                 "blog": ("LiveBlogListPlugin", {}),
             }
-            created = []
+
             for slot, (plugin_type, values) in defaults.items():
+                is_new_slot = slot not in existing_slots
+                if not (created_page or is_new_slot):
+                    continue
+
                 target = placeholders[slot]
-                if not target.has_plugins(language="fa"):
-                    add_plugin(target, plugin_type, "fa", **values)
-                    created.append(slot)
+                has_plugins = CMSPlugin.objects.filter(
+                    placeholder_id=target.pk,
+                    language="fa",
+                ).exists()
+                if has_plugins:
+                    continue
+
+                add_plugin(target, plugin_type, "fa", **values)
+                seeded.append(slot)
 
         self.stdout.write(self.style.SUCCESS(
-            f"CMS homepage {page.pk} is ready. Migrated: {', '.join(migrated) or 'none'}; "
-            f"removed legacy duplicates: {len(removed_legacy)}; "
-            f"seeded empty regions: {', '.join(created) or 'none'}."
+            f"CMS homepage {page.pk} is ready. "
+            f"Seeded new regions: {', '.join(seeded) or 'none'}; "
+            "existing CMS content was left untouched."
         ))

@@ -1,5 +1,6 @@
 """Nebula Vault CMS plugins backed by live product, pricing, release and blog data."""
 from django.conf import settings
+from django.db.models import Prefetch
 from django.utils import timezone
 from cms.models.pluginmodel import CMSPlugin
 from cms.plugin_base import CMSPluginBase
@@ -12,6 +13,7 @@ from .models import CMSExternalImage, CMSUploadedImage
 
 @plugin_pool.register_plugin
 class LiveProductGridPlugin(CMSPluginBase):
+    allowed_slots = ["products"]
     model = CMSPlugin
     name = "محصولات زنده"
     module = "محتوای پویای نبیولا"
@@ -22,7 +24,7 @@ class LiveProductGridPlugin(CMSPluginBase):
         context = super().render(context, instance, placeholder)
         context["cms_products"] = (
             Product.objects.filter(is_active=True)
-            .prefetch_related("plans")
+            .prefetch_related(Prefetch("plans", queryset=Plan.objects.filter(is_active=True)))
             .order_by("name")[:6]
         )
         return context
@@ -30,6 +32,7 @@ class LiveProductGridPlugin(CMSPluginBase):
 
 @plugin_pool.register_plugin
 class LivePricingGridPlugin(CMSPluginBase):
+    allowed_slots = ["pricing"]
     model = CMSPlugin
     name = "تعرفه‌های زنده"
     module = "محتوای پویای نبیولا"
@@ -48,6 +51,7 @@ class LivePricingGridPlugin(CMSPluginBase):
 
 @plugin_pool.register_plugin
 class LiveReleaseListPlugin(CMSPluginBase):
+    allowed_slots = ["releases"]
     model = CMSPlugin
     name = "نسخه‌های منتشرشده"
     module = "محتوای پویای نبیولا"
@@ -69,6 +73,7 @@ class LiveReleaseListPlugin(CMSPluginBase):
 
 @plugin_pool.register_plugin
 class LiveBlogListPlugin(CMSPluginBase):
+    allowed_slots = ["blog"]
     model = CMSPlugin
     name = "مقالات تازه"
     module = "محتوای پویای نبیولا"
@@ -89,6 +94,7 @@ class LiveBlogListPlugin(CMSPluginBase):
 
 @plugin_pool.register_plugin
 class ExternalImagePlugin(CMSPluginBase):
+    allowed_slots = ["hero", "content", "features", "about"]
     model = CMSExternalImage
     name = "تصویر با آدرس اینترنتی"
     module = "محتوای پویای نبیولا"
@@ -105,6 +111,7 @@ class ExternalImagePlugin(CMSPluginBase):
 if settings.CMS_MEDIA_UPLOADS_ENABLED:
     @plugin_pool.register_plugin
     class UploadedImagePlugin(CMSPluginBase):
+        allowed_slots = ["hero", "content", "features", "about"]
         model = CMSUploadedImage
         name = "تصویر بارگذاری‌شده"
         module = "محتوای پویای نبیولا"

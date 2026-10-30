@@ -1,6 +1,9 @@
 from datetime import timedelta
+from django.conf import settings
+from django.contrib.sites.models import Site
 from accounts.models import Customer
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from catalog.models import Plan, Product
@@ -15,6 +18,11 @@ class PortalPageTests(TestCase):
         self.user = Customer.objects.create_user(username="portal_user", email="portal@example.com", password="a-secure-test-password")
         self.product = Product.objects.create(name="Nebula Vault", slug="nebula-vault", description="A secure workspace.")
         self.plan = Plan.objects.create(product=self.product, name="Monthly", slug="monthly", duration_unit=Plan.DurationUnit.MONTHS, duration_value=1, price_minor_units=1999, currency="USD", device_limit=2)
+        Site.objects.update_or_create(
+            pk=settings.SITE_ID,
+            defaults={"domain": "mydigigi.test", "name": "MyDigiGi portal tests"},
+        )
+        call_command("bootstrap_cms_homepage", verbosity=0)
 
     def test_public_pages_render(self):
         for url in ("portal:home", "portal:products", "portal:pricing"):
@@ -27,7 +35,25 @@ class PortalPageTests(TestCase):
         for section_id in ("home", "products", "pricing", "features", "blog", "releases", "about"):
             self.assertContains(response, f'id="{section_id}"', html=False)
         self.assertContains(response, self.product.name)
+        self.assertContains(response, "1 طرح")
         self.assertContains(response, "کنترل در دست شما")
+
+    def test_live_product_grid_counts_only_active_plans(self):
+        Plan.objects.create(
+            product=self.product,
+            name="Inactive plan",
+            slug="inactive-plan",
+            duration_unit=Plan.DurationUnit.MONTHS,
+            duration_value=1,
+            price_minor_units=999,
+            currency="USD",
+            device_limit=1,
+            is_active=False,
+        )
+        response = self.client.get(reverse("portal:home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "1 طرح")
+        self.assertNotContains(response, "2 طرح")
 
     def test_rich_product_description_is_sanitized_and_rendered(self):
         self.product.description = '<p>Visible <strong>formatted</strong> text.</p><script>alert("xss")</script><img src="https://example.com/image.png" onerror="alert(1)">'
