@@ -182,13 +182,21 @@ class CmsHomepageRoutingTests(TestCase):
             for placeholder in root_url.page.get_placeholders(language="fa")
         }
         self.assertIn("blog", placeholders)
-        self.assertTrue(
-            CMSPlugin.objects.filter(
-                placeholder=placeholders["blog"],
-                language="fa",
-                plugin_type="LiveBlogListPlugin",
-            ).exists()
-        )
+        for slot, plugin_type in (
+            ("hero", "TextPlugin"),
+            ("products", "LiveProductGridPlugin"),
+            ("pricing", "LivePricingGridPlugin"),
+            ("releases", "LiveReleaseListPlugin"),
+            ("blog", "LiveBlogListPlugin"),
+        ):
+            with self.subTest(slot=slot):
+                self.assertTrue(
+                    CMSPlugin.objects.filter(
+                        placeholder=placeholders[slot],
+                        language="fa",
+                        plugin_type=plugin_type,
+                    ).exists()
+                )
 
         # Simulate an existing homepage created before the blog slot existed.
         # Bootstrap must rescan the changed template and recreate the missing
