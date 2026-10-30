@@ -1,4 +1,6 @@
 from datetime import timedelta
+from django.conf import settings
+from django.contrib.sites.models import Site
 from accounts.models import Customer
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
@@ -16,6 +18,10 @@ class PortalPageTests(TestCase):
         self.user = Customer.objects.create_user(username="portal_user", email="portal@example.com", password="a-secure-test-password")
         self.product = Product.objects.create(name="Nebula Vault", slug="nebula-vault", description="A secure workspace.")
         self.plan = Plan.objects.create(product=self.product, name="Monthly", slug="monthly", duration_unit=Plan.DurationUnit.MONTHS, duration_value=1, price_minor_units=1999, currency="USD", device_limit=2)
+        Site.objects.update_or_create(
+            pk=settings.SITE_ID,
+            defaults={"domain": "mydigigi.test", "name": "MyDigiGi portal tests"},
+        )
         call_command("bootstrap_cms_homepage", verbosity=0)
 
     def test_public_pages_render(self):
