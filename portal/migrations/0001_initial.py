@@ -29,12 +29,14 @@ class Migration(migrations.Migration):
                 (
                     "image_url",
                     models.URLField(
+                        help_text="برای ماندگاری تصویر، از میزبان رسانه‌ای پایدار استفاده کنید.",
                         max_length=1000,
                         validators=[URLValidator(schemes=["https", "http"])],
+                        verbose_name="آدرس تصویر",
                     ),
                 ),
-                ("alt_text", models.CharField(max_length=240)),
-                ("caption", models.CharField(blank=True, max_length=320)),
+                ("alt_text", models.CharField(max_length=240, verbose_name="متن جایگزین")),
+                ("caption", models.CharField(blank=True, max_length=320, verbose_name="زیرنویس")),
             ],
             options={
                 "verbose_name": "بلوک تصویر خارجی",
@@ -56,9 +58,9 @@ class Migration(migrations.Migration):
                         to="cms.cmsplugin",
                     ),
                 ),
-                ("image", models.ImageField(upload_to="cms/images/%Y/%m/")),
-                ("alt_text", models.CharField(max_length=240)),
-                ("caption", models.CharField(blank=True, max_length=320)),
+                ("image", models.ImageField(upload_to="cms/images/%Y/%m/", verbose_name="فایل تصویر")),
+                ("alt_text", models.CharField(max_length=240, verbose_name="متن جایگزین")),
+                ("caption", models.CharField(blank=True, max_length=320, verbose_name="زیرنویس")),
             ],
             options={
                 "verbose_name": "تصویر بارگذاری‌شدهٔ CMS",
