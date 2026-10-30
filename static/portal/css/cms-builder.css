@@ -101,40 +101,140 @@
    The project keeps these rules local instead of depending on a third-party CDN. */
 @media (min-width: 576px) {
   .nv-cms-page .row > .col-sm-6,
-  .nv-cms-home .row > .col-sm-6 { flex: 0 0 50%; max-width: 50%; }
+  .nv-cms-home .row > .col-sm-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
   .nv-cms-page .row > .col-sm-4,
-  .nv-cms-home .row > .col-sm-4 { flex: 0 0 33.3333%; max-width: 33.3333%; }
+  .nv-cms-home .row > .col-sm-4 {
+    flex: 0 0 33.3333%;
+    max-width: 33.3333%;
+  }
   .nv-cms-page .row > .col-sm-3,
-  .nv-cms-home .row > .col-sm-3 { flex: 0 0 25%; max-width: 25%; }
+  .nv-cms-home .row > .col-sm-3 {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+  .nv-cms-page .row.row-cols-sm-2 > *,
+  .nv-cms-home .row.row-cols-sm-2 > * {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+  .nv-cms-page .row.row-cols-sm-3 > *,
+  .nv-cms-home .row.row-cols-sm-3 > * {
+    flex: 0 0 33.3333%;
+    max-width: 33.3333%;
+  }
+  .nv-cms-page .row.row-cols-sm-4 > *,
+  .nv-cms-home .row.row-cols-sm-4 > * {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
 }
 @media (min-width: 768px) {
   .nv-cms-page .row > .col-md-6,
-  .nv-cms-home .row > .col-md-6 { flex: 0 0 50%; max-width: 50%; }
+  .nv-cms-home .row > .col-md-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
   .nv-cms-page .row > .col-md-4,
-  .nv-cms-home .row > .col-md-4 { flex: 0 0 33.3333%; max-width: 33.3333%; }
+  .nv-cms-home .row > .col-md-4 {
+    flex: 0 0 33.3333%;
+    max-width: 33.3333%;
+  }
   .nv-cms-page .row > .col-md-3,
-  .nv-cms-home .row > .col-md-3 { flex: 0 0 25%; max-width: 25%; }
+  .nv-cms-home .row > .col-md-3 {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+  .nv-cms-page .row.row-cols-md-2 > *,
+  .nv-cms-home .row.row-cols-md-2 > * {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+  .nv-cms-page .row.row-cols-md-3 > *,
+  .nv-cms-home .row.row-cols-md-3 > * {
+    flex: 0 0 33.3333%;
+    max-width: 33.3333%;
+  }
+  .nv-cms-page .row.row-cols-md-4 > *,
+  .nv-cms-home .row.row-cols-md-4 > * {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
 }
 @media (min-width: 992px) {
   .nv-cms-page .row > .col-lg-6,
-  .nv-cms-home .row > .col-lg-6 { flex: 0 0 50%; max-width: 50%; }
+  .nv-cms-home .row > .col-lg-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
   .nv-cms-page .row > .col-lg-4,
-  .nv-cms-home .row > .col-lg-4 { flex: 0 0 33.3333%; max-width: 33.3333%; }
+  .nv-cms-home .row > .col-lg-4 {
+    flex: 0 0 33.3333%;
+    max-width: 33.3333%;
+  }
   .nv-cms-page .row > .col-lg-3,
-  .nv-cms-home .row > .col-lg-3 { flex: 0 0 25%; max-width: 25%; }
+  .nv-cms-home .row > .col-lg-3 {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+  .nv-cms-page .row.row-cols-lg-2 > *,
+  .nv-cms-home .row.row-cols-lg-2 > * {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+  .nv-cms-page .row.row-cols-lg-3 > *,
+  .nv-cms-home .row.row-cols-lg-3 > * {
+    flex: 0 0 33.3333%;
+    max-width: 33.3333%;
+  }
+  .nv-cms-page .row.row-cols-lg-4 > *,
+  .nv-cms-home .row.row-cols-lg-4 > * {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
 }
 @media (min-width: 1200px) {
   .nv-cms-page .row > .col-xl-6,
-  .nv-cms-home .row > .col-xl-6 { flex: 0 0 50%; max-width: 50%; }
+  .nv-cms-home .row > .col-xl-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
   .nv-cms-page .row > .col-xl-4,
-  .nv-cms-home .row > .col-xl-4 { flex: 0 0 33.3333%; max-width: 33.3333%; }
+  .nv-cms-home .row > .col-xl-4 {
+    flex: 0 0 33.3333%;
+    max-width: 33.3333%;
+  }
+  .nv-cms-page .row.row-cols-xl-2 > *,
+  .nv-cms-home .row.row-cols-xl-2 > * {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+  .nv-cms-page .row.row-cols-xl-3 > *,
+  .nv-cms-home .row.row-cols-xl-3 > * {
+    flex: 0 0 33.3333%;
+    max-width: 33.3333%;
+  }
+  .nv-cms-page .row.row-cols-xl-4 > *,
+  .nv-cms-home .row.row-cols-xl-4 > * {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
 }
 .nv-cms-page .card,
-.nv-cms-home .card { min-width: 0; overflow-wrap: anywhere; }
+.nv-cms-home .card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .nv-cms-page .alert,
-.nv-cms-home .alert { color: #e5e7eb; }
+.nv-cms-home .alert {
+  color: #e5e7eb;
+}
 .nv-cms-page .alert a,
-.nv-cms-home .alert a { color: inherit; }
+.nv-cms-home .alert a {
+  color: inherit;
+}
 .nv-cms-page pre,
 .nv-cms-home pre {
   max-width: 100%;
@@ -145,7 +245,9 @@
   background: rgba(2, 6, 23, 0.55);
 }
 .nv-cms-page code,
-.nv-cms-home code { overflow-wrap: anywhere; }
+.nv-cms-home code {
+  overflow-wrap: anywhere;
+}
 
 /*
  * CMS homepage mobile layout repair.
@@ -205,7 +307,7 @@
     margin-inline: 0;
     gap: 16px;
   }
-  .nv-cms-home .row > [class*='col-'] {
+  .nv-cms-home .row > * {
     flex: 1 1 100%;
     width: 100%;
     padding-inline: 0;
