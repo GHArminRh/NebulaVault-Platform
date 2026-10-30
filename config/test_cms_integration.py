@@ -8,7 +8,7 @@ from django.test import SimpleTestCase, TestCase
 from django.urls import resolve
 
 from cms.api import add_plugin
-from cms.models import PageUrl
+from cms.models import PageUrl, Placeholder
 from cms.models.pluginmodel import CMSPlugin
 from portal.cms_home import cms_home
 
@@ -113,6 +113,25 @@ class CmsHomepageRoutingTests(TestCase):
         placeholders = {
             placeholder.slot: placeholder
             for placeholder in root_url.page.get_placeholders(language="fa")
+        }
+        self.assertIn("blog", placeholders)
+        self.assertTrue(
+            CMSPlugin.objects.filter(
+                placeholder=placeholders["blog"],
+                language="fa",
+                plugin_type="LiveBlogListPlugin",
+            ).exists()
+        )
+
+        # Simulate an existing homepage created before the blog slot existed.
+        # Bootstrap must rescan the changed template and recreate the missing
+        # slot without replacing unrelated content.
+        page_content = root_url.page.pagecontent_set.get(language="fa")
+        placeholders["blog"].delete()
+        call_command("bootstrap_cms_homepage", verbosity=0)
+        placeholders = {
+            placeholder.slot: placeholder
+            for placeholder in Placeholder.objects.get_for_obj(page_content)
         }
         self.assertIn("blog", placeholders)
         self.assertTrue(
