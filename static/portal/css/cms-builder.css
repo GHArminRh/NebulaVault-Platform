@@ -100,25 +100,19 @@
 /* Bootstrap 5 grid classes emitted by djangocms-frontend 2.5.x. */
 
 .nv-cms-page .row > .col,
-
 .nv-cms-home .row > .col {
-
   flex: 1 0 0%;
 
   max-width: 100%;
-
 }
 
 .nv-cms-page .row > .col-auto,
-
 .nv-cms-home .row > .col-auto {
-
   flex: 0 0 auto;
 
   width: auto;
 
   max-width: 100%;
-
 }
 
 .nv-cms-page .row > .col-1,
@@ -714,19 +708,30 @@
 }
 
 .nv-cms-page .row > .ms-auto,
-.nv-cms-home .row > .ms-auto { margin-inline-start: auto; }
+.nv-cms-home .row > .ms-auto {
+  margin-inline-start: auto;
+}
 
 .nv-cms-page .row > .me-auto,
-.nv-cms-home .row > .me-auto { margin-inline-end: auto; }
+.nv-cms-home .row > .me-auto {
+  margin-inline-end: auto;
+}
 
 .nv-cms-page .card,
-.nv-cms-home .card { min-width: 0; overflow-wrap: anywhere; }
+.nv-cms-home .card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 
 .nv-cms-page .alert,
-.nv-cms-home .alert { color: #e5e7eb; }
+.nv-cms-home .alert {
+  color: #e5e7eb;
+}
 
 .nv-cms-page .alert a,
-.nv-cms-home .alert a { color: inherit; }
+.nv-cms-home .alert a {
+  color: inherit;
+}
 
 .nv-cms-page pre,
 .nv-cms-home pre {
@@ -739,7 +744,9 @@
 }
 
 .nv-cms-page code,
-.nv-cms-home code { overflow-wrap: anywhere; }
+.nv-cms-home code {
+  overflow-wrap: anywhere;
+}
 
 /*
  * CMS homepage mobile layout repair.
