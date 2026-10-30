@@ -136,6 +136,15 @@ class CmsHomepageRoutingTests(TestCase):
         self.assertContains(response, marker)
         self.assertTemplateUsed(response, "portal/cms_home_page.html")
 
+        rendered = response.content.decode()
+        for section_id in ("products", "pricing", "releases", "blog"):
+            with self.subTest(section=section_id):
+                self.assertEqual(
+                    rendered.count(f'id="{section_id}"'),
+                    1,
+                    f"CMS section '{section_id}' must not be nested or duplicated.",
+                )
+
     def test_storefront_fallback_is_preserved_without_a_cms_homepage(self):
         from cms.models import Page
 
