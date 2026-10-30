@@ -16,8 +16,10 @@ def cms_home(request):
     # django CMS renders its welcome page with HTTP 200 when a site has no
     # pages at all. Check for a published root PageUrl first so an empty or
     # partially bootstrapped CMS never replaces the existing storefront.
+    language = getattr(request, "LANGUAGE_CODE", None) or "fa"
     has_published_root = PageUrl.objects.filter(
         site=site,
+        language=language,
         path__in=("", "/"),
     ).exists()
     if not has_published_root:
