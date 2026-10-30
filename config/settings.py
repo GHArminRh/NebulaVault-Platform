@@ -53,7 +53,6 @@ INSTALLED_APPS = [
     "staff.apps.StaffConfig",
     "cms",
     "menus",
-    "treebeard",
     "sekizai",
     "easy_thumbnails",
     "djangocms_text",
