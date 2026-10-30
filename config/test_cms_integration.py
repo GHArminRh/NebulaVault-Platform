@@ -5,6 +5,7 @@ from django.template.loader import get_template
 from django.contrib.sites.models import Site
 from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase
+from django.db.migrations.loader import MigrationLoader
 from django.urls import resolve
 
 from cms.api import add_plugin
@@ -79,9 +80,11 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
         ):
             self.assertIsNotNone(get_template(template_name))
 
-    def test_cms_image_models_belong_to_portal_migrations(self):
+    def test_cms_image_models_have_a_committed_portal_migration(self):
         self.assertEqual(CMSExternalImage._meta.app_label, "portal")
         self.assertEqual(CMSUploadedImage._meta.app_label, "portal")
+        loader = MigrationLoader(None)
+        self.assertIn(("portal", "0001_initial"), loader.disk_migrations)
 
     def test_uploads_are_disabled_without_durable_storage(self):
         self.assertFalse(settings.CMS_MEDIA_UPLOADS_ENABLED)
