@@ -11,6 +11,22 @@ admin.site.index_title = "Site administration"
 admin.site.unregister(DjangoAuthGroup)
 
 
+class FilerAuthGroupAdmin(GroupAdmin):
+    """Keep auth.Group registered for django-filer autocomplete, but hide it.
+
+    Staff permissions use the UUID-backed ``staff.Group`` model. django-filer
+    still references Django's legacy auth.Group for folder permissions, so its
+    admin autocomplete requires a registered admin class even when that model
+    should not appear as a second Groups section.
+    """
+
+    def get_model_perms(self, request):
+        return {}
+
+
+admin.site.register(DjangoAuthGroup, FilerAuthGroupAdmin)
+
+
 @admin.register(Group)
 class StaffGroupAdmin(GroupAdmin):
     """Keep Django's full standard group-permissions admin experience."""
