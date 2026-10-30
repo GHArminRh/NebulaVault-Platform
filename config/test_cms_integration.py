@@ -1,18 +1,21 @@
+from importlib import import_module
+
 from django.conf import settings
-from cms.plugin_pool import plugin_pool
-from portal.models import CMSExternalImage, CMSUploadedImage
-from django.template.loader import get_template
+from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.core.management import call_command
-from django.test import SimpleTestCase, TestCase
 from django.db.migrations.loader import MigrationLoader
+from django.template.loader import get_template
+from django.test import SimpleTestCase, TestCase
 from django.urls import resolve
 
-from cms.api import add_plugin
+from cms.api import add_plugin, create_page
 from cms.models import PageUrl, Placeholder
 from cms.models.pluginmodel import CMSPlugin
-from portal.cms_home import cms_home
+from cms.plugin_pool import plugin_pool
 from catalog.models import Plan, Product
+from portal.cms_home import cms_home
+from portal.models import CMSExternalImage, CMSUploadedImage
 
 
 class CmsIntegrationSmokeTests(SimpleTestCase):
@@ -30,7 +33,12 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
     def test_cms_apps_and_template_are_registered(self):
         self.assertIn("cms", settings.INSTALLED_APPS)
         self.assertIn("djangocms_text", settings.INSTALLED_APPS)
+        self.assertIn("djangocms_link", settings.INSTALLED_APPS)
+        self.assertIn("djangocms_frontend.contrib.link", settings.INSTALLED_APPS)
         self.assertIn("djangocms_frontend.contrib.grid", settings.INSTALLED_APPS)
+        self.assertIn("cms_site_seed", settings.INSTALLED_APPS)
+        self.assertEqual(settings.CMS_TREE_BACKEND, "mptree")
+        self.assertNotIn("treebeard", settings.INSTALLED_APPS)
         self.assertIn(
             ("portal/cms_page.html", "صفحهٔ عمومی نبیولا والت"),
             settings.CMS_TEMPLATES,
@@ -57,8 +65,20 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
             "CodePlugin",
             "BlockquotePlugin",
             "FigurePlugin",
+            "TextLinkPlugin",
         ):
             self.assertIsNotNone(plugin_pool.get_plugin(plugin_name))
+
+    def test_link_button_plugin_is_available_in_editor_placeholders(self):
+        self.assertIn(
+            "TextLinkPlugin",
+            settings.CMS_PLACEHOLDER_CONF["content"]["plugins"],
+        )
+        self.assertIn(
+            "TextLinkPlugin",
+            settings.CMS_PLACEHOLDER_CONF["hero"]["plugins"],
+        )
+        self.assertIsNotNone(plugin_pool.get_plugin("TextLinkPlugin"))
 
     def test_layout_plugins_are_allowed_in_general_editable_content(self):
         allowed = settings.CMS_PLACEHOLDER_CONF["content"]["plugins"]
@@ -239,6 +259,122 @@ class CmsHomepageRoutingTests(TestCase):
                     1,
                     f"CMS section '{section_id}' must not be nested or duplicated.",
                 )
+
+    def test_one_time_seed_migration_fills_only_empty_hero_and_products_regions(self):
+        call_command("bootstrap_cms_homepage", verbosity=0)
+        root_url = PageUrl.objects.filter(
+            site=self.site,
+            language="fa",
+            path__in=("", "/"),
+        ).select_related("page").first()
+        self.assertIsNotNone(root_url)
+        placeholders = {
+            placeholder.slot: placeholder
+            for placeholder in root_url.page.get_placeholders(language="fa")
+        }
+
+        # Reproduce the two empty production slots while leaving all other
+        # editor-authored regions intact.
+        for slot in ("hero", "products"):
+            CMSPlugin.objects.filter(
+                placeholder=placeholders[slot],
+                language="fa",
+            ).delete()
+
+        unchanged_ids = {
+            slot: list(
+                CMSPlugin.objects.filter(
+                    placeholder=placeholders[slot],
+                    language="fa",
+                ).values_list("pk", flat=True)
+            )
+            for slot in ("pricing", "features", "releases", "blog", "about")
+        }
+
+        migration = import_module(
+            "cms_site_seed.migrations.0001_seed_empty_homepage_regions"
+        )
+        migration.seed_empty_homepage_regions(None, None)
+
+        self.assertTrue(
+            CMSPlugin.objects.filter(
+                placeholder=placeholders["hero"],
+                language="fa",
+                plugin_type="TextPlugin",
+            ).exists()
+        )
+        self.assertTrue(
+            CMSPlugin.objects.filter(
+                placeholder=placeholders["products"],
+                language="fa",
+                plugin_type="LiveProductGridPlugin",
+            ).exists()
+        )
+        for slot, original_ids in unchanged_ids.items():
+            with self.subTest(slot=slot):
+                self.assertEqual(
+                    list(
+                        CMSPlugin.objects.filter(
+                            placeholder=placeholders[slot],
+                            language="fa",
+                        ).values_list("pk", flat=True)
+                    ),
+                    original_ids,
+                )
+
+        # The migration is safe to call again and cannot create duplicates.
+        migration.seed_empty_homepage_regions(None, None)
+        self.assertEqual(
+            CMSPlugin.objects.filter(
+                placeholder=placeholders["hero"],
+                language="fa",
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            CMSPlugin.objects.filter(
+                placeholder=placeholders["products"],
+                language="fa",
+            ).count(),
+            1,
+        )
+
+    def test_native_mptree_backend_creates_and_reads_child_pages(self):
+        call_command("bootstrap_cms_homepage", verbosity=0)
+        root_url = PageUrl.objects.filter(
+            site=self.site,
+            language="fa",
+            path__in=("", "/"),
+        ).select_related("page").first()
+        child = create_page(
+            title="صفحهٔ آزمایشی CMS",
+            template="portal/cms_page.html",
+            language="fa",
+            slug="cms-tree-test",
+            parent=root_url.page,
+            site=self.site,
+            created_by="cms-tree-test",
+        )
+        self.assertEqual(child.parent_id, root_url.page.pk)
+        self.assertEqual(child.depth, root_url.page.depth + 1)
+        self.assertTrue(child.path.startswith(root_url.page.path))
+
+    def test_staff_user_receives_the_frontend_cms_toolbar_on_homepage(self):
+        call_command("bootstrap_cms_homepage", verbosity=0)
+        staff = get_user_model().objects.create_user(
+            username="cms_editor",
+            password="cms-editor-test-password",
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.client.force_login(
+            staff,
+            backend="django.contrib.auth.backends.ModelBackend",
+        )
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
+        self.assertContains(response, "cms-toolbar")
 
     def test_live_product_grid_counts_only_active_plans(self):
         product = Product.objects.create(

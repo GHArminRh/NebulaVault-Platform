@@ -9,6 +9,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 # Core Django settings
+# Use django CMS 5.1's built-in page-tree backend to avoid Treebeard manager incompatibility.
+CMS_TREE_BACKEND = "mptree"
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
 ALLOWED_HOSTS = [
@@ -51,12 +53,14 @@ INSTALLED_APPS = [
     "staff.apps.StaffConfig",
     "cms",
     "menus",
-    "treebeard",
     "sekizai",
     "easy_thumbnails",
+    "filer",  # Required by djangocms-link file-link migrations and plugin support.
     "djangocms_text",
+    "djangocms_link",
     "djangocms_frontend",
     "djangocms_frontend.contrib.grid",
+    "djangocms_frontend.contrib.link",
     "djangocms_frontend.contrib.card",
     "djangocms_frontend.contrib.content",
     "djangocms_frontend.contrib.alert",
@@ -79,6 +83,7 @@ INSTALLED_APPS = [
     "audit.apps.AuditConfig",
     "notifications.apps.NotificationsConfig",
     "portal.apps.PortalConfig",
+    "cms_site_seed",
 ]
 
 TINYMCE_DEFAULT_CONFIG = {
@@ -232,14 +237,14 @@ CMS_LAYOUT_PLUGINS = [
 CMS_IMAGE_PLUGINS = ["ExternalImagePlugin"] + (
     ["UploadedImagePlugin"] if CMS_MEDIA_UPLOADS_ENABLED else []
 )
-CMS_EDITOR_PLUGINS = ["TextPlugin"] + CMS_IMAGE_PLUGINS + CMS_LAYOUT_PLUGINS
+CMS_EDITOR_PLUGINS = ["TextPlugin", "TextLinkPlugin"] + CMS_IMAGE_PLUGINS + CMS_LAYOUT_PLUGINS
 # Each page template declares its own editable slots. Dynamic sections are
 # confined to their dedicated slots, so adding one in generic content cannot
 # emit duplicate section IDs or duplicate data grids.
 CMS_PLACEHOLDER_CONF = {
     "hero": {
         "name": "متن و دکمه‌های بنر اصلی",
-        "plugins": ["TextPlugin", *CMS_IMAGE_PLUGINS],
+        "plugins": ["TextPlugin", "TextLinkPlugin", *CMS_IMAGE_PLUGINS],
         "limits": {"TextPlugin": 1},
     },
     "content": {
