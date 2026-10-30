@@ -80,11 +80,25 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
         ):
             self.assertIsNotNone(get_template(template_name))
 
-    def test_cms_image_models_have_a_committed_portal_migration(self):
+    def test_cms_image_models_match_the_committed_portal_migration(self):
         self.assertEqual(CMSExternalImage._meta.app_label, "portal")
         self.assertEqual(CMSUploadedImage._meta.app_label, "portal")
         loader = MigrationLoader(None)
         self.assertIn(("portal", "0001_initial"), loader.disk_migrations)
+
+        migrated_apps = loader.project_state().apps
+        for model in (CMSExternalImage, CMSUploadedImage):
+            with self.subTest(model=model.__name__):
+                migrated_model = migrated_apps.get_model("portal", model.__name__)
+                current_fields = {
+                    field.name: field.deconstruct()
+                    for field in model._meta.local_fields
+                }
+                migrated_fields = {
+                    field.name: field.deconstruct()
+                    for field in migrated_model._meta.local_fields
+                }
+                self.assertEqual(current_fields, migrated_fields)
 
     def test_uploads_are_disabled_without_durable_storage(self):
         self.assertFalse(settings.CMS_MEDIA_UPLOADS_ENABLED)
