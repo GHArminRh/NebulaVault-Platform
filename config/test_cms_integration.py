@@ -133,6 +133,16 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
                                 current_field.remote_field.model._meta.label_lower,
                                 migrated_field.remote_field.model._meta.label_lower,
                             )
+                            self.assertEqual(
+                                current_field.remote_field.related_name,
+                                migrated_field.remote_field.related_name,
+                            )
+
+                parent_link = model._meta.get_field("cmsplugin_ptr")
+                self.assertEqual(
+                    parent_link.remote_field.related_name,
+                    "%(app_label)s_%(class)s",
+                )
 
     def test_uploads_are_disabled_without_durable_storage(self):
         self.assertFalse(settings.CMS_MEDIA_UPLOADS_ENABLED)
