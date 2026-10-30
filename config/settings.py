@@ -233,32 +233,28 @@ CMS_IMAGE_PLUGINS = ["ExternalImagePlugin"] + (
     ["UploadedImagePlugin"] if CMS_MEDIA_UPLOADS_ENABLED else []
 )
 CMS_EDITOR_PLUGINS = ["TextPlugin"] + CMS_IMAGE_PLUGINS + CMS_LAYOUT_PLUGINS
-CMS_LIVE_CONTENT_PLUGINS = [
-    "LiveProductGridPlugin",
-    "LivePricingGridPlugin",
-    "LiveReleaseListPlugin",
-    "LiveBlogListPlugin",
-]
-
-# Each page template declares its own editable slots. Keep the live data blocks
-# in their matching homepage sections, while giving general content regions a
-# complete text/image/layout toolkit.
+# Each page template declares its own editable slots. Dynamic sections are
+# confined to their dedicated slots, so adding one in generic content cannot
+# emit duplicate section IDs or duplicate data grids.
 CMS_PLACEHOLDER_CONF = {
     "hero": {
         "name": "متن و دکمه‌های بنر اصلی",
         "plugins": ["TextPlugin", *CMS_IMAGE_PLUGINS],
+        "limits": {"TextPlugin": 1},
     },
     "content": {
         "name": "محتوای تکمیلی",
-        "plugins": CMS_EDITOR_PLUGINS + CMS_LIVE_CONTENT_PLUGINS,
+        "plugins": CMS_EDITOR_PLUGINS,
     },
     "products": {
         "name": "محصولات",
-        "plugins": ["LiveProductGridPlugin", "TextPlugin"],
+        "plugins": ["LiveProductGridPlugin"],
+        "limits": {"LiveProductGridPlugin": 1},
     },
     "pricing": {
         "name": "تعرفه‌ها",
-        "plugins": ["LivePricingGridPlugin", "TextPlugin"],
+        "plugins": ["LivePricingGridPlugin"],
+        "limits": {"LivePricingGridPlugin": 1},
     },
     "features": {
         "name": "امکانات",
@@ -266,11 +262,13 @@ CMS_PLACEHOLDER_CONF = {
     },
     "releases": {
         "name": "نسخه‌های منتشرشده",
-        "plugins": ["LiveReleaseListPlugin", "TextPlugin"],
+        "plugins": ["LiveReleaseListPlugin"],
+        "limits": {"LiveReleaseListPlugin": 1},
     },
     "blog": {
         "name": "مقالات تازه",
-        "plugins": ["LiveBlogListPlugin", "TextPlugin"],
+        "plugins": ["LiveBlogListPlugin"],
+        "limits": {"LiveBlogListPlugin": 1},
     },
     "about": {
         "name": "معرفی و پرسش‌های متداول",
