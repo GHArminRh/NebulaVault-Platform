@@ -65,6 +65,22 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
             with self.subTest(plugin=plugin_name):
                 self.assertIn(plugin_name, allowed)
 
+    def test_dynamic_plugins_are_confined_and_limited_to_dedicated_slots(self):
+        dedicated = {
+            "LiveProductGridPlugin": "products",
+            "LivePricingGridPlugin": "pricing",
+            "LiveReleaseListPlugin": "releases",
+            "LiveBlogListPlugin": "blog",
+        }
+        generic_plugins = settings.CMS_PLACEHOLDER_CONF["content"]["plugins"]
+        for plugin_name, slot in dedicated.items():
+            with self.subTest(plugin=plugin_name):
+                plugin_class = plugin_pool.get_plugin(plugin_name)
+                self.assertEqual(plugin_class.allowed_slots, [slot])
+                self.assertIn(plugin_name, settings.CMS_PLACEHOLDER_CONF[slot]["plugins"])
+                self.assertEqual(settings.CMS_PLACEHOLDER_CONF[slot]["limits"][plugin_name], 1)
+                self.assertNotIn(plugin_name, generic_plugins)
+
     def test_homepage_has_a_dedicated_live_blog_placeholder(self):
         self.assertIn("blog", settings.CMS_PLACEHOLDER_CONF)
         self.assertIn("LiveBlogListPlugin", settings.CMS_PLACEHOLDER_CONF["blog"]["plugins"])
