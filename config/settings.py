@@ -211,37 +211,70 @@ CMS_MEDIA_UPLOADS_ENABLED = bool(
     and AWS_SECRET_ACCESS_KEY
 )
 
-# Keep the CMS editor constrained to the layout region it is editing. These
-# slot-specific allow-lists prevent arbitrary plugins from breaking the page
-# structure and make the editor's options predictable.
+# django CMS Text uses TipTap by default. The TinyMCE configuration above
+# is kept for the separate catalog/blog rich-text fields; it does not replace
+# the CMS TextPlugin editor.
+#
+# djangocms-frontend 2.5.x plugin class names are used here. Parent/child
+# restrictions defined by those plugins keep columns/cards nested correctly.
+CMS_LAYOUT_PLUGINS = [
+    "GridContainerPlugin",
+    "GridRowPlugin",
+    "GridColumnPlugin",
+    "CardLayoutPlugin",
+    "CardPlugin",
+    "CardInnerPlugin",
+    "AlertPlugin",
+    "CodePlugin",
+    "BlockquotePlugin",
+    "FigurePlugin",
+]
+CMS_IMAGE_PLUGINS = ["ExternalImagePlugin"] + (
+    ["UploadedImagePlugin"] if CMS_MEDIA_UPLOADS_ENABLED else []
+)
+CMS_EDITOR_PLUGINS = ["TextPlugin"] + CMS_IMAGE_PLUGINS + CMS_LAYOUT_PLUGINS
+CMS_LIVE_CONTENT_PLUGINS = [
+    "LiveProductGridPlugin",
+    "LivePricingGridPlugin",
+    "LiveReleaseListPlugin",
+    "LiveBlogListPlugin",
+]
+
+# Each page template declares its own editable slots. Keep the live data blocks
+# in their matching homepage sections, while giving general content regions a
+# complete text/image/layout toolkit.
 CMS_PLACEHOLDER_CONF = {
     "hero": {
         "name": "متن و دکمه‌های بنر اصلی",
-        "plugins": ["TextPlugin"],
+        "plugins": ["TextPlugin", *CMS_IMAGE_PLUGINS],
     },
     "content": {
         "name": "محتوای تکمیلی",
-        "plugins": ["TextPlugin", "ExternalImagePlugin"] + (["UploadedImagePlugin"] if CMS_MEDIA_UPLOADS_ENABLED else []),
+        "plugins": CMS_EDITOR_PLUGINS + CMS_LIVE_CONTENT_PLUGINS,
     },
     "products": {
         "name": "محصولات",
-        "plugins": ["LiveProductGridPlugin"],
+        "plugins": ["LiveProductGridPlugin", "TextPlugin"],
     },
     "pricing": {
         "name": "تعرفه‌ها",
-        "plugins": ["LivePricingGridPlugin"],
+        "plugins": ["LivePricingGridPlugin", "TextPlugin"],
     },
     "features": {
         "name": "امکانات",
-        "plugins": ["TextPlugin", "ExternalImagePlugin"],
+        "plugins": CMS_EDITOR_PLUGINS,
     },
     "releases": {
         "name": "نسخه‌های منتشرشده",
-        "plugins": ["LiveReleaseListPlugin"],
+        "plugins": ["LiveReleaseListPlugin", "TextPlugin"],
+    },
+    "blog": {
+        "name": "مقالات تازه",
+        "plugins": ["LiveBlogListPlugin", "TextPlugin"],
     },
     "about": {
         "name": "معرفی و پرسش‌های متداول",
-        "plugins": ["TextPlugin", "ExternalImagePlugin"],
+        "plugins": CMS_EDITOR_PLUGINS,
     },
 }
 DEFAULT_MEDIA_STORAGE = (

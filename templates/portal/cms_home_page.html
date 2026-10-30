@@ -133,6 +133,19 @@
   </div>
 </div>
 </section>
+{% placeholder "blog" or %}
+<section class="section page-wrap nv-home-section nv-blog-home" id="blog">
+  <div class="section-heading">
+    <div>
+      <div class="eyebrow">مجلهٔ نبیولا</div>
+      <h2>تازه‌ترین نوشته‌ها.</h2>
+      <p>راهنماها، خبرها و نکته‌های کاربردی در یک جا.</p>
+    </div>
+    <a class="button button-quiet button-small" href="{% url 'blog:post_list' %}">همهٔ نوشته‌ها ↗</a>
+  </div>
+  <div class="nv-section-empty">برای نمایش مقالات، افزونهٔ «مقالات تازه» را از نوار ابزار CMS به این بخش اضافه کنید.</div>
+</section>
+{% endplaceholder %}
 <section class="section page-wrap nv-home-section" id="about">
   <div class="section-heading">
     <div>

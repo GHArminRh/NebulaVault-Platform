@@ -7,20 +7,23 @@
 .nv-cms-page .cms-plugin {
   min-width: 0;
 }
-.nv-cms-page .row {
+.nv-cms-page .row,
+.nv-cms-home .row {
   display: flex;
   flex-wrap: wrap;
   gap: 1.25rem 0;
   margin-inline: -0.75rem;
 }
-.nv-cms-page .row > [class*='col-'] {
+.nv-cms-page .row > [class*='col'],
+.nv-cms-home .row > [class*='col'] {
   box-sizing: border-box;
   padding-inline: 0.75rem;
   min-width: 0;
   flex: 1 1 16rem;
   max-width: 100%;
 }
-.nv-cms-page .card {
+.nv-cms-page .card,
+.nv-cms-home .card {
   height: 100%;
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 1.1rem;
@@ -29,22 +32,26 @@
   color: #e5e7eb;
   box-shadow: 0 14px 40px rgba(2, 6, 23, 0.12);
 }
-.nv-cms-page .card-title {
+.nv-cms-page .card-title,
+.nv-cms-home .card-title {
   color: #f8fafc;
   font-weight: 700;
   margin-bottom: 0.75rem;
 }
-.nv-cms-page .card-body {
+.nv-cms-page .card-body,
+.nv-cms-home .card-body {
   min-width: 0;
 }
-.nv-cms-page .alert {
+.nv-cms-page .alert,
+.nv-cms-home .alert {
   padding: 1rem 1.25rem;
   border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 0.9rem;
   margin-block: 1rem;
   background: rgba(30, 41, 59, 0.72);
 }
-.nv-cms-page img {
+.nv-cms-page img,
+.nv-cms-home img {
   max-width: 100%;
   height: auto;
   border-radius: 0.8rem;
@@ -56,14 +63,19 @@
   line-height: 1.55;
 }
 .nv-cms-page p,
-.nv-cms-page li {
+.nv-cms-page li,
+.nv-cms-home .card p,
+.nv-cms-home .alert p,
+.nv-cms-home blockquote,
+.nv-cms-home figure {
   color: #cbd5e1;
   line-height: 1.95;
 }
 .nv-cms-page a {
   overflow-wrap: anywhere;
 }
-.nv-cms-page .btn {
+.nv-cms-page .btn,
+.nv-cms-home .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -72,15 +84,68 @@
   text-decoration: none;
   border: 1px solid rgba(148, 163, 184, 0.35);
 }
-.nv-cms-page .btn-primary {
+.nv-cms-page .btn-primary,
+.nv-cms-home .btn-primary {
   background: #6366f1;
   border-color: #6366f1;
   color: #fff;
 }
 .nv-cms-page .btn-secondary,
-.nv-cms-page .btn-outline-primary {
+.nv-cms-page .btn-outline-primary,
+.nv-cms-home .btn-secondary,
+.nv-cms-home .btn-outline-primary {
   color: #e5e7eb;
 }
+
+/* Responsive grid classes emitted by djangocms-frontend's Bootstrap 5 renderer.
+   The project keeps these rules local instead of depending on a third-party CDN. */
+@media (min-width: 576px) {
+  .nv-cms-page .row > .col-sm-6,
+  .nv-cms-home .row > .col-sm-6 { flex: 0 0 50%; max-width: 50%; }
+  .nv-cms-page .row > .col-sm-4,
+  .nv-cms-home .row > .col-sm-4 { flex: 0 0 33.3333%; max-width: 33.3333%; }
+  .nv-cms-page .row > .col-sm-3,
+  .nv-cms-home .row > .col-sm-3 { flex: 0 0 25%; max-width: 25%; }
+}
+@media (min-width: 768px) {
+  .nv-cms-page .row > .col-md-6,
+  .nv-cms-home .row > .col-md-6 { flex: 0 0 50%; max-width: 50%; }
+  .nv-cms-page .row > .col-md-4,
+  .nv-cms-home .row > .col-md-4 { flex: 0 0 33.3333%; max-width: 33.3333%; }
+  .nv-cms-page .row > .col-md-3,
+  .nv-cms-home .row > .col-md-3 { flex: 0 0 25%; max-width: 25%; }
+}
+@media (min-width: 992px) {
+  .nv-cms-page .row > .col-lg-6,
+  .nv-cms-home .row > .col-lg-6 { flex: 0 0 50%; max-width: 50%; }
+  .nv-cms-page .row > .col-lg-4,
+  .nv-cms-home .row > .col-lg-4 { flex: 0 0 33.3333%; max-width: 33.3333%; }
+  .nv-cms-page .row > .col-lg-3,
+  .nv-cms-home .row > .col-lg-3 { flex: 0 0 25%; max-width: 25%; }
+}
+@media (min-width: 1200px) {
+  .nv-cms-page .row > .col-xl-6,
+  .nv-cms-home .row > .col-xl-6 { flex: 0 0 50%; max-width: 50%; }
+  .nv-cms-page .row > .col-xl-4,
+  .nv-cms-home .row > .col-xl-4 { flex: 0 0 33.3333%; max-width: 33.3333%; }
+}
+.nv-cms-page .card,
+.nv-cms-home .card { min-width: 0; overflow-wrap: anywhere; }
+.nv-cms-page .alert,
+.nv-cms-home .alert { color: #e5e7eb; }
+.nv-cms-page .alert a,
+.nv-cms-home .alert a { color: inherit; }
+.nv-cms-page pre,
+.nv-cms-home pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 0.8rem;
+  background: rgba(2, 6, 23, 0.55);
+}
+.nv-cms-page code,
+.nv-cms-home code { overflow-wrap: anywhere; }
 
 /*
  * CMS homepage mobile layout repair.

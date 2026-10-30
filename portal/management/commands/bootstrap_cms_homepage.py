@@ -92,7 +92,7 @@ class Command(BaseCommand):
             placeholders = {
                 item.slot: item for item in page.get_placeholders(language="fa")
             }
-            required = {"hero", "content", "products", "pricing", "features", "releases", "about"}
+            required = {"hero", "content", "products", "pricing", "features", "releases", "blog", "about"}
             missing = required.difference(placeholders)
             if missing:
                 self.stdout.write(self.style.ERROR(
@@ -151,6 +151,7 @@ class Command(BaseCommand):
                 "products": ("LiveProductGridPlugin", {}),
                 "pricing": ("LivePricingGridPlugin", {}),
                 "releases": ("LiveReleaseListPlugin", {}),
+                "blog": ("LiveBlogListPlugin", {}),
             }
             created = []
             for slot, (plugin_type, values) in defaults.items():
