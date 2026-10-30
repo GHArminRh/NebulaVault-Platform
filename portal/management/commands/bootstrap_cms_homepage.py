@@ -108,10 +108,18 @@ class Command(BaseCommand):
                 ))
                 return
 
-            # Move only recognizable plugins created by the previous bootstrap.
-            # Unknown/user-authored plugins in the general content region remain untouched.
+            # Move or remove only the recognizable legacy homepage sections
+            # left in the generic content slot by earlier CMS bootstrap versions.
+            # The current template already has dedicated placeholders for these
+            # sections. Unknown/editor-authored content is deliberately preserved.
             content_placeholder = placeholders["content"]
             migrated = []
+            removed_legacy = []
+            legacy_text_sections = (
+                ("nv-hero-copy", "hero", HERO_COPY),
+                ("nv-feature-grid", "features", FEATURE_GRID),
+                ("nv-faq-list", "about", FAQ_CONTENT),
+            )
             legacy_destinations = {
                 "LiveProductGridPlugin": "products",
                 "LivePricingGridPlugin": "pricing",
@@ -130,19 +138,24 @@ class Command(BaseCommand):
                     except (AttributeError, LookupError, TypeError):
                         instance = None
                     body = getattr(instance, "body", "") if instance else ""
-                    if isinstance(body, str) and ('id="home"' in body or "id='home'" in body):
-                        target_slot = "hero"
-                        instance.body = HERO_COPY
-                    elif isinstance(body, str) and ('id="features"' in body or "id='features'" in body):
-                        target_slot = "features"
-                        instance.body = FEATURE_GRID
-                    elif isinstance(body, str) and ('id="about"' in body or "id='about'" in body):
-                        target_slot = "about"
-                        instance.body = FAQ_CONTENT
+                    if isinstance(body, str):
+                        for marker, candidate_slot, canonical_body in legacy_text_sections:
+                            if marker in body:
+                                target_slot = candidate_slot
+                                instance.body = canonical_body
+                                break
 
                 if not target_slot:
                     continue
+
                 target = placeholders[target_slot]
+                if target.has_plugins(language="fa"):
+                    # A canonical plugin already exists in the dedicated slot;
+                    # this is an obsolete duplicate, not user content.
+                    plugin.delete()
+                    removed_legacy.append(target_slot)
+                    continue
+
                 if instance is not None and target_slot in {"hero", "features", "about"}:
                     instance.save(update_fields=["body"])
                 target_position = target.get_next_plugin_position("fa", insert_order="last")
@@ -170,5 +183,6 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(
             f"CMS homepage {page.pk} is ready. Migrated: {', '.join(migrated) or 'none'}; "
+            f"removed legacy duplicates: {len(removed_legacy)}; "
             f"seeded empty regions: {', '.join(created) or 'none'}."
         ))
