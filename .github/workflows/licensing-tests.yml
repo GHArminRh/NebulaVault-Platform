@@ -13,6 +13,7 @@ on:
       - "staff/**"
       - "config/**"
       - "portal/**"
+      - "cms_site_seed/**"
       - "comment/**"
       - "requirements.txt"
       - ".github/workflows/licensing-tests.yml"
@@ -69,9 +70,11 @@ jobs:
       - name: Check formatting baseline
         run: |
           python -m pip install ruff
-          ruff check config/settings.py config/test_settings.py api billing/services.py billing/order_services.py billing/attempt_services.py billing/finalization_services.py
+          ruff check config/settings.py config/test_settings.py config/test_cms_integration.py cms_site_seed portal/cms_plugins.py portal/management/commands/bootstrap_cms_homepage.py api billing/services.py billing/order_services.py billing/attempt_services.py billing/finalization_services.py
       - name: Check Django configuration
-        run: python manage.py check --settings=config.test_settings
+        run: |
+          python manage.py check --settings=config.test_settings
+          python manage.py cms check --settings=config.test_settings
       - name: Run regression tests
         run: >-
           python manage.py test
