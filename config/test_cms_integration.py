@@ -215,6 +215,67 @@ class CmsHomepageRoutingTests(TestCase):
                     f"CMS section '{section_id}' must not be nested or duplicated.",
                 )
 
+    def test_bootstrap_removes_only_known_duplicate_homepage_sections(self):
+        call_command("bootstrap_cms_homepage", verbosity=0)
+        root_url = PageUrl.objects.filter(
+            site=self.site,
+            language="fa",
+            path__in=("", "/"),
+        ).select_related("page").first()
+        self.assertIsNotNone(root_url)
+        placeholders = {
+            placeholder.slot: placeholder
+            for placeholder in root_url.page.get_placeholders(language="fa")
+        }
+        content = placeholders["content"]
+
+        # Simulate legacy hero/features/FAQ copies left in the generic slot,
+        # alongside genuinely editor-authored content that must survive.
+        legacy_bodies = (
+            '<div class="nv-hero-copy"><h1>legacy hero</h1></div>',
+            '<div class="nv-feature-grid"><article>legacy features</article></div>',
+            '<div class="nv-faq-list"><details>legacy FAQ</details></div>',
+        )
+        for body in legacy_bodies:
+            add_plugin(content, "TextPlugin", "fa", body=body)
+            add_plugin(content, "TextPlugin", "fa", body=body)
+        # Older bootstrap versions also left the live blog plugin in this
+        # generic slot after a dedicated blog placeholder was introduced.
+        add_plugin(content, "LiveBlogListPlugin", "fa")
+
+        editor_marker = "PRESERVE_EDITOR_AUTHORED_CMS_CONTENT"
+        add_plugin(
+            content,
+            "TextPlugin",
+            "fa",
+            body=f"<p>{editor_marker}</p>",
+        )
+
+        call_command("bootstrap_cms_homepage", verbosity=0)
+
+        remaining_content = CMSPlugin.objects.filter(
+            placeholder=content,
+            language="fa",
+            parent__isnull=True,
+        )
+        self.assertEqual(remaining_content.count(), 1)
+        self.assertTrue(
+            remaining_content.filter(plugin_type="TextPlugin").exists()
+        )
+        editor_plugin = remaining_content.first().get_plugin_instance()[0]
+        self.assertIn(editor_marker, editor_plugin.body)
+
+        for slot in ("hero", "features", "about"):
+            with self.subTest(slot=slot):
+                self.assertEqual(
+                    CMSPlugin.objects.filter(
+                        placeholder=placeholders[slot],
+                        language="fa",
+                        parent__isnull=True,
+                    ).count(),
+                    1,
+                )
+
     def test_storefront_fallback_is_preserved_without_a_cms_homepage(self):
         from cms.models import Page
 
