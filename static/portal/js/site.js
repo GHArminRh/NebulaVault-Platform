@@ -41,9 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const frameRatio = 1 - Math.pow(1 - 0.012, elapsed / referenceFrameMs);
       setProgress(Math.min(targetProgress, progressValue + remaining * frameRatio));
-      progressFrame = progressValue < targetProgress
-        ? window.requestAnimationFrame(advanceProgress)
-        : 0;
+      progressFrame =
+        progressValue < targetProgress ? window.requestAnimationFrame(advanceProgress) : 0;
     };
 
     const startProgress = () => {

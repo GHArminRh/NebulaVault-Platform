@@ -1,7 +1,12 @@
 {% load money %}
-<section class="section page-wrap nv-home-section nv-cms-live-section" id="products">
+<section class="section page-wrap nv-home-section nv-cms-live-section"
+         id="products">
   <div class="section-heading">
-    <div><div class="eyebrow">مجموعه محصولات</div><h2>ابزارهایی که با شما هماهنگ‌اند.</h2><p>محصولات نبیولا والت را در یک فضای منظم کشف کنید.</p></div>
+    <div>
+      <div class="eyebrow">مجموعه محصولات</div>
+      <h2>ابزارهایی که با شما هماهنگ‌اند.</h2>
+      <p>محصولات نبیولا والت را در یک فضای منظم کشف کنید.</p>
+    </div>
     <span class="nv-section-index">01 / PRODUCTS</span>
   </div>
   {% if cms_products %}
@@ -12,12 +17,17 @@
           <h3>{{ product.name }}</h3>
           <p>{{ product.description|striptags|default:"ابزاری سنجیده برای ساده‌تر کردن کارهای دیجیتال شما."|truncatewords:25 }}</p>
           <div class="nv-product-meta"><span class="pill pill-live"><i></i> فعال</span><span>{{ product.plans.all|length }} طرح</span></div>
-          <a class="nv-card-link" href="{% url 'portal:product_detail' product.slug %}">بررسی محصول <span>↗</span></a>
+          <a class="nv-card-link"
+             href="{% url 'portal:product_detail' product.slug %}">بررسی محصول <span>↗</span></a>
         </article>
       {% endfor %}
     </div>
   {% else %}
-    <div class="empty-state"><span class="empty-symbol">◈</span><h3>محصولی برای نمایش منتشر نشده است.</h3><p>محصولات پس از فعال‌شدن در پنل مدیریت، به‌صورت خودکار در این بخش نمایش داده می‌شوند.</p></div>
+    <div class="empty-state">
+      <span class="empty-symbol">◈</span>
+      <h3>محصولی برای نمایش منتشر نشده است.</h3>
+      <p>محصولات پس از فعال‌شدن در پنل مدیریت، به‌صورت خودکار در این بخش نمایش داده می‌شوند.</p>
+    </div>
   {% endif %}
   <p class="nv-pricing-footnote"><a href="{% url 'portal:products' %}">مشاهدهٔ همهٔ محصولات ↗</a></p>
 </section>
