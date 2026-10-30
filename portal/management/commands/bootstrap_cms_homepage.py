@@ -11,6 +11,7 @@ from django.db import transaction
 from cms.api import add_plugin, create_page
 from cms.models import PageContent, PageUrl
 from cms.models.pluginmodel import CMSPlugin
+from cms.utils.placeholder import rescan_placeholders_for_obj
 
 
 HERO_COPY = """
@@ -85,14 +86,21 @@ class Command(BaseCommand):
             page.set_as_homepage()
 
             page_content = PageContent.objects.filter(page=page, language="fa").first()
-            if page_content and page_content.template != "portal/cms_home_page.html":
+            if page_content is None:
+                self.stdout.write(self.style.ERROR(
+                    "CMS homepage bootstrap skipped: the Persian page content does not exist."
+                ))
+                return
+
+            if page_content.template != "portal/cms_home_page.html":
                 page_content.template = "portal/cms_home_page.html"
                 page_content.save(update_fields=["template"])
 
-            placeholders = {
-                item.slot: item for item in page.get_placeholders(language="fa")
-            }
-            required = {"hero", "content", "products", "pricing", "features", "releases", "about"}
+            # Existing PageContent objects retain their historical placeholder
+            # relation when a template changes. Rescan to create newly declared
+            # slots (such as "blog") without deleting existing editor content.
+            placeholders = rescan_placeholders_for_obj(page_content)
+            required = {"hero", "content", "products", "pricing", "features", "releases", "blog", "about"}
             missing = required.difference(placeholders)
             if missing:
                 self.stdout.write(self.style.ERROR(
@@ -151,6 +159,7 @@ class Command(BaseCommand):
                 "products": ("LiveProductGridPlugin", {}),
                 "pricing": ("LivePricingGridPlugin", {}),
                 "releases": ("LiveReleaseListPlugin", {}),
+                "blog": ("LiveBlogListPlugin", {}),
             }
             created = []
             for slot, (plugin_type, values) in defaults.items():

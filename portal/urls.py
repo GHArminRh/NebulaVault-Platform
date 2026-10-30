@@ -1,12 +1,13 @@
 from django.urls import path
+
 from . import views
+from .cms_home import cms_home
 
 app_name = "portal"
 urlpatterns = [
-    # Keep the established storefront template at the public root URL.
-    # django CMS remains available for editing content, but its homepage
-    # rendering must not replace the production storefront layout.
-    path("", views.home, name="home"),
+    # The published django CMS homepage owns the public root URL. The CMS
+    # view falls back to the established storefront if no published root page exists.
+    path("", cms_home, name="home"),
     path("products/", views.products, name="products"),
     path("products/<slug:slug>/", views.product_detail, name="product_detail"),
     path("pricing/", views.pricing, name="pricing"),

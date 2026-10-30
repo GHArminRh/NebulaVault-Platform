@@ -2,14 +2,29 @@ from django.conf import settings
 from cms.plugin_pool import plugin_pool
 from portal.models import CMSExternalImage, CMSUploadedImage
 from django.template.loader import get_template
-from django.test import SimpleTestCase
+from django.contrib.sites.models import Site
+from django.core.management import call_command
+from django.test import SimpleTestCase, TestCase
+from django.db.migrations.loader import MigrationLoader
 from django.urls import resolve
+
+from cms.api import add_plugin
+from cms.models import PageUrl, Placeholder
+from cms.models.pluginmodel import CMSPlugin
+from portal.cms_home import cms_home
 
 
 class CmsIntegrationSmokeTests(SimpleTestCase):
-    def test_cms_page_template_compiles(self):
-        template = get_template("portal/cms_page.html")
-        self.assertIsNotNone(template)
+    def test_cms_page_templates_compile(self):
+        for template_name in (
+            "portal/cms_page.html",
+            "portal/cms_home_page.html",
+        ):
+            with self.subTest(template=template_name):
+                self.assertIsNotNone(get_template(template_name))
+
+    def test_public_root_is_routed_through_the_cms_home_view(self):
+        self.assertIs(resolve("/").func, cms_home)
 
     def test_cms_apps_and_template_are_registered(self):
         self.assertIn("cms", settings.INSTALLED_APPS)
@@ -31,8 +46,28 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
             "LiveReleaseListPlugin",
             "LiveBlogListPlugin",
             "ExternalImagePlugin",
+            "GridContainerPlugin",
+            "GridRowPlugin",
+            "GridColumnPlugin",
+            "CardLayoutPlugin",
+            "CardPlugin",
+            "CardInnerPlugin",
+            "AlertPlugin",
+            "CodePlugin",
+            "BlockquotePlugin",
+            "FigurePlugin",
         ):
             self.assertIsNotNone(plugin_pool.get_plugin(plugin_name))
+
+    def test_layout_plugins_are_allowed_in_general_editable_content(self):
+        allowed = settings.CMS_PLACEHOLDER_CONF["content"]["plugins"]
+        for plugin_name in settings.CMS_LAYOUT_PLUGINS:
+            with self.subTest(plugin=plugin_name):
+                self.assertIn(plugin_name, allowed)
+
+    def test_homepage_has_a_dedicated_live_blog_placeholder(self):
+        self.assertIn("blog", settings.CMS_PLACEHOLDER_CONF)
+        self.assertIn("LiveBlogListPlugin", settings.CMS_PLACEHOLDER_CONF["blog"]["plugins"])
 
     def test_dynamic_plugin_templates_compile(self):
         for template_name in (
@@ -45,9 +80,59 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
         ):
             self.assertIsNotNone(get_template(template_name))
 
-    def test_cms_image_models_belong_to_portal_migrations(self):
+    def test_cms_image_models_match_the_committed_portal_migration(self):
         self.assertEqual(CMSExternalImage._meta.app_label, "portal")
         self.assertEqual(CMSUploadedImage._meta.app_label, "portal")
+        loader = MigrationLoader(None)
+        self.assertIn(("portal", "0001_initial"), loader.disk_migrations)
+
+        migrated_apps = loader.project_state().apps
+        for model in (CMSExternalImage, CMSUploadedImage):
+            with self.subTest(model=model.__name__):
+                migrated_model = migrated_apps.get_model("portal", model.__name__)
+                current_fields = {
+                    field.name: field
+                    for field in model._meta.local_fields
+                }
+                migrated_fields = {
+                    field.name: field
+                    for field in migrated_model._meta.local_fields
+                }
+                self.assertEqual(set(current_fields), set(migrated_fields))
+
+                # The auto-created parent-link field carries runtime-only
+                # related_name metadata. Compare the schema-relevant values
+                # rather than the complete deconstruction dictionaries.
+                schema_attributes = (
+                    "max_length",
+                    "blank",
+                    "null",
+                    "primary_key",
+                    "parent_link",
+                    "upload_to",
+                    "verbose_name",
+                    "help_text",
+                    "validators",
+                )
+                for field_name, current_field in current_fields.items():
+                    migrated_field = migrated_fields[field_name]
+                    with self.subTest(field=field_name):
+                        self.assertEqual(
+                            current_field.get_internal_type(),
+                            migrated_field.get_internal_type(),
+                        )
+                        for attribute in schema_attributes:
+                            if hasattr(current_field, attribute) or hasattr(migrated_field, attribute):
+                                self.assertEqual(
+                                    getattr(current_field, attribute, None),
+                                    getattr(migrated_field, attribute, None),
+                                    f"{model.__name__}.{field_name}.{attribute} differs",
+                                )
+                        if current_field.is_relation:
+                            self.assertEqual(
+                                current_field.remote_field.model._meta.label_lower,
+                                migrated_field.remote_field.model._meta.label_lower,
+                            )
 
     def test_uploads_are_disabled_without_durable_storage(self):
         self.assertFalse(settings.CMS_MEDIA_UPLOADS_ENABLED)
@@ -57,3 +142,83 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
         self.assertEqual(resolve("/accounts/login/").url_name, "login")
         self.assertIsNotNone(resolve("/api/v1/"))
         self.assertIsNotNone(resolve("/pages/example/"))
+
+
+class CmsHomepageRoutingTests(TestCase):
+    def setUp(self):
+        self.site, _created = Site.objects.update_or_create(
+            pk=settings.SITE_ID,
+            defaults={"domain": "mydigigi.test", "name": "MyDigiGi CMS tests"},
+        )
+
+    def test_bootstrapped_cms_homepage_is_rendered_at_the_public_root(self):
+        call_command("bootstrap_cms_homepage", verbosity=0)
+
+        root_url = PageUrl.objects.filter(
+            site=self.site,
+            language="fa",
+            path__in=("", "/"),
+        ).select_related("page").first()
+        self.assertIsNotNone(root_url)
+
+        placeholders = {
+            placeholder.slot: placeholder
+            for placeholder in root_url.page.get_placeholders(language="fa")
+        }
+        self.assertIn("blog", placeholders)
+        self.assertTrue(
+            CMSPlugin.objects.filter(
+                placeholder=placeholders["blog"],
+                language="fa",
+                plugin_type="LiveBlogListPlugin",
+            ).exists()
+        )
+
+        # Simulate an existing homepage created before the blog slot existed.
+        # Bootstrap must rescan the changed template and recreate the missing
+        # slot without replacing unrelated content.
+        page_content = root_url.page.pagecontent_set.get(language="fa")
+        placeholders["blog"].delete()
+        call_command("bootstrap_cms_homepage", verbosity=0)
+        placeholders = {
+            placeholder.slot: placeholder
+            for placeholder in Placeholder.objects.get_for_obj(page_content)
+        }
+        self.assertIn("blog", placeholders)
+        self.assertTrue(
+            CMSPlugin.objects.filter(
+                placeholder=placeholders["blog"],
+                language="fa",
+                plugin_type="LiveBlogListPlugin",
+            ).exists()
+        )
+
+        marker = "CMS_ROOT_ROUTING_INTEGRATION_MARKER"
+        add_plugin(
+            placeholders["content"],
+            "TextPlugin",
+            "fa",
+            body=f"<p>{marker}</p>",
+        )
+
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, marker)
+        self.assertTemplateUsed(response, "portal/cms_home_page.html")
+
+        rendered = response.content.decode()
+        for section_id in ("products", "pricing", "releases", "blog"):
+            with self.subTest(section=section_id):
+                self.assertEqual(
+                    rendered.count(f'id="{section_id}"'),
+                    1,
+                    f"CMS section '{section_id}' must not be nested or duplicated.",
+                )
+
+    def test_storefront_fallback_is_preserved_without_a_cms_homepage(self):
+        from cms.models import Page
+
+        Page.objects.filter(site=self.site).delete()
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "کنترل در دست شما")
