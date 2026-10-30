@@ -124,6 +124,7 @@ class Command(BaseCommand):
                 "LiveProductGridPlugin": "products",
                 "LivePricingGridPlugin": "pricing",
                 "LiveReleaseListPlugin": "releases",
+                "LiveBlogListPlugin": "blog",
             }
             for plugin in list(
                 CMSPlugin.objects.filter(

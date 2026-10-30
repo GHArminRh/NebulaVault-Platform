@@ -239,6 +239,9 @@ class CmsHomepageRoutingTests(TestCase):
         for body in legacy_bodies:
             add_plugin(content, "TextPlugin", "fa", body=body)
             add_plugin(content, "TextPlugin", "fa", body=body)
+        # Older bootstrap versions also left the live blog plugin in this
+        # generic slot after a dedicated blog placeholder was introduced.
+        add_plugin(content, "LiveBlogListPlugin", "fa")
 
         editor_marker = "PRESERVE_EDITOR_AUTHORED_CMS_CONTENT"
         add_plugin(
