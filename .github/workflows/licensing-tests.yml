@@ -28,7 +28,6 @@ on:
       - "comment/**"
       - "config/**"
       - "portal/**"
-      - "cms_site_seed/**"
       - "requirements.txt"
       - ".github/workflows/licensing-tests.yml"
       - "pyproject.toml"
