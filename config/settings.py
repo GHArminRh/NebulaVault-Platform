@@ -247,8 +247,8 @@ CMS_EDITOR_PLUGINS = ["TextPlugin", "TextLinkPlugin"] + CMS_IMAGE_PLUGINS + CMS_
 CMS_PLACEHOLDER_CONF = {
     "hero": {
         "name": "متن و دکمه‌های بنر اصلی",
-        "plugins": ["TextPlugin", "TextLinkPlugin", *CMS_IMAGE_PLUGINS],
-        "limits": {"TextPlugin": 1},
+        "plugins": ["HeroTextPlugin", "TextLinkPlugin", *CMS_IMAGE_PLUGINS],
+        "limits": {"HeroTextPlugin": 1},
     },
     "content": {
         "name": "محتوای تکمیلی",

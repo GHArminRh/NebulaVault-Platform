@@ -1,6 +1,7 @@
 from importlib import import_module
 
 from django.conf import settings
+from django.apps import apps as django_apps
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.core.management import call_command
@@ -71,6 +72,7 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
 
     def test_dynamic_content_plugins_are_registered(self):
         for plugin_name in (
+            "HeroTextPlugin",
             "LiveProductGridPlugin",
             "LivePricingGridPlugin",
             "LiveReleaseListPlugin",
@@ -89,6 +91,13 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
             "TextLinkPlugin",
         ):
             self.assertIsNotNone(plugin_pool.get_plugin(plugin_name))
+
+    def test_hero_text_plugin_is_registered_and_confined_to_hero(self):
+        plugin_class = plugin_pool.get_plugin("HeroTextPlugin")
+        self.assertEqual(plugin_class.allowed_slots, ["hero"])
+        self.assertEqual(plugin_class.model._meta.label_lower, "djangocms_text.text")
+        self.assertIn("HeroTextPlugin", settings.CMS_PLACEHOLDER_CONF["hero"]["plugins"])
+        self.assertNotIn("TextPlugin", settings.CMS_PLACEHOLDER_CONF["hero"]["plugins"])
 
     def test_link_button_plugin_is_available_in_editor_placeholders(self):
         self.assertIn(
@@ -129,6 +138,7 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
 
     def test_dynamic_plugin_templates_compile(self):
         for template_name in (
+            "portal/plugins/hero_text.html",
             "portal/plugins/live_products.html",
             "portal/plugins/live_pricing.html",
             "portal/plugins/live_releases.html",
@@ -225,7 +235,7 @@ class CmsHomepageRoutingTests(TestCase):
         }
         self.assertIn("blog", placeholders)
         for slot, plugin_type in (
-            ("hero", "TextPlugin"),
+            ("hero", "HeroTextPlugin"),
             ("products", "LiveProductGridPlugin"),
             ("releases", "LiveReleaseListPlugin"),
             ("blog", "LiveBlogListPlugin"),
@@ -348,6 +358,18 @@ class CmsHomepageRoutingTests(TestCase):
                 plugin_type="TextPlugin",
             ).exists()
         )
+
+        # The compatibility seed still creates the upstream TextPlugin; the
+        # follow-up migration upgrades its type in place without rewriting body.
+        hero_text = CMSPlugin.objects.get(
+            placeholder=placeholders["hero"], language="fa", plugin_type="TextPlugin"
+        ).get_plugin_instance()[0]
+        original_body = hero_text.body
+        hero_migration = import_module("cms_site_seed.migrations.0002_hero_text_plugin")
+        hero_migration.upgrade_hero_text_plugins(django_apps, None)
+        upgraded = CMSPlugin.objects.get(pk=hero_text.pk)
+        self.assertEqual(upgraded.plugin_type, "HeroTextPlugin")
+        self.assertEqual(upgraded.get_plugin_instance()[0].body, original_body)
         self.assertTrue(
             CMSPlugin.objects.filter(
                 placeholder=placeholders["products"],
@@ -383,6 +405,45 @@ class CmsHomepageRoutingTests(TestCase):
             ).count(),
             1,
         )
+
+    def test_hero_plugin_upgrade_preserves_live_editor_content_and_renders_wrapper(self):
+        call_command("bootstrap_cms_homepage", verbosity=0)
+        root_url = PageUrl.objects.filter(
+            site=self.site, language="fa", path__in=("", "/")
+        ).select_related("page").first()
+        placeholder = {
+            item.slot: item
+            for item in root_url.page.get_placeholders(language="fa")
+        }["hero"]
+        plugin = CMSPlugin.objects.get(
+            placeholder=placeholder, language="fa", plugin_type="HeroTextPlugin"
+        )
+        text_plugin = plugin.get_plugin_instance()[0]
+        legacy_body = (
+            "<p>فضای دیجیتال شما، با نظم تازه</p>"
+            "<h1>همه‌چیز سر جای خودش؛<br>کنترل در دست شما...</h1>"
+            "<p>محصولات، خریدها و لایسنس‌ها را یکپارچه مدیریت کنید.</p>"
+            '<p><a href="/products/">کشف محصولات ↙</a>'
+            '<a href="/pricing/">مشاهده تعرفه‌ها ↗</a></p>'
+            "<p>حساب شخصی امن ◇ خرید و لایسنس یکپارچه</p>"
+        )
+        text_plugin.body = legacy_body
+        text_plugin.save(update_fields=["body"])
+        original_id = plugin.pk
+        original_body = text_plugin.body
+        CMSPlugin.objects.filter(pk=plugin.pk).update(plugin_type="TextPlugin")
+
+        migration = import_module("cms_site_seed.migrations.0002_hero_text_plugin")
+        migration.upgrade_hero_text_plugins(django_apps, None)
+
+        upgraded = CMSPlugin.objects.get(pk=original_id)
+        self.assertEqual(upgraded.plugin_type, "HeroTextPlugin")
+        self.assertEqual(upgraded.get_plugin_instance()[0].body, original_body)
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="nv-hero-plugin-content"', html=False)
+        self.assertContains(response, "کنترل در دست شما")
+        self.assertContains(response, "کشف محصولات")
 
     def test_native_mptree_backend_creates_and_reads_child_pages(self):
         call_command("bootstrap_cms_homepage", verbosity=0)

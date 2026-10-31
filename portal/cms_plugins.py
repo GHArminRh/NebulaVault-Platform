@@ -5,10 +5,22 @@ from django.utils import timezone
 from cms.models.pluginmodel import CMSPlugin
 from cms.plugin_base import CMSPluginBase
 from cms.plugin_pool import plugin_pool
+from djangocms_text.cms_plugins import TextPlugin
 
 from blog.models import BlogPost
 from catalog.models import Plan, Product, Release
 from .models import CMSExternalImage, CMSUploadedImage
+
+
+@plugin_pool.register_plugin
+class HeroTextPlugin(TextPlugin):
+    """Text editor dedicated to the homepage hero's stable presentation wrapper."""
+
+    allowed_slots = ["hero"]
+    name = "متن بنر اصلی"
+    module = "محتوای نبیولا"
+    render_template = "portal/plugins/hero_text.html"
+    cache = False
 
 
 @plugin_pool.register_plugin
