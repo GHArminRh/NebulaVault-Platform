@@ -1,0 +1,29 @@
+<div class="nv-feature-grid">
+  {% if cms_features.feature_1_title or cms_features.feature_1_description %}
+    <article class="nv-feature-card nv-feature-highlight">
+      {% if cms_features.feature_1_icon %}<span class="nv-feature-icon">{{ cms_features.feature_1_icon }}</span>{% endif %}
+      {% if cms_features.feature_1_number %}<span class="nv-feature-number">{{ cms_features.feature_1_number }}</span>{% endif %}
+      {% if cms_features.feature_1_title %}<h3>{{ cms_features.feature_1_title }}</h3>{% endif %}
+      {% if cms_features.feature_1_description %}<p>{{ cms_features.feature_1_description }}</p>{% endif %}
+      {% if cms_features.feature_1_link_label and cms_features.feature_1_link_url %}<a href="{{ cms_features.feature_1_link_url }}">{{ cms_features.feature_1_link_label }} ↗</a>{% endif %}
+    </article>
+  {% endif %}
+  {% if cms_features.feature_2_title or cms_features.feature_2_description %}
+    <article class="nv-feature-card">
+      {% if cms_features.feature_2_icon %}<span class="nv-feature-icon">{{ cms_features.feature_2_icon }}</span>{% endif %}
+      {% if cms_features.feature_2_number %}<span class="nv-feature-number">{{ cms_features.feature_2_number }}</span>{% endif %}
+      {% if cms_features.feature_2_title %}<h3>{{ cms_features.feature_2_title }}</h3>{% endif %}
+      {% if cms_features.feature_2_description %}<p>{{ cms_features.feature_2_description }}</p>{% endif %}
+      {% if cms_features.feature_2_link_label and cms_features.feature_2_link_url %}<a href="{{ cms_features.feature_2_link_url }}">{{ cms_features.feature_2_link_label }} ↗</a>{% endif %}
+    </article>
+  {% endif %}
+  {% if cms_features.feature_3_title or cms_features.feature_3_description %}
+    <article class="nv-feature-card">
+      {% if cms_features.feature_3_icon %}<span class="nv-feature-icon">{{ cms_features.feature_3_icon }}</span>{% endif %}
+      {% if cms_features.feature_3_number %}<span class="nv-feature-number">{{ cms_features.feature_3_number }}</span>{% endif %}
+      {% if cms_features.feature_3_title %}<h3>{{ cms_features.feature_3_title }}</h3>{% endif %}
+      {% if cms_features.feature_3_description %}<p>{{ cms_features.feature_3_description }}</p>{% endif %}
+      {% if cms_features.feature_3_link_label and cms_features.feature_3_link_url %}<a href="{{ cms_features.feature_3_link_url }}">{{ cms_features.feature_3_link_label }} ↗</a>{% endif %}
+    </article>
+  {% endif %}
+</div>

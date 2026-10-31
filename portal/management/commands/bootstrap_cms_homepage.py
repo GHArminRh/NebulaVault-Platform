@@ -8,33 +8,52 @@ from cms.models import PageContent, PageUrl, Placeholder
 from cms.models.pluginmodel import CMSPlugin
 from cms.utils.placeholder import rescan_placeholders_for_obj
 
+from portal.cms_legacy import convert_legacy_homepage_sections
 
-HERO_COPY = """
-<div class="eyebrow"><i class="pulse"></i> فضای دیجیتال شما، با نظم تازه</div>
-<h1>همه‌چیز سر جای خودش؛<br><span class="gradient-text">کنترل در دست شما.</span></h1>
-<p class="hero-lede">محصولات، خریدها، اشتراک‌ها و لایسنس‌ها را در یک تجربهٔ امن و هماهنگ مدیریت کنید؛ ساده، شفاف و بدون شلوغی.</p>
-<div class="hero-actions">
-  <a class="button button-primary button-large" href="/products/">کشف محصولات ↙</a>
-  <a class="button button-glass button-large" href="/pricing/">مشاهده تعرفه‌ها ↗</a>
-</div>
-<div class="nv-hero-trust"><span><i class="pulse"></i> حساب شخصی امن</span><span>◇ خرید و لایسنس یکپارچه</span><span>⌁ تجربهٔ هماهنگ</span></div>
-"""
 
-FEATURE_GRID = """
-<div class="nv-feature-grid">
-  <article class="nv-feature-card nv-feature-highlight"><span class="nv-feature-icon">⌘</span><span class="nv-feature-number">01</span><h3>پیشخوان متمرکز</h3><p>اشتراک‌های فعال، سفارش‌های اخیر، وضعیت لایسنس‌ها و تنظیمات حساب در یک فضای مشخص.</p><a href="/dashboard/">رفتن به فضای کار ↗</a></article>
-  <article class="nv-feature-card"><span class="nv-feature-icon">◇</span><span class="nv-feature-number">02</span><h3>خرید شفاف</h3><p>طرح‌ها، مدت اعتبار و مبلغ را پیش از ادامهٔ خرید بررسی کنید.</p><a href="/pricing/">دیدن طرح‌ها ↙</a></article>
-  <article class="nv-feature-card"><span class="nv-feature-icon">⌑</span><span class="nv-feature-number">03</span><h3>مدیریت دسترسی</h3><p>اطلاعات لایسنس و وضعیت اشتراک‌ها را در فضای حساب خود دنبال کنید.</p><a href="/dashboard/">لایسنس‌های من ↗</a></article>
-</div>
-"""
+HERO_DEFAULTS = {
+    "eyebrow": "فضای دیجیتال شما، با نظم تازه",
+    "heading": "همه‌چیز سر جای خودش؛",
+    "heading_accent": "کنترل در دست شما.",
+    "description": "محصولات، خریدها، اشتراک‌ها و لایسنس‌ها را در یک تجربهٔ امن و هماهنگ مدیریت کنید؛ ساده، شفاف و بدون شلوغی.",
+    "primary_cta_label": "کشف محصولات ↙",
+    "primary_cta_url": "/products/",
+    "secondary_cta_label": "مشاهده تعرفه‌ها ↗",
+    "secondary_cta_url": "/pricing/",
+    "trust_item_1": "حساب شخصی امن",
+    "trust_item_2": "خرید و لایسنس یکپارچه",
+    "trust_item_3": "تجربهٔ هماهنگ",
+}
 
-FAQ_CONTENT = """
-<div class="nv-faq-list">
-  <details><summary>چطور خریدها و لایسنس‌هایم را ببینم؟<span>＋</span></summary><p>پس از ورود به حساب، از پیشخوان می‌توانید سفارش‌ها، اشتراک‌ها و لایسنس‌های مرتبط با حساب خود را مشاهده کنید.</p></details>
-  <details><summary>برای ساخت حساب چه کاری لازم است؟<span>＋</span></summary><p>با ایمیل و رمز عبور ثبت‌نام کنید و نشانی ایمیل خود را از طریق پیوند یا کد تأیید ارسال‌شده فعال کنید.</p></details>
-  <details><summary>آیا برای دیدن طرح‌ها باید وارد حساب شوم؟<span>＋</span></summary><p>خیر؛ می‌توانید محصولات و طرح‌ها را بررسی کنید. برای مدیریت خریدها و دسترسی‌های شخصی، ورود به حساب لازم است.</p></details>
-</div>
-"""
+FEATURE_DEFAULTS = {
+    "feature_1_icon": "⌘",
+    "feature_1_number": "01",
+    "feature_1_title": "پیشخوان متمرکز",
+    "feature_1_description": "اشتراک‌های فعال، سفارش‌های اخیر، وضعیت لایسنس‌ها و تنظیمات حساب در یک فضای مشخص.",
+    "feature_1_link_label": "رفتن به فضای کار",
+    "feature_1_link_url": "/dashboard/",
+    "feature_2_icon": "◇",
+    "feature_2_number": "02",
+    "feature_2_title": "خرید شفاف",
+    "feature_2_description": "طرح‌ها، مدت اعتبار و مبلغ را پیش از ادامهٔ خرید بررسی کنید.",
+    "feature_2_link_label": "دیدن طرح‌ها",
+    "feature_2_link_url": "/pricing/",
+    "feature_3_icon": "⌑",
+    "feature_3_number": "03",
+    "feature_3_title": "مدیریت دسترسی",
+    "feature_3_description": "اطلاعات لایسنس و وضعیت اشتراک‌ها را در فضای حساب خود دنبال کنید.",
+    "feature_3_link_label": "لایسنس‌های من",
+    "feature_3_link_url": "/dashboard/",
+}
+
+FAQ_DEFAULTS = {
+    "question_1": "چطور خریدها و لایسنس‌هایم را ببینم؟",
+    "answer_1": "پس از ورود به حساب، از پیشخوان می‌توانید سفارش‌ها، اشتراک‌ها و لایسنس‌های مرتبط با حساب خود را مشاهده کنید.",
+    "question_2": "برای ساخت حساب چه کاری لازم است؟",
+    "answer_2": "با ایمیل و رمز عبور ثبت‌نام کنید و نشانی ایمیل خود را از طریق پیوند یا کد تأیید ارسال‌شده فعال کنید.",
+    "question_3": "آیا برای دیدن طرح‌ها باید وارد حساب شوم؟",
+    "answer_3": "خیر؛ می‌توانید محصولات و طرح‌ها را بررسی کنید. برای مدیریت خریدها و دسترسی‌های شخصی، ورود به حساب لازم است.",
+}
 
 
 class Command(BaseCommand):
@@ -49,6 +68,8 @@ class Command(BaseCommand):
             )
 
         seeded = []
+        converted = []
+        conversion_errors = []
         with transaction.atomic():
             root_url = PageUrl.objects.filter(
                 site=site, language="fa", path__in=("", "/")
@@ -89,9 +110,8 @@ class Command(BaseCommand):
                     "the Persian page content does not exist."
                 )
 
-            # Remember which slots already existed before changing the template.
-            # An empty old slot may mean that an editor intentionally removed its
-            # plugin; startup must not silently recreate it on every deployment.
+            # A previously empty slot can represent an intentional editor deletion.
+            # Only seed a slot when the page or that slot is genuinely new.
             existing_slots = set(
                 Placeholder.objects.get_for_obj(page_content).values_list("slot", flat=True)
             )
@@ -112,21 +132,17 @@ class Command(BaseCommand):
                     + ", ".join(sorted(missing))
                 )
 
-            # Seed defaults only for a brand-new homepage or placeholders first
-            # introduced by a template update. Never move, rewrite, or delete
-            # existing plugin rows: those belong to the site editor.
             defaults = {
-                "hero": ("TextPlugin", {"body": HERO_COPY}),
-                "features": ("TextPlugin", {"body": FEATURE_GRID}),
-                "about": ("TextPlugin", {"body": FAQ_CONTENT}),
+                "hero": ("HeroContentPlugin", HERO_DEFAULTS),
+                "features": ("FeatureGridPlugin", FEATURE_DEFAULTS),
+                "about": ("FAQListPlugin", FAQ_DEFAULTS),
                 "products": ("LiveProductGridPlugin", {}),
                 "releases": ("LiveReleaseListPlugin", {}),
                 "blog": ("LiveBlogListPlugin", {}),
             }
 
             for slot, (plugin_type, values) in defaults.items():
-                is_new_slot = slot not in existing_slots
-                if not (created_page or is_new_slot):
+                if not (created_page or slot not in existing_slots):
                     continue
 
                 target = placeholders[slot]
@@ -140,8 +156,18 @@ class Command(BaseCommand):
                 add_plugin(target, plugin_type, "fa", **values)
                 seeded.append(slot)
 
+            # Preserve older hand-authored TextPlugins while replacing only
+            # well-known, single-block homepage layouts with structured plugins.
+            converted, conversion_errors = convert_legacy_homepage_sections(page_content)
+
         self.stdout.write(self.style.SUCCESS(
             f"CMS homepage {page.pk} is ready. "
             f"Seeded new regions: {', '.join(seeded) or 'none'}; "
-            "existing CMS content was left untouched."
+            f"converted legacy regions: {', '.join(slot for slot, _pk in converted) or 'none'}; "
+            "existing unsupported or nested editor content was preserved."
         ))
+        for slot, error_name in conversion_errors:
+            self.stderr.write(self.style.WARNING(
+                f"Legacy CMS conversion skipped for '{slot}' ({error_name}); "
+                "the original plugin remains intact."
+            ))
