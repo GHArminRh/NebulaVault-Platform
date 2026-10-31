@@ -32,11 +32,16 @@ class PortalPageTests(TestCase):
     def test_root_renders_the_complete_editable_cms_homepage(self):
         response = self.client.get(reverse("portal:home"))
         self.assertEqual(response.status_code, 200)
-        for section_id in ("home", "products", "pricing", "features", "blog", "releases", "about"):
+        for section_id in ("home", "products", "features", "releases", "blog", "about"):
             self.assertContains(response, f'id="{section_id}"', html=False)
+        self.assertNotContains(response, 'id="pricing"', html=False)
+        self.assertNotContains(response, "طرح مناسب خودتان را انتخاب کنید")
         self.assertContains(response, self.product.name)
         self.assertContains(response, "1 طرح")
         self.assertContains(response, "کنترل در دست شما")
+
+        rendered = response.content.decode()
+        self.assertLess(rendered.index('href="/#releases"'), rendered.index('href="/#blog"'))
 
     def test_live_product_grid_counts_only_active_plans(self):
         Plan.objects.create(
