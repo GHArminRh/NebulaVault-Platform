@@ -93,5 +93,6 @@ jobs:
           accounts.test_email_backends
           billing.tests
           config.test_cms_integration
+          portal.tests
           --settings=config.test_settings
           --verbosity=2
