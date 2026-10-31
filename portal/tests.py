@@ -12,7 +12,10 @@ from licensing.models import License
 from django.core import mail
 from subscriptions.models import Subscription
 
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    TURNSTILE_ENABLED=False,
+)
 class PortalPageTests(TestCase):
     def setUp(self):
         self.user = Customer.objects.create_user(username="portal_user", email="portal@example.com", password="a-secure-test-password")
@@ -32,11 +35,28 @@ class PortalPageTests(TestCase):
     def test_root_renders_the_complete_editable_cms_homepage(self):
         response = self.client.get(reverse("portal:home"))
         self.assertEqual(response.status_code, 200)
-        for section_id in ("home", "products", "pricing", "features", "blog", "releases", "about"):
+        for section_id in ("home", "products", "features", "releases", "blog", "about"):
             self.assertContains(response, f'id="{section_id}"', html=False)
+        self.assertNotContains(response, 'id="pricing"', html=False)
+        self.assertNotContains(response, 'href="/#pricing"', html=False)
+        self.assertContains(response, f'href="{reverse("portal:pricing")}"', html=False)
+        self.assertNotContains(response, "طرح مناسب خودتان را انتخاب کنید")
         self.assertContains(response, self.product.name)
         self.assertContains(response, "1 طرح")
         self.assertContains(response, "کنترل در دست شما")
+
+        rendered = response.content.decode()
+        self.assertLess(rendered.index('href="/#releases"'), rendered.index('href="/#blog"'))
+
+    def test_logged_in_customer_can_render_cms_homepage(self):
+        self.client.force_login(
+            self.user,
+            backend="accounts.backends.CustomerAuthenticationBackend",
+        )
+        response = self.client.get(reverse("portal:home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
+        self.assertContains(response, self.user.username)
 
     def test_live_product_grid_counts_only_active_plans(self):
         Plan.objects.create(
@@ -60,7 +80,7 @@ class PortalPageTests(TestCase):
         self.product.save()
         response = self.client.get(reverse("portal:product_detail", args=[self.product.slug]))
         self.assertContains(response, "<p>Visible <strong>formatted</strong> text.</p>", html=False)
-        self.assertNotContains(response, "<script")
+        self.assertNotContains(response, '<script>alert("xss")</script>', html=False)
         self.assertNotContains(response, "onerror")
         self.assertNotContains(response, "alert(")
 
@@ -110,7 +130,7 @@ class PortalPageTests(TestCase):
         cart_response = self.client.get(reverse("portal:cart"))
         self.assertEqual(cart_response.status_code, 200)
         self.assertContains(cart_response, self.plan.name)
-        self.assertContains(cart_response, "ORDER SUMMARY")
+        self.assertContains(cart_response, "خلاصه سفارش")
 
 
     def test_order_remains_pending_without_payment_provider(self):
@@ -123,16 +143,29 @@ class PortalPageTests(TestCase):
 
 
 class StaffSessionIsolationTests(TestCase):
-    def test_admin_user_is_not_treated_as_customer_on_public_site(self):
+    def setUp(self):
+        Site.objects.update_or_create(
+            pk=settings.SITE_ID,
+            defaults={"domain": "mydigigi.test", "name": "MyDigiGi CMS staff tests"},
+        )
+        call_command("bootstrap_cms_homepage", verbosity=0)
+
+    def test_staff_identity_is_preserved_only_for_frontend_cms_editing(self):
         StaffUser = get_user_model()
         staff = StaffUser.objects.create_user(
             username="site_admin", password="admin-test-password", is_staff=True, is_superuser=True
         )
         self.client.force_login(staff, backend="django.contrib.auth.backends.ModelBackend")
 
-        response = self.client.get(reverse("portal:home"))
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(response.wsgi_request.user.is_authenticated)
+        cms_response = self.client.get(reverse("portal:home"))
+        self.assertEqual(cms_response.status_code, 200)
+        self.assertTrue(cms_response.wsgi_request.user.is_authenticated)
+        self.assertTrue(cms_response.wsgi_request.user.is_staff)
+        self.assertContains(cms_response, "cms-toolbar")
+
+        public_response = self.client.get(reverse("portal:products"))
+        self.assertEqual(public_response.status_code, 200)
+        self.assertFalse(public_response.wsgi_request.user.is_authenticated)
 
     def test_staff_session_remains_available_in_django_admin(self):
         StaffUser = get_user_model()

@@ -71,6 +71,7 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
 
     def test_dynamic_content_plugins_are_registered(self):
         for plugin_name in (
+            "HeroTextPlugin",
             "LiveProductGridPlugin",
             "LivePricingGridPlugin",
             "LiveReleaseListPlugin",
@@ -89,6 +90,13 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
             "TextLinkPlugin",
         ):
             self.assertIsNotNone(plugin_pool.get_plugin(plugin_name))
+
+    def test_hero_text_plugin_is_registered_and_confined_to_hero(self):
+        plugin_class = plugin_pool.get_plugin("HeroTextPlugin")
+        self.assertEqual(plugin_class.allowed_slots, ["hero"])
+        self.assertEqual(plugin_class.model._meta.label_lower, "djangocms_text.text")
+        self.assertIn("HeroTextPlugin", settings.CMS_PLACEHOLDER_CONF["hero"]["plugins"])
+        self.assertNotIn("TextPlugin", settings.CMS_PLACEHOLDER_CONF["hero"]["plugins"])
 
     def test_link_button_plugin_is_available_in_editor_placeholders(self):
         self.assertIn(
@@ -129,6 +137,7 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
 
     def test_dynamic_plugin_templates_compile(self):
         for template_name in (
+            "portal/plugins/hero_text.html",
             "portal/plugins/live_products.html",
             "portal/plugins/live_pricing.html",
             "portal/plugins/live_releases.html",
@@ -192,6 +201,19 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
                                 migrated_field.remote_field.model._meta.label_lower,
                             )
 
+    def test_hero_plugin_css_styles_plain_semantic_editor_markup(self):
+        stylesheet = settings.BASE_DIR / "static" / "portal" / "css" / "unified-experience.css"
+        css = stylesheet.read_text(encoding="utf-8")
+        for selector in (
+            ".nv-hero-plugin-content > p:first-of-type:not(.hero-lede)",
+            ".nv-hero-plugin-content > h1:not(:has(.gradient-text))",
+            ".nv-hero-plugin-content > p:nth-of-type(2)",
+            ".nv-hero-plugin-content > p:has(> a)",
+            ".nv-hero-plugin-content > p:last-of-type:nth-of-type(n + 3):not(:has(> a))",
+        ):
+            with self.subTest(selector=selector):
+                self.assertIn(selector, css)
+
     def test_uploads_are_disabled_without_durable_storage(self):
         self.assertFalse(settings.CMS_MEDIA_UPLOADS_ENABLED)
         self.assertNotIn("UploadedImagePlugin", plugin_pool.plugins)
@@ -225,7 +247,7 @@ class CmsHomepageRoutingTests(TestCase):
         }
         self.assertIn("blog", placeholders)
         for slot, plugin_type in (
-            ("hero", "TextPlugin"),
+            ("hero", "HeroTextPlugin"),
             ("products", "LiveProductGridPlugin"),
             ("releases", "LiveReleaseListPlugin"),
             ("blog", "LiveBlogListPlugin"),
@@ -348,6 +370,7 @@ class CmsHomepageRoutingTests(TestCase):
                 plugin_type="TextPlugin",
             ).exists()
         )
+
         self.assertTrue(
             CMSPlugin.objects.filter(
                 placeholder=placeholders["products"],
@@ -383,6 +406,42 @@ class CmsHomepageRoutingTests(TestCase):
             ).count(),
             1,
         )
+
+    def test_legacy_hero_text_plugin_renders_inside_stable_template_wrapper(self):
+        call_command("bootstrap_cms_homepage", verbosity=0)
+        root_url = PageUrl.objects.filter(
+            site=self.site, language="fa", path__in=("", "/")
+        ).select_related("page").first()
+        placeholder = {
+            item.slot: item
+            for item in root_url.page.get_placeholders(language="fa")
+        }["hero"]
+        plugin = CMSPlugin.objects.get(
+            placeholder=placeholder, language="fa", plugin_type="HeroTextPlugin"
+        )
+        text_plugin = plugin.get_plugin_instance()[0]
+        legacy_body = (
+            "<p>فضای دیجیتال شما، با نظم تازه</p>"
+            "<h1>همه‌چیز سر جای خودش؛<br>کنترل در دست شما...</h1>"
+            "<p>محصولات، خریدها و لایسنس‌ها را یکپارچه مدیریت کنید.</p>"
+            '<p><a href="/products/">کشف محصولات ↙</a>'
+            '<a href="/pricing/">مشاهده تعرفه‌ها ↗</a></p>'
+            "<p>حساب شخصی امن ◇ خرید و لایسنس یکپارچه</p>"
+        )
+        text_plugin.body = legacy_body
+        text_plugin.save(update_fields=["body"])
+        original_id = plugin.pk
+        original_body = text_plugin.body
+        CMSPlugin.objects.filter(pk=plugin.pk).update(plugin_type="TextPlugin")
+
+        legacy_plugin = CMSPlugin.objects.get(pk=original_id)
+        self.assertEqual(legacy_plugin.plugin_type, "TextPlugin")
+        self.assertEqual(legacy_plugin.get_plugin_instance()[0].body, original_body)
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="nv-hero-plugin-content"', html=False)
+        self.assertContains(response, "کنترل در دست شما")
+        self.assertContains(response, "کشف محصولات")
 
     def test_native_mptree_backend_creates_and_reads_child_pages(self):
         call_command("bootstrap_cms_homepage", verbosity=0)

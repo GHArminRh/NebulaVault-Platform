@@ -120,6 +120,84 @@ html {
   width: 6px;
   height: 6px;
 }
+
+/*
+ * The homepage hero is edited through a dedicated django CMS Text plugin.
+ * Keep presentation outside editor-authored HTML: the plugin may contain
+ * ordinary semantic paragraphs/headings rather than the legacy CSS classes.
+ */
+.nv-hero-plugin-content {
+  display: block;
+  min-width: 0;
+}
+.nv-hero-plugin-content > p:first-of-type:not(.hero-lede) {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  color: #a79cff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+.nv-hero-plugin-content > h1:not(:has(.gradient-text)) {
+  background-image: linear-gradient(100deg, #b8aaff 8%, #8cdde9 95%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+.nv-hero-plugin-content > p:nth-of-type(2) {
+  max-width: 590px;
+  margin: 0;
+  color: #a4aec6;
+  font-size: clamp(14px, 1.25vw, 17px);
+  line-height: 2.05;
+}
+.nv-hero-plugin-content > p:has(> a) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 29px 0 0;
+}
+.nv-hero-plugin-content > p:has(> a) > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 12px 20px;
+  border: 1px solid rgba(190, 196, 255, 0.22);
+  border-radius: 14px;
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+.nv-hero-plugin-content > p:has(> a) > a:first-child {
+  border-color: transparent;
+  background: linear-gradient(120deg, #7168e8, #8b7cf6);
+  box-shadow: 0 12px 30px rgba(113, 104, 232, 0.22);
+}
+.nv-hero-plugin-content > p:has(> a) > a:nth-child(2) {
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(12px);
+}
+.nv-hero-plugin-content > p:has(> a) > a:hover {
+  transform: translateY(-2px);
+}
+.nv-hero-plugin-content > p:last-of-type:nth-of-type(n + 3):not(:has(> a)) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 18px;
+  margin: 30px 0 0;
+  color: #8f9dbb;
+  font-size: 10px;
+  line-height: 1.9;
+}
 .nv-hero-visual {
   height: clamp(360px, 42vw, 540px);
   position: relative;

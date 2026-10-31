@@ -116,7 +116,7 @@ class Command(BaseCommand):
             # introduced by a template update. Never move, rewrite, or delete
             # existing plugin rows: those belong to the site editor.
             defaults = {
-                "hero": ("TextPlugin", {"body": HERO_COPY}),
+                "hero": ("HeroTextPlugin", {"body": HERO_COPY}),
                 "features": ("TextPlugin", {"body": FEATURE_GRID}),
                 "about": ("TextPlugin", {"body": FAQ_CONTENT}),
                 "products": ("LiveProductGridPlugin", {}),

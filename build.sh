@@ -4,8 +4,7 @@ set -o errexit
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 
-# The deployment branch currently lacks committed migrations for several
-# project apps. Generate them into the build artifact so the start command's
-# `migrate` step can create every app table on Render.
-python manage.py makemigrations --noinput
+# Schema changes must be generated locally, reviewed, and committed. Never
+# create migrations during a deploy build; Render's start command applies the
+# committed migration graph to the persistent database.
 python manage.py collectstatic --noinput
