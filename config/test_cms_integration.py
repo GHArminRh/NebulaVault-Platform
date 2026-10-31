@@ -325,6 +325,12 @@ class CmsHomepageRoutingTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, marker)
         self.assertTemplateUsed(response, "portal/cms_home_page.html")
+        self.assertEqual(
+            response.content.decode().count("همه‌چیز سر جای خودش؛"),
+            1,
+            "The CMS hero plugin must render the editable headline exactly once; "
+            "the template must not duplicate it through static fallback markup.",
+        )
 
         rendered = response.content.decode()
         structure = SectionStructureParser()
