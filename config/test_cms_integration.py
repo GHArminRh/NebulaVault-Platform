@@ -227,7 +227,6 @@ class CmsHomepageRoutingTests(TestCase):
         for slot, plugin_type in (
             ("hero", "TextPlugin"),
             ("products", "LiveProductGridPlugin"),
-            ("pricing", "LivePricingGridPlugin"),
             ("releases", "LiveReleaseListPlugin"),
             ("blog", "LiveBlogListPlugin"),
         ):
@@ -273,7 +272,9 @@ class CmsHomepageRoutingTests(TestCase):
         self.assertTemplateUsed(response, "portal/cms_home_page.html")
 
         rendered = response.content.decode()
-        for section_id in ("products", "pricing", "releases", "blog"):
+        self.assertNotIn('id="pricing"', rendered)
+        self.assertNotContains(response, "طرح مناسب خودتان را انتخاب کنید")
+        for section_id in ("products", "releases", "blog"):
             with self.subTest(section=section_id):
                 self.assertEqual(
                     rendered.count(f'id="{section_id}"'),
@@ -332,7 +333,7 @@ class CmsHomepageRoutingTests(TestCase):
                     language="fa",
                 ).values_list("pk", flat=True)
             )
-            for slot in ("pricing", "features", "releases", "blog", "about")
+            for slot in ("features", "releases", "blog", "about")
         }
 
         migration = import_module(
