@@ -13,7 +13,6 @@ on:
       - "staff/**"
       - "config/**"
       - "portal/**"
-      - "cms_site_seed/**"
       - "comment/**"
       - "requirements.txt"
       - ".github/workflows/licensing-tests.yml"
@@ -29,7 +28,6 @@ on:
       - "comment/**"
       - "config/**"
       - "portal/**"
-      - "cms_site_seed/**"
       - "requirements.txt"
       - ".github/workflows/licensing-tests.yml"
       - "pyproject.toml"
@@ -71,13 +69,9 @@ jobs:
       - name: Check formatting baseline
         run: |
           python -m pip install ruff
-          ruff check config/settings.py config/test_settings.py config/test_cms_integration.py cms_site_seed portal/cms_plugins.py portal/management/commands/bootstrap_cms_homepage.py api billing/services.py billing/order_services.py billing/attempt_services.py billing/finalization_services.py
+          ruff check config/settings.py config/test_settings.py portal/tests.py api billing/services.py billing/order_services.py billing/attempt_services.py billing/finalization_services.py
       - name: Check Django configuration
         run: python manage.py check --settings=config.test_settings
-      - name: Create schema for django CMS validation
-        run: python manage.py migrate --noinput --settings=config.test_settings
-      - name: Validate django CMS installation
-        run: python manage.py cms check --settings=config.test_settings
       - name: Check migration state for all apps
         run: python manage.py makemigrations --check --dry-run --settings=config.test_settings
       - name: Run regression tests
@@ -89,7 +83,6 @@ jobs:
           accounts.tests
           accounts.test_email_backends
           billing.tests
-          config.test_cms_integration
           portal.tests
           --settings=config.test_settings
           --verbosity=2

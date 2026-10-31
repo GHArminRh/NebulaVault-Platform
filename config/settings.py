@@ -9,8 +9,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 # Core Django settings
-# Use django CMS 5.1's built-in page-tree backend to avoid Treebeard manager incompatibility.
-CMS_TREE_BACKEND = "mptree"
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
 ALLOWED_HOSTS = [
@@ -37,10 +35,13 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sites",
-    "storages",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "storages",
+    "easy_thumbnails",
+    "filer",
+    "image_uploader_widget",
     # Django Control Room: register the shared base, official panels, then hub.
     "dj_control_room_base",
     "dj_redis_panel",
@@ -51,20 +52,6 @@ INSTALLED_APPS = [
     "dj_error_panel",
     "dj_control_room",
     "staff.apps.StaffConfig",
-    "cms",
-    "menus",
-    "sekizai",
-    "easy_thumbnails",
-    "filer",  # Required by djangocms-link file-link migrations and plugin support.
-    "djangocms_text",
-    "djangocms_link",
-    "djangocms_frontend",
-    "djangocms_frontend.contrib.grid",
-    "djangocms_frontend.contrib.link",
-    "djangocms_frontend.contrib.card",
-    "djangocms_frontend.contrib.content",
-    "djangocms_frontend.contrib.alert",
-    "image_uploader_widget",
     "import_export",
     "rest_framework",
     "django_filters",
@@ -83,7 +70,6 @@ INSTALLED_APPS = [
     "audit.apps.AuditConfig",
     "notifications.apps.NotificationsConfig",
     "portal.apps.PortalConfig",
-    "cms_site_seed",
 ]
 
 TINYMCE_DEFAULT_CONFIG = {
@@ -120,14 +106,9 @@ MIDDLEWARE = [
     "portal.middleware.InterfaceLanguageMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-    # django CMS requires Django's standard auth middleware to be registered.
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     # This layer then resolves the active UUID-backed staff/customer identity.
     "accounts.middleware.UUIDCompatibleAuthenticationMiddleware",
-    "cms.middleware.user.CurrentUserMiddleware",
-    "cms.middleware.page.CurrentPageMiddleware",
-    "cms.middleware.toolbar.ToolbarMiddleware",
-    "cms.middleware.language.LanguageCookieMiddleware",
     "portal.middleware.SeparateStaffAndCustomerSessionsMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -145,8 +126,6 @@ TEMPLATES = [
                 "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "cms.context_processors.cms_settings",
-                "sekizai.context_processors.sekizai",
                 "portal.context_processors.cart_context",
                 "accounts.context_processors.turnstile",
             ],
@@ -186,12 +165,6 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = "fa"
 SITE_ID = 1
 X_FRAME_OPTIONS = "SAMEORIGIN"
-CMS_TEMPLATES = [
-    ("portal/cms_page.html", "صفحهٔ عمومی نبیولا والت"),
-    ("portal/cms_home_page.html", "صفحهٔ اصلی قابل ویرایش نبیولا والت"),
-]
-# Route content entered in the page wizard to the general editable content region.
-CMS_PAGE_WIZARD_CONTENT_PLACEHOLDER = "content"
 LANGUAGES = [("en", "English"), ("fa", "Persian")]
 TIME_ZONE = "Asia/Tehran"
 USE_I18N = True
@@ -200,9 +173,13 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-# Direct CMS file uploads are enabled only when durable S3-compatible storage
-# is explicitly configured. Render's local filesystem is ephemeral on Free.
-CMS_MEDIA_STORAGE_BACKEND = os.environ.get("CMS_MEDIA_STORAGE_BACKEND", "local").strip().lower()
+# Media storage is independent of django CMS. Keep the legacy environment
+# variable as a fallback so existing Render S3 media configuration continues
+# to work without requiring an environment-variable rename during this removal.
+MEDIA_STORAGE_BACKEND = os.environ.get(
+    "MEDIA_STORAGE_BACKEND",
+    os.environ.get("CMS_MEDIA_STORAGE_BACKEND", "local"),
+).strip().lower()
 AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME", "").strip()
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "").strip()
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
@@ -211,78 +188,15 @@ AWS_S3_ENDPOINT_URL = os.environ.get("AWS_S3_ENDPOINT_URL", "").strip() or None
 AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_S3_CUSTOM_DOMAIN", "").strip() or None
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
-AWS_QUERYSTRING_AUTH = os.environ.get("AWS_QUERYSTRING_AUTH", "False").strip().lower() == "true"
-CMS_MEDIA_UPLOADS_ENABLED = bool(
-    CMS_MEDIA_STORAGE_BACKEND == "s3"
+AWS_QUERYSTRING_AUTH = (
+    os.environ.get("AWS_QUERYSTRING_AUTH", "False").strip().lower() == "true"
+)
+MEDIA_S3_STORAGE_ENABLED = bool(
+    MEDIA_STORAGE_BACKEND == "s3"
     and AWS_STORAGE_BUCKET_NAME
     and AWS_ACCESS_KEY_ID
     and AWS_SECRET_ACCESS_KEY
 )
-
-# django CMS Text uses TipTap by default. The TinyMCE configuration above
-# is kept for the separate catalog/blog rich-text fields; it does not replace
-# the CMS TextPlugin editor.
-#
-# djangocms-frontend 2.5.x plugin class names are used here. Parent/child
-# restrictions defined by those plugins keep columns/cards nested correctly.
-CMS_LAYOUT_PLUGINS = [
-    "GridContainerPlugin",
-    "GridRowPlugin",
-    "GridColumnPlugin",
-    "CardLayoutPlugin",
-    "CardPlugin",
-    "CardInnerPlugin",
-    "AlertPlugin",
-    "CodePlugin",
-    "BlockquotePlugin",
-    "FigurePlugin",
-]
-CMS_IMAGE_PLUGINS = ["ExternalImagePlugin"] + (
-    ["UploadedImagePlugin"] if CMS_MEDIA_UPLOADS_ENABLED else []
-)
-CMS_EDITOR_PLUGINS = ["TextPlugin", "TextLinkPlugin"] + CMS_IMAGE_PLUGINS + CMS_LAYOUT_PLUGINS
-# Each page template declares its own editable slots. Dynamic sections are
-# confined to their dedicated slots, so adding one in generic content cannot
-# emit duplicate section IDs or duplicate data grids.
-CMS_PLACEHOLDER_CONF = {
-    "hero": {
-        "name": "متن و دکمه‌های بنر اصلی",
-        "plugins": ["HeroTextPlugin", "TextLinkPlugin", *CMS_IMAGE_PLUGINS],
-        "limits": {"HeroTextPlugin": 1},
-    },
-    "content": {
-        "name": "محتوای تکمیلی",
-        "plugins": CMS_EDITOR_PLUGINS,
-    },
-    "products": {
-        "name": "محصولات",
-        "plugins": ["LiveProductGridPlugin"],
-        "limits": {"LiveProductGridPlugin": 1},
-    },
-    "pricing": {
-        "name": "تعرفه‌ها",
-        "plugins": ["LivePricingGridPlugin"],
-        "limits": {"LivePricingGridPlugin": 1},
-    },
-    "features": {
-        "name": "امکانات",
-        "plugins": CMS_EDITOR_PLUGINS,
-    },
-    "releases": {
-        "name": "نسخه‌های منتشرشده",
-        "plugins": ["LiveReleaseListPlugin"],
-        "limits": {"LiveReleaseListPlugin": 1},
-    },
-    "blog": {
-        "name": "مقالات تازه",
-        "plugins": ["LiveBlogListPlugin"],
-        "limits": {"LiveBlogListPlugin": 1},
-    },
-    "about": {
-        "name": "معرفی و پرسش‌های متداول",
-        "plugins": CMS_EDITOR_PLUGINS,
-    },
-}
 DEFAULT_MEDIA_STORAGE = (
     {
         "BACKEND": "storages.backends.s3.S3Storage",
@@ -298,7 +212,7 @@ DEFAULT_MEDIA_STORAGE = (
             "querystring_auth": AWS_QUERYSTRING_AUTH,
         },
     }
-    if CMS_MEDIA_UPLOADS_ENABLED
+    if MEDIA_S3_STORAGE_ENABLED
     else {"BACKEND": "django.core.files.storage.FileSystemStorage"}
 )
 STORAGES = {

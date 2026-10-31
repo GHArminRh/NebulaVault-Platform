@@ -6,7 +6,7 @@ services:
     buildCommand: bash build.sh
     # Restore the required Django Site (SITE_ID=1) before serving requests.
     # This is idempotent and repairs the primary Site row if it was deleted.
-    startCommand: python manage.py migrate --noinput && python manage.py createcachetable django_cache --database default && python manage.py bootstrap_render_admin && python manage.py shell -c "from django.contrib.sites.models import Site; Site.objects.update_or_create(pk=1, defaults={'domain': 'mydigigi.ir', 'name': 'Nebula Vault'})" && python manage.py bootstrap_cms_homepage && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120
+    startCommand: python manage.py migrate --noinput && python manage.py createcachetable django_cache --database default && python manage.py bootstrap_render_admin && python manage.py shell -c "from django.contrib.sites.models import Site; Site.objects.update_or_create(pk=1, defaults={'domain': 'mydigigi.ir', 'name': 'Nebula Vault'})" && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120
     healthCheckPath: /healthz/
     envVars:
       - key: DJANGO_SECRET_KEY

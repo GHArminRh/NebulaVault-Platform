@@ -1,4 +1,4 @@
-{% load static money cms_tags sekizai_tags %}
+{% load static money %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
   <head>
@@ -28,15 +28,12 @@
     <link rel="stylesheet"
           href="{% static 'portal/css/responsive-system.css' %}">
     <link rel="stylesheet" href="{% static 'portal/css/blog.css' %}">
-    <link rel="stylesheet" href="{% static 'portal/css/cms-builder.css' %}">
     <script defer src="{% static 'portal/js/site.js' %}"></script>
     <script defer src="{% static 'portal/js/pwa.js' %}"></script>
     <link rel="stylesheet" href="{% static 'portal/css/site-shell.css' %}">
-    {% render_block "css" %}
     {% block extra_css %}{% endblock %}
   </head>
   <body class="nv-portal {% block body_class %} {% endblock %}">
-    {% cms_toolbar %}
     <div class="nv-page-progress"
          role="progressbar"
          aria-label="وضعیت بارگذاری صفحه"
@@ -153,6 +150,5 @@
           <a href="{% url 'portal:products' %}">مشاهده محصولات ↗</a>
         </div>
       </footer>
-      {% render_block "js" %}
     </body>
   </html>

@@ -18,9 +18,7 @@ from subscriptions.models import Subscription
 from subscriptions.services import TrialAlreadyUsed, TrialUnavailable, start_trial as create_trial_subscription
 
 def home(request):
-    # Keep the established storefront homepage as the public root page.
-    # CMS pages remain available under /pages/; an incomplete CMS page must
-    # never replace the production storefront.
+    # Render the established storefront directly at the public root URL.
     products = Product.objects.filter(is_active=True).prefetch_related(Prefetch("plans", queryset=Plan.objects.filter(is_active=True)))[:3]
     releases = Release.objects.filter(is_published=True, product__is_active=True).select_related("product")[:3]
     plans = list(Plan.objects.filter(is_active=True, product__is_active=True).select_related("product"))
