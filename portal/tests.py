@@ -1,12 +1,8 @@
 from datetime import timedelta
-from django.conf import settings
 from accounts.models import Customer
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from catalog.models import Plan, Product
-from billing.models import PaymentAttempt, PaymentOrder
-from licensing.models import License
-from django.core import mail
 from subscriptions.models import Subscription
 
 @override_settings(
@@ -83,7 +79,6 @@ class PortalPageTests(TestCase):
 
 
     def test_order_remains_pending_without_payment_provider(self):
-        from billing.models import PaymentOrder
         self.client.force_login(self.user, backend='accounts.backends.CustomerAuthenticationBackend')
         self.client.post(reverse("portal:create_order", args=[self.plan.pk]))
         order = PaymentOrder.objects.get(user=self.user)
