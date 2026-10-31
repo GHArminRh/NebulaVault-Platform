@@ -28,7 +28,7 @@
           href="{% static 'portal/css/unified-experience.css' %}">
     <link rel="stylesheet"
           href="{% static 'portal/css/responsive-system.css' %}">
-    <link rel="stylesheet" href="{% static 'portal/css/blog.css' %}">
+    {% block blog_css %}{% endblock %}
     <script defer src="{% static 'portal/js/site.js' %}"></script>
     <script defer src="{% static 'portal/js/pwa.js' %}"></script>
     <link rel="stylesheet" href="{% static 'portal/css/site-shell.css' %}">
