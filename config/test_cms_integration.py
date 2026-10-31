@@ -202,6 +202,18 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
                                 migrated_field.remote_field.model._meta.label_lower,
                             )
 
+    def test_hero_plugin_css_styles_plain_semantic_editor_markup(self):
+        stylesheet = settings.BASE_DIR / "static" / "portal" / "css" / "unified-experience.css"
+        css = stylesheet.read_text(encoding="utf-8")
+        for selector in (
+            ".nv-hero-plugin-content > p:first-of-type",
+            ".nv-hero-plugin-content > h1:not(:has(.gradient-text))",
+            ".nv-hero-plugin-content > p:nth-of-type(2)",
+            ".nv-hero-plugin-content > p:has(> a)",
+        ):
+            with self.subTest(selector=selector):
+                self.assertIn(selector, css)
+
     def test_uploads_are_disabled_without_durable_storage(self):
         self.assertFalse(settings.CMS_MEDIA_UPLOADS_ENABLED)
         self.assertNotIn("UploadedImagePlugin", plugin_pool.plugins)

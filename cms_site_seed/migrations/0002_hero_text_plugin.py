@@ -7,7 +7,6 @@ def upgrade_hero_text_plugins(apps, schema_editor):
     CMSPlugin = apps.get_model("cms", "CMSPlugin")
     CMSPlugin.objects.filter(
         placeholder__slot="hero",
-        language="fa",
         plugin_type="TextPlugin",
     ).update(plugin_type="HeroTextPlugin")
 
@@ -16,7 +15,6 @@ def downgrade_hero_text_plugins(apps, schema_editor):
     CMSPlugin = apps.get_model("cms", "CMSPlugin")
     CMSPlugin.objects.filter(
         placeholder__slot="hero",
-        language="fa",
         plugin_type="HeroTextPlugin",
     ).update(plugin_type="TextPlugin")
 
