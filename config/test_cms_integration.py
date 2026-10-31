@@ -343,13 +343,31 @@ class CmsHomepageRoutingTests(TestCase):
         )
         self.assertNotIn('id="pricing"', rendered)
         self.assertNotContains(response, "طرح مناسب خودتان را انتخاب کنید")
-        for section_id in ("products", "releases", "blog"):
+        for section_id in ("products", "features", "releases", "blog", "about"):
             with self.subTest(section=section_id):
                 self.assertEqual(
                     rendered.count(f'id="{section_id}"'),
                     1,
                     f"CMS section '{section_id}' must not be nested or duplicated.",
                 )
+
+        # The CMS preview/edit template must retain the storefront's shared
+        # visual landmarks and closing CTA instead of rendering a reduced,
+        # CMS-only homepage composition.
+        for visual_hook in (
+            'class="nv-home-hero page-wrap"',
+            'class="nv-proof-strip"',
+            'class="nv-hero-visual"',
+            'class="nv-final-cta"',
+            'id="home"',
+            'id="products"',
+            'id="features"',
+            'id="releases"',
+            'id="blog"',
+            'id="about"',
+        ):
+            with self.subTest(visual_hook=visual_hook):
+                self.assertIn(visual_hook, rendered)
 
     def test_bootstrap_failure_rolls_back_template_change(self):
         call_command("bootstrap_cms_homepage", verbosity=0)
