@@ -8,8 +8,8 @@
   --violet: #9b82ff;
   --cyan: #48cfff;
   --green: #62e4c0;
-  --font: 'DM Sans', sans-serif;
-  --display: 'Space Grotesk', sans-serif;
+  --font: 'DM Sans', 'Vazirmatn', sans-serif;
+  --display: 'Space Grotesk', 'Vazirmatn', sans-serif;
 }
 * {
   box-sizing: border-box;
@@ -3183,7 +3183,7 @@ body.nv-portal {
   }
 }
 
-/* Home hero headline: keep the violet-to-cyan gradient reliable across browsers and CMS toolbar states. */
+/* Keep the home hero headline gradient consistent across supported browsers. */
 .nv-home-hero .nv-hero-copy h1 > .gradient-text {
   display: inline-block;
   background-image: linear-gradient(100deg, #b8aaff 8%, #8cdde9 95%) !important;

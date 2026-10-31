@@ -46,6 +46,10 @@ MISSING_ALT = re.compile(r"<img\b(?![^>]*\balt\s*=)[^>]*>", re.IGNORECASE)
 UNTYPED_BUTTON = re.compile(
     r"<button\b(?![^>]*\btype\s*=)[^>]*>", re.IGNORECASE
 )
+OPENING_TAG = re.compile(r"<[a-z][^<>]*>", re.IGNORECASE)
+HTML_ATTRIBUTE = re.compile(
+    r"""([a-zA-Z_:][a-zA-Z0-9:._-]*)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?"""
+)
 STATIC_TAG = re.compile(r"{%\s*static\s+['\"]([^'\"]+)['\"]")
 STYLE_ATTRIBUTE = re.compile(r"\sstyle\s*=", re.IGNORECASE)
 
@@ -106,6 +110,27 @@ def read_source_contents(files: list[Path]) -> dict[Path, str]:
     return contents
 
 
+def duplicate_attributes(source: str) -> list[tuple[int, list[str]]]:
+    """Return repeated attribute names within individual opening HTML tags."""
+    duplicates_by_tag: list[tuple[int, list[str]]] = []
+
+    for match in OPENING_TAG.finditer(source):
+        tag_contents = re.sub(
+            r"^[a-z][a-z0-9:-]*", "", match.group(0)[1:-1], count=1, flags=re.IGNORECASE
+        )
+        counts: dict[str, int] = {}
+        for attribute in HTML_ATTRIBUTE.finditer(tag_contents):
+            name = attribute.group(1).lower()
+            counts[name] = counts.get(name, 0) + 1
+
+        duplicates = sorted(name for name, count in counts.items() if count > 1)
+        if duplicates:
+            line_number = source.count("\n", 0, match.start()) + 1
+            duplicates_by_tag.append((line_number, duplicates))
+
+    return duplicates_by_tag
+
+
 def main() -> int:
     templates = public_templates()
     files = source_files()
@@ -117,6 +142,7 @@ def main() -> int:
     image_alt_missing = 0
     untyped_button_count = 0
     static_reference_count = 0
+    duplicate_attribute_count = 0
 
     for template in templates:
         rel = relative(template)
@@ -135,11 +161,18 @@ def main() -> int:
         missing_alt = len(MISSING_ALT.findall(source))
         untyped_buttons = len(UNTYPED_BUTTON.findall(source))
         inline_styles = len(STYLE_ATTRIBUTE.findall(source))
+        duplicate_tags = duplicate_attributes(source)
 
         inline_handler_count += handlers
         image_alt_missing += missing_alt
         untyped_button_count += untyped_buttons
         inline_style_count += inline_styles
+        duplicate_attribute_count += len(duplicate_tags)
+
+        for line_number, names in duplicate_tags:
+            failures.append(
+                f"{rel}:{line_number}: duplicate HTML attribute(s): {', '.join(names)}"
+            )
 
         if handlers:
             failures.append(
@@ -194,6 +227,7 @@ def main() -> int:
     print(f"  Inline event handlers: {inline_handler_count}")
     print(f"  Images missing alt: {image_alt_missing}")
     print(f"  Buttons missing type: {untyped_button_count}")
+    print(f"  Duplicate HTML attributes: {duplicate_attribute_count}")
     print(f"  Inline style attributes: {inline_style_count}")
     print(f"  CSS files checked: {len(css_files)}")
     print(f"  !important declarations: {css_important_count}")

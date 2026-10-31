@@ -20,14 +20,15 @@
     <meta name="description"
           content="{% block meta_description %}پلتفرم امن نرم‌افزار نبیولا والت{% endblock %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap"
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700;800&display=swap"
           rel="stylesheet">
     <link rel="stylesheet" href="{% static 'portal/css/site.css' %}">
     <link rel="stylesheet"
           href="{% static 'portal/css/unified-experience.css' %}">
     <link rel="stylesheet"
           href="{% static 'portal/css/responsive-system.css' %}">
-    <link rel="stylesheet" href="{% static 'portal/css/blog.css' %}">
+    {% block blog_css %}{% endblock %}
     <script defer src="{% static 'portal/js/site.js' %}"></script>
     <script defer src="{% static 'portal/js/pwa.js' %}"></script>
     <link rel="stylesheet" href="{% static 'portal/css/site-shell.css' %}">

@@ -109,3 +109,19 @@ Django Admin templates and email templates were intentionally excluded from publ
 The latest successful source audit reported 48 public templates checked, 245 source files scanned, and 18 Django static references checked. It found no inline event-handler attributes, no images missing an `alt` attribute, no buttons missing an explicit `type`, and no inline style attributes in the scanned public templates. The browser-source audit found no confirmed unreferenced CSS/JS assets apart from the retained legacy language helper, which remains flagged for manual CMS/runtime verification.
 
 The source-quality workflow currently validates the public templates and browser scripts. The Playwright suite runs against the Render service URL to avoid Cloudflare challenge HTML interfering with automated browser checks. It does not submit authentication forms or claim to validate the Turnstile challenge itself. The post-fix browser run passed all 22 checks on the live build. `static/portal/js/language.js` remains a possible unreferenced legacy helper; it was deliberately retained because dynamic CMS/runtime usage has not been conclusively ruled out.
+
+
+## Follow-up cleanup pass (1 November 2026)
+
+This pass starts from the current `deploy/render-ready` frontend after Django CMS was removed. It keeps the existing public design and business flows intact and applies narrowly scoped maintenance changes:
+
+- The public base template now exposes a `blog_css` block. The home page and blog list/article templates load `blog.css` through that block; product, pricing, account, cart, and dashboard pages no longer download blog-only styles. The stylesheet remains in the same cascade position as before on pages that use it.
+- The Google Fonts request now includes the three families declared by the site styles (`Vazirmatn`, `DM Sans`, and `Space Grotesk`), and preconnects to the font asset origin.
+- Removed `static/portal/js/language.js`. It had no active template or source-code reference, and its client-side text replacement conflicted with the server-enforced Persian public interface. The server locale middleware and its tests remain unchanged; Django Admin remains English.
+- Fixed a duplicate `class` attribute on the dashboard license section. The missing `nv-licenses-panel` class meant its existing page-specific spacing rule was silently ignored.
+- Extended the source audit to report duplicate attributes within public HTML opening tags, and removed the obsolete CMS-template exception from the template formatter configuration.
+- Frontend GitHub Actions workflows now use `npm ci` with the committed lockfile rather than resolving dependencies with `npm install`.
+
+The core design stylesheets were intentionally not flattened or mass-pruned. `unified-experience.css` and `responsive-system.css` contain layered component and breakpoint overrides, including protections for mobile navigation, dashboard layout, and horizontal overflow. Selector repetition or `!important` alone does not establish that a rule is dead. A further reduction should be performed by component with browser visual comparisons, not by deleting late rules in bulk.
+
+The Playwright suite now additionally checks that `blog.css` is present on the home/blog pages and absent from unrelated public pages. Source checks, formatter checks, JavaScript lint/syntax checks, and browser regression checks remain the validation gates for this maintenance branch. This branch is not considered production-deployed until it is merged into `deploy/render-ready` and its Render deployment is verified.

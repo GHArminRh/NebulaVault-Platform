@@ -16,13 +16,14 @@ TEMPLATE_ROOTS = (
     ROOT / "blog" / "templates",
     ROOT / "comment" / "templates",
 )
-# These templates are manually structured for readability and CMS placeholder
-# semantics; djlint reformatting is not stable for their block-heavy markup.
-# Keep them under the source audit and browser tests.
+# These templates are manually structured because djlint's formatter produces
+# unstable diffs for their composed blocks and Django expressions inside HTML attributes.
+# The independent source audit still checks their assets and HTML invariants.
 MANUALLY_FORMATTED_TEMPLATES = {
     "templates/portal/base.html",
     "templates/portal/_cart_nav.html",
-    "templates/portal/cms_home_page.html",
+    "blog/templates/blog/post_list.html",
+    "blog/templates/blog/post_detail.html",
 }
 TIMEOUT_SECONDS = 30
 
