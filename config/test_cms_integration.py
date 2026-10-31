@@ -205,10 +205,11 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
         stylesheet = settings.BASE_DIR / "static" / "portal" / "css" / "unified-experience.css"
         css = stylesheet.read_text(encoding="utf-8")
         for selector in (
-            ".nv-hero-plugin-content > p:first-of-type",
+            ".nv-hero-plugin-content > p:first-of-type:not(.hero-lede)",
             ".nv-hero-plugin-content > h1:not(:has(.gradient-text))",
             ".nv-hero-plugin-content > p:nth-of-type(2)",
             ".nv-hero-plugin-content > p:has(> a)",
+            ".nv-hero-plugin-content > p:last-of-type:nth-of-type(n + 3):not(:has(> a))",
         ):
             with self.subTest(selector=selector):
                 self.assertIn(selector, css)
