@@ -493,3 +493,14 @@ class CmsHomepageRoutingTests(TestCase):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "کنترل در دست شما")
+
+    def test_customer_has_perms_api_denies_all_permissions(self):
+        from accounts.models import Customer
+
+        customer = Customer.objects.create_user(
+            username="permission_customer",
+            email="permission_customer@example.com",
+            password="customer-test-password",
+        )
+        self.assertFalse(customer.has_perm("cms.change_page"))
+        self.assertFalse(customer.has_perms(["cms.change_page", "cms.add_page"]))
