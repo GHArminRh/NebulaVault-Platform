@@ -21,6 +21,15 @@ class PortalPageTests(TestCase):
             self.assertEqual(self.client.get(reverse(url)).status_code, 200)
         self.assertEqual(self.client.get(reverse("portal:product_detail", args=[self.product.slug])).status_code, 200)
 
+    def test_homepage_renders_for_authenticated_customer(self):
+        self.client.force_login(
+            self.user,
+            backend="accounts.backends.CustomerAuthenticationBackend",
+        )
+        response = self.client.get(reverse("portal:home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "NEBULA VAULT")
+
     def test_rich_product_description_is_sanitized_and_rendered(self):
         self.product.description = '<p>Visible <strong>formatted</strong> text.</p><script>alert("xss")</script><img src="https://example.com/image.png" onerror="alert(1)">'
         self.product.save()
