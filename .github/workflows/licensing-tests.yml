@@ -78,11 +78,8 @@ jobs:
         run: python manage.py migrate --noinput --settings=config.test_settings
       - name: Validate django CMS installation
         run: python manage.py cms check --settings=config.test_settings
-      # Portal's CMSPlugin multi-table inheritance parent links receive
-      # runtime-only related_name metadata; their schema is checked explicitly
-      # by config.test_cms_integration. Keep the strict drift check on CMS core.
-      - name: Check django CMS migration state
-        run: python manage.py makemigrations cms --check --dry-run --settings=config.test_settings
+      - name: Check migration state for all apps
+        run: python manage.py makemigrations --check --dry-run --settings=config.test_settings
       - name: Run regression tests
         run: >-
           python manage.py test
