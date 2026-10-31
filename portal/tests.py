@@ -38,6 +38,8 @@ class PortalPageTests(TestCase):
         for section_id in ("home", "products", "features", "releases", "blog", "about"):
             self.assertContains(response, f'id="{section_id}"', html=False)
         self.assertNotContains(response, 'id="pricing"', html=False)
+        self.assertNotContains(response, 'href="/#pricing"', html=False)
+        self.assertContains(response, f'href="{reverse("portal:pricing")}"', html=False)
         self.assertNotContains(response, "طرح مناسب خودتان را انتخاب کنید")
         self.assertContains(response, self.product.name)
         self.assertContains(response, "1 طرح")
