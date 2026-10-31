@@ -4,10 +4,12 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.db.migrations.loader import MigrationLoader
 from django.template.loader import get_template
 from django.test import SimpleTestCase, TestCase
 from django.urls import resolve
+from unittest.mock import patch
 
 from cms.api import add_plugin, create_page
 from cms.models import PageUrl, Placeholder
@@ -278,6 +280,29 @@ class CmsHomepageRoutingTests(TestCase):
                     1,
                     f"CMS section '{section_id}' must not be nested or duplicated.",
                 )
+
+    def test_bootstrap_failure_rolls_back_template_change(self):
+        call_command("bootstrap_cms_homepage", verbosity=0)
+        root_url = PageUrl.objects.filter(
+            site=self.site,
+            language="fa",
+            path__in=("", "/"),
+        ).select_related("page").first()
+        self.assertIsNotNone(root_url)
+
+        page_content = root_url.page.pagecontent_set.get(language="fa")
+        page_content.template = "portal/cms_page.html"
+        page_content.save(update_fields=["template"])
+
+        with patch(
+            "portal.management.commands.bootstrap_cms_homepage.rescan_placeholders_for_obj",
+            return_value={},
+        ):
+            with self.assertRaises(CommandError):
+                call_command("bootstrap_cms_homepage", verbosity=0)
+
+        page_content.refresh_from_db()
+        self.assertEqual(page_content.template, "portal/cms_page.html")
 
     def test_one_time_seed_migration_fills_only_empty_hero_and_products_regions(self):
         call_command("bootstrap_cms_homepage", verbosity=0)
