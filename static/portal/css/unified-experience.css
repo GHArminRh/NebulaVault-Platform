@@ -141,7 +141,9 @@ html {
   letter-spacing: 2px;
 }
 .nv-hero-plugin-content > h1 {
-  font: 700 clamp(40px, 5.2vw, 70px)/1.22 'Vazirmatn', sans-serif;
+  font:
+    700 clamp(40px, 5.2vw, 70px)/1.22 'Vazirmatn',
+    sans-serif;
   letter-spacing: -2.2px;
   margin: 25px 0 22px;
 }
@@ -177,7 +179,10 @@ html {
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
-  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 .nv-hero-plugin-content > p:has(> a) > a:first-child {
   border-color: transparent;
