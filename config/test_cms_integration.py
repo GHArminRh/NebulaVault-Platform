@@ -479,15 +479,16 @@ class CmsHomepageRoutingTests(TestCase):
 
     def test_authenticated_customer_can_open_cms_homepage(self):
         call_command("bootstrap_cms_homepage", verbosity=0)
-        customer = get_user_model().objects.create_user(
+        from accounts.models import Customer
+
+        customer = Customer.objects.create_user(
             username="cms_customer",
+            email="cms_customer@example.com",
             password="cms-customer-test-password",
-            is_staff=False,
-            is_superuser=False,
         )
         self.client.force_login(
             customer,
-            backend="django.contrib.auth.backends.ModelBackend",
+            backend="accounts.backends.CustomerAuthenticationBackend",
         )
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
