@@ -10,8 +10,9 @@
   <div class="nv-cms-home">
     <section class="nv-home-hero page-wrap" id="home">
       <div class="nv-hero-copy">
-        {# Keep the placeholder inside the layout wrapper so CMS plugins cannot remove the grid structure. #}
-        {% placeholder "hero" or %}
+        <div class="nv-hero-plugin-content">
+          {# The template owns this wrapper; both legacy TextPlugin and HeroTextPlugin render inside it. #}
+          {% placeholder "hero" or %}
         <div class="eyebrow"><i class="pulse"></i> فضای دیجیتال شما، با نظم تازه</div>
         <h1>
           همه‌چیز سر جای خودش؛
@@ -27,8 +28,9 @@
         </div>
         <div class="nv-hero-trust"><span><i class="pulse"></i> حساب شخصی امن</span><span>◇ خرید و لایسنس یکپارچه</span><span>⌁ تجربه‌ی هماهنگ</span></div>
 {% endplaceholder %}
-</div>
-<div class="nv-hero-visual"
+        </div>
+      </div>
+      <div class="nv-hero-visual"
      aria-label="تصویر انتزاعی فضای امن نبیولا والت">
   <div class="nv-visual-halo"></div>
   <div class="nv-visual-orbit nv-orbit-one"></div>
