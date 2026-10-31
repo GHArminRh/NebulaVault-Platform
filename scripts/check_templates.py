@@ -16,11 +16,14 @@ TEMPLATE_ROOTS = (
     ROOT / "blog" / "templates",
     ROOT / "comment" / "templates",
 )
-# These shared templates are manually structured because djlint's formatter
-# produces unstable diffs for their block-heavy markup.
+# These templates are manually structured because djlint's formatter produces
+# unstable diffs for their composed blocks and Django expressions inside HTML attributes.
+# The independent source audit still checks their assets and HTML invariants.
 MANUALLY_FORMATTED_TEMPLATES = {
     "templates/portal/base.html",
     "templates/portal/_cart_nav.html",
+    "blog/templates/blog/post_list.html",
+    "blog/templates/blog/post_detail.html",
 }
 TIMEOUT_SECONDS = 30
 
