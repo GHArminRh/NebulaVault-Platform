@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.sites.models import Site
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from cms.api import add_plugin, create_page
@@ -43,52 +43,51 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         site = Site.objects.filter(pk=settings.SITE_ID).first()
         if site is None:
-            self.stdout.write(self.style.WARNING(
-                "CMS homepage bootstrap skipped: the configured Django Site does not exist."
-            ))
-            return
-
-        root_url = PageUrl.objects.filter(
-            site=site, language="fa", path__in=("", "/")
-        ).select_related("page").first()
-
-        created_page = False
-        if root_url:
-            page = root_url.page
-        else:
-            existing_content = PageContent.objects.filter(
-                page__site=site,
-                page__parent__isnull=True,
-                language="fa",
-                slug="home",
-            ).select_related("page").first()
-            if existing_content:
-                page = existing_content.page
-            else:
-                page = create_page(
-                    title="خانه",
-                    template="portal/cms_home_page.html",
-                    language="fa",
-                    slug="home",
-                    created_by="bootstrap_cms_homepage",
-                    in_navigation=True,
-                    published=True,
-                    site=site,
-                    page_title="نبیولا والت — یک فضای یکپارچه برای دنیای دیجیتال شما",
-                    meta_description="محصولات، تعرفه‌ها، نسخه‌ها و محتوای نبیولا والت را از یک فضای امن و یکپارچه ببینید.",
-                )
-                created_page = True
+            raise CommandError(
+                "CMS homepage bootstrap cannot continue: "
+                "the configured Django Site does not exist."
+            )
 
         seeded = []
         with transaction.atomic():
+            root_url = PageUrl.objects.filter(
+                site=site, language="fa", path__in=("", "/")
+            ).select_related("page").first()
+
+            created_page = False
+            if root_url:
+                page = root_url.page
+            else:
+                existing_content = PageContent.objects.filter(
+                    page__site=site,
+                    page__parent__isnull=True,
+                    language="fa",
+                    slug="home",
+                ).select_related("page").first()
+                if existing_content:
+                    page = existing_content.page
+                else:
+                    page = create_page(
+                        title="خانه",
+                        template="portal/cms_home_page.html",
+                        language="fa",
+                        slug="home",
+                        created_by="bootstrap_cms_homepage",
+                        in_navigation=True,
+                        site=site,
+                        page_title="نبیولا والت — یک فضای یکپارچه برای دنیای دیجیتال شما",
+                        meta_description="محصولات، تعرفه‌ها، نسخه‌ها و محتوای نبیولا والت را از یک فضای امن و یکپارچه ببینید.",
+                    )
+                    created_page = True
+
             page.set_as_homepage()
 
             page_content = PageContent.objects.filter(page=page, language="fa").first()
             if page_content is None:
-                self.stdout.write(self.style.ERROR(
-                    "CMS homepage bootstrap skipped: the Persian page content does not exist."
-                ))
-                return
+                raise CommandError(
+                    "CMS homepage bootstrap cannot continue: "
+                    "the Persian page content does not exist."
+                )
 
             # Remember which slots already existed before changing the template.
             # An empty old slot may mean that an editor intentionally removed its
@@ -108,10 +107,10 @@ class Command(BaseCommand):
             }
             missing = required.difference(placeholders)
             if missing:
-                self.stdout.write(self.style.ERROR(
-                    "CMS homepage template is missing placeholders: " + ", ".join(sorted(missing))
-                ))
-                return
+                raise CommandError(
+                    "CMS homepage template is missing placeholders: "
+                    + ", ".join(sorted(missing))
+                )
 
             # Seed defaults only for a brand-new homepage or placeholders first
             # introduced by a template update. Never move, rewrite, or delete
