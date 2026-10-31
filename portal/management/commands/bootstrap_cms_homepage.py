@@ -102,7 +102,7 @@ class Command(BaseCommand):
 
             placeholders = rescan_placeholders_for_obj(page_content)
             required = {
-                "hero", "content", "products", "pricing",
+                "hero", "content", "products",
                 "features", "releases", "blog", "about",
             }
             missing = required.difference(placeholders)
@@ -120,7 +120,6 @@ class Command(BaseCommand):
                 "features": ("TextPlugin", {"body": FEATURE_GRID}),
                 "about": ("TextPlugin", {"body": FAQ_CONTENT}),
                 "products": ("LiveProductGridPlugin", {}),
-                "pricing": ("LivePricingGridPlugin", {}),
                 "releases": ("LiveReleaseListPlugin", {}),
                 "blog": ("LiveBlogListPlugin", {}),
             }
