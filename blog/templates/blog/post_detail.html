@@ -1,22 +1,141 @@
 {% extends "portal/base.html" %}
 {% load static %}
+
 {% block title %}{{ post.seo_title|default:post.title }} | نبیولا والت{% endblock %}
 {% block meta_description %}{{ post.seo_description|default:post.excerpt }}{% endblock %}
+
 {% block blog_css %}
   <link rel="stylesheet" href="{% static 'portal/css/blog.css' %}">
 {% endblock %}
+
 {% block content %}
-<article class="nv-article page-wrap"><nav class="nv-article-breadcrumb"><a href="{% url 'portal:home' %}">خانه</a><span>／</span><a href="{% url 'blog:post_list' %}">بلاگ</a><span>／</span><span>{{ post.title|truncatechars:48 }}</span></nav><header class="nv-article-header"><div class="eyebrow"><i class="pulse"></i> مجله‌ی نبیولا والت</div><h1>{{ post.title }}</h1>{% if post.excerpt %}<p class="nv-article-excerpt">{{ post.excerpt }}</p>{% endif %}<div class="nv-article-meta">{% if post.category %}<span>{{ post.category }}</span> · {% endif %}<time datetime="{{ post.published_at|date:'c' }}">{{ post.published_at|date:"Y/m/d" }}</time> · {{ post.reading_minutes }} دقیقه مطالعه</div>{% if post.tags.all %}<div class="nv-blog-tags nv-article-tags">{% for tag in post.tags.all %}<a class="nv-blog-tag" href="{% url 'blog:tag_list' tag.id %}">{{ tag.name }}</a>{% endfor %}</div>{% endif %}</header>{% if post.img %}<figure class="nv-article-cover"><img src="{{ post.img.url }}" alt="{{ post.title }}"></figure>{% endif %}<div class="nv-article-layout"><div class="nv-article-content">{{ post.content|safe }}</div><aside class="nv-article-aside"><div class="nv-article-aside-card"><span class="nv-article-aside-icon">◇</span><strong>نبیولا والت</strong><p>راهنماها و نوشته‌های کاربردی برای تجربه‌ای منظم‌تر.</p><a href="{% url 'blog:post_list' %}">همه‌ی نوشته‌ها ↗</a></div></aside></div>
-  <section class="nv-post-rating" aria-labelledby="nv-rating-title"><div><div class="eyebrow">نظر شما مهم است</div><h2 id="nv-rating-title">به این مقاله امتیاز بدهید</h2><p>{% if rating_count %}میانگین {{ rating_average|floatformat:1 }} از ۵ بر اساس {{ rating_count }} امتیاز{% else %}هنوز امتیازی ثبت نشده است.{% endif %}</p></div>{% if user.is_authenticated %}<form method="post"
-      action="{% url 'blog:rate_post' post.slug %}"
-      class="nv-rating-form">{% csrf_token %}<div class="nv-rating-stars"
-     role="radiogroup"
-     aria-label="امتیاز از یک تا پنج">{% for score in "54321" %}<input type="radio"
-       id="nv-rating-{{ score }}"
-       name="score"
-       value="{{ score }}"
-       {% if user_rating|stringformat:"s" == score %}checked{% endif %}
-       required><label for="nv-rating-{{ score }}" title="{{ score }} از ۵">★</label>{% endfor %}</div><button class="button button-primary button-small" type="submit">ثبت امتیاز</button></form>{% else %}<p class="nv-rating-login"><a href="{% url 'login' %}?next={{ request.path|urlencode }}">برای امتیازدهی وارد حساب شوید.</a></p>{% endif %}</section>
-  <section class="nv-comments-section" id="comments"><div class="section-heading"><div><div class="eyebrow">گفت‌وگو</div><h2>دیدگاه شما</h2><p>دیدگاه‌ها پس از بررسی مدیر منتشر می‌شوند.</p></div></div>{% include "comment/comments.html" with post=post comments=comments comment_settings=comment_settings %}</section>
-  {% if related_posts %}<section class="nv-related-posts"><div class="section-heading"><div><div class="eyebrow">ادامه‌ی مطالعه</div><h2>نوشته‌های مرتبط</h2></div><a class="button button-quiet button-small"
-   href="{% url 'blog:post_list' %}">مشاهده‌ی بلاگ ↗</a></div><div class="nv-blog-grid">{% for item in related_posts %}<article class="nv-blog-card"><a class="nv-blog-cover" href="{% url 'blog:post_detail' item.slug %}">{% if item.img %}<img src="{{ item.img.url }}" alt="{{ item.title }}" loading="lazy">{% else %}<span class="nv-blog-cover-placeholder">◇</span>{% endif %}</a><div class="nv-blog-card-body"><h3><a href="{% url 'blog:post_detail' item.slug %}">{{ item.title }}</a></h3><p>{{ item.excerpt|default:item.content|striptags|truncatewords:20 }}</p></div></article>{% endfor %}</div></section>{% endif %}</article>{% endblock %}
+  <article class="nv-article page-wrap">
+    <nav class="nv-article-breadcrumb" aria-label="مسیر صفحه">
+      <a href="{% url 'portal:home' %}">خانه</a>
+      <span aria-hidden="true">／</span>
+      <a href="{% url 'blog:post_list' %}">بلاگ</a>
+      <span aria-hidden="true">／</span>
+      <span>{{ post.title|truncatechars:48 }}</span>
+    </nav>
+
+    <header class="nv-article-header">
+      <div class="eyebrow"><i class="pulse"></i> مجله‌ی نبیولا والت</div>
+      <h1>{{ post.title }}</h1>
+      {% if post.excerpt %}
+        <p class="nv-article-excerpt">{{ post.excerpt }}</p>
+      {% endif %}
+      <div class="nv-article-meta">
+        {% if post.category %}<span>{{ post.category }}</span> · {% endif %}
+        <time datetime="{{ post.published_at|date:'c' }}">{{ post.published_at|date:"Y/m/d" }}</time>
+        · {{ post.reading_minutes }} دقیقه مطالعه
+      </div>
+
+      {% if post.tags.all %}
+        <div class="nv-blog-tags nv-article-tags">
+          {% for tag in post.tags.all %}
+            <a class="nv-blog-tag" href="{% url 'blog:tag_list' tag.id %}">{{ tag.name }}</a>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </header>
+
+    {% if post.img %}
+      <figure class="nv-article-cover">
+        <img src="{{ post.img.url }}" alt="{{ post.title }}">
+      </figure>
+    {% endif %}
+
+    <div class="nv-article-layout">
+      <div class="nv-article-content">{{ post.content|safe }}</div>
+      <aside class="nv-article-aside">
+        <div class="nv-article-aside-card">
+          <span class="nv-article-aside-icon">◇</span>
+          <strong>نبیولا والت</strong>
+          <p>راهنماها و نوشته‌های کاربردی برای تجربه‌ای منظم‌تر.</p>
+          <a href="{% url 'blog:post_list' %}">همه‌ی نوشته‌ها ↗</a>
+        </div>
+      </aside>
+    </div>
+
+    <section class="nv-post-rating" aria-labelledby="nv-rating-title">
+      <div>
+        <div class="eyebrow">نظر شما مهم است</div>
+        <h2 id="nv-rating-title">به این مقاله امتیاز بدهید</h2>
+        <p>
+          {% if rating_count %}
+            میانگین {{ rating_average|floatformat:1 }} از ۵ بر اساس {{ rating_count }} امتیاز
+          {% else %}
+            هنوز امتیازی ثبت نشده است.
+          {% endif %}
+        </p>
+      </div>
+
+      {% if user.is_authenticated %}
+        <form method="post" action="{% url 'blog:rate_post' post.slug %}" class="nv-rating-form">
+          {% csrf_token %}
+          <div class="nv-rating-stars" role="radiogroup" aria-label="امتیاز از یک تا پنج">
+            {% for score in "54321" %}
+              <input
+                type="radio"
+                id="nv-rating-{{ score }}"
+                name="score"
+                value="{{ score }}"
+                {% if user_rating|stringformat:"s" == score %}checked{% endif %}
+                required
+              >
+              <label for="nv-rating-{{ score }}" title="{{ score }} از ۵">★</label>
+            {% endfor %}
+          </div>
+          <button class="button button-primary button-small" type="submit">ثبت امتیاز</button>
+        </form>
+      {% else %}
+        <p class="nv-rating-login">
+          <a href="{% url 'login' %}?next={{ request.path|urlencode }}">برای امتیازدهی وارد حساب شوید.</a>
+        </p>
+      {% endif %}
+    </section>
+
+    <section class="nv-comments-section" id="comments">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">گفت‌وگو</div>
+          <h2>دیدگاه شما</h2>
+          <p>دیدگاه‌ها پس از بررسی مدیر منتشر می‌شوند.</p>
+        </div>
+      </div>
+      {% include "comment/comments.html" with post=post comments=comments comment_settings=comment_settings %}
+    </section>
+
+    {% if related_posts %}
+      <section class="nv-related-posts">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow">ادامه‌ی مطالعه</div>
+            <h2>نوشته‌های مرتبط</h2>
+          </div>
+          <a class="button button-quiet button-small" href="{% url 'blog:post_list' %}">
+            مشاهده‌ی بلاگ ↗
+          </a>
+        </div>
+
+        <div class="nv-blog-grid">
+          {% for item in related_posts %}
+            <article class="nv-blog-card">
+              <a class="nv-blog-cover" href="{% url 'blog:post_detail' item.slug %}">
+                {% if item.img %}
+                  <img src="{{ item.img.url }}" alt="{{ item.title }}" loading="lazy">
+                {% else %}
+                  <span class="nv-blog-cover-placeholder">◇</span>
+                {% endif %}
+              </a>
+              <div class="nv-blog-card-body">
+                <h3><a href="{% url 'blog:post_detail' item.slug %}">{{ item.title }}</a></h3>
+                <p>{{ item.excerpt|default:item.content|striptags|truncatewords:20 }}</p>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+  </article>
+{% endblock %}
