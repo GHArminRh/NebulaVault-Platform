@@ -1,3 +1,4 @@
+from html.parser import HTMLParser
 from importlib import import_module
 
 from django.conf import settings
@@ -19,6 +20,37 @@ from cms.plugin_pool import plugin_pool
 from catalog.models import Plan, Product
 from portal.cms_home import cms_home
 from portal.models import CMSExternalImage, CMSUploadedImage
+
+
+class SectionStructureParser(HTMLParser):
+    """Detect unbalanced div/section wrappers without browser error recovery."""
+
+    TRACKED_TAGS = {"div", "section"}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.stack = []
+        self.errors = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag in self.TRACKED_TAGS:
+            self.stack.append(tag)
+
+    def handle_endtag(self, tag):
+        if tag not in self.TRACKED_TAGS:
+            return
+        if not self.stack or self.stack[-1] != tag:
+            self.errors.append(
+                f"Unexpected </{tag}> while open tags are {self.stack!r}"
+            )
+            return
+        self.stack.pop()
+
+    def finish(self):
+        self.close()
+        if self.stack:
+            self.errors.append(f"Unclosed structural tags: {self.stack!r}")
+        return self.errors
 
 
 class CmsIntegrationSmokeTests(SimpleTestCase):
@@ -295,6 +327,14 @@ class CmsHomepageRoutingTests(TestCase):
         self.assertTemplateUsed(response, "portal/cms_home_page.html")
 
         rendered = response.content.decode()
+        structure = SectionStructureParser()
+        structure.feed(rendered)
+        self.assertEqual(
+            structure.finish(),
+            [],
+            "The homepage must keep all div/section wrappers balanced when "
+            "every CMS placeholder contains a plugin (fallback markup is skipped).",
+        )
         self.assertNotIn('id="pricing"', rendered)
         self.assertNotContains(response, "طرح مناسب خودتان را انتخاب کنید")
         for section_id in ("products", "releases", "blog"):
