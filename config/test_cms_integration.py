@@ -358,7 +358,7 @@ class CmsHomepageRoutingTests(TestCase):
             'class="nv-home-hero page-wrap"',
             'class="nv-proof-strip"',
             'class="nv-hero-visual"',
-            'class="nv-final-cta"',
+            "nv-final-cta",
             'id="home"',
             'id="products"',
             'id="features"',
