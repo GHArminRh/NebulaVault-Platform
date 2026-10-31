@@ -1,11 +1,11 @@
-/* Mobile authentication layout: normal document flow, no nested scrolling or 3D transforms. */
+/* Mobile authentication layout: normal flow without nested scrolling or 3D transforms. */
 @media (max-width: 767px) {
   body.nv-portal .nv-auth-shell {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
     gap: 12px;
-    width: min(100% - 24px, 620px);
+    width: calc(100% - 24px);
     max-width: 620px;
     min-height: 0;
     margin-inline: auto;
