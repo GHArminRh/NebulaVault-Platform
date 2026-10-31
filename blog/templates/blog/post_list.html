@@ -1,4 +1,7 @@
-{% extends "portal/base.html" %}{% block title %}بلاگ نبیولا والت{% endblock %}{% block content %}
+{% extends "portal/base.html" %}{% load static %}{% block title %}بلاگ نبیولا والت{% endblock %}{% block blog_css %}
+  <link rel="stylesheet" href="{% static 'portal/css/blog.css' %}">
+{% endblock %}
+{% block content %}
 <section class="nv-blog-hero page-wrap">
   <div class="eyebrow"><i class="pulse"></i> مجله‌ی نبیولا والت</div>
   <h1>دانش، راهنما و <span class="gradient-text">تازه‌های نبیولا.</span></h1>
