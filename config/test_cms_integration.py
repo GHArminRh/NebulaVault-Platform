@@ -30,6 +30,25 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
     def test_public_root_is_routed_through_the_cms_home_view(self):
         self.assertIs(resolve("/").func, cms_home)
 
+    def test_authentication_middleware_satisfies_cms_and_uuid_user_resolution(self):
+        middleware = settings.MIDDLEWARE
+        self.assertIn(
+            "django.contrib.auth.middleware.AuthenticationMiddleware",
+            middleware,
+        )
+        self.assertIn(
+            "accounts.middleware.UUIDCompatibleAuthenticationMiddleware",
+            middleware,
+        )
+        self.assertLess(
+            middleware.index("django.contrib.auth.middleware.AuthenticationMiddleware"),
+            middleware.index("accounts.middleware.UUIDCompatibleAuthenticationMiddleware"),
+        )
+        self.assertLess(
+            middleware.index("accounts.middleware.UUIDCompatibleAuthenticationMiddleware"),
+            middleware.index("cms.middleware.user.CurrentUserMiddleware"),
+        )
+
     def test_cms_apps_and_template_are_registered(self):
         self.assertIn("cms", settings.INSTALLED_APPS)
         self.assertIn("djangocms_text", settings.INSTALLED_APPS)
