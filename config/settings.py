@@ -120,6 +120,9 @@ MIDDLEWARE = [
     "portal.middleware.InterfaceLanguageMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    # django CMS requires Django's standard auth middleware to be registered.
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # This layer then resolves the active UUID-backed staff/customer identity.
     "accounts.middleware.UUIDCompatibleAuthenticationMiddleware",
     "cms.middleware.user.CurrentUserMiddleware",
     "cms.middleware.page.CurrentPageMiddleware",

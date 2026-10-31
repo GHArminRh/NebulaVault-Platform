@@ -2,7 +2,7 @@ name: Licensing tests
 
 on:
   push:
-    branches: [refactor/staff-app, feat/django-login-failed-attempt-throttle]
+    branches: [deploy/render-ready, refactor/staff-app, feat/django-login-failed-attempt-throttle]
     paths:
       - "licensing/**"
       - "api/**"
@@ -74,6 +74,15 @@ jobs:
           ruff check config/settings.py config/test_settings.py config/test_cms_integration.py cms_site_seed portal/cms_plugins.py portal/management/commands/bootstrap_cms_homepage.py api billing/services.py billing/order_services.py billing/attempt_services.py billing/finalization_services.py
       - name: Check Django configuration
         run: python manage.py check --settings=config.test_settings
+      - name: Create schema for django CMS validation
+        run: python manage.py migrate --noinput --settings=config.test_settings
+      - name: Validate django CMS installation
+        run: python manage.py cms check --settings=config.test_settings
+      # Portal's CMSPlugin multi-table inheritance parent links receive
+      # runtime-only related_name metadata; their schema is checked explicitly
+      # by config.test_cms_integration. Keep the strict drift check on CMS core.
+      - name: Check django CMS migration state
+        run: python manage.py makemigrations cms --check --dry-run --settings=config.test_settings
       - name: Run regression tests
         run: >-
           python manage.py test

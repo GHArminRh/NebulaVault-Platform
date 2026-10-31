@@ -4,10 +4,12 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.db.migrations.loader import MigrationLoader
 from django.template.loader import get_template
 from django.test import SimpleTestCase, TestCase
 from django.urls import resolve
+from unittest.mock import patch
 
 from cms.api import add_plugin, create_page
 from cms.models import PageUrl, Placeholder
@@ -29,6 +31,25 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
 
     def test_public_root_is_routed_through_the_cms_home_view(self):
         self.assertIs(resolve("/").func, cms_home)
+
+    def test_authentication_middleware_satisfies_cms_and_uuid_user_resolution(self):
+        middleware = settings.MIDDLEWARE
+        self.assertIn(
+            "django.contrib.auth.middleware.AuthenticationMiddleware",
+            middleware,
+        )
+        self.assertIn(
+            "accounts.middleware.UUIDCompatibleAuthenticationMiddleware",
+            middleware,
+        )
+        self.assertLess(
+            middleware.index("django.contrib.auth.middleware.AuthenticationMiddleware"),
+            middleware.index("accounts.middleware.UUIDCompatibleAuthenticationMiddleware"),
+        )
+        self.assertLess(
+            middleware.index("accounts.middleware.UUIDCompatibleAuthenticationMiddleware"),
+            middleware.index("cms.middleware.user.CurrentUserMiddleware"),
+        )
 
     def test_cms_apps_and_template_are_registered(self):
         self.assertIn("cms", settings.INSTALLED_APPS)
@@ -259,6 +280,29 @@ class CmsHomepageRoutingTests(TestCase):
                     1,
                     f"CMS section '{section_id}' must not be nested or duplicated.",
                 )
+
+    def test_bootstrap_failure_rolls_back_template_change(self):
+        call_command("bootstrap_cms_homepage", verbosity=0)
+        root_url = PageUrl.objects.filter(
+            site=self.site,
+            language="fa",
+            path__in=("", "/"),
+        ).select_related("page").first()
+        self.assertIsNotNone(root_url)
+
+        page_content = root_url.page.pagecontent_set.get(language="fa")
+        page_content.template = "portal/cms_page.html"
+        page_content.save(update_fields=["template"])
+
+        with patch(
+            "portal.management.commands.bootstrap_cms_homepage.rescan_placeholders_for_obj",
+            return_value={},
+        ):
+            with self.assertRaises(CommandError):
+                call_command("bootstrap_cms_homepage", verbosity=0)
+
+        page_content.refresh_from_db()
+        self.assertEqual(page_content.template, "portal/cms_page.html")
 
     def test_one_time_seed_migration_fills_only_empty_hero_and_products_regions(self):
         call_command("bootstrap_cms_homepage", verbosity=0)
