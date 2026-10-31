@@ -1,6 +1,8 @@
 {% extends "portal/base.html" %}
 {% load static %}
-{% block title %}{{ post.seo_title|default:post.title }} | نبیولا والت{% endblock %}{% block meta_description %}{{ post.seo_description|default:post.excerpt }}{% endblock %}{% block blog_css %}
+{% block title %}{{ post.seo_title|default:post.title }} | نبیولا والت{% endblock %}
+{% block meta_description %}{{ post.seo_description|default:post.excerpt }}{% endblock %}
+{% block blog_css %}
   <link rel="stylesheet" href="{% static 'portal/css/blog.css' %}">
 {% endblock %}
 {% block content %}
