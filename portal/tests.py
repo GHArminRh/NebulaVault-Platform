@@ -48,6 +48,16 @@ class PortalPageTests(TestCase):
         rendered = response.content.decode()
         self.assertLess(rendered.index('href="/#releases"'), rendered.index('href="/#blog"'))
 
+    def test_logged_in_customer_can_render_cms_homepage(self):
+        self.client.force_login(
+            self.user,
+            backend="accounts.backends.CustomerAuthenticationBackend",
+        )
+        response = self.client.get(reverse("portal:home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
+        self.assertContains(response, self.user.username)
+
     def test_live_product_grid_counts_only_active_plans(self):
         Plan.objects.create(
             product=self.product,
