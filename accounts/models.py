@@ -62,6 +62,10 @@ class Customer(AbstractBaseUser):
     def has_perm(self, perm, obj=None):
         return False
 
+    def has_perms(self, perm_list, obj=None):
+        """Match Django's permission API while keeping customers unprivileged."""
+        return all(self.has_perm(perm, obj) for perm in perm_list)
+
     def has_module_perms(self, app_label):
         return False
 
