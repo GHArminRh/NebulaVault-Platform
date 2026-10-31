@@ -85,8 +85,8 @@
     overscroll-behavior: auto;
   }
 
-  body.nv-portal .nv-auth-shell[data-auth-side="login"] .nv-auth-login,
-  body.nv-portal .nv-auth-shell[data-auth-side="register"] .nv-auth-register {
+  body.nv-portal .nv-auth-shell[data-auth-side='login'] .nv-auth-login,
+  body.nv-portal .nv-auth-shell[data-auth-side='register'] .nv-auth-register {
     display: block;
   }
 
