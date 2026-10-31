@@ -3,6 +3,7 @@ from accounts.models import Customer
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from catalog.models import Plan, Product
+from billing.models import PaymentOrder
 from subscriptions.models import Subscription
 
 @override_settings(
