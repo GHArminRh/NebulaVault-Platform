@@ -1,6 +1,9 @@
 {% extends "portal/base.html" %}
-{% load money %}
+{% load money static %}
 {% block title %}نبیولا والت — یک فضای یکپارچه برای دنیای دیجیتال شما{% endblock %}
+{% block blog_css %}
+  <link rel="stylesheet" href="{% static 'portal/css/blog.css' %}">
+{% endblock %}
 {% block content %}
   <section class="nv-home-hero page-wrap" id="home">
     <div class="nv-hero-copy">
