@@ -37,7 +37,7 @@ jobs:
       - name: Install development tools
         run: |
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
-          npm install --no-audit --no-fund
+          npm ci --no-audit --no-fund
 
       - name: Check CSS, JavaScript, and tooling formatting
         run: npm run check:assets
