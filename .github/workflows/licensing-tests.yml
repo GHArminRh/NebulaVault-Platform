@@ -2,7 +2,7 @@ name: Licensing tests
 
 on:
   push:
-    branches: [refactor/staff-app, feat/django-login-failed-attempt-throttle]
+    branches: [deploy/render-ready, refactor/staff-app, feat/django-login-failed-attempt-throttle]
     paths:
       - "licensing/**"
       - "api/**"
