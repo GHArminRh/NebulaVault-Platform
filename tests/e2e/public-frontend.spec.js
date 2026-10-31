@@ -45,6 +45,24 @@ test('deployed frontend styles are updated before regression checks', async ({ p
     .toEqual(['rgb(130, 146, 177)', 'rgb(130, 146, 177)']);
 }, 250_000);
 
+test('blog styles are loaded only on pages that render blog components', async ({ page }) => {
+  for (const route of ['/', '/blog/']) {
+    await page.goto(route, { waitUntil: 'domcontentloaded' });
+    await expect(
+      page.locator('link[rel="stylesheet"][href*="portal/css/blog.css"]'),
+      `${route} should load the blog stylesheet`
+    ).toHaveCount(1);
+  }
+
+  for (const route of ['/products/', '/pricing/', '/accounts/login/']) {
+    await page.goto(route, { waitUntil: 'domcontentloaded' });
+    await expect(
+      page.locator('link[rel="stylesheet"][href*="portal/css/blog.css"]'),
+      `${route} should not load the blog stylesheet`
+    ).toHaveCount(0);
+  }
+});
+
 test('homepage declares Persian RTL document metadata', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
