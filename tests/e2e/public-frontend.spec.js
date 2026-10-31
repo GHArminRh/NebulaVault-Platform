@@ -49,7 +49,7 @@ test('blog styles are loaded only on pages that render blog components', async (
   for (const route of ['/', '/blog/']) {
     await page.goto(route, { waitUntil: 'domcontentloaded' });
     await expect(
-      page.locator('link[rel="stylesheet"][href*="portal/css/blog.css"]'),
+      page.locator('link[rel="stylesheet"][href*="portal/css/blog"]'),
       `${route} should load the blog stylesheet`
     ).toHaveCount(1);
   }
@@ -57,7 +57,7 @@ test('blog styles are loaded only on pages that render blog components', async (
   for (const route of ['/products/', '/pricing/', '/accounts/login/']) {
     await page.goto(route, { waitUntil: 'domcontentloaded' });
     await expect(
-      page.locator('link[rel="stylesheet"][href*="portal/css/blog.css"]'),
+      page.locator('link[rel="stylesheet"][href*="portal/css/blog"]'),
       `${route} should not load the blog stylesheet`
     ).toHaveCount(0);
   }
