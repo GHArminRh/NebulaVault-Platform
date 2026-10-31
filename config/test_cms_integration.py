@@ -1,6 +1,7 @@
 from importlib import import_module
 
 from django.conf import settings
+from django.apps import apps as django_apps
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.core.management import call_command
@@ -363,13 +364,17 @@ class CmsHomepageRoutingTests(TestCase):
         )
         migration.seed_empty_homepage_regions(None, None)
 
-        self.assertTrue(
-            CMSPlugin.objects.filter(
-                placeholder=placeholders["hero"],
-                language="fa",
-                plugin_type="TextPlugin",
-            ).exists()
+        hero_before = CMSPlugin.objects.get(
+            placeholder=placeholders["hero"],
+            language="fa",
+            plugin_type="TextPlugin",
         )
+        original_hero_body = hero_before.get_plugin_instance()[0].body
+        hero_migration = import_module("cms_site_seed.migrations.0002_hero_text_plugin")
+        hero_migration.upgrade_hero_text_plugins(django_apps, None)
+        hero_after = CMSPlugin.objects.get(pk=hero_before.pk)
+        self.assertEqual(hero_after.plugin_type, "HeroTextPlugin")
+        self.assertEqual(hero_after.get_plugin_instance()[0].body, original_hero_body)
 
         self.assertTrue(
             CMSPlugin.objects.filter(
@@ -407,7 +412,7 @@ class CmsHomepageRoutingTests(TestCase):
             1,
         )
 
-    def test_legacy_hero_text_plugin_renders_inside_stable_template_wrapper(self):
+    def test_hero_text_plugin_migration_is_reversible_and_preserves_editor_content(self):
         call_command("bootstrap_cms_homepage", verbosity=0)
         root_url = PageUrl.objects.filter(
             site=self.site, language="fa", path__in=("", "/")
@@ -434,6 +439,13 @@ class CmsHomepageRoutingTests(TestCase):
         original_body = text_plugin.body
         CMSPlugin.objects.filter(pk=plugin.pk).update(plugin_type="TextPlugin")
 
+        migration = import_module("cms_site_seed.migrations.0002_hero_text_plugin")
+        migration.upgrade_hero_text_plugins(django_apps, None)
+        upgraded = CMSPlugin.objects.get(pk=original_id)
+        self.assertEqual(upgraded.plugin_type, "HeroTextPlugin")
+        self.assertEqual(upgraded.get_plugin_instance()[0].body, original_body)
+
+        migration.downgrade_hero_text_plugins(django_apps, None)
         legacy_plugin = CMSPlugin.objects.get(pk=original_id)
         self.assertEqual(legacy_plugin.plugin_type, "TextPlugin")
         self.assertEqual(legacy_plugin.get_plugin_instance()[0].body, original_body)
