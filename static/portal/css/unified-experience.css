@@ -130,7 +130,7 @@ html {
   display: block;
   min-width: 0;
 }
-.nv-hero-plugin-content > p:first-of-type {
+.nv-hero-plugin-content > p:first-of-type:not(.hero-lede) {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -139,13 +139,6 @@ html {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 2px;
-}
-.nv-hero-plugin-content > h1 {
-  font:
-    700 clamp(40px, 5.2vw, 70px)/1.22 'Vazirmatn',
-    sans-serif;
-  letter-spacing: -2.2px;
-  margin: 25px 0 22px;
 }
 .nv-hero-plugin-content > h1:not(:has(.gradient-text)) {
   background-image: linear-gradient(100deg, #b8aaff 8%, #8cdde9 95%);
@@ -196,7 +189,7 @@ html {
 .nv-hero-plugin-content > p:has(> a) > a:hover {
   transform: translateY(-2px);
 }
-.nv-hero-plugin-content > p:last-of-type:not(:has(> a)) {
+.nv-hero-plugin-content > p:last-of-type:nth-of-type(n + 3):not(:has(> a)) {
   display: flex;
   flex-wrap: wrap;
   gap: 9px 18px;
