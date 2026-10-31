@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     "dj_error_panel",
     "dj_control_room",
     "staff.apps.StaffConfig",
-    "image_uploader_widget",
     "import_export",
     "rest_framework",
     "django_filters",
