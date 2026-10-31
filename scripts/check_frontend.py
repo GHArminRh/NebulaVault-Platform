@@ -125,7 +125,7 @@ def duplicate_attributes(source: str) -> list[tuple[int, list[str]]]:
 
         duplicates = sorted(name for name, count in counts.items() if count > 1)
         if duplicates:
-            line_number = source.count("\\n", 0, match.start()) + 1
+            line_number = source.count("\n", 0, match.start()) + 1
             duplicates_by_tag.append((line_number, duplicates))
 
     return duplicates_by_tag
