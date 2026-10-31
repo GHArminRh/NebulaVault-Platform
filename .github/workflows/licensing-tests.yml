@@ -74,6 +74,8 @@ jobs:
           ruff check config/settings.py config/test_settings.py config/test_cms_integration.py cms_site_seed portal/cms_plugins.py portal/management/commands/bootstrap_cms_homepage.py api billing/services.py billing/order_services.py billing/attempt_services.py billing/finalization_services.py
       - name: Check Django configuration
         run: python manage.py check --settings=config.test_settings
+      - name: Create schema for django CMS validation
+        run: python manage.py migrate --noinput --settings=config.test_settings
       - name: Validate django CMS installation
         run: python manage.py cms check --settings=config.test_settings
       - name: Check CMS migration state
