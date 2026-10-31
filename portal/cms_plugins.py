@@ -1,4 +1,5 @@
-"""Nebula Vault CMS plugins backed by live product, pricing, release and blog data."""
+"""Nebula Vault CMS plugins backed by structured and live domain data."""
+
 from django.conf import settings
 from django.db.models import Prefetch
 from django.utils import timezone
@@ -8,7 +9,77 @@ from cms.plugin_pool import plugin_pool
 
 from blog.models import BlogPost
 from catalog.models import Plan, Product, Release
-from .models import CMSExternalImage, CMSUploadedImage
+from .models import (
+    CMSExternalImage,
+    CMSFAQList,
+    CMSFeatureGrid,
+    CMSHeroContent,
+    CMSUploadedImage,
+)
+
+
+@plugin_pool.register_plugin
+class HeroContentPlugin(CMSPluginBase):
+    allowed_slots = ["hero"]
+    model = CMSHeroContent
+    name = "بنر اصلی (ساختاریافته)"
+    module = "محتوای نبیولا والت"
+    render_template = "portal/plugins/hero_content.html"
+    cache = False
+    fieldsets = (
+        ("متن بنر", {"fields": ("eyebrow", "heading", "heading_accent", "description")}),
+        ("دکمه‌ها", {"fields": (
+            "primary_cta_label", "primary_cta_url",
+            "secondary_cta_label", "secondary_cta_url",
+        )}),
+        ("نکته‌های اعتماد", {"fields": ("trust_item_1", "trust_item_2", "trust_item_3")}),
+    )
+
+    def render(self, context, instance, placeholder):
+        context = super().render(context, instance, placeholder)
+        context["cms_hero"] = instance
+        return context
+
+
+@plugin_pool.register_plugin
+class FeatureGridPlugin(CMSPluginBase):
+    allowed_slots = ["features"]
+    model = CMSFeatureGrid
+    name = "کارت‌های امکانات (ساختاریافته)"
+    module = "محتوای نبیولا والت"
+    render_template = "portal/plugins/feature_grid.html"
+    cache = False
+    fieldsets = tuple(
+        (f"ویژگی {index}", {"fields": tuple(
+            f"feature_{index}_{field}"
+            for field in ("icon", "number", "title", "description", "link_label", "link_url")
+        )})
+        for index in range(1, 4)
+    )
+
+    def render(self, context, instance, placeholder):
+        context = super().render(context, instance, placeholder)
+        context["cms_features"] = instance
+        return context
+
+
+@plugin_pool.register_plugin
+class FAQListPlugin(CMSPluginBase):
+    allowed_slots = ["about"]
+    model = CMSFAQList
+    name = "پرسش‌های متداول (ساختاریافته)"
+    module = "محتوای نبیولا والت"
+    render_template = "portal/plugins/faq_list.html"
+    cache = False
+    fieldsets = tuple(
+        (f"پرسش {index}", {"fields": (f"question_{index}", f"answer_{index}")})
+        for index in range(1, 4)
+    )
+
+    def render(self, context, instance, placeholder):
+        context = super().render(context, instance, placeholder)
+        context["cms_faq"] = instance
+        return context
 
 
 @plugin_pool.register_plugin
@@ -32,6 +103,8 @@ class LiveProductGridPlugin(CMSPluginBase):
 
 @plugin_pool.register_plugin
 class LivePricingGridPlugin(CMSPluginBase):
+    # Kept for compatibility with the legacy pricing placeholder. The current
+    # homepage intentionally has no pricing section; /pricing/ remains canonical.
     allowed_slots = ["pricing"]
     model = CMSPlugin
     name = "تعرفه‌های زنده"

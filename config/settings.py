@@ -186,6 +186,9 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = "fa"
 SITE_ID = 1
 X_FRAME_OPTIONS = "SAMEORIGIN"
+# Use Django's standard model permissions for CMS editing. Per-page row-level
+# permission tables are intentionally disabled for this single-site workflow.
+CMS_PERMISSION = False
 CMS_TEMPLATES = [
     ("portal/cms_page.html", "صفحهٔ عمومی نبیولا والت"),
     ("portal/cms_home_page.html", "صفحهٔ اصلی قابل ویرایش نبیولا والت"),
@@ -246,9 +249,9 @@ CMS_EDITOR_PLUGINS = ["TextPlugin", "TextLinkPlugin"] + CMS_IMAGE_PLUGINS + CMS_
 # emit duplicate section IDs or duplicate data grids.
 CMS_PLACEHOLDER_CONF = {
     "hero": {
-        "name": "متن و دکمه‌های بنر اصلی",
-        "plugins": ["TextPlugin", "TextLinkPlugin", *CMS_IMAGE_PLUGINS],
-        "limits": {"TextPlugin": 1},
+        "name": "بنر اصلی (فیلدهای ساختاریافته)",
+        "plugins": ["HeroContentPlugin", *CMS_IMAGE_PLUGINS],
+        "limits": {"HeroContentPlugin": 1},
     },
     "content": {
         "name": "محتوای تکمیلی",
@@ -266,7 +269,8 @@ CMS_PLACEHOLDER_CONF = {
     },
     "features": {
         "name": "امکانات",
-        "plugins": CMS_EDITOR_PLUGINS,
+        "plugins": ["FeatureGridPlugin", *CMS_EDITOR_PLUGINS],
+        "limits": {"FeatureGridPlugin": 1},
     },
     "releases": {
         "name": "نسخه‌های منتشرشده",
@@ -280,7 +284,8 @@ CMS_PLACEHOLDER_CONF = {
     },
     "about": {
         "name": "معرفی و پرسش‌های متداول",
-        "plugins": CMS_EDITOR_PLUGINS,
+        "plugins": ["FAQListPlugin", *CMS_EDITOR_PLUGINS],
+        "limits": {"FAQListPlugin": 1},
     },
 }
 DEFAULT_MEDIA_STORAGE = (

@@ -17,7 +17,13 @@ from cms.models.pluginmodel import CMSPlugin
 from cms.plugin_pool import plugin_pool
 from catalog.models import Plan, Product
 from portal.cms_home import cms_home
-from portal.models import CMSExternalImage, CMSUploadedImage
+from portal.models import (
+    CMSExternalImage,
+    CMSFAQList,
+    CMSFeatureGrid,
+    CMSHeroContent,
+    CMSUploadedImage,
+)
 
 
 class CmsIntegrationSmokeTests(SimpleTestCase):
@@ -59,6 +65,7 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
         self.assertIn("djangocms_frontend.contrib.grid", settings.INSTALLED_APPS)
         self.assertIn("cms_site_seed", settings.INSTALLED_APPS)
         self.assertEqual(settings.CMS_TREE_BACKEND, "mptree")
+        self.assertFalse(settings.CMS_PERMISSION)
         self.assertNotIn("treebeard", settings.INSTALLED_APPS)
         self.assertIn(
             ("portal/cms_page.html", "صفحهٔ عمومی نبیولا والت"),
@@ -69,8 +76,35 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
             settings.CMS_TEMPLATES,
         )
 
+    def test_page_templates_declare_only_their_supported_placeholders(self):
+        home_source = get_template("portal/cms_home_page.html").template.source
+        generic_source = get_template("portal/cms_page.html").template.source
+        home_slots = ("hero", "content", "products", "features", "releases", "blog", "about")
+        for slot in home_slots:
+            with self.subTest(template="home", slot=slot):
+                self.assertIn('{% placeholder "' + slot + '"', home_source)
+                self.assertIn(slot, settings.CMS_PLACEHOLDER_CONF)
+        self.assertNotIn('{% placeholder "pricing"', home_source)
+        self.assertIn('{% placeholder "content"', generic_source)
+        for slot in ("hero", "products", "features", "releases", "blog", "about"):
+            self.assertNotIn('{% placeholder "' + slot + '"', generic_source)
+
+    def test_structured_cta_links_reject_unsafe_schemes(self):
+        from django.core.exceptions import ValidationError
+        from portal.models import validate_cms_link
+
+        validate_cms_link("/products/")
+        validate_cms_link("https://example.com/page")
+        with self.assertRaises(ValidationError):
+            validate_cms_link("javascript:alert(1)")
+        with self.assertRaises(ValidationError):
+            validate_cms_link("//example.com/path")
+
     def test_dynamic_content_plugins_are_registered(self):
         for plugin_name in (
+            "HeroContentPlugin",
+            "FeatureGridPlugin",
+            "FAQListPlugin",
             "LiveProductGridPlugin",
             "LivePricingGridPlugin",
             "LiveReleaseListPlugin",
@@ -96,9 +130,10 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
             settings.CMS_PLACEHOLDER_CONF["content"]["plugins"],
         )
         self.assertIn(
-            "TextLinkPlugin",
+            "HeroContentPlugin",
             settings.CMS_PLACEHOLDER_CONF["hero"]["plugins"],
         )
+        self.assertNotIn("TextPlugin", settings.CMS_PLACEHOLDER_CONF["hero"]["plugins"])
         self.assertIsNotNone(plugin_pool.get_plugin("TextLinkPlugin"))
 
     def test_layout_plugins_are_allowed_in_general_editable_content(self):
@@ -109,6 +144,9 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
 
     def test_dynamic_plugins_are_confined_and_limited_to_dedicated_slots(self):
         dedicated = {
+            "HeroContentPlugin": "hero",
+            "FeatureGridPlugin": "features",
+            "FAQListPlugin": "about",
             "LiveProductGridPlugin": "products",
             "LivePricingGridPlugin": "pricing",
             "LiveReleaseListPlugin": "releases",
@@ -129,6 +167,9 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
 
     def test_dynamic_plugin_templates_compile(self):
         for template_name in (
+            "portal/plugins/hero_content.html",
+            "portal/plugins/feature_grid.html",
+            "portal/plugins/faq_list.html",
             "portal/plugins/live_products.html",
             "portal/plugins/live_pricing.html",
             "portal/plugins/live_releases.html",
@@ -138,14 +179,22 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
         ):
             self.assertIsNotNone(get_template(template_name))
 
-    def test_cms_image_models_match_the_committed_portal_migration(self):
-        self.assertEqual(CMSExternalImage._meta.app_label, "portal")
-        self.assertEqual(CMSUploadedImage._meta.app_label, "portal")
+    def test_cms_plugin_models_match_the_committed_portal_migrations(self):
+        models = (
+            CMSExternalImage,
+            CMSUploadedImage,
+            CMSHeroContent,
+            CMSFeatureGrid,
+            CMSFAQList,
+        )
+        for model in models:
+            self.assertEqual(model._meta.app_label, "portal")
         loader = MigrationLoader(None)
         self.assertIn(("portal", "0001_initial"), loader.disk_migrations)
+        self.assertIn(("portal", "0002_structured_homepage_plugins"), loader.disk_migrations)
 
         migrated_apps = loader.project_state().apps
-        for model in (CMSExternalImage, CMSUploadedImage):
+        for model in models:
             with self.subTest(model=model.__name__):
                 migrated_model = migrated_apps.get_model("portal", model.__name__)
                 current_fields = {
@@ -158,9 +207,8 @@ class CmsIntegrationSmokeTests(SimpleTestCase):
                 }
                 self.assertEqual(set(current_fields), set(migrated_fields))
 
-                # The auto-created parent-link field carries runtime-only
-                # related_name metadata. Compare the schema-relevant values
-                # rather than the complete deconstruction dictionaries.
+                # Compare the schema-relevant values of both the legacy
+                # auto-created links and the explicit namespaced plugin links.
                 schema_attributes = (
                     "max_length",
                     "blank",
@@ -225,7 +273,9 @@ class CmsHomepageRoutingTests(TestCase):
         }
         self.assertIn("blog", placeholders)
         for slot, plugin_type in (
-            ("hero", "TextPlugin"),
+            ("hero", "HeroContentPlugin"),
+            ("features", "FeatureGridPlugin"),
+            ("about", "FAQListPlugin"),
             ("products", "LiveProductGridPlugin"),
             ("releases", "LiveReleaseListPlugin"),
             ("blog", "LiveBlogListPlugin"),
@@ -281,6 +331,123 @@ class CmsHomepageRoutingTests(TestCase):
                     1,
                     f"CMS section '{section_id}' must not be nested or duplicated.",
                 )
+
+    def test_legacy_homepage_sections_convert_without_losing_original_html(self):
+        from portal.models import CMSFAQList, CMSFeatureGrid, CMSHeroContent
+
+        call_command("bootstrap_cms_homepage", verbosity=0)
+        root_url = PageUrl.objects.filter(
+            site=self.site, language="fa", path__in=("", "/")
+        ).select_related("page").first()
+        page_content = root_url.page.pagecontent_set.get(language="fa")
+        placeholders = {
+            placeholder.slot: placeholder
+            for placeholder in Placeholder.objects.get_for_obj(page_content)
+        }
+        legacy_content = {
+            "hero": (
+                "TextPlugin",
+                '<p>فضای دیجیتال شما، با نظم تازه</p>'
+                '<h1>همه‌چیز سر جای خودش؛<br>کنترل در دست شما...</h1>'
+                '<p>توضیحی که باید حفظ شود.</p>'
+                '<p><a href="/products/">کشف محصولات</a>'
+                '<a href="/pricing/">تعرفه‌ها</a></p>'
+                '<p>حساب امن◇خرید یکپارچه⌁تجربه هماهنگ</p>',
+            ),
+            "features": (
+                "TextPlugin",
+                '<div class="nv-feature-grid"><article class="nv-feature-card">'
+                '<span class="nv-feature-icon">⌘</span><span class="nv-feature-number">01</span>'
+                '<h3>پیشخوان متمرکز</h3><p>توضیح کارت</p>'
+                '<a href="/dashboard/">رفتن به پیشخوان ↗</a></article></div>',
+            ),
+            "about": (
+                "TextPlugin",
+                '<div class="nv-faq-list"><details><summary>پرسش آزمایشی؟'
+                '<span>＋</span></summary><p>پاسخ آزمایشی.</p></details></div>',
+            ),
+        }
+        for slot, (plugin_type, body) in legacy_content.items():
+            CMSPlugin.objects.filter(
+                placeholder=placeholders[slot], language="fa"
+            ).delete()
+            add_plugin(placeholders[slot], plugin_type, "fa", body=body)
+
+        call_command("bootstrap_cms_homepage", verbosity=0)
+
+        for slot, plugin_type in (
+            ("hero", "HeroContentPlugin"),
+            ("features", "FeatureGridPlugin"),
+            ("about", "FAQListPlugin"),
+        ):
+            with self.subTest(slot=slot):
+                plugins = CMSPlugin.objects.filter(
+                    placeholder=placeholders[slot],
+                    language="fa",
+                    plugin_type=plugin_type,
+                    parent__isnull=True,
+                )
+                self.assertEqual(plugins.count(), 1)
+                self.assertEqual(
+                    CMSPlugin.objects.filter(
+                        placeholder=placeholders[slot],
+                        language="fa",
+                        parent__isnull=True,
+                    ).count(),
+                    1,
+                )
+
+        hero = CMSHeroContent.objects.get(
+            cmsplugin_ptr_id=CMSPlugin.objects.get(
+                placeholder=placeholders["hero"], plugin_type="HeroContentPlugin"
+            ).pk
+        )
+        self.assertEqual(hero.heading, "همه‌چیز سر جای خودش؛")
+        self.assertEqual(hero.heading_accent, "کنترل در دست شما...")
+        self.assertEqual(hero.description, "توضیحی که باید حفظ شود.")
+        self.assertEqual(hero.primary_cta_url, "/products/")
+        self.assertEqual(hero.legacy_source, legacy_content["hero"][1])
+
+        feature = CMSFeatureGrid.objects.get(
+            cmsplugin_ptr_id=CMSPlugin.objects.get(
+                placeholder=placeholders["features"], plugin_type="FeatureGridPlugin"
+            ).pk
+        )
+        self.assertEqual(feature.feature_1_title, "پیشخوان متمرکز")
+        self.assertEqual(feature.feature_1_description, "توضیح کارت")
+        self.assertEqual(feature.legacy_source, legacy_content["features"][1])
+
+        faq = CMSFAQList.objects.get(
+            cmsplugin_ptr_id=CMSPlugin.objects.get(
+                placeholder=placeholders["about"], plugin_type="FAQListPlugin"
+            ).pk
+        )
+        self.assertEqual(faq.question_1, "پرسش آزمایشی؟")
+        self.assertEqual(faq.answer_1, "پاسخ آزمایشی.")
+        self.assertEqual(faq.legacy_source, legacy_content["about"][1])
+
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="gradient-text"', html=False)
+        self.assertContains(response, "nv-feature-grid", html=False)
+        self.assertContains(response, "nv-faq-list", html=False)
+        self.assertContains(response, "توضیحی که باید حفظ شود.")
+
+        plugin_ids = {
+            slot: CMSPlugin.objects.get(
+                placeholder=placeholders[slot],
+                language="fa",
+                plugin_type=plugin_type,
+            ).pk
+            for slot, plugin_type in (
+                ("hero", "HeroContentPlugin"),
+                ("features", "FeatureGridPlugin"),
+                ("about", "FAQListPlugin"),
+            )
+        }
+        call_command("bootstrap_cms_homepage", verbosity=0)
+        for slot, plugin_id in plugin_ids.items():
+            self.assertTrue(CMSPlugin.objects.filter(pk=plugin_id, placeholder=placeholders[slot]).exists())
 
     def test_bootstrap_failure_rolls_back_template_change(self):
         call_command("bootstrap_cms_homepage", verbosity=0)
@@ -465,18 +632,23 @@ class CmsHomepageRoutingTests(TestCase):
         }
 
         # Existing CMS edits retain their visual hooks and must never be reset.
-        for slot, marker in (
-            ("features", "EDITOR_FEATURE_CHANGE_SURVIVES"),
-            ("about", "EDITOR_FAQ_CHANGE_SURVIVES"),
-        ):
-            plugin = CMSPlugin.objects.get(
-                placeholder=placeholders[slot],
-                language="fa",
-                plugin_type="TextPlugin",
-            )
-            instance, _plugin_class = plugin.get_plugin_instance()
-            instance.body += f"<p>{marker}</p>"
-            instance.save(update_fields=["body"])
+        feature_plugin = CMSPlugin.objects.get(
+            placeholder=placeholders["features"],
+            language="fa",
+            plugin_type="FeatureGridPlugin",
+        )
+        feature_instance, _plugin_class = feature_plugin.get_plugin_instance()
+        feature_instance.feature_1_description += " EDITOR_FEATURE_CHANGE_SURVIVES"
+        feature_instance.save(update_fields=["feature_1_description"])
+
+        faq_plugin = CMSPlugin.objects.get(
+            placeholder=placeholders["about"],
+            language="fa",
+            plugin_type="FAQListPlugin",
+        )
+        faq_instance, _plugin_class = faq_plugin.get_plugin_instance()
+        faq_instance.answer_1 += " EDITOR_FAQ_CHANGE_SURVIVES"
+        faq_instance.save(update_fields=["answer_1"])
 
         # Content that resembles the former seed signatures is still editor-owned.
         generic = placeholders["content"]
@@ -501,18 +673,21 @@ class CmsHomepageRoutingTests(TestCase):
             instance, _plugin_class = plugin.get_plugin_instance()
             self.assertTrue(any(body.strip() in instance.body for body in generic_bodies))
 
-        for slot, marker in (
-            ("features", "EDITOR_FEATURE_CHANGE_SURVIVES"),
-            ("about", "EDITOR_FAQ_CHANGE_SURVIVES"),
-        ):
-            with self.subTest(slot=slot):
-                plugin = CMSPlugin.objects.get(
-                    placeholder=placeholders[slot],
-                    language="fa",
-                    plugin_type="TextPlugin",
-                )
-                instance, _plugin_class = plugin.get_plugin_instance()
-                self.assertIn(marker, instance.body)
+        feature_plugin = CMSPlugin.objects.get(
+            placeholder=placeholders["features"],
+            language="fa",
+            plugin_type="FeatureGridPlugin",
+        )
+        feature_instance, _plugin_class = feature_plugin.get_plugin_instance()
+        self.assertIn("EDITOR_FEATURE_CHANGE_SURVIVES", feature_instance.feature_1_description)
+
+        faq_plugin = CMSPlugin.objects.get(
+            placeholder=placeholders["about"],
+            language="fa",
+            plugin_type="FAQListPlugin",
+        )
+        faq_instance, _plugin_class = faq_plugin.get_plugin_instance()
+        self.assertIn("EDITOR_FAQ_CHANGE_SURVIVES", faq_instance.answer_1)
 
     def test_storefront_fallback_is_preserved_without_a_cms_homepage(self):
         from cms.models import Page

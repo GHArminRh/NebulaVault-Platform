@@ -1,0 +1,16 @@
+{% if cms_hero.eyebrow %}<div class="eyebrow"><i class="pulse"></i>{{ cms_hero.eyebrow }}</div>{% endif %}
+<h1>{{ cms_hero.heading }}{% if cms_hero.heading_accent %}<br><span class="gradient-text">{{ cms_hero.heading_accent }}</span>{% endif %}</h1>
+{% if cms_hero.description %}<p class="hero-lede">{{ cms_hero.description }}</p>{% endif %}
+{% if cms_hero.primary_cta_label and cms_hero.primary_cta_url or cms_hero.secondary_cta_label and cms_hero.secondary_cta_url %}
+  <div class="hero-actions">
+    {% if cms_hero.primary_cta_label and cms_hero.primary_cta_url %}<a class="button button-primary button-large" href="{{ cms_hero.primary_cta_url }}">{{ cms_hero.primary_cta_label }}</a>{% endif %}
+    {% if cms_hero.secondary_cta_label and cms_hero.secondary_cta_url %}<a class="button button-glass button-large" href="{{ cms_hero.secondary_cta_url }}">{{ cms_hero.secondary_cta_label }}</a>{% endif %}
+  </div>
+{% endif %}
+{% if cms_hero.trust_item_1 or cms_hero.trust_item_2 or cms_hero.trust_item_3 %}
+  <div class="nv-hero-trust">
+    {% if cms_hero.trust_item_1 %}<span><i class="pulse"></i>{{ cms_hero.trust_item_1 }}</span>{% endif %}
+    {% if cms_hero.trust_item_2 %}<span>◇ {{ cms_hero.trust_item_2 }}</span>{% endif %}
+    {% if cms_hero.trust_item_3 %}<span>⌁ {{ cms_hero.trust_item_3 }}</span>{% endif %}
+  </div>
+{% endif %}

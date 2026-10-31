@@ -32,8 +32,10 @@ class PortalPageTests(TestCase):
     def test_root_renders_the_complete_editable_cms_homepage(self):
         response = self.client.get(reverse("portal:home"))
         self.assertEqual(response.status_code, 200)
-        for section_id in ("home", "products", "pricing", "features", "blog", "releases", "about"):
+        for section_id in ("home", "products", "features", "blog", "releases", "about"):
             self.assertContains(response, f'id="{section_id}"', html=False)
+        self.assertNotContains(response, 'id="pricing"', html=False)
+        self.assertContains(response, 'href="/pricing/"', html=False)
         self.assertContains(response, self.product.name)
         self.assertContains(response, "1 طرح")
         self.assertContains(response, "کنترل در دست شما")

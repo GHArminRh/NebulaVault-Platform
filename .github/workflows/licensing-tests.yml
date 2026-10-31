@@ -71,7 +71,7 @@ jobs:
       - name: Check formatting baseline
         run: |
           python -m pip install ruff
-          ruff check config/settings.py config/test_settings.py config/test_cms_integration.py cms_site_seed portal/cms_plugins.py portal/management/commands/bootstrap_cms_homepage.py api billing/services.py billing/order_services.py billing/attempt_services.py billing/finalization_services.py
+          ruff check config/settings.py config/test_settings.py config/test_cms_integration.py cms_site_seed portal/models.py portal/cms_plugins.py portal/cms_legacy.py portal/tests.py portal/management/commands/bootstrap_cms_homepage.py api billing/services.py billing/order_services.py billing/attempt_services.py billing/finalization_services.py
       - name: Check Django configuration
         run: python manage.py check --settings=config.test_settings
       - name: Create schema for django CMS validation
@@ -92,6 +92,7 @@ jobs:
           accounts.tests
           accounts.test_email_backends
           billing.tests
+          portal
           config.test_cms_integration
           --settings=config.test_settings
           --verbosity=2
