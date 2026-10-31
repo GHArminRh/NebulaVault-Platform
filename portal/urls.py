@@ -1,13 +1,10 @@
 from django.urls import path
 
 from . import views
-from .cms_home import cms_home
 
 app_name = "portal"
 urlpatterns = [
-    # The published django CMS homepage owns the public root URL. The CMS
-    # view falls back to the established storefront if no published root page exists.
-    path("", cms_home, name="home"),
+    path("", views.home, name="home"),
     path("products/", views.products, name="products"),
     path("products/<slug:slug>/", views.product_detail, name="product_detail"),
     path("pricing/", views.pricing, name="pricing"),
