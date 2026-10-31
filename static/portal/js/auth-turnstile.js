@@ -16,11 +16,14 @@
       if (!siteKey) return;
 
       try {
+        // Cloudflare's compact challenge is needed when the card's content
+        // width is too narrow for the standard 300px widget (small iPhones).
+        const compact = (widget.closest('.nv-auth-face')?.clientWidth || window.innerWidth) <= 320;
         window.turnstile.render(widget, {
           sitekey: siteKey,
           theme: 'dark',
           language: 'fa',
-          size: 'normal',
+          size: compact ? 'compact' : 'normal',
           appearance: 'always',
         });
         widget.setAttribute('data-rendered', 'true');
