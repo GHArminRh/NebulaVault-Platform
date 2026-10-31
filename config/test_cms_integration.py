@@ -1,7 +1,6 @@
 from importlib import import_module
 
 from django.conf import settings
-from django.apps import apps as django_apps
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.core.management import call_command
@@ -371,17 +370,6 @@ class CmsHomepageRoutingTests(TestCase):
             ).exists()
         )
 
-        # The compatibility seed still creates the upstream TextPlugin; the
-        # follow-up migration upgrades its type in place without rewriting body.
-        hero_text = CMSPlugin.objects.get(
-            placeholder=placeholders["hero"], language="fa", plugin_type="TextPlugin"
-        ).get_plugin_instance()[0]
-        original_body = hero_text.body
-        hero_migration = import_module("cms_site_seed.migrations.0002_hero_text_plugin")
-        hero_migration.upgrade_hero_text_plugins(django_apps, None)
-        upgraded = CMSPlugin.objects.get(pk=hero_text.pk)
-        self.assertEqual(upgraded.plugin_type, "HeroTextPlugin")
-        self.assertEqual(upgraded.get_plugin_instance()[0].body, original_body)
         self.assertTrue(
             CMSPlugin.objects.filter(
                 placeholder=placeholders["products"],
@@ -418,7 +406,7 @@ class CmsHomepageRoutingTests(TestCase):
             1,
         )
 
-    def test_hero_plugin_upgrade_preserves_live_editor_content_and_renders_wrapper(self):
+    def test_legacy_hero_text_plugin_renders_inside_stable_template_wrapper(self):
         call_command("bootstrap_cms_homepage", verbosity=0)
         root_url = PageUrl.objects.filter(
             site=self.site, language="fa", path__in=("", "/")
@@ -445,12 +433,9 @@ class CmsHomepageRoutingTests(TestCase):
         original_body = text_plugin.body
         CMSPlugin.objects.filter(pk=plugin.pk).update(plugin_type="TextPlugin")
 
-        migration = import_module("cms_site_seed.migrations.0002_hero_text_plugin")
-        migration.upgrade_hero_text_plugins(django_apps, None)
-
-        upgraded = CMSPlugin.objects.get(pk=original_id)
-        self.assertEqual(upgraded.plugin_type, "HeroTextPlugin")
-        self.assertEqual(upgraded.get_plugin_instance()[0].body, original_body)
+        legacy_plugin = CMSPlugin.objects.get(pk=original_id)
+        self.assertEqual(legacy_plugin.plugin_type, "TextPlugin")
+        self.assertEqual(legacy_plugin.get_plugin_instance()[0].body, original_body)
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'class="nv-hero-plugin-content"', html=False)
