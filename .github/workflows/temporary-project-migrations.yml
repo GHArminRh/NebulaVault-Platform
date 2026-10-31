@@ -24,6 +24,11 @@ jobs:
           DJANGO_SECRET_KEY: ci-only-not-for-production
           DJANGO_DEBUG: "True"
           DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+          DB_NAME: nebula_test
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_HOST: 127.0.0.1
+          DB_PORT: "5432"
         run: python manage.py makemigrations --noinput
       - name: Commit generated migration files
         run: |
