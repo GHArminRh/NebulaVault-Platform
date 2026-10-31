@@ -116,6 +116,9 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    # django CMS requires Django's standard auth middleware to be registered.
+    # The UUID-aware middleware below then resolves the active staff/customer model.
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "portal.middleware.InterfaceLanguageMiddleware",
     "django.middleware.common.CommonMiddleware",
