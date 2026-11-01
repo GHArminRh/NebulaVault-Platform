@@ -50,7 +50,7 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
     def clean(self):
         try:
             # Keep Django's normal authentication flow for active customers.
-            return super().clean()
+            cleaned = super().clean()
         except ValidationError:
             # Only reveal account state after password and Turnstile both pass.
             email = (self.data.get(self.add_prefix("username")) or "").strip()
@@ -68,7 +68,7 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
             return self.cleaned_data
         if self.request is not None:
             self.request.session.set_expiry(60 * 60 * 24 * 14 if self.cleaned_data.get("remember_me") else 0)
-        return self.cleaned_data
+        return cleaned
 
 
 class RegisterForm(HumanCheckMixin, forms.ModelForm):
