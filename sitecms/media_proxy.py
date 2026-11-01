@@ -49,6 +49,9 @@ def private_media_proxy(request, path):
             raise Http404 from exc
         logger.exception("Object storage rejected a media read")
         return HttpResponse("Media storage temporarily unavailable", status=503)
+    except FileNotFoundError as exc:
+        # A missing local file is a missing resource, not a storage outage.
+        raise Http404 from exc
     except (BotoCoreError, OSError, ValueError):
         logger.exception("Unable to stream media from object storage")
         return HttpResponse("Media storage temporarily unavailable", status=503)

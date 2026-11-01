@@ -34,6 +34,30 @@ class PrivateMediaProxyTests(TestCase):
             self.assertEqual(b"".join(response.streaming_content), content)
             open_file.assert_called_once_with(path, "rb")
 
+    def test_missing_local_media_file_returns_404(self):
+        path = "images/deleted-local-file.png"
+        with patch(
+            "sitecms.media_proxy.default_storage.open",
+            side_effect=FileNotFoundError(path),
+        ):
+            response = self.client.get(
+                reverse("private-media-proxy", kwargs={"path": path}),
+                {"signature": media_proxy_signature(path)},
+            )
+        self.assertEqual(response.status_code, 404)
+
+    def test_generic_oserror_still_returns_503(self):
+        path = "images/storage-failure.png"
+        with patch(
+            "sitecms.media_proxy.default_storage.open",
+            side_effect=OSError("disk I/O failure"),
+        ):
+            response = self.client.get(
+                reverse("private-media-proxy", kwargs={"path": path}),
+                {"signature": media_proxy_signature(path)},
+            )
+        self.assertEqual(response.status_code, 503)
+
     def test_path_traversal_and_unsafe_names_are_rejected(self):
         self.assertFalse(_valid_storage_name("images/../private/secret.png"))
         self.assertFalse(_valid_storage_name("/private/secret.png"))
