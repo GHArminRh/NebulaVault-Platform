@@ -475,7 +475,7 @@ def _process_two_factor_post(request, user):
             user.save(update_fields=["email_two_factor_enabled"])
             _revoke_customer_api_tokens(user)
             if not user.recovery_codes:
-                request.session["nv_new_recovery_codes"] = store_recovery_codes(user)
+                request._new_recovery_codes = store_recovery_codes(user)
             messages.success(request, "تأیید دومرحله‌ای ایمیلی فعال شد.")
         else:
             messages.error(request, "رمز عبور یا کد ایمیل معتبر نیست، منقضی شده یا قبلاً استفاده شده است.")
@@ -499,7 +499,7 @@ def _process_two_factor_post(request, user):
         messages.success(request, message)
     elif action == "regenerate_recovery_codes":
         if user.check_password(password) and _has_two_factor(user) and _verify_user_second_factor(user, request.POST, purpose="setup"):
-            request.session["nv_new_recovery_codes"] = store_recovery_codes(user)
+            request._new_recovery_codes = store_recovery_codes(user)
             messages.success(request, "کدهای بازیابی جدید ساخته شدند؛ کدهای قبلی دیگر معتبر نیستند.")
         else:
             messages.error(request, "برای ساخت کدهای جدید، رمز عبور و یک روش تأیید معتبر لازم است.")
