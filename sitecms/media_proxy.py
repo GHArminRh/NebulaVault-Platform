@@ -23,7 +23,7 @@ def media_proxy_signature(name):
 
 
 def _valid_storage_name(name):
-    if not name or name.startswith("/") or "\\\\" in name or "\\x00" in name:
+    if not name or name.startswith("/") or "\\" in name or "\0" in name:
         return False
     if posixpath.normpath(name) != name:
         return False
