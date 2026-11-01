@@ -8,6 +8,7 @@ import pyotp
 import qrcode
 from cryptography.fernet import Fernet, InvalidToken
 from django.conf import settings
+from django.db import transaction
 from django.utils.crypto import salted_hmac
 from django.utils import timezone
 
@@ -81,13 +82,16 @@ def consume_recovery_code(user, code):
     digest = _recovery_code_digest(code)
     if not digest:
         return False
-    for index, saved_digest in enumerate(user.recovery_codes or []):
-        if hmac.compare_digest(saved_digest, digest):
-            remaining = list(user.recovery_codes)
-            remaining.pop(index)
-            user.recovery_codes = remaining
-            user.save(update_fields=["recovery_codes"])
-            return True
+    with transaction.atomic():
+        locked_user = user.__class__.objects.select_for_update().get(pk=user.pk)
+        for index, saved_digest in enumerate(locked_user.recovery_codes or []):
+            if hmac.compare_digest(saved_digest, digest):
+                remaining = list(locked_user.recovery_codes)
+                remaining.pop(index)
+                locked_user.recovery_codes = remaining
+                locked_user.save(update_fields=["recovery_codes"])
+                user.recovery_codes = remaining
+                return True
     return False
 
 
@@ -98,24 +102,25 @@ def verify_email_challenge(user, token, purpose="login"):
     token = (token or "").strip().replace(" ", "")
     if len(token) != 6 or not token.isdigit():
         return False
-    challenge = TwoFactorEmailChallenge.objects.filter(
-        user_type=user._meta.label_lower,
-        user_id=str(user.pk),
-        purpose=purpose,
-        consumed_at__isnull=True,
-        expires_at__gt=timezone.now(),
-        failed_attempts__lt=5,
-    ).order_by("-created_at").first()
-    if challenge is None or challenge.recipient.casefold() != (getattr(user, "email", "") or "").casefold():
+    with transaction.atomic():
+        challenge = TwoFactorEmailChallenge.objects.select_for_update().filter(
+            user_type=user._meta.label_lower,
+            user_id=str(user.pk),
+            purpose=purpose,
+            consumed_at__isnull=True,
+            expires_at__gt=timezone.now(),
+            failed_attempts__lt=5,
+        ).order_by("-created_at").first()
+        if challenge is None or challenge.recipient.casefold() != (getattr(user, "email", "") or "").casefold():
+            return False
+        digest = salted_hmac("accounts.two_factor_email_code", token, algorithm="sha256").hexdigest()
+        if hmac.compare_digest(challenge.code_hash, digest):
+            challenge.consumed_at = timezone.now()
+            challenge.save(update_fields=["consumed_at"])
+            return True
+        challenge.failed_attempts += 1
+        challenge.save(update_fields=["failed_attempts"])
         return False
-    digest = salted_hmac("accounts.two_factor_email_code", token, algorithm="sha256").hexdigest()
-    if hmac.compare_digest(challenge.code_hash, digest):
-        challenge.consumed_at = timezone.now()
-        challenge.save(update_fields=["consumed_at"])
-        return True
-    challenge.failed_attempts += 1
-    challenge.save(update_fields=["failed_attempts"])
-    return False
 
 
 
