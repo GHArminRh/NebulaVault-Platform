@@ -213,10 +213,14 @@ class WagtailIntegrationTests(TestCase):
             policy.users_with_any_permission_for_instance({"change"}, child_collection),
         )
 
-        for model, action in (
+        media_models = (
             (get_image_model(), "add_image"),
             (get_document_model(), "add_document"),
-        ):
+        )
+        # Wagtail caches collection permissions on the user instance. Populate
+        # every media permission before the first policy lookup, as happens in
+        # normal group setup, then verify both policies against that cache.
+        for model, action in media_models:
             permission = Permission.objects.get(
                 content_type=ContentType.objects.get_for_model(model),
                 codename=action,
@@ -226,6 +230,8 @@ class WagtailIntegrationTests(TestCase):
                 collection=root_collection,
                 permission=permission,
             )
+
+        for model, action in media_models:
             model_policy = policy_registry.get_by_type(model)
             diagnostic = (
                 f"model={model._meta.label_lower}; "
@@ -234,8 +240,8 @@ class WagtailIntegrationTests(TestCase):
                 f"wagtail_groups={list(user.wagtail_groups.values_list('name', flat=True))}; "
                 f"expected_codename={action}; "
                 f"policy_codenames={model_policy._get_permission_codenames({'add'})}; "
-                f"loaded_permissions={list(model_policy.get_all_permissions_for_user(user).values_list('permission__codename', flat=True))}; "
-                f"stored_permissions={list(GroupCollectionPermission.objects.filter(group__in=user.wagtail_groups.all()).values_list('permission__codename', flat=True))}"
+                f"cached_permissions={list(model_policy.get_cached_permissions_for_user(user))}; "
+                f"loaded_permissions={list(model_policy.get_all_permissions_for_user(user).values_list('permission__codename', flat=True))}"
             )
             self.assertTrue(model_policy.user_has_permission(user, "add"), diagnostic)
             self.assertIn(user, model_policy.users_with_any_permission({"add"}))
