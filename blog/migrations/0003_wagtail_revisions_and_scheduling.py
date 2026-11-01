@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="blogpost",
             name="live",
-            field=models.BooleanField(default=False, editable=False, verbose_name="live"),
+            field=models.BooleanField(default=False, editable=False),
         ),
         migrations.AddField(
             model_name="blogpost",
