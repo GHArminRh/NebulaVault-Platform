@@ -72,19 +72,48 @@ The existing Django admin still uses the project's original staff groups.
 
 The current Render service is on the Free plan. Its local filesystem is
 ephemeral: uploaded files stored locally can disappear after a restart,
-spin-down, or redeploy. Before using the CMS for production uploads, configure
-the existing S3-compatible media-storage settings in Render:
+spin-down, or redeploy. Do not use local media storage for production uploads.
 
-- `MEDIA_STORAGE_BACKEND=s3`
-- `AWS_STORAGE_BUCKET_NAME`
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-- Optional: `AWS_S3_REGION_NAME`, `AWS_S3_ENDPOINT_URL`,
-  `AWS_S3_CUSTOM_DOMAIN`, and `AWS_QUERYSTRING_AUTH`
+The project is prepared for Cloudflare R2 through its existing
+`django-storages` S3-compatible backend. To connect it:
 
-Never put storage credentials in Git. Alternatively, move the Render web
-service to a paid plan and attach a persistent disk, then ensure its mount path
-matches the configured `MEDIA_ROOT`.
+1. In Cloudflare, open **Storage & databases → R2** and create a Standard
+   bucket, for example `nebula-vault-media`.
+2. Under **Manage in API Tokens**, create an R2 token with **Object Read &
+   Write** permission, scoped to this bucket only. Keep the Access Key ID and
+   Secret Access Key private; the secret is shown only once.
+3. Copy the account's S3 API endpoint. For a regular R2 bucket it has the form
+   `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`. The S3 region is
+   `auto`; the project detects this automatically for R2 endpoints unless
+   `AWS_S3_REGION_NAME` is explicitly set.
+4. For public website assets, connect a custom domain to the bucket under
+   **Bucket → Settings → Custom Domains**. For this site,
+   `media.mydigigi.ir` is the suggested hostname, provided
+   `mydigigi.ir` is managed in the same Cloudflare account. Cloudflare's
+   `r2.dev` address is intended for non-production use.
+5. In the Render service's environment settings, set:
+   - `MEDIA_STORAGE_BACKEND=s3`
+   - `AWS_STORAGE_BUCKET_NAME=nebula-vault-media`
+   - `AWS_ACCESS_KEY_ID=<R2 Access Key ID>`
+   - `AWS_SECRET_ACCESS_KEY=<R2 Secret Access Key>`
+   - `AWS_S3_ENDPOINT_URL=https://<ACCOUNT_ID>.r2.cloudflarestorage.com`
+   - `AWS_S3_REGION_NAME=auto`
+   - `AWS_S3_CUSTOM_DOMAIN=media.mydigigi.ir` (or the exact active R2
+     custom domain, without `https://`)
+   - `AWS_QUERYSTRING_AUTH=False`
+
+The R2 bucket must be publicly readable through its custom domain for public
+website images and documents. Keep the S3 API credentials scoped to the single
+bucket and never put them in Git or ordinary application logs. The Django
+settings now fail at startup instead of silently falling back to ephemeral
+local storage when S3 storage is explicitly enabled but its credentials are
+missing. For R2, they also reject unsigned public URLs when no public domain
+has been configured.
+
+After adding the Render variables, deploy and test an actual upload, public
+read, delete, and persistence across a service restart/redeploy. The Wagtail
+image and document libraries share this configured media storage. Private or
+confidential files should not be placed in this public media bucket.
 
 The current Render PostgreSQL database is also a Free instance scheduled to
 expire on **26 November 2026**. Upgrade/replace it and take a tested backup
