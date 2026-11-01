@@ -28,7 +28,7 @@
               <label for="nv-two-factor-method">روش تأیید</label>
               <select id="nv-two-factor-method" name="two_factor_method" required>
                 <option value="">انتخاب روش تأیید</option>
-                {% for method, label in form.two_factor_methods %}<option value="{{ method }}">{{ label }}</option>{% endfor %}
+                {% for method, label in form.two_factor_methods %}<option value="{{ method }}"{% if form.two_factor_method.value == method %} selected{% endif %}>{{ label }}</option>{% endfor %}
               </select>
             {% else %}
               {% for method, label in form.two_factor_methods %}<input type="hidden" name="two_factor_method" value="{{ method }}"><p>{{ label }}</p>{% endfor %}
@@ -40,7 +40,7 @@
             <div class="nv-two-factor-input" data-factor="email" hidden>
               <label for="nv-login-email-code">کد ارسال‌شده به ایمیل</label>
               <input id="nv-login-email-code" name="email_otp_token" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد شش‌رقمی ایمیل">
-              <button class="button button-secondary button-full" type="submit" name="send_email_code" value="1">ارسال کد به ایمیل</button>
+              
             </div>
             <div class="nv-two-factor-input" data-factor="recovery" hidden>
               <label for="nv-login-recovery">کد بازیابی</label>
@@ -72,6 +72,9 @@
           {% endif %}
           <button class="button button-primary button-full button-large auth-submit"
                   type="submit">ورود به حساب <span>↗</span></button>
+          <div class="nv-two-factor-input" data-factor="email" hidden>
+            <button class="button button-secondary button-full" type="submit" name="send_email_code" value="1">ارسال کد به ایمیل</button>
+          </div>
         </form>
         <p class="nv-auth-small-link"><a href="{% url 'accounts:password_reset' %}">رمز عبور را فراموش کرده‌اید؟</a></p>
         <div class="nv-auth-flip-prompt"><span>هنوز حساب ندارید؟</span><button type="button" data-auth-flip="register">ساخت حساب <span>↶</span></button><a class="nv-auth-nojs-link" href="{% url 'accounts:register' %}">ساخت حساب</a></div>
