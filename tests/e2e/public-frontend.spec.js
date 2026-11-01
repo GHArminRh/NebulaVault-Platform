@@ -16,7 +16,8 @@ const PUBLIC_ROUTES = [
 
 test('deployed frontend styles are updated before regression checks', async ({ page }) => {
   // Render deploys begin at the same time as this push-triggered workflow.
-  // Give the production instance time to restart and publish the new assets.
+  // Wait for the exact stylesheet marker from this source revision; old CSS
+  // can contain the same visual colors and must not satisfy this gate.
   test.setTimeout(250_000);
 
   await expect
@@ -25,16 +26,28 @@ test('deployed frontend styles are updated before regression checks', async ({ p
         try {
           const response = await page.goto('/', {
             waitUntil: 'domcontentloaded',
-            timeout: 15_000,
+            timeout: 20_000,
           });
           if (!response || response.status() >= 500) return 'unavailable';
-          return await page.evaluate(() => {
-            const brandNote = document.querySelector('.footer-top .brand small');
-            const sectionIndex = document.querySelector('.nv-section-index');
-            return [
-              brandNote ? getComputedStyle(brandNote).color : 'unavailable',
-              sectionIndex ? getComputedStyle(sectionIndex).color : 'unavailable',
-            ];
+          return await page.evaluate(async () => {
+            const stylesheet = Array.from(
+              document.querySelectorAll('link[rel="stylesheet"]')
+            ).find((link) => link.href.includes('portal/css/responsive-system'));
+
+            if (!stylesheet) return 'stylesheet-missing';
+
+            try {
+              const assetResponse = await fetch(stylesheet.href, {
+                cache: 'no-store',
+              });
+              if (!assetResponse.ok) return 'stylesheet-unavailable';
+              const css = await assetResponse.text();
+              return css.includes('NV_MOBILE_MENU_VIEWPORT_FIXED_V2')
+                ? 'current-assets'
+                : 'old-assets';
+            } catch {
+              return 'stylesheet-unavailable';
+            }
           });
         } catch {
           return 'unavailable';
@@ -43,10 +56,10 @@ test('deployed frontend styles are updated before regression checks', async ({ p
       {
         timeout: 240_000,
         intervals: [5_000, 10_000, 15_000],
-        message: 'Wait for Render to publish both updated accessibility color fixes',
+        message: 'Wait for Render to serve the current mobile navigation stylesheet',
       }
     )
-    .toEqual(['rgb(130, 146, 177)', 'rgb(130, 146, 177)']);
+    .toBe('current-assets');
 }, 250_000);
 
 test('blog styles are loaded only on pages that render blog components', async ({ page }) => {
