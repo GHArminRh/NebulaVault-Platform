@@ -12,9 +12,7 @@ from rest_framework.test import APIRequestFactory, APITestCase
 
 from accounts.models import Customer
 from api.models import CustomerAPIToken, TokenLoginFailure
-from api.login_security import (
-    record_token_login_failure,
-)
+from api.login_security import record_token_login_failure
 from api.views import TokenLoginThrottle
 from blog.models import BlogPost
 from catalog.models import Plan, Product
@@ -295,7 +293,6 @@ class CustomerApiAuthenticationTests(APITestCase):
         )
         self.assertEqual(replay.status_code, status.HTTP_401_UNAUTHORIZED)
 
-
 class TokenLoginFailureCounterTests(APITestCase):
     def setUp(self):
         self.customer = Customer.objects.create_user(
@@ -363,7 +360,6 @@ class TokenLoginFailureCounterTests(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
         self.assertIn("Retry-After", response)
-
 
 
 class TokenLoginFailureAtomicityTests(TransactionTestCase):
