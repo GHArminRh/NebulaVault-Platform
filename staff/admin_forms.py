@@ -43,6 +43,8 @@ class AdminTurnstileAuthenticationForm(AdminAuthenticationForm):
                 self._configure_methods(staff_user)
                 self.fields["username"].required = False
                 self.fields["password"].required = False
+            elif request:
+                request.session.pop(self.PENDING_SESSION_KEY, None)
         elif pending and request:
             request.session.pop(self.PENDING_SESSION_KEY, None)
 
