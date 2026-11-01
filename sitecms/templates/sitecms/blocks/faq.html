@@ -1,0 +1,18 @@
+<section class="section page-wrap nv-home-section nv-faq-section nv-cms-faq" id="about">
+  <div class="section-heading">
+    <div>
+      <div class="eyebrow">{{ value.eyebrow }}</div>
+      <h2>{{ value.title }}</h2>
+      {% if value.description %}<p>{{ value.description }}</p>{% endif %}
+    </div>
+    <span class="nv-section-index">05 / FAQ</span>
+  </div>
+  <div class="nv-faq-list">
+    {% for item in value.items %}
+      <details>
+        <summary>{{ item.question }}<span>＋</span></summary>
+        <p>{{ item.answer }}</p>
+      </details>
+    {% endfor %}
+  </div>
+</section>

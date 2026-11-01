@@ -1,6 +1,9 @@
 {% extends "portal/base.html" %}
 {% load wagtailcore_tags %}
 {% block title %}{{ page.seo_title|default:page.title }}{% endblock %}
+{% block meta_description %}{{ page.search_description|default:page.intro|default:"" }}{% endblock %}
+{% block og_title %}{{ page.seo_title|default:page.title }}{% endblock %}
+{% block og_description %}{{ page.search_description|default:page.intro|default:"" }}{% endblock %}
 {% block content %}
 <article class="section page-wrap">
   <header class="section-heading">
@@ -10,6 +13,7 @@
       {% if page.intro %}<p>{{ page.intro }}</p>{% endif %}
     </div>
   </header>
+  {% if page.sections %}{% for block in page.sections %}{% include_block block %}{% endfor %}{% endif %}
   {% if page.body %}<div class="rich-content">{{ page.body|richtext }}</div>{% endif %}
 </article>
 {% endblock %}

@@ -5,6 +5,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from sitecms.storage_config import build_default_media_storage_config
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
@@ -54,6 +56,8 @@ INSTALLED_APPS = [
     "staff.apps.StaffConfig",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
+    "wagtail.contrib.sitemaps",
+    "wagtail.contrib.settings",
     "wagtail.embeds",
     "wagtail.sites",
     "sitecms.apps.WagtailUsersAppConfig",
@@ -142,6 +146,7 @@ TEMPLATES = [
                 "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "wagtail.contrib.settings.context_processors.settings",
                 "portal.context_processors.cart_context",
                 "accounts.context_processors.turnstile",
             ],
@@ -220,30 +225,18 @@ AWS_DEFAULT_ACL = None
 AWS_QUERYSTRING_AUTH = (
     os.environ.get("AWS_QUERYSTRING_AUTH", "False").strip().lower() == "true"
 )
-MEDIA_S3_STORAGE_ENABLED = bool(
-    MEDIA_STORAGE_BACKEND == "s3"
-    and AWS_STORAGE_BUCKET_NAME
-    and AWS_ACCESS_KEY_ID
-    and AWS_SECRET_ACCESS_KEY
+DEFAULT_MEDIA_STORAGE = build_default_media_storage_config(
+    backend=MEDIA_STORAGE_BACKEND,
+    bucket_name=AWS_STORAGE_BUCKET_NAME,
+    access_key=AWS_ACCESS_KEY_ID,
+    secret_key=AWS_SECRET_ACCESS_KEY,
+    region_name=AWS_S3_REGION_NAME,
+    endpoint_url=AWS_S3_ENDPOINT_URL,
+    custom_domain=AWS_S3_CUSTOM_DOMAIN,
+    querystring_auth=AWS_QUERYSTRING_AUTH,
 )
-DEFAULT_MEDIA_STORAGE = (
-    {
-        "BACKEND": "sitecms.storage.PrivateMediaS3Storage",
-        "OPTIONS": {
-            "bucket_name": AWS_STORAGE_BUCKET_NAME,
-            "access_key": AWS_ACCESS_KEY_ID,
-            "secret_key": AWS_SECRET_ACCESS_KEY,
-            "region_name": AWS_S3_REGION_NAME,
-            "endpoint_url": AWS_S3_ENDPOINT_URL,
-            "custom_domain": AWS_S3_CUSTOM_DOMAIN,
-            "file_overwrite": False,
-            "default_acl": None,
-            "querystring_auth": AWS_QUERYSTRING_AUTH,
-        },
-    }
-    if MEDIA_S3_STORAGE_ENABLED
-    else {"BACKEND": "django.core.files.storage.FileSystemStorage"}
-)
+MEDIA_S3_STORAGE_ENABLED = MEDIA_STORAGE_BACKEND == "s3"
+
 STORAGES = {
     "default": DEFAULT_MEDIA_STORAGE,
     "staticfiles": {

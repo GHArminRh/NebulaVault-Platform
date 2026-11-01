@@ -1,0 +1,13 @@
+<section class="section page-wrap nv-home-section nv-cms-block nv-cms-cards">
+  <div class="nv-feature-grid">
+    {% for card in value %}
+      <article class="nv-feature-card">
+        <h3>{{ card.title }}</h3>
+        <p>{{ card.text }}</p>
+        {% if card.link_label and card.link_url %}
+          <a href="{{ card.link_url }}">{{ card.link_label }} <span>↗</span></a>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+</section>

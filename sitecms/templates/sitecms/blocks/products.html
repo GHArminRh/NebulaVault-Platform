@@ -1,0 +1,36 @@
+<section class="section page-wrap nv-home-section" id="products">
+  <div class="section-heading">
+    <div>
+      <div class="eyebrow">{{ value.eyebrow }}</div>
+      <h2>{{ value.title }}</h2>
+      {% if value.description %}<p>{{ value.description }}</p>{% endif %}
+    </div>
+    <span class="nv-section-index">01 / PRODUCTS</span>
+  </div>
+  {% if products %}
+    <div class="product-grid nv-home-product-grid">
+      {% for product in products %}
+        <article class="product-card nv-product-card">
+          <div class="nv-product-topline">
+            <span class="product-icon product-icon-{{ forloop.counter }}">◈</span>
+            <span class="nv-product-index">NV · 0{{ forloop.counter }}</span>
+          </div>
+          <h3>{{ product.name }}</h3>
+          <p>{{ product.description|striptags|default:"ابزاری سنجیده برای ساده‌تر کردن کارهای دیجیتال شما."|truncatewords:25 }}</p>
+          <div class="nv-product-meta">
+            <span class="pill pill-live"><i></i> آماده‌ی بررسی</span>
+            <span>{{ product.plans.all|length }} طرح</span>
+          </div>
+          <a class="nv-card-link" href="{% url 'portal:product_detail' product.slug %}">بررسی محصول <span>↗</span></a>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <span class="empty-symbol">◈</span>
+      <h3>محصول بعدی از اینجا شروع می‌شود.</h3>
+      <p>محصولات پس از انتشار توسط تیم در این بخش نمایش داده می‌شوند.</p>
+      {% if user.is_staff %}<a class="button button-primary" href="/admin/">مدیریت محصولات ↗</a>{% endif %}
+    </div>
+  {% endif %}
+</section>

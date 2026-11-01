@@ -1,0 +1,8 @@
+<section class="nv-proof-strip nv-cms-proof-strip">
+  <div class="page-wrap nv-proof-inner">
+    <span>{{ value.title|default:"یک تجربه‌ی یکپارچه" }}</span>
+    {% for item in value.items %}
+      <span><b>{{ item.number }}</b> {{ item.label }}</span>
+    {% endfor %}
+  </div>
+</section>

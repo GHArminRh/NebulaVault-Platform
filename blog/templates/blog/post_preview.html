@@ -1,0 +1,22 @@
+{% extends "portal/base.html" %}
+{% load static %}
+{% block title %}پیش‌نمایش: {{ object.seo_title|default:object.title }}{% endblock %}
+{% block blog_css %}
+  <link rel="stylesheet" href="{% static 'portal/css/blog.css' %}">
+{% endblock %}
+{% block content %}
+  <article class="nv-article page-wrap">
+    <header class="nv-article-header">
+      <div class="eyebrow">پیش‌نمایش مقاله · فقط مدیران</div>
+      <h1>{{ object.title }}</h1>
+      {% if object.excerpt %}<p class="nv-article-excerpt">{{ object.excerpt }}</p>{% endif %}
+      {% if object.category %}<div class="nv-article-meta">{{ object.category }}</div>{% endif %}
+    </header>
+    {% if object.img %}
+      <figure class="nv-article-cover"><img src="{{ object.img.url }}" alt="{{ object.title }}"></figure>
+    {% endif %}
+    <div class="nv-article-layout">
+      <div class="nv-article-content">{{ object.content|safe }}</div>
+    </div>
+  </article>
+{% endblock %}

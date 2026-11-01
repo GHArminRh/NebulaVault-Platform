@@ -5,6 +5,9 @@ from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 from django_resized import ResizedImageField
+from modelcluster.fields import ParentalManyToManyField
+from modelcluster.models import ClusterableModel
+from wagtail.models import DraftStateMixin, PreviewableMixin, RevisionMixin
 
 from accounts.models import Customer
 from catalog.rich_text import clean_rich_text
@@ -25,7 +28,7 @@ class Tag(models.Model):
         return self.name
 
 
-class BlogPost(models.Model):
+class BlogPost(DraftStateMixin, RevisionMixin, PreviewableMixin, ClusterableModel):
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
         PUBLISHED = "published", "Published"
@@ -47,7 +50,8 @@ class BlogPost(models.Model):
         blank=True,
     )
     category = models.CharField(max_length=80, blank=True, db_index=True)
-    tags = models.ManyToManyField(Tag, blank=True, related_name="posts")
+    tags = ParentalManyToManyField(Tag, blank=True, related_name="posts")
+    live = models.BooleanField(default=False, editable=False)
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.DRAFT, db_index=True)
     is_featured = models.BooleanField(default=False, db_index=True)
     seo_title = models.CharField(max_length=220, blank=True)
@@ -92,6 +96,48 @@ class BlogPost(models.Model):
         from re import sub
         words = len(sub(r"\\s+", " ", unescape(sub(r"<[^>]+>", " ", self.content))).split())
         return max(1, (words + 199) // 200)
+
+    def get_preview_template(self, request, mode_name):
+        return "blog/post_preview.html"
+
+    def publish(
+        self,
+        revision,
+        user=None,
+        changed=True,
+        log_action=True,
+        previous_revision=None,
+        skip_permission_checks=False,
+    ):
+        result = super().publish(
+            revision,
+            user=user,
+            changed=changed,
+            log_action=log_action,
+            previous_revision=previous_revision,
+            skip_permission_checks=skip_permission_checks,
+        )
+        self.refresh_from_db()
+        if self.status != self.Status.PUBLISHED or not self.published_at:
+            self.status = self.Status.PUBLISHED
+            if not self.published_at:
+                self.published_at = timezone.now()
+            self.save(update_fields=["status", "published_at"])
+        return result
+
+    def unpublish(self, set_expired=False, commit=True, user=None, log_action=True):
+        result = super().unpublish(
+            set_expired=set_expired,
+            commit=commit,
+            user=user,
+            log_action=log_action,
+        )
+        if commit:
+            self.refresh_from_db()
+            if self.status != self.Status.DRAFT:
+                self.status = self.Status.DRAFT
+                self.save(update_fields=["status"])
+        return result
 
     def __str__(self):
         return self.title

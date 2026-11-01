@@ -1,0 +1,23 @@
+<section class="section page-wrap nv-home-section nv-cms-feature-section" id="features">
+  <div class="section-heading">
+    <div>
+      <div class="eyebrow">{{ value.eyebrow }}</div>
+      <h2>{{ value.title }}</h2>
+      {% if value.description %}<p>{{ value.description }}</p>{% endif %}
+    </div>
+    <span class="nv-section-index">03 / EXPERIENCE</span>
+  </div>
+  <div class="nv-feature-grid">
+    {% for item in value.items %}
+      <article class="nv-feature-card{% if forloop.first %} nv-feature-highlight{% endif %}">
+        <span class="nv-feature-icon">{{ item.icon|default:"◇" }}</span>
+        <span class="nv-feature-number">0{{ forloop.counter }}</span>
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.text }}</p>
+        {% if item.link_label and item.link_url %}
+          <a href="{{ item.link_url }}">{{ item.link_label }} <span>↗</span></a>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+</section>

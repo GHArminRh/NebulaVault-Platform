@@ -24,6 +24,7 @@ MANUALLY_FORMATTED_TEMPLATES = {
     "templates/portal/_cart_nav.html",
     "blog/templates/blog/post_list.html",
     "blog/templates/blog/post_detail.html",
+    "blog/templates/blog/post_preview.html",
 }
 TIMEOUT_SECONDS = 30
 
