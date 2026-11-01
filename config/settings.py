@@ -5,6 +5,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from sitecms.storage_config import build_default_media_storage_config
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
@@ -221,8 +223,6 @@ AWS_DEFAULT_ACL = None
 AWS_QUERYSTRING_AUTH = (
     os.environ.get("AWS_QUERYSTRING_AUTH", "False").strip().lower() == "true"
 )
-from sitecms.storage_config import build_default_media_storage_config
-
 DEFAULT_MEDIA_STORAGE = build_default_media_storage_config(
     backend=MEDIA_STORAGE_BACKEND,
     bucket_name=AWS_STORAGE_BUCKET_NAME,
