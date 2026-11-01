@@ -23,7 +23,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 from .forms import AccountPasswordChangeForm, AccountPasswordResetForm, AccountProfileForm, AccountSetPasswordForm, RegisterForm, StaffAccountProfileForm, VerificationResendForm
-from .models import AccountEmailLog, Customer, TwoFactorEmailChallenge
+from .models import AccountEmailLog, Customer
 from .two_factor import consume_recovery_code, decrypt_totp_secret, encrypt_totp_secret, new_totp_secret, provisioning_uri, qr_data_uri, send_email_code, store_recovery_codes, verify_email_challenge, verify_totp
 
 logger = logging.getLogger(__name__)
