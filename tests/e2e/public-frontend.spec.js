@@ -174,7 +174,7 @@ test.describe('responsive layout', () => {
             requestAnimationFrame(() => requestAnimationFrame(resolve))
           );
         });
-        await expect(page.locator('canvas.nv-starfield')).toHaveCSS('position', 'fixed');
+        await expect(page.locator('body.nv-portal')).toHaveCSS('overflow-x', 'clip');
         const dimensions = await page.evaluate(() => {
           const viewport = window.innerWidth;
           const overflowingElements = Array.from(document.querySelectorAll('*'))
