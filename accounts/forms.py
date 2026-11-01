@@ -6,7 +6,7 @@ from django.contrib.auth.password_validation import validate_password
 
 from .models import Customer
 from .turnstile import verify_turnstile
-from .two_factor import verify_totp
+from .two_factor import decrypt_totp_secret, verify_totp
 
 
 class HumanCheckMixin:
@@ -63,7 +63,7 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
                     self.inactive_email = customer.email
             raise
         customer = self.get_user()
-        if customer.two_factor_enabled and not verify_totp(customer.two_factor_secret, self.cleaned_data.get("otp_token")):
+        if customer.two_factor_enabled and not verify_totp(decrypt_totp_secret(customer.two_factor_secret), self.cleaned_data.get("otp_token")):
             self.add_error("otp_token", "کد تأیید دومرحله‌ای نامعتبر است یا وارد نشده است.")
             return self.cleaned_data
         if self.request is not None:
