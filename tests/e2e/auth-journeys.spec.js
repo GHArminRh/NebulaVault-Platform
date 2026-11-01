@@ -60,7 +60,7 @@ test.describe('authentication experience', () => {
     await expect(form.locator('input[name="remember_me"]')).toBeChecked();
 
     await form.locator('button[type="submit"]').click();
-    await expect(page).toHaveURL(/\\/dashboard\\/$/);
+    await expect(page).toHaveURL(/\/dashboard\/$/);
     await expect(page.locator('.nv-dashboard')).toBeVisible();
     await expect(page.locator('.nv-dashboard h1')).toContainText('e2e-customer');
   });
