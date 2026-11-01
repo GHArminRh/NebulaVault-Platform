@@ -461,7 +461,7 @@ def _process_two_factor_post(request, user):
             user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
             _revoke_customer_api_tokens(user)
             if not user.recovery_codes:
-                request.session["nv_new_recovery_codes"] = store_recovery_codes(user)
+                request._new_recovery_codes = store_recovery_codes(user)
             request.session.pop(_two_factor_session_key(user), None)
             messages.success(request, "تأیید با برنامه احراز هویت فعال شد.")
         else:
@@ -513,7 +513,7 @@ def _two_factor_context(request, user):
         "email_two_factor_enabled": user.email_two_factor_enabled,
         "two_factor_active": _has_two_factor(user),
         "recovery_codes_remaining": len(user.recovery_codes or []),
-        "new_recovery_codes": request.session.pop("nv_new_recovery_codes", []),
+        "new_recovery_codes": [],
     }
     if not user.two_factor_enabled:
         key = _two_factor_session_key(user)
@@ -536,6 +536,16 @@ def customer_two_factor_settings(request):
         return redirect("staff-account")
     if request.method == "POST":
         _process_two_factor_post(request, request.user)
+        new_codes = getattr(request, "_new_recovery_codes", [])
+        if new_codes:
+            response = render(
+                request,
+                "accounts/two_factor_settings.html",
+                {**_two_factor_context(request, request.user), "new_recovery_codes": new_codes},
+            )
+            response["Cache-Control"] = "no-store"
+            response["Pragma"] = "no-cache"
+            return response
         return redirect("accounts:two_factor_settings")
     return render(request, "accounts/two_factor_settings.html", _two_factor_context(request, request.user))
 
@@ -555,6 +565,20 @@ def staff_account(request):
             context["profile_form"] = form
             return render(request, "admin/staff_account.html", context)
         _process_two_factor_post(request, request.user)
+        new_codes = getattr(request, "_new_recovery_codes", [])
+        if new_codes:
+            response = render(
+                request,
+                "admin/staff_account.html",
+                {
+                    **_two_factor_context(request, request.user),
+                    "profile_form": StaffAccountProfileForm(instance=request.user),
+                    "new_recovery_codes": new_codes,
+                },
+            )
+            response["Cache-Control"] = "no-store"
+            response["Pragma"] = "no-cache"
+            return response
         return redirect("staff-account")
     return render(request, "admin/staff_account.html", {
         **_two_factor_context(request, request.user),
