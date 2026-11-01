@@ -29,7 +29,7 @@ class BlogPostWagtailEditorialTests(TestCase):
         self.assertEqual(post.latest_revision_id, revision.pk)
         self.assertTrue(post.has_unpublished_changes)
         self.assertEqual(
-            list(revision.as_object().tags.values_list("pk", flat=True)),
+            list(revision.as_object().tags.values_list("id", flat=True)),
             [tag.pk],
         )
 
