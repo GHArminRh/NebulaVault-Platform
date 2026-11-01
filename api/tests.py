@@ -1,9 +1,11 @@
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 import hashlib
 import secrets
 
 from django.contrib.auth import get_user_model
-from django.test import SimpleTestCase
+from django.db import close_old_connections
+from django.test import SimpleTestCase, TransactionTestCase
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIRequestFactory, APITestCase
@@ -361,3 +363,32 @@ class TokenLoginFailureCounterTests(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
         self.assertIn("Retry-After", response)
+
+
+
+class TokenLoginFailureAtomicityTests(TransactionTestCase):
+    reset_sequences = True
+
+    def test_concurrent_failures_are_not_lost(self):
+        from threading import Barrier
+
+        from api.login_security import record_token_login_failure
+
+        email = "parallel-lockout@example.com"
+        worker_count = 8
+        barrier = Barrier(worker_count)
+
+        def record_attempt():
+            close_old_connections()
+            try:
+                barrier.wait(timeout=10)
+                record_token_login_failure(email)
+            finally:
+                close_old_connections()
+
+        with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            list(executor.map(lambda _: record_attempt(), range(worker_count)))
+
+        record = TokenLoginFailure.objects.get()
+        self.assertEqual(record.failed_attempts, worker_count)
+        self.assertIsNotNone(record.locked_until)
