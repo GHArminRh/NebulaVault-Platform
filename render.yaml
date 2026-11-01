@@ -3,6 +3,9 @@ services:
     name: nebula-vault
     runtime: python
     plan: free
+    # Let Blueprint Auto Sync be the single deployment trigger.
+    # Disabling service-level auto-deploy prevents duplicate deploys for the same commit.
+    autoDeployTrigger: off
     buildCommand: bash build.sh
     # bootstrap_render_admin also repairs the required Django Site (SITE_ID=1).
     # Keep startup initialization in one place; do not repeat the Site update here.
