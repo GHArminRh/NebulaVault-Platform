@@ -6,6 +6,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
 
+from wagtail import urls as wagtail_urls
+from wagtail.admin import urls as wagtailadmin_urls
+from wagtail.documents import urls as wagtaildocs_urls
+
 from api.admin_pages import admin_page_required
 
 from accounts.forms import NebulaAuthenticationForm
@@ -86,6 +90,9 @@ urlpatterns = [
     path("tinymce/", include("tinymce.urls")),
     path("comment/", include("comment.urls")),
     path("blog/", include("blog.urls")),
+    path("cms/", include(wagtailadmin_urls)),
+    path("documents/", include(wagtaildocs_urls)),
+    path("pages/", include(wagtail_urls)),
     path("api/v1/", include("api.urls")),
     path("api/licensing/", include("licensing.urls")),
     path("billing/", include("billing.urls")),
