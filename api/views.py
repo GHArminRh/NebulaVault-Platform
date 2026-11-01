@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, Throttled
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
 from rest_framework.views import APIView
@@ -23,6 +23,11 @@ from subscriptions.models import Subscription
 
 from .authentication import CustomerBearerAuthentication
 from .models import CustomerAPIToken
+from .login_security import (
+    clear_token_login_failures,
+    get_token_login_lockout_seconds,
+    record_token_login_failure,
+)
 from .permissions import IsCustomer
 from .serializers import (
     BlogPostSerializer,
@@ -61,8 +66,16 @@ class TokenCreateView(APIView):
         email = credentials.validated_data["email"].strip().lower()
         password = credentials.validated_data["password"]
 
+        lockout_seconds = get_token_login_lockout_seconds(email)
+        if lockout_seconds:
+            raise Throttled(
+                wait=lockout_seconds,
+                detail="Too many failed sign-in attempts. Try again later.",
+            )
+
         customer = Customer.objects.filter(email__iexact=email).first()
         if customer is None or not customer.check_password(password):
+            record_token_login_failure(email)
             raise AuthenticationFailed("Invalid email or password.")
         if not customer.is_active or customer.is_banned:
             raise AuthenticationFailed("This account cannot access the API.")
@@ -80,8 +93,10 @@ class TokenCreateView(APIView):
                     customer, credentials.validated_data.get("recovery_code")
                 )
             if not valid_factor:
+                record_token_login_failure(email)
                 raise AuthenticationFailed("A valid two-factor or recovery code is required.")
 
+        clear_token_login_failures(email)
         raw_token = secrets.token_urlsafe(48)
         token = CustomerAPIToken.objects.create(
             customer=customer,
