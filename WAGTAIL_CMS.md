@@ -9,7 +9,7 @@ in place.
 - CMS: `/cms/`
 - Existing Django administration: `/admin/`
 - Public site: `/`
-- Wagtail-managed content pages: `/pages/`
+- Wagtail-managed content pages: their published slug at the site root (for example, `/about/`).
 
 Sign in to Wagtail with the existing active staff superuser account. The project
 keeps its existing staff login model; no second administrator account or new
@@ -37,7 +37,8 @@ it does not replace the storefront with a generic Wagtail starter theme.
 3. Enter the page title, short introduction, and body.
 4. Preview and publish.
 
-Published content pages are served below `/pages/`. The editor supports headings,
+Published content pages use their normal root-relative Wagtail URLs (for example,
+`/about/`); this keeps Wagtail previews and canonical links aligned. The editor supports headings,
 links, lists, quotes, images, documents, and approved embeds.
 
 ## Manage the existing blog
