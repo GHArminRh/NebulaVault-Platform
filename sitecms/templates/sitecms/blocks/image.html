@@ -1,0 +1,5 @@
+{% load wagtailimages_tags %}
+<figure class="section page-wrap nv-home-section nv-cms-block nv-cms-image">
+  {% image value width-1600 class="nv-cms-image__asset" %}
+  {% if value.title %}<figcaption>{{ value.title }}</figcaption>{% endif %}
+</figure>
