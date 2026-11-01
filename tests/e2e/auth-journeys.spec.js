@@ -96,10 +96,15 @@ test.describe('authentication experience', () => {
     await form.locator('input[name="password"]').fill(process.env.E2E_2FA_PASSWORD);
     await form.locator('button[type="submit"]').click();
 
-    const emailFactor = form.locator('[data-factor="email"]');
-    await expect(emailFactor).toBeVisible();
-    await expect(emailFactor.locator('button[name="send_email_code"]')).toBeVisible();
-    await emailFactor.locator('button[name="send_email_code"]').click();
+    const emailCodePanel = form
+      .locator('[data-factor="email"]')
+      .filter({ has: page.locator('input[name="email_otp_token"]') });
+    const emailRequestPanel = form
+      .locator('[data-factor="email"]')
+      .filter({ has: page.locator('button[name="send_email_code"]') });
+    await expect(emailCodePanel).toBeVisible();
+    await expect(emailRequestPanel).toBeVisible();
+    await emailRequestPanel.locator('button[name="send_email_code"]').click();
     await expect(form.locator('input[name="email_otp_token"]')).toBeVisible();
   });
 
