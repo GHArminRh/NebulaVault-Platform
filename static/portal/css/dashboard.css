@@ -70,3 +70,7 @@ html body.nv-portal.nv-dashboard-page .nv-license-key-input {
     width: 100%;
   }
 }
+
+
+.nv-account-shortcuts{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:12px;font-size:12px}
+.nv-account-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid rgba(110,150,255,.45)}
