@@ -412,14 +412,14 @@ def _process_two_factor_post(request, user):
     action = request.POST.get("security_action")
     if action == "enable_two_factor":
         secret = request.session.get(_two_factor_session_key(user), "")
-        if secret and verify_totp(secret, request.POST.get("otp_token")):
+        if user.check_password(request.POST.get("current_password", "")) and secret and verify_totp(secret, request.POST.get("otp_token")):
             user.two_factor_secret = encrypt_totp_secret(secret)
             user.two_factor_enabled = True
             user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
             request.session.pop(_two_factor_session_key(user), None)
             messages.success(request, "تأیید دومرحله‌ای با موفقیت فعال شد.")
         else:
-            messages.error(request, "کد برنامه احراز هویت معتبر نیست؛ ساعت دستگاه را بررسی و دوباره تلاش کنید.")
+            messages.error(request, "رمز عبور یا کد برنامه احراز هویت معتبر نیست؛ دوباره تلاش کنید.")
     elif action == "disable_two_factor":
         password = request.POST.get("current_password", "")
         if user.check_password(password) and verify_totp(decrypt_totp_secret(user.two_factor_secret), request.POST.get("otp_token")):
