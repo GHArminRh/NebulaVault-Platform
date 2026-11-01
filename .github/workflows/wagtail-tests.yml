@@ -11,6 +11,7 @@ on:
       - "config/**"
       - "portal/**"
       - "templates/portal/home.html"
+      - "templates/portal/base.html"
       - "requirements.txt"
       - ".github/workflows/wagtail-tests.yml"
   pull_request:
@@ -67,7 +68,7 @@ jobs:
         run: |
           python manage.py shell --settings=config.settings <<'PY'
           from django.contrib.contenttypes.models import ContentType
-          from sitecms.models import HomePage
+          from sitecms.models import HomePage, SiteChromeSettings
           from wagtail.models import Page, Site
           homepage = HomePage.objects.get(slug="home")
           assert homepage.path == "00010001" and homepage.depth == 2
@@ -76,7 +77,10 @@ jobs:
           assert Page.objects.get(depth=1).numchild >= 1
           block_types = {block.block_type for block in homepage.sections}
           assert {"proof_strip", "product_listing", "feature_grid", "blog_listing", "release_listing", "faq", "call_to_action"} <= block_types
-          print("Wagtail homepage and seeded editorial sections verified")
+          chrome = SiteChromeSettings.objects.get(site=Site.objects.get(is_default_site=True))
+          assert len(chrome.header_links) == 6
+          assert len(chrome.footer_links) == 4
+          print("Wagtail homepage, editorial sections and site chrome verified")
           PY
       - name: Check model and migration consistency
         run: python manage.py makemigrations --check --dry-run --settings=config.test_settings
