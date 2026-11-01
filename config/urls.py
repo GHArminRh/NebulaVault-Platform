@@ -92,7 +92,6 @@ urlpatterns = [
     path("blog/", include("blog.urls")),
     path("cms/", include(wagtailadmin_urls)),
     path("documents/", include(wagtaildocs_urls)),
-    path("pages/", include(wagtail_urls)),
     path("api/v1/", include("api.urls")),
     path("api/licensing/", include("licensing.urls")),
     path("billing/", include("billing.urls")),
@@ -107,6 +106,8 @@ urlpatterns = [
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("accounts/", include("accounts.urls")),
     path("", include("portal.urls")),
+    # Keep Wagtail last so explicit storefront, account, blog, and API routes win.
+    path("", include(wagtail_urls)),
 ]
 
 if settings.DEBUG:
