@@ -637,8 +637,11 @@ class CanonicalSiteURLTests(TestCase):
         from django.core.management import call_command
 
         call_command("bootstrap_render_admin", verbosity=0)
-        site = Site.objects.get(pk=settings.SITE_ID)
-        self.assertEqual(site.domain, "cms.example.test:8443")
+        django_site = __import__("django.contrib.sites.models", fromlist=["Site"]).Site.objects.get(pk=settings.SITE_ID)
+        self.assertEqual(django_site.domain, "cms.example.test:8443")
+        wagtail_site = Site.objects.get(is_default_site=True)
+        self.assertEqual(wagtail_site.hostname, "cms.example.test")
+        self.assertEqual(wagtail_site.port, 8443)
 
     def test_wagtail_admin_base_url_uses_canonical_site_setting(self):
         self.assertEqual(settings.WAGTAILADMIN_BASE_URL, settings.SITE_BASE_URL)
