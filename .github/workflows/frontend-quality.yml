@@ -39,6 +39,13 @@ jobs:
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
           npm ci --no-audit --no-fund
 
+      - name: Preview formatted split JavaScript
+        run: |
+          echo '<<<FORMATTED_SITE_JS>>>'
+          npx prettier static/portal/js/site.js
+          echo '<<<FORMATTED_SECTION_NAVIGATION_JS>>>'
+          npx prettier static/portal/js/section-navigation.js
+
       - name: Check CSS, JavaScript, and tooling formatting
         run: npm run check:assets
 
