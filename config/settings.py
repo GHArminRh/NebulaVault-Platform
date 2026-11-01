@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
@@ -212,19 +213,54 @@ MEDIA_STORAGE_BACKEND = os.environ.get(
 AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME", "").strip()
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "").strip()
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
-AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", "").strip() or None
 AWS_S3_ENDPOINT_URL = os.environ.get("AWS_S3_ENDPOINT_URL", "").strip() or None
 AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_S3_CUSTOM_DOMAIN", "").strip() or None
+AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", "").strip() or (
+    "auto"
+    if AWS_S3_ENDPOINT_URL and ".r2.cloudflarestorage.com" in AWS_S3_ENDPOINT_URL
+    else None
+)
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
 AWS_QUERYSTRING_AUTH = (
     os.environ.get("AWS_QUERYSTRING_AUTH", "False").strip().lower() == "true"
 )
+
+# Fail closed when external storage is explicitly requested but not configured.
+# Falling back silently to local storage on Render can make uploads disappear
+# after a restart or deploy.
+MEDIA_S3_REQUIRED_SETTINGS = {
+    "AWS_STORAGE_BUCKET_NAME": AWS_STORAGE_BUCKET_NAME,
+    "AWS_ACCESS_KEY_ID": AWS_ACCESS_KEY_ID,
+    "AWS_SECRET_ACCESS_KEY": AWS_SECRET_ACCESS_KEY,
+}
+_missing_media_s3_settings = [
+    name for name, value in MEDIA_S3_REQUIRED_SETTINGS.items() if not value
+]
+if MEDIA_STORAGE_BACKEND == "s3" and _missing_media_s3_settings:
+    raise ImproperlyConfigured(
+        "MEDIA_STORAGE_BACKEND=s3 requires: "
+        + ", ".join(_missing_media_s3_settings)
+    )
+
+IS_CLOUDFLARE_R2 = bool(
+    AWS_S3_ENDPOINT_URL and ".r2.cloudflarestorage.com" in AWS_S3_ENDPOINT_URL
+)
+if (
+    MEDIA_STORAGE_BACKEND == "s3"
+    and IS_CLOUDFLARE_R2
+    and not AWS_S3_CUSTOM_DOMAIN
+    and not AWS_QUERYSTRING_AUTH
+):
+    raise ImproperlyConfigured(
+        "Cloudflare R2 media must use a public custom domain when "
+        "AWS_QUERYSTRING_AUTH=False. Configure AWS_S3_CUSTOM_DOMAIN or "
+        "enable signed URLs with AWS_QUERYSTRING_AUTH=True."
+    )
+
 MEDIA_S3_STORAGE_ENABLED = bool(
     MEDIA_STORAGE_BACKEND == "s3"
-    and AWS_STORAGE_BUCKET_NAME
-    and AWS_ACCESS_KEY_ID
-    and AWS_SECRET_ACCESS_KEY
+    and not _missing_media_s3_settings
 )
 DEFAULT_MEDIA_STORAGE = (
     {
