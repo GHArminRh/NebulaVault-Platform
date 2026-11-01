@@ -121,6 +121,23 @@ class WagtailIntegrationTests(TestCase):
             StaffCollectionOwnershipPermissionPolicy,
         )
 
+    def test_active_staff_superuser_can_open_homepage_editor(self):
+        User = get_user_model()
+        admin_user = User.objects.create_superuser(
+            username="wagtail-admin",
+            email="wagtail-admin@example.invalid",
+            password="test-password-only",
+        )
+        self.client.force_login(admin_user)
+
+        homepage = HomePage.objects.get(slug="home")
+        response = self.client.get(
+            reverse("wagtailadmin_pages:edit", args=(homepage.pk,))
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "hero_title")
+        self.assertContains(response, "hero_description")
+
     def test_wagtail_admin_login_route_is_available(self):
         response = self.client.get(reverse("wagtailadmin_login"))
         self.assertEqual(response.status_code, 200)
