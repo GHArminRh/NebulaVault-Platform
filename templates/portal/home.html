@@ -1,9 +1,33 @@
 {% extends "portal/base.html" %}
 {% load money static wagtailcore_tags %}
-{% block title %}{% if cms_homepage %}{{ cms_homepage.seo_title|default:cms_homepage.title }}{% else %}نبیولا والت — یک فضای یکپارچه برای دنیای دیجیتال شما{% endif %}{% endblock %}
-{% block meta_description %}{% if cms_homepage %}{{ cms_homepage.search_description|default:cms_homepage.hero_description|default:"پلتفرم امن نرم‌افزار نبیولا والت" }}{% else %}پلتفرم امن نرم‌افزار نبیولا والت{% endif %}{% endblock %}
-{% block og_title %}{% if cms_homepage %}{{ cms_homepage.seo_title|default:cms_homepage.title }}{% else %}نبیولا والت{% endif %}{% endblock %}
-{% block og_description %}{% if cms_homepage %}{{ cms_homepage.search_description|default:cms_homepage.hero_description|default:"پلتفرم امن نرم‌افزار نبیولا والت" }}{% else %}پلتفرم امن نرم‌افزار نبیولا والت{% endif %}{% endblock %}
+{% block title %}
+  {% if cms_homepage %}
+    {{ cms_homepage.seo_title|default:cms_homepage.title }}
+  {% else %}
+    نبیولا والت — یک فضای یکپارچه برای دنیای دیجیتال شما
+  {% endif %}
+{% endblock %}
+{% block meta_description %}
+  {% if cms_homepage %}
+    {{ cms_homepage.search_description|default:cms_homepage.hero_description|default:"پلتفرم امن نرم‌افزار نبیولا والت" }}
+  {% else %}
+    پلتفرم امن نرم‌افزار نبیولا والت
+  {% endif %}
+{% endblock %}
+{% block og_title %}
+  {% if cms_homepage %}
+    {{ cms_homepage.seo_title|default:cms_homepage.title }}
+  {% else %}
+    نبیولا والت
+  {% endif %}
+{% endblock %}
+{% block og_description %}
+  {% if cms_homepage %}
+    {{ cms_homepage.search_description|default:cms_homepage.hero_description|default:"پلتفرم امن نرم‌افزار نبیولا والت" }}
+  {% else %}
+    پلتفرم امن نرم‌افزار نبیولا والت
+  {% endif %}
+{% endblock %}
 {% block blog_css %}
   <link rel="stylesheet" href="{% static 'portal/css/blog.css' %}">
 {% endblock %}
@@ -39,7 +63,9 @@
     <a class="nv-scroll-cue" href="#products"><span></span> برای کشف بیشتر اسکرول کنید</a>
   </section>
   {% if cms_homepage and cms_homepage.sections %}
-    {% for block in cms_homepage.sections %}{% include_block block %}{% endfor %}
+    {% for block in cms_homepage.sections %}
+      {% include_block block %}
+    {% endfor %}
   {% endif %}
   {% if cms_homepage and cms_homepage.body %}
     <section class="section page-wrap nv-home-section nv-cms-home-body">
