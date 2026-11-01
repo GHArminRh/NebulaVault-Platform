@@ -9,7 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       form.dataset.submitting = 'true';
       form.setAttribute('aria-busy', 'true');
-      const submitter = event.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
+      const submitter =
+        event.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
       if (!submitter) return;
       // Preserve the clicked submit button's name/value before disabling it.
       if (submitter.name && submitter.value) {
