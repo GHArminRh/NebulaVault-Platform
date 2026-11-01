@@ -107,6 +107,12 @@
               <span class="nv-kicker">مدیریت حساب</span>
               <h2>تنظیمات حساب</h2>
               <p>مشخصات و امنیت حسابت را در هر زمان مدیریت کن.</p>
+              <div class="nv-account-shortcuts">
+                {% if user.avatar %}<img src="{{ user.avatar.url }}" alt="تصویر نمایه" class="nv-account-avatar">{% endif %}
+                <a class="text-link" href="{% url 'accounts:profile' %}">تغییر تصویر و اطلاعات حساب ↗</a>
+                <span>·</span>
+                <a class="text-link" href="{% url 'accounts:two_factor_settings' %}">تنظیم تأیید دومرحله‌ای ↗</a>
+              </div>
             </div>
             <div class="nv-secure-mark">◇ <span>حساب امن</span></div>
           </div>
