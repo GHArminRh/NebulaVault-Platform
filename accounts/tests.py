@@ -386,13 +386,14 @@ class AccountBackendTests(TestCase):
         self.assertRedirects(response, reverse("accounts:two_factor_settings"))
         self.user.refresh_from_db()
         self.assertTrue(self.user.two_factor_enabled)
-        self.assertEqual(self.user.two_factor_secret, secret)
+        from accounts.two_factor import decrypt_totp_secret
+        self.assertEqual(decrypt_totp_secret(self.user.two_factor_secret), secret)
 
     def test_customer_two_factor_is_required_during_login(self):
         import pyotp
 
         secret = pyotp.random_base32()
-        self.user.two_factor_secret = secret
+        self.user.two_factor_secret = __import__("accounts.two_factor", fromlist=["encrypt_totp_secret"]).encrypt_totp_secret(secret)
         self.user.two_factor_enabled = True
         self.user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
         response = self.client.post(
@@ -444,7 +445,7 @@ class AccountBackendTests(TestCase):
             password="Secure-admin-password-2026!",
         )
         secret = pyotp.random_base32()
-        staff.two_factor_secret = secret
+        staff.two_factor_secret = __import__("accounts.two_factor", fromlist=["encrypt_totp_secret"]).encrypt_totp_secret(secret)
         staff.two_factor_enabled = True
         staff.save(update_fields=["two_factor_secret", "two_factor_enabled"])
         response = self.client.post(
@@ -466,3 +467,8 @@ class AccountBackendTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Profile photo and details")
         self.assertContains(response, "Two-factor authentication")
+
+    def test_admin_login_remember_me_is_checked_by_default(self):
+        response = self.client.get("/admin/login/")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["form"]["remember_me"].value())
