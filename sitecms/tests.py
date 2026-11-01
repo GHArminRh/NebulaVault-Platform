@@ -168,8 +168,13 @@ class WagtailIntegrationTests(TestCase):
                 permission=permission,
             ).exists()
         )
+        standard_permission = Permission.objects.get(
+            content_type=ContentType.objects.get_for_model(Group),
+            codename="view_group",
+        )
+        group.permissions.add(standard_permission)
         self.assertIn(
-            f"{permission.content_type.app_label}.{permission.codename}",
+            f"{standard_permission.content_type.app_label}.{standard_permission.codename}",
             WagtailGroupPermissionsBackend().get_group_permissions(user),
         )
         page_policy = StaffPagePermissionPolicy()
@@ -222,5 +227,15 @@ class WagtailIntegrationTests(TestCase):
                 permission=permission,
             )
             model_policy = policy_registry.get_by_type(model)
-            self.assertTrue(model_policy.user_has_permission(user, "add"))
+            diagnostic = (
+                f"model={model._meta.label_lower}; "
+                f"auth_model={model_policy.auth_model._meta.label_lower}; "
+                f"authenticated={user.is_authenticated}; active={user.is_active}; "
+                f"wagtail_groups={list(user.wagtail_groups.values_list('name', flat=True))}; "
+                f"expected_codename={action}; "
+                f"policy_codenames={model_policy._get_permission_codenames({'add'})}; "
+                f"loaded_permissions={list(model_policy.get_all_permissions_for_user(user).values_list('permission__codename', flat=True))}; "
+                f"stored_permissions={list(GroupCollectionPermission.objects.filter(group__in=user.wagtail_groups.all()).values_list('permission__codename', flat=True))}"
+            )
+            self.assertTrue(model_policy.user_has_permission(user, "add"), diagnostic)
             self.assertIn(user, model_policy.users_with_any_permission({"add"}))
