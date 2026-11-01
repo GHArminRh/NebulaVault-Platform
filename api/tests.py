@@ -82,6 +82,8 @@ class PublicApiTests(APITestCase):
 
 class CustomerApiAuthenticationTests(APITestCase):
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         self.customer = Customer.objects.create_user(
             email="customer@example.com",
             password="Strong-password-123!",
