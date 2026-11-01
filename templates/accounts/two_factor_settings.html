@@ -26,6 +26,7 @@
       <code class="totp-secret" dir="ltr">{{ two_factor_secret }}</code>
       <form method="post" class="form-stack auth-form-premium">
         {% csrf_token %}<input type="hidden" name="security_action" value="enable_two_factor">
+        <label for="id_current_password">رمز عبور فعلی</label><input id="id_current_password" name="current_password" type="password" autocomplete="current-password" required>
         <label for="id_otp_token">کد ۶ رقمی برنامه احراز هویت</label><input id="id_otp_token" name="otp_token" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
         <button class="button button-primary button-full button-large" type="submit">تأیید و فعال‌سازی</button>
       </form>
