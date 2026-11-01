@@ -52,6 +52,20 @@ INSTALLED_APPS = [
     "dj_error_panel",
     "dj_control_room",
     "staff.apps.StaffConfig",
+    "sitecms.apps.SiteCMSConfig",
+    "wagtail.contrib.forms",
+    "wagtail.contrib.redirects",
+    "wagtail.embeds",
+    "wagtail.sites",
+    "sitecms.apps.WagtailUsersAppConfig",
+    "wagtail.snippets",
+    "wagtail.documents",
+    "wagtail.images",
+    "wagtail.search",
+    "wagtail.admin",
+    "wagtail",
+    "modelcluster",
+    "taggit",
     "import_export",
     "rest_framework",
     "django_filters",
@@ -97,6 +111,7 @@ AUTH_USER_MODEL = "staff.StaffUser"
 AUTHENTICATION_BACKENDS = [
     "accounts.backends.CustomerAuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
+    "accounts.backends.WagtailGroupPermissionsBackend",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -105,6 +120,7 @@ MIDDLEWARE = [
     "django.middleware.locale.LocaleMiddleware",
     "portal.middleware.InterfaceLanguageMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     # This layer then resolves the active UUID-backed staff/customer identity.
@@ -166,6 +182,19 @@ LANGUAGE_CODE = "fa"
 SITE_ID = 1
 X_FRAME_OPTIONS = "SAMEORIGIN"
 LANGUAGES = [("en", "English"), ("fa", "Persian")]
+
+# Wagtail CMS configuration. The existing Django admin remains on /admin/.
+WAGTAIL_SITE_NAME = "Nebula Vault"
+WAGTAILADMIN_BASE_URL = os.environ.get(
+    "WAGTAILADMIN_BASE_URL", "https://mydigigi.ir"
+).strip()
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10_000
+WAGTAILDOCS_EXTENSIONS = [
+    "csv", "docx", "key", "odt", "pdf", "pptx", "rtf", "txt", "xlsx", "zip"
+]
+WAGTAILSEARCH_BACKENDS = {
+    "default": {"BACKEND": "wagtail.search.backends.database"}
+}
 TIME_ZONE = "Asia/Tehran"
 USE_I18N = True
 USE_TZ = True
