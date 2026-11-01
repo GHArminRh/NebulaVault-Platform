@@ -33,7 +33,7 @@
   gap: 8px;
 }
 
-html body.nv-portal.nv-dashboard-page .nv-license-key-input{
+html body.nv-portal.nv-dashboard-page .nv-license-key-input {
   flex: 1;
   min-width: 260px;
   max-width: 100%;

@@ -345,7 +345,7 @@
   flex-wrap: wrap;
   margin-top: 12px;
 }
-html body.nv-portal .nv-comment-spoiler{
+html body.nv-portal .nv-comment-spoiler {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -538,7 +538,7 @@ html body.nv-portal .nv-comment-spoiler{
   color: #8997b7;
   font-size: 11px;
 }
-html body.nv-portal .nv-blog-tag{
+html body.nv-portal .nv-blog-tag {
   display: inline-flex;
   align-items: center;
   padding: 5px 10px;

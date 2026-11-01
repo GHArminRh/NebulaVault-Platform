@@ -1030,7 +1030,7 @@ button {
   font-size: 10px;
   color: #7785a3;
 }
-html body.nv-portal .stat-word{
+html body.nv-portal .stat-word {
   font-size: 23px;
   color: #88e5bd;
 }
@@ -2085,7 +2085,7 @@ html[dir='rtl'] .password-toggle {
   font-size: 10px;
   color: #b6adff;
 }
-html body.nv-portal .human-check{
+html body.nv-portal .human-check {
   position: relative;
   display: flex;
   align-items: center;
@@ -2196,7 +2196,7 @@ html body.nv-portal .human-check{
 .auth-register-card .auth-form-premium input:not([type='checkbox']) {
   min-height: 41px;
 }
-html body.nv-portal .auth-register-card .human-check{
+html body.nv-portal .auth-register-card .human-check {
   min-height: 54px;
   margin-top: 8px;
 }
@@ -2787,7 +2787,7 @@ html[dir='rtl'] .nv-field input {
 }
 
 /* Shopping cart and demo checkout */
-html body.nv-portal .cart-nav-link{
+html body.nv-portal .cart-nav-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -3184,7 +3184,7 @@ body.nv-portal {
 }
 
 /* Keep the home hero headline gradient consistent across supported browsers. */
-html body.nv-portal .nv-home-hero .nv-hero-copy h1 > .gradient-text{
+html body.nv-portal .nv-home-hero .nv-hero-copy h1 > .gradient-text {
   display: inline-block;
   background-image: linear-gradient(100deg, #b8aaff 8%, #8cdde9 95%);
   background-clip: text;
