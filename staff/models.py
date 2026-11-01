@@ -35,7 +35,7 @@ class StaffUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     avatar = models.ImageField(upload_to=avatar_upload_to, blank=True, validators=[validate_avatar_size])
     two_factor_enabled = models.BooleanField(default=False)
-    two_factor_secret = models.CharField(max_length=32, blank=True, editable=False)
+    two_factor_secret = models.CharField(max_length=255, blank=True, editable=False)
     groups = models.ManyToManyField(
         Group,
         blank=True,
