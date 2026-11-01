@@ -3,8 +3,9 @@ from django.db import connection
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.test import TestCase, override_settings
 from unittest.mock import patch
+
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from accounts.backends import WagtailGroupPermissionsBackend
@@ -486,8 +487,9 @@ class WagtailIntegrationTests(TestCase):
             self.assertIn(user, model_policy.users_with_any_permission({"add"}))
 
 
-
-@override_settings(WAGTAIL_CRON_SECRET="test-wagtail-cron-secret-that-is-long-enough-123456")
+@override_settings(
+    WAGTAIL_CRON_SECRET="test-wagtail-cron-secret-that-is-long-enough-123456"
+)
 class ScheduledPublishingEndpointTests(TestCase):
     def setUp(self):
         self.url = reverse("wagtail-publish-scheduled")
