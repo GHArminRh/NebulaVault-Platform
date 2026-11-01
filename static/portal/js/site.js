@@ -1,4 +1,54 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Give every POST form an immediate, accessible loading state. The browser
+  // continues the native submission; only the initiating submit control is locked.
+  document.querySelectorAll('form[method="post"], form[method="POST"]').forEach((form) => {
+    form.addEventListener('submit', (event) => {
+      if (form.dataset.submitting === 'true') {
+        event.preventDefault();
+        return;
+      }
+      form.dataset.submitting = 'true';
+      form.setAttribute('aria-busy', 'true');
+      const submitter = event.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
+      if (!submitter) return;
+      submitter.classList.add('is-loading');
+      submitter.setAttribute('aria-disabled', 'true');
+      submitter.disabled = true;
+      if (submitter.tagName === 'BUTTON') {
+        const spinner = document.createElement('span');
+        spinner.className = 'nv-button-spinner';
+        spinner.setAttribute('aria-hidden', 'true');
+        submitter.append(spinner);
+      } else {
+        submitter.dataset.originalValue = submitter.value;
+        submitter.value = 'در حال پردازش…';
+      }
+      form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((control) => {
+        if (control !== submitter) control.disabled = true;
+      });
+    });
+  });
+
+  // Reveal only the field belonging to the selected second-factor method.
+  document.querySelectorAll('form').forEach((form) => {
+    const selector = form.querySelector('[name="two_factor_method"]');
+    const panels = form.querySelectorAll('[data-factor]');
+    if (!selector || !panels.length) return;
+    const updateFactorPanel = () => {
+      const selected = selector.value;
+      panels.forEach((panel) => {
+        const active = panel.dataset.factor === selected;
+        panel.hidden = !active;
+        panel.querySelectorAll('input').forEach((input) => {
+          input.disabled = !active;
+          input.required = active && input.name !== 'email_otp_token';
+        });
+      });
+    };
+    selector.addEventListener('change', updateFactorPanel);
+    updateFactorPanel();
+  });
+
   // Page-load progress: animate with requestAnimationFrame and stop cleanly at 91%
   // until the browser confirms the load event. Keep the tip synchronized with the track.
   const progress = document.querySelector('.nv-page-progress');
