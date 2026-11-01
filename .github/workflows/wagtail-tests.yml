@@ -5,6 +5,10 @@ on:
     branches: [feat/wagtail-cms-integration, deploy/render-ready, "feat/wagtail-cms-completion"]
     paths:
       - "sitecms/**"
+      - "blog/**"
+      - "templates/blog/**"
+      - "blog/**"
+      - "templates/blog/**"
       - "templates/portal/base.html"
       - "config/urls.py"
       - "blog/wagtail_hooks.py"
@@ -76,9 +80,11 @@ jobs:
           assert homepage.content_type_id == ContentType.objects.get_for_model(HomePage).pk
           assert Site.objects.get(is_default_site=True).root_page_id == homepage.pk
           assert Page.objects.get(depth=1).numchild >= 1
-          print("Wagtail homepage migration verified")
+          block_types = {block["type"] for block in homepage.sections}
+          assert {"proof_strip", "feature_grid", "faq", "call_to_action"} <= block_types
+          print("Wagtail homepage and seeded editorial sections verified")
           PY
       - name: Check model and migration consistency
         run: python manage.py makemigrations --check --dry-run --settings=config.test_settings
       - name: Run Wagtail integration tests
-        run: python manage.py test sitecms --settings=config.test_settings --verbosity=2
+        run: python manage.py test sitecms blog --settings=config.test_settings --verbosity=2
