@@ -19,7 +19,7 @@ from wagtail.models import (
 )
 
 from .forms import CMSUserCreationForm, CMSUserEditForm
-from .models import ContentPage, HomePage
+from .models import ContentPage, HomePage, SiteChromeSettings
 from .storage_config import build_default_media_storage_config
 from django.core.exceptions import ImproperlyConfigured
 from .viewsets import CMSUserFilterSet
@@ -156,6 +156,50 @@ class WagtailIntegrationTests(TestCase):
             "sitecms.storage.PrivateMediaS3Storage",
         )
         self.assertIsNone(configured["OPTIONS"]["default_acl"])
+
+    def test_site_chrome_settings_control_header_and_footer(self):
+        site = Site.objects.get(is_default_site=True)
+        chrome = SiteChromeSettings.for_site(site)
+        chrome.brand_title = "برند قابل ویرایش"
+        chrome.brand_subtitle = "زیرعنوان قابل ویرایش"
+        chrome.header_links = [
+            (
+                "link",
+                {
+                    "label": "پیوند سربرگ آزمایشی",
+                    "url": "/header-test/",
+                    "open_in_new_tab": False,
+                },
+            )
+        ]
+        chrome.footer_description = "توضیحات پابرگ آزمایشی"
+        chrome.footer_note = "یادداشت پابرگ آزمایشی"
+        chrome.footer_copyright = "© متن حق نشر آزمایشی"
+        chrome.footer_links = [
+            (
+                "link",
+                {
+                    "label": "پیوند پابرگ آزمایشی",
+                    "url": "/footer-test/",
+                    "open_in_new_tab": False,
+                },
+            )
+        ]
+        chrome.show_install_button = False
+        chrome.save()
+
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "برند قابل ویرایش")
+        self.assertContains(response, "زیرعنوان قابل ویرایش")
+        self.assertContains(response, 'href="/header-test/"')
+        self.assertContains(response, "پیوند سربرگ آزمایشی")
+        self.assertContains(response, "توضیحات پابرگ آزمایشی")
+        self.assertContains(response, "یادداشت پابرگ آزمایشی")
+        self.assertContains(response, "© متن حق نشر آزمایشی")
+        self.assertContains(response, 'href="/footer-test/"')
+        self.assertContains(response, "پیوند پابرگ آزمایشی")
+        self.assertNotContains(response, 'id="nv-install-app"')
 
     def test_homepage_feature_faq_and_proof_sections_are_editorial(self):
         homepage = HomePage.objects.get(slug="home")
