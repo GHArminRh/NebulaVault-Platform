@@ -126,7 +126,7 @@ test.describe('public frontend smoke checks', () => {
     test(`${route.name} route renders without a server error`, async ({ page }) => {
       const pageErrors = [];
       const failedLocalAssets = [];
-      const baseURL = new URL(process.env.PLAYWRIGHT_BASE_URL || 'https://mydigigi.ir');
+      const baseURL = new URL(page.url());
 
       page.on('pageerror', (error) => pageErrors.push(error.message));
       page.on('response', (response) => {
@@ -215,7 +215,7 @@ test.describe('accessibility', () => {
       await page.goto(route.path, { waitUntil: 'domcontentloaded' });
 
       const results = await new AxeBuilder({ page })
-        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
         .analyze();
       const blocking = results.violations.filter((violation) =>
         ['critical', 'serious'].includes(violation.impact || '')
