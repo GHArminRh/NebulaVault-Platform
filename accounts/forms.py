@@ -196,3 +196,6 @@ class StaffAccountProfileForm(forms.ModelForm):
             "email": "Email address",
             "avatar": "Profile photo",
         }
+        widgets = {
+            "avatar": forms.ClearableFileInput(attrs={"accept": "image/jpeg,image/png,image/webp"}),
+        }
