@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
+from wagtail.contrib.sitemaps.views import sitemap
 
 from api.admin_pages import admin_page_required
 
@@ -73,6 +74,7 @@ def api_index(request):
 
 urlpatterns = [
     path("healthz/", healthcheck, name="healthcheck"),
+    path("sitemap.xml", sitemap, name="sitemap"),
     path("media-proxy/<path:path>", private_media_proxy, name="private-media-proxy"),
     path("service-worker.js", service_worker, name="service-worker"),
     path("admin/quick-toggle/", toggle_boolean_field, name="admin-quick-toggle"),
