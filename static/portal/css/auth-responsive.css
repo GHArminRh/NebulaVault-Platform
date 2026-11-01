@@ -85,9 +85,18 @@
     overscroll-behavior: auto;
   }
 
-  body.nv-portal .nv-auth-shell[data-auth-side='login'] .nv-auth-login,
-  body.nv-portal .nv-auth-shell[data-auth-side='register'] .nv-auth-register {
+  /* Keep the server-selected face visible even if mobile Safari delays or skips
+     the card-flip initializer. aria-hidden is the JS-enhanced state. */
+  body.nv-portal .nv-auth-shell[data-auth-side='login'] .nv-auth-face.nv-auth-login,
+  body.nv-portal .nv-auth-shell[data-auth-side='register'] .nv-auth-face.nv-auth-register,
+  body.nv-portal .nv-auth-shell .nv-auth-face[aria-hidden='false'] {
     display: block;
+  }
+
+  body.nv-portal .nv-auth-shell[data-auth-side='login'] .nv-auth-face.nv-auth-register,
+  body.nv-portal .nv-auth-shell[data-auth-side='register'] .nv-auth-face.nv-auth-login,
+  body.nv-portal .nv-auth-shell .nv-auth-face[aria-hidden='true'] {
+    display: none;
   }
 
   body.nv-portal .nv-auth-face h2 {
