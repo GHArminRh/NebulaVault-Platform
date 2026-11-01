@@ -1,7 +1,9 @@
 from django.core.validators import RegexValidator
 from django.db import models
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
-from wagtail.fields import RichTextField
+from wagtail.fields import RichTextField, StreamField
+
+from .blocks import NebulaContentBlock
 from wagtail.models import Page
 from wagtail.search import index
 
@@ -48,6 +50,12 @@ class HomePage(Page):
         ],
         verbose_name="پیوند دکمه اصلی",
     )
+    sections = StreamField(
+        NebulaContentBlock(),
+        blank=True,
+        use_json_field=True,
+        verbose_name="بخش‌های قابل چیدمان صفحه اصلی",
+    )
     body = RichTextField(
         blank=True,
         features=[
@@ -83,6 +91,7 @@ class HomePage(Page):
             ],
             heading="بخش معرفی صفحه اصلی",
         ),
+        FieldPanel("sections"),
         FieldPanel("body"),
     ]
 
@@ -104,6 +113,12 @@ class ContentPage(Page):
         max_length=500,
         blank=True,
         verbose_name="معرفی کوتاه",
+    )
+    sections = StreamField(
+        NebulaContentBlock(),
+        blank=True,
+        use_json_field=True,
+        verbose_name="بخش‌های محتوایی صفحه",
     )
     body = RichTextField(
         blank=True,
@@ -131,6 +146,7 @@ class ContentPage(Page):
 
     content_panels = Page.content_panels + [
         FieldPanel("intro"),
+        FieldPanel("sections"),
         FieldPanel("body"),
     ]
 
