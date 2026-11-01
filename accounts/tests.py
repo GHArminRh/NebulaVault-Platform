@@ -376,6 +376,16 @@ class AccountBackendTests(TestCase):
         import pyotp
 
         self.assertFalse(self.user.two_factor_enabled)
+        import hashlib
+        import secrets
+        from api.models import CustomerAPIToken
+        raw_api_token = secrets.token_urlsafe(48)
+        api_token = CustomerAPIToken.objects.create(
+            customer=self.user,
+            token_prefix=raw_api_token[:12],
+            token_digest=hashlib.sha256(raw_api_token.encode("utf-8")).hexdigest(),
+            expires_at=timezone.now() + timedelta(days=30),
+        )
         self.client.force_login(self.user, backend="accounts.backends.CustomerAuthenticationBackend")
         response = self.client.get(reverse("accounts:two_factor_settings"))
         secret = response.context["two_factor_secret"]
@@ -386,6 +396,8 @@ class AccountBackendTests(TestCase):
         self.assertRedirects(response, reverse("accounts:two_factor_settings"))
         self.user.refresh_from_db()
         self.assertTrue(self.user.two_factor_enabled)
+        api_token.refresh_from_db()
+        self.assertIsNotNone(api_token.revoked_at)
         from accounts.two_factor import decrypt_totp_secret
         self.assertEqual(decrypt_totp_secret(self.user.two_factor_secret), secret)
 
