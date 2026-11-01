@@ -23,7 +23,7 @@ jobs:
       - name: Install the repository template formatter
         run: python -m pip install djlint==1.47.1
       - name: Format the Wagtail-enabled homepage template
-        run: djlint --reformat --profile=django --indent=2 templates/portal/home.html
+        run: djlint --reformat --profile=django --indent=2 --warn --quiet templates/portal/home.html
       - name: Commit formatting changes when needed
         run: |
           if ! git diff --quiet -- templates/portal/home.html; then
