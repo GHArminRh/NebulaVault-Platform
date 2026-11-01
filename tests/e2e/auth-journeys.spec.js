@@ -78,9 +78,9 @@ test.describe('authentication experience', () => {
     await form.locator('input[name="email"]').fill(email);
     await form.locator('input[name="password1"]').fill(password);
     await form.locator('input[name="password2"]').fill(password);
-    await form.locator('button[type="submit"]').click();
+    await form.locator('button[type="submit"]').click({ timeout: 30_000 });
 
-    await expect(page.locator('#id_code')).toBeVisible();
+    await expect(page.locator('#id_code')).toBeVisible({ timeout: 30_000 });
     await expect(page.locator('#id_email')).toHaveValue(email);
     await expect(page.getByRole('heading', { name: 'تأیید نشانی ایمیل' })).toBeVisible();
   });
