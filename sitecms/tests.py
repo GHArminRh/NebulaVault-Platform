@@ -576,7 +576,7 @@ class ScheduledPublishingEndpointTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json()["status"], "unauthorized")
+        self.assertEqual(json.loads(response.content)["status"], "unauthorized")
         mocked_command.assert_not_called()
 
     @override_settings(WAGTAIL_CRON_SECRET="a" * 40 + "رمز-محرمانه")
@@ -594,7 +594,7 @@ class ScheduledPublishingEndpointTests(TestCase):
         response = publish_scheduled_pages(request)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["status"], "ok")
+        self.assertEqual(json.loads(response.content)["status"], "ok")
         mocked_command.assert_called_once()
         self.assertEqual(mocked_command.call_args.args, ("publish_scheduled",))
 
@@ -612,7 +612,7 @@ class ScheduledPublishingEndpointTests(TestCase):
         response = publish_scheduled_pages(request)
 
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json()["status"], "unauthorized")
+        self.assertEqual(json.loads(response.content)["status"], "unauthorized")
         mocked_command.assert_not_called()
 
     def test_endpoint_accepts_post_only(self):
