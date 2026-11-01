@@ -416,6 +416,12 @@ def _process_two_factor_post(request, user):
             user.two_factor_secret = encrypt_totp_secret(secret)
             user.two_factor_enabled = True
             user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
+            if isinstance(user, Customer):
+                # Existing API tokens were issued before the account required a second factor.
+                from api.models import CustomerAPIToken
+                CustomerAPIToken.objects.filter(customer=user, revoked_at__isnull=True).update(
+                    revoked_at=timezone.now()
+                )
             request.session.pop(_two_factor_session_key(user), None)
             messages.success(request, "تأیید دومرحله‌ای با موفقیت فعال شد.")
         else:
