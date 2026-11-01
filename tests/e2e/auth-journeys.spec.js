@@ -184,6 +184,34 @@ test.describe('authentication experience', () => {
   });
 });
 
+test.describe('shopping cart journey', () => {
+  test('a visitor can add a plan, avoid duplicates, and remove it from the cart', async ({
+    page,
+  }) => {
+    await page.goto('/pricing/');
+
+    const planCard = page.locator('.pricing-card').filter({ hasText: 'E2E Browser Plan' });
+    await expect(planCard).toBeVisible();
+    await planCard.locator('form[action*="/cart/add/"] button[type="submit"]').click();
+
+    await expect(page).toHaveURL(new RegExp('cart'));
+    await expect(page.locator('.cart-item')).toHaveCount(1);
+    await expect(page.locator('.cart-item')).toContainText('E2E Browser Product');
+
+    await page.goto('/pricing/');
+    await page
+      .locator('.pricing-card')
+      .filter({ hasText: 'E2E Browser Plan' })
+      .locator('form[action*="/cart/add/"] button[type="submit"]')
+      .click();
+    await expect(page.locator('.cart-item')).toHaveCount(1);
+
+    await page.locator('.cart-item form[action*="/cart/remove/"] button[type="submit"]').click();
+    await expect(page.locator('.empty-state')).toBeVisible();
+    await expect(page.locator('.cart-item')).toHaveCount(0);
+  });
+});
+
 test.describe('navigation and shared interactions', () => {
   test('mobile navigation opens, exposes its links, and closes after navigation', async ({
     page,
