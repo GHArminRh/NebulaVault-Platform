@@ -30,10 +30,11 @@ SECURE_SSL_REDIRECT = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
-# Start with a short HSTS lifetime in production. Increase only after the
-# HTTPS configuration has been verified across every public hostname.
+# HTTPS has been verified on every public hostname. Keep HSTS enabled
+# for one year in production; retain an environment override for staged
+# rollouts or local testing.
 SECURE_HSTS_SECONDS = int(
-    os.environ.get("DJANGO_SECURE_HSTS_SECONDS", "300" if not DEBUG else "0")
+    os.environ.get("DJANGO_SECURE_HSTS_SECONDS", "31536000" if not DEBUG else "0")
 )
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 SECURE_HSTS_PRELOAD = False
