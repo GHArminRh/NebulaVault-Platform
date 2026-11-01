@@ -16,6 +16,7 @@ from accounts.forms import NebulaAuthenticationForm
 from accounts.views import CustomerLoginView
 from config.admin_toggle import toggle_boolean_field
 from portal.editor_uploads import editor_image_upload
+from sitecms.media_proxy import private_media_proxy
 from staff.admin_forms import AdminTurnstileAuthenticationForm
 
 admin.site.login_form = AdminTurnstileAuthenticationForm
@@ -72,6 +73,7 @@ def api_index(request):
 
 urlpatterns = [
     path("healthz/", healthcheck, name="healthcheck"),
+    path("media-proxy/<path:path>", private_media_proxy, name="private-media-proxy"),
     path("service-worker.js", service_worker, name="service-worker"),
     path("admin/quick-toggle/", toggle_boolean_field, name="admin-quick-toggle"),
     path("admin/editor-upload/", editor_image_upload, name="editor-image-upload"),
