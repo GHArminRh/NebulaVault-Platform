@@ -19,7 +19,6 @@ def convert_default_homepage(apps, schema_editor):
     homepage_type, _ = ContentType.objects.using(alias).get_or_create(
         app_label="sitecms",
         model="homepage",
-        defaults={"name": "صفحه اصلی"},
     )
 
     if not HomePage.objects.using(alias).filter(pk=page.pk).exists():
