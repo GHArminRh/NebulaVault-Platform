@@ -96,7 +96,7 @@
           <div class="form-row"><label for="id_two_factor_method">Verification method</label>
             <select id="id_two_factor_method" name="two_factor_method" required>
               <option value="">Choose a method</option>
-              {% for method, label in form.two_factor_methods %}<option value="{{ method }}">{{ label }}</option>{% endfor %}
+              {% for method, label in form.two_factor_methods %}<option value="{{ method }}"{% if form.two_factor_method.value == method %} selected{% endif %}>{{ label }}</option>{% endfor %}
             </select>
           </div>
         {% else %}
@@ -107,7 +107,7 @@
         </div>
         <div class="nv-two-factor-input" data-factor="email" hidden>
           <div class="form-row">{{ form.email_otp_token.label_tag }}{{ form.email_otp_token }}</div>
-          <button type="submit" name="send_email_code" value="1" class="button">Send email verification code</button>
+          
         </div>
         <div class="nv-two-factor-input" data-factor="recovery" hidden>
           <div class="form-row">{{ form.recovery_code.label_tag }}{{ form.recovery_code }}</div>
@@ -146,6 +146,9 @@
 
       <div class="submit-row">
         <input type="submit" value="{% translate 'Log in' %}">
+      </div>
+      <div class="nv-two-factor-input" data-factor="email" hidden>
+        <button type="submit" name="send_email_code" value="1" class="button">Send email verification code</button>
       </div>
     </form>
   </div>
