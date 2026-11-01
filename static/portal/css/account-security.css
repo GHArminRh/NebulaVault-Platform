@@ -1,0 +1,55 @@
+/* Account security controls shared by customer authentication and profile pages. */
+.nv-auth-form .nv-remember-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: max-content;
+  max-width: 100%;
+  margin: 2px 0 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.nv-auth-form .nv-remember-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  margin: 0;
+  accent-color: #648cff;
+}
+
+.nv-auth-form #nv-login-otp {
+  direction: ltr;
+  text-align: left;
+  letter-spacing: 2px;
+}
+
+.nv-auth-form .auth-optional {
+  font-size: 11px;
+  opacity: 0.68;
+  font-weight: 400;
+}
+
+.account-avatar-preview {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 18px;
+}
+
+.account-avatar-preview img {
+  width: 104px;
+  height: 104px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid rgba(100, 145, 255, 0.45);
+}
+
+.account-avatar-preview span {
+  width: 104px;
+  height: 104px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(75, 110, 180, 0.18);
+  font-size: 36px;
+}
