@@ -21,6 +21,22 @@
 {% block extrastyle %}
   {{ block.super }}
   <style>
+
+/* Shared loading state for native POST form submissions. */
+.nv-button-spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-inline-start: .55em;
+  vertical-align: -.15em;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: nv-button-spin .7s linear infinite;
+}
+.is-loading { opacity: .78; cursor: wait !important; }
+@keyframes nv-button-spin { to { transform: rotate(360deg); } }
+
     /*
      * Login-only visual language follows the public Nebula Vault site:
      * midnight navy, electric blue, violet and cyan. Authenticated admin
