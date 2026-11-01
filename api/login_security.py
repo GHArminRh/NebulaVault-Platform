@@ -7,7 +7,7 @@ from datetime import timedelta
 from math import ceil
 
 from django.conf import settings
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, connection, transaction
 from django.utils import timezone
 
 from .models import TokenLoginFailure
@@ -43,6 +43,13 @@ def record_token_login_failure(email, now=None):
     digest = _email_digest(email)
 
     with transaction.atomic():
+        if connection.vendor == "postgresql":
+            # Serialize first-time inserts as well as updates without relying
+            # on a racy cache increment or emitting expected unique-key errors.
+            lock_id = int.from_bytes(bytes.fromhex(digest[:16]), "big", signed=True)
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT pg_advisory_xact_lock(%s)", [lock_id])
+
         try:
             record = TokenLoginFailure.objects.select_for_update().get(pk=digest)
         except TokenLoginFailure.DoesNotExist:
