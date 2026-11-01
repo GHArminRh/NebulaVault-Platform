@@ -20,6 +20,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="customer",
             name="two_factor_secret",
-            field=models.CharField(blank=True, editable=False, max_length=32),
+            field=models.CharField(blank=True, editable=False, max_length=255),
         ),
     ]
