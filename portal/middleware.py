@@ -52,6 +52,8 @@ class SeparateStaffAndCustomerSessionsMiddleware(MiddlewareMixin):
             or request.path.startswith("/admin/")
             or request.path == "/cms"
             or request.path.startswith("/cms/")
+            or request.path == "/documents"
+            or request.path.startswith("/documents/")
         ):
             return None
         user = getattr(request, "user", None)
