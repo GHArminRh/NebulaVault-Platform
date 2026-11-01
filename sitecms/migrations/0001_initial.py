@@ -1,3 +1,4 @@
+import django.core.validators
 import django.db.models.deletion
 from django.db import migrations, models
 import wagtail.fields
@@ -73,6 +74,12 @@ class Migration(migrations.Migration):
                     models.CharField(
                         default="#products",
                         max_length=300,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                message="از نشانی داخلی، لنگر صفحه یا پیوند HTTPS استفاده کنید.",
+                                regex=r"^(?:#|/(?!/)|https://)\\S*$",
+                            )
+                        ],
                         verbose_name="پیوند دکمه اصلی",
                     ),
                 ),
