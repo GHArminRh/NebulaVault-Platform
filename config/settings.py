@@ -228,7 +228,7 @@ MEDIA_S3_STORAGE_ENABLED = bool(
 )
 DEFAULT_MEDIA_STORAGE = (
     {
-        "BACKEND": "storages.backends.s3.S3Storage",
+        "BACKEND": "sitecms.storage.PrivateMediaS3Storage",
         "OPTIONS": {
             "bucket_name": AWS_STORAGE_BUCKET_NAME,
             "access_key": AWS_ACCESS_KEY_ID,
@@ -251,6 +251,7 @@ STORAGES = {
     },
 }
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+WAGTAILDOCS_SERVE_METHOD = "serve_view"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media/"
 DJANGORESIZED_DEFAULT_FORMAT_EXTENSIONS = {"WEBP": ".webp", "JPEG": ".jpg"}
