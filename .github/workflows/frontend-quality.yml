@@ -39,9 +39,6 @@ jobs:
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
           npm ci --no-audit --no-fund
 
-      - name: Print normalized browser-test formatting for CI diagnostics
-        run: npx prettier tests/e2e/auth-journeys.spec.js
-
       - name: Check CSS, JavaScript, and tooling formatting
         run: npm run check:assets
 
