@@ -1,3 +1,4 @@
+from django.core.validators import RegexValidator
 from django.db import models
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.fields import RichTextField
@@ -39,6 +40,12 @@ class HomePage(Page):
     hero_primary_cta_url = models.CharField(
         max_length=300,
         default="#products",
+        validators=[
+            RegexValidator(
+                regex=r"^(?:#|/(?!/)|https://)\\S*$",
+                message="از نشانی داخلی، لنگر صفحه یا پیوند HTTPS استفاده کنید.",
+            )
+        ],
         verbose_name="پیوند دکمه اصلی",
     )
     body = RichTextField(
