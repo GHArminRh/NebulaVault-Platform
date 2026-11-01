@@ -32,6 +32,7 @@
         <p>Scan this QR code using an authenticator app, then enter the generated six-digit code to enable two-factor authentication.</p>
         <div style="background:#fff;padding:12px;width:max-content;max-width:100%;border-radius:8px;margin:16px auto"><img src="{{ two_factor_qr }}" alt="Authenticator QR code" style="width:190px;height:190px"></div>
         <p>Manual setup key: <code dir="ltr">{{ two_factor_secret }}</code></p>
+        <p>Store this setup key somewhere safe. You will need it if you replace or lose your authenticator device.</p>
         <form method="post">
           {% csrf_token %}<input type="hidden" name="security_action" value="enable_two_factor">
           <div class="form-row"><label for="id_current_password">Current password</label><input id="id_current_password" name="current_password" type="password" autocomplete="current-password" required></div>
