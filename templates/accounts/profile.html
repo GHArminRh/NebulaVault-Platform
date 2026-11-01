@@ -1,4 +1,8 @@
 {% extends "portal/base.html" %}
+{% load static %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'portal/css/account-security.css' %}">
+{% endblock %}
 {% block title %}تنظیمات حساب — نبیولا والت{% endblock %}
 {% block content %}
   <section class="page-wrap auth-layout auth-layout-premium">
