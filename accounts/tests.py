@@ -378,6 +378,8 @@ class AccountBackendTests(TestCase):
         self.assertFalse(self.user.two_factor_enabled)
         import hashlib
         import secrets
+        from datetime import timedelta
+        from django.utils import timezone
         from api.models import CustomerAPIToken
         raw_api_token = secrets.token_urlsafe(48)
         api_token = CustomerAPIToken.objects.create(
