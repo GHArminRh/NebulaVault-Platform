@@ -30,6 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         submitter.dataset.originalValue = submitter.value;
         submitter.value = 'Processing…';
+        const spinner = document.createElement('span');
+        spinner.className = 'nv-button-spinner';
+        spinner.setAttribute('aria-hidden', 'true');
+        submitter.insertAdjacentElement('afterend', spinner);
       }
       form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((control) => {
         if (control !== submitter) control.disabled = true;
