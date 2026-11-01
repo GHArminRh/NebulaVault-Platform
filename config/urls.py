@@ -17,7 +17,7 @@ from wagtail.contrib.sitemaps.views import sitemap
 from api.admin_pages import admin_page_required
 
 from accounts.forms import NebulaAuthenticationForm
-from accounts.views import CustomerLoginView
+from accounts.views import CustomerLoginView, staff_account
 from config.admin_toggle import toggle_boolean_field
 from portal.editor_uploads import editor_image_upload
 from sitecms.media_proxy import private_media_proxy
@@ -114,6 +114,7 @@ urlpatterns = [
     path("admin/dj-signals-panel/", include("dj_signals_panel.urls")),
     path("admin/dj-error-panel/", include("dj_error_panel.urls")),
     path("admin/dj-control-room/", include("dj_control_room.urls")),
+    path("admin/account/", admin.site.admin_view(staff_account), name="staff-account"),
     path("admin/", admin.site.urls),
     path("api", api_index, name="admin-api-index"),
     path("api/", api_index, name="admin-api-index-slash"),
