@@ -1,0 +1,6 @@
+<section class="closing-cta page-wrap nv-final-cta nv-cms-block">
+  {% if value.eyebrow %}<div class="eyebrow">{{ value.eyebrow }}</div>{% endif %}
+  <h2>{{ value.title }}</h2>
+  {% if value.text %}<p>{{ value.text }}</p>{% endif %}
+  <a class="button button-primary button-large" href="{{ value.button_url }}">{{ value.button_label }} ↗</a>
+</section>
