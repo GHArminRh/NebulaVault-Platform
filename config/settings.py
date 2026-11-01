@@ -320,6 +320,10 @@ MIGRATION_MODULES = {"rating": "config.rating_migrations"}
 # Django REST Framework defaults: customer authentication is handled by the
 # project's dual-user-model session middleware or revocable Bearer API tokens.
 REST_FRAMEWORK = {
+    # Render routes public traffic through Cloudflare before the application.
+    # Cloudflare appends the connecting client IP to X-Forwarded-For, so trust
+    # only its rightmost entry; ignore any client-supplied entries to the left.
+    "NUM_PROXIES": 1,
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "api.authentication.CustomerBearerAuthentication",
         "rest_framework.authentication.SessionAuthentication",
