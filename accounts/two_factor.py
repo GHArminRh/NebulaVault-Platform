@@ -106,7 +106,7 @@ def verify_email_challenge(user, token, purpose="login"):
         expires_at__gt=timezone.now(),
         failed_attempts__lt=5,
     ).order_by("-created_at").first()
-    if challenge is None:
+    if challenge is None or challenge.recipient.casefold() != (getattr(user, "email", "") or "").casefold():
         return False
     digest = salted_hmac("accounts.two_factor_email_code", token, algorithm="sha256").hexdigest()
     if hmac.compare_digest(challenge.code_hash, digest):
