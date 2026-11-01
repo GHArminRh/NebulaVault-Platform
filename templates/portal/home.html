@@ -14,7 +14,8 @@
         <span class="gradient-text">{{ cms_homepage.hero_highlight|default:"کنترل در دست شما." }}</span>
       </h1>
       <p class="hero-lede">{{ cms_homepage.hero_description|default:"محصولات، خریدها، اشتراک‌ها و لایسنس‌ها را در یک تجربه‌ی امن و هماهنگ مدیریت کنید؛ ساده، شفاف و بدون شلوغی." }}</p>
-      <div class="hero-actions"><a class="button button-primary button-large" href="{{ cms_homepage.hero_primary_cta_url|default:'#products' }}">{{ cms_homepage.hero_primary_cta_label|default:"کشف محصولات" }} <span aria-hidden="true">↙</span></a><a class="button button-glass button-large"
+      <div class="hero-actions"><a class="button button-primary button-large"
+   href="{{ cms_homepage.hero_primary_cta_url|default:'#products' }}">{{ cms_homepage.hero_primary_cta_label|default:"کشف محصولات" }} <span aria-hidden="true">↙</span></a><a class="button button-glass button-large"
    href="{% if user.is_authenticated %}{% url 'portal:dashboard' %}{% else %}{% url 'login' %}{% endif %}">{% if user.is_authenticated %}ورود به فضای من{% else %}ورود به حساب{% endif %} ↗</a></div>
       <div class="nv-hero-trust"><span><i class="pulse"></i> حساب شخصی امن</span><span>◇ خرید و لایسنس یکپارچه</span><span>⌁ تجربه‌ی هماهنگ</span></div>
     </div>
@@ -35,9 +36,9 @@
     <a class="nv-scroll-cue" href="#products"><span></span> برای کشف بیشتر اسکرول کنید</a>
   </section>
   {% if cms_homepage and cms_homepage.body %}
-  <section class="section page-wrap nv-home-section nv-cms-home-body">
-    <div class="rich-content">{{ cms_homepage.body|richtext }}</div>
-  </section>
+    <section class="section page-wrap nv-home-section nv-cms-home-body">
+      <div class="rich-content">{{ cms_homepage.body|richtext }}</div>
+    </section>
   {% endif %}
   <section class="nv-proof-strip">
     <div class="page-wrap nv-proof-inner"><span>یک تجربه‌ی یکپارچه</span><span><b>01</b> انتخاب محصول</span><span><b>02</b> خرید شفاف</span><span><b>03</b> مدیریت لایسنس</span><span><b>04</b> کنترل از پیشخوان</span></div>
