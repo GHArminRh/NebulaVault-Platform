@@ -1,15 +1,18 @@
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 import hashlib
 import secrets
 
 from django.contrib.auth import get_user_model
-from django.test import SimpleTestCase
+from django.db import close_old_connections
+from django.test import SimpleTestCase, TransactionTestCase
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIRequestFactory, APITestCase
 
 from accounts.models import Customer
-from api.models import CustomerAPIToken
+from api.models import CustomerAPIToken, TokenLoginFailure
+from api.login_security import record_token_login_failure
 from api.views import TokenLoginThrottle
 from blog.models import BlogPost
 from catalog.models import Plan, Product
@@ -289,3 +292,99 @@ class CustomerApiAuthenticationTests(APITestCase):
             format="json",
         )
         self.assertEqual(replay.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class TokenLoginFailureCounterTests(APITestCase):
+    def setUp(self):
+        self.customer = Customer.objects.create_user(
+            email="lockout@example.com",
+            password="Strong-password-123!",
+            username="lockout-customer",
+        )
+
+    def test_five_failures_lock_account_and_lockout_progressively_increases(self):
+        now = timezone.now()
+        for attempt in range(1, 5):
+            count, wait = record_token_login_failure(self.customer.email, now=now)
+            self.assertEqual(count, attempt)
+            self.assertEqual(wait, 0)
+
+        count, wait = record_token_login_failure(self.customer.email, now=now)
+        self.assertEqual(count, 5)
+        self.assertEqual(wait, 30)
+
+        later = now + timedelta(seconds=31)
+        count, wait = record_token_login_failure(self.customer.email, now=later)
+        self.assertEqual(count, 6)
+        self.assertEqual(wait, 60)
+
+    def test_failure_window_resets_after_fifteen_minutes(self):
+        now = timezone.now()
+        for _ in range(5):
+            record_token_login_failure(self.customer.email, now=now)
+
+        count, wait = record_token_login_failure(
+            self.customer.email,
+            now=now + timedelta(minutes=15, seconds=1),
+        )
+        self.assertEqual(count, 1)
+        self.assertEqual(wait, 0)
+
+    def test_successful_api_token_login_clears_account_failures(self):
+        for _ in range(4):
+            record_token_login_failure(self.customer.email)
+
+        response = self.client.post(
+            "/api/v1/auth/token/",
+            {"email": self.customer.email, "password": "Strong-password-123!"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(TokenLoginFailure.objects.count(), 0)
+
+    def test_account_lockout_is_shared_across_different_client_ips(self):
+        for attempt in range(5):
+            response = self.client.post(
+                "/api/v1/auth/token/",
+                {"email": self.customer.email, "password": "incorrect-password"},
+                format="json",
+                REMOTE_ADDR=f"198.51.100.{attempt + 10}",
+            )
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        response = self.client.post(
+            "/api/v1/auth/token/",
+            {"email": self.customer.email, "password": "Strong-password-123!"},
+            format="json",
+            REMOTE_ADDR="198.51.100.99",
+        )
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+        self.assertIn("Retry-After", response)
+
+
+class TokenLoginFailureAtomicityTests(TransactionTestCase):
+    reset_sequences = True
+
+    def test_concurrent_failures_are_not_lost(self):
+        from threading import Barrier
+
+        from api.login_security import record_token_login_failure
+
+        email = "parallel-lockout@example.com"
+        worker_count = 8
+        barrier = Barrier(worker_count)
+
+        def record_attempt():
+            close_old_connections()
+            try:
+                barrier.wait(timeout=10)
+                record_token_login_failure(email)
+            finally:
+                close_old_connections()
+
+        with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            list(executor.map(lambda _: record_attempt(), range(worker_count)))
+
+        record = TokenLoginFailure.objects.get()
+        self.assertEqual(record.failed_attempts, worker_count)
+        self.assertIsNotNone(record.locked_until)
