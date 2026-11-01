@@ -1,0 +1,82 @@
+name: Wagtail CMS tests
+
+on:
+  push:
+    branches: [feat/wagtail-cms-integration]
+    paths:
+      - "sitecms/**"
+      - "blog/wagtail_hooks.py"
+      - "staff/**"
+      - "accounts/backends.py"
+      - "config/**"
+      - "portal/**"
+      - "templates/portal/home.html"
+      - "requirements.txt"
+      - ".github/workflows/wagtail-tests.yml"
+  pull_request:
+    paths:
+      - "sitecms/**"
+      - "blog/wagtail_hooks.py"
+      - "staff/**"
+      - "accounts/backends.py"
+      - "config/**"
+      - "portal/**"
+      - "templates/portal/home.html"
+      - "requirements.txt"
+      - ".github/workflows/wagtail-tests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: nebula_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d nebula_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DJANGO_SECRET_KEY: ci-only-not-for-production
+      DJANGO_DEBUG: "True"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+      DB_NAME: nebula_test
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+      - name: Check Django configuration
+        run: python manage.py check --settings=config.test_settings
+      - name: Exercise the production migration graph on a clean database
+        run: python manage.py migrate --noinput --settings=config.settings
+      - name: Verify the converted live homepage and Wagtail site root
+        run: |
+          python manage.py shell --settings=config.settings <<'PY'
+          from django.contrib.contenttypes.models import ContentType
+          from sitecms.models import HomePage
+          from wagtail.models import Page, Site
+          homepage = HomePage.objects.get(slug="home")
+          assert homepage.path == "00010001" and homepage.depth == 2
+          assert homepage.content_type_id == ContentType.objects.get_for_model(HomePage).pk
+          assert Site.objects.get(is_default_site=True).root_page_id == homepage.pk
+          assert Page.objects.get(depth=1).numchild >= 1
+          print("Wagtail homepage migration verified")
+          PY
+      - name: Check model and migration consistency
+        run: python manage.py makemigrations --check --dry-run --settings=config.test_settings
+      - name: Run Wagtail integration tests
+        run: python manage.py test sitecms --settings=config.test_settings --verbosity=2

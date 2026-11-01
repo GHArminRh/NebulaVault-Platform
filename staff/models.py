@@ -39,6 +39,17 @@ class StaffUser(AbstractUser):
         help_text="The groups this staff user belongs to.",
         db_table="accounts_staffuser_groups",
     )
+    # Wagtail maintains page and collection permissions against Django auth.Group.
+    # Keep those roles separate from the project UUID-backed staff.Group model.
+    wagtail_groups = models.ManyToManyField(
+        "auth.Group",
+        blank=True,
+        related_name="user_set",
+        related_query_name="user",
+        db_table="accounts_staffuser_wagtail_groups",
+        help_text="The Wagtail groups this staff user belongs to.",
+    )
+
     user_permissions = models.ManyToManyField(
         Permission,
         blank=True,

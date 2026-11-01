@@ -10,7 +10,12 @@ COOKIE_MAX_AGE = 60 * 60 * 24 * 180
 class InterfaceLanguageMiddleware(MiddlewareMixin):
     def process_request(self, request):
         # Keep Django admin in English while the public-facing site stays Persian.
-        is_admin = request.path == "/admin" or request.path.startswith("/admin/")
+        is_admin = (
+            request.path == "/admin"
+            or request.path.startswith("/admin/")
+            or request.path == "/cms"
+            or request.path.startswith("/cms/")
+        )
         language = "en-us" if is_admin else "fa"
         translation.activate(language)
         request.LANGUAGE_CODE = language
@@ -20,7 +25,12 @@ class InterfaceLanguageMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         # Never persist the public Persian preference on admin responses.
-        if request.path == "/admin" or request.path.startswith("/admin/"):
+        if (
+            request.path == "/admin"
+            or request.path.startswith("/admin/")
+            or request.path == "/cms"
+            or request.path.startswith("/cms/")
+        ):
             return response
         response.set_cookie(
             LANGUAGE_COOKIE, "fa", max_age=COOKIE_MAX_AGE,
@@ -37,7 +47,14 @@ class SeparateStaffAndCustomerSessionsMiddleware(MiddlewareMixin):
         from django.contrib.auth.models import AnonymousUser
         from django.shortcuts import redirect
 
-        if request.path == "/admin" or request.path.startswith("/admin/"):
+        if (
+            request.path == "/admin"
+            or request.path.startswith("/admin/")
+            or request.path == "/cms"
+            or request.path.startswith("/cms/")
+            or request.path == "/documents"
+            or request.path.startswith("/documents/")
+        ):
             return None
         user = getattr(request, "user", None)
         try:

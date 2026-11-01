@@ -14,6 +14,7 @@ from billing.models import PaymentOrder
 from billing.services import OrderCreationError, create_payment_order
 from catalog.models import Plan, Product, Release
 from blog.models import BlogPost
+from sitecms.models import HomePage
 from subscriptions.models import Subscription
 from subscriptions.services import TrialAlreadyUsed, TrialUnavailable, start_trial as create_trial_subscription
 
@@ -38,7 +39,14 @@ def home(request):
     for plan in plans:
         plan.is_renewal = plan.pk in renewable_plan_ids
     latest_blog_posts = BlogPost.objects.filter(status=BlogPost.Status.PUBLISHED, published_at__lte=timezone.now())[:3]
-    return render(request, "portal/home.html", {"products": products, "plans": plans, "releases": releases, "latest_blog_posts": latest_blog_posts})
+    cms_homepage = HomePage.objects.live().first()
+    return render(request, "portal/home.html", {
+        "products": products,
+        "plans": plans,
+        "releases": releases,
+        "latest_blog_posts": latest_blog_posts,
+        "cms_homepage": cms_homepage,
+    })
 
 def products(request):
     items = Product.objects.filter(is_active=True).prefetch_related(Prefetch("plans", queryset=Plan.objects.filter(is_active=True)))
