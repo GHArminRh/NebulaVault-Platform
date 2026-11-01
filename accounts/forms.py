@@ -6,7 +6,7 @@ from django.contrib.auth.password_validation import validate_password
 
 from .models import Customer
 from .turnstile import verify_turnstile
-from .two_factor import decrypt_totp_secret, verify_totp
+from .two_factor import consume_recovery_code, decrypt_totp_secret, send_email_code, verify_email_challenge, verify_totp
 
 
 class HumanCheckMixin:
@@ -41,7 +41,9 @@ class HumanCheckMixin:
 
 class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
     remember_me = forms.BooleanField(required=False, initial=True, label="مرا به خاطر بسپار")
-    otp_token = forms.CharField(required=False, max_length=12, label="کد تأیید دومرحله‌ای", widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "inputmode": "numeric", "placeholder": "کد ۶ رقمی برنامه احراز هویت"}))
+    otp_token = forms.CharField(required=False, max_length=12, label="کد برنامه احراز هویت", widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "inputmode": "numeric", "placeholder": "کد ۶ رقمی برنامه احراز هویت"}))
+    email_otp_token = forms.CharField(required=False, max_length=6, label="کد ایمیل")
+    recovery_code = forms.CharField(required=False, max_length=16, label="کد بازیابی")
     username = forms.EmailField(
         label="نشانی ایمیل",
         widget=forms.EmailInput(attrs={"autocomplete": "username", "autofocus": True}),
@@ -63,9 +65,31 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
                     self.inactive_email = customer.email
             raise
         customer = self.get_user()
-        if customer.two_factor_enabled and not verify_totp(decrypt_totp_secret(customer.two_factor_secret), self.cleaned_data.get("otp_token")):
-            self.add_error("otp_token", "کد تأیید دومرحله‌ای نامعتبر است یا وارد نشده است.")
+        if self.data.get("send_email_code") == "1":
+            if not customer.email_two_factor_enabled:
+                self.add_error(None, "تأیید دومرحله‌ای ایمیلی برای این حساب فعال نیست.")
+            else:
+                try:
+                    sent = send_email_code(self.request, customer, purpose="login")
+                except Exception:
+                    sent = False
+                if sent:
+                    self.add_error(None, "کد تأیید به ایمیل حساب شما ارسال شد. کد تا ۱۰ دقیقه اعتبار دارد.")
+                else:
+                    self.add_error(None, "ارسال کد ممکن نشد یا اخیراً کدی ارسال شده است؛ کمی بعد دوباره تلاش کنید.")
             return self.cleaned_data
+
+        if customer.two_factor_enabled or customer.email_two_factor_enabled:
+            valid_factor = customer.two_factor_enabled and verify_totp(
+                decrypt_totp_secret(customer.two_factor_secret), self.cleaned_data.get("otp_token")
+            )
+            if not valid_factor and customer.email_two_factor_enabled:
+                valid_factor = verify_email_challenge(customer, self.cleaned_data.get("email_otp_token"), purpose="login")
+            if not valid_factor:
+                valid_factor = consume_recovery_code(customer, self.cleaned_data.get("recovery_code"))
+            if not valid_factor:
+                self.add_error("otp_token", "کد تأیید یا کد بازیابی نامعتبر است یا وارد نشده است.")
+                return self.cleaned_data
         if self.request is not None:
             self.request.session.set_expiry(60 * 60 * 24 * 14 if self.cleaned_data.get("remember_me") else 0)
         return cleaned
