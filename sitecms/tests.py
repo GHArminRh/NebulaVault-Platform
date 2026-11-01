@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.contrib.sites.models import Site as DjangoSite
 from django.db import connection
@@ -562,7 +564,7 @@ class ScheduledPublishingEndpointTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["status"], "ok")
+        self.assertEqual(json.loads(response.content)["status"], "ok")
         mocked_command.assert_called_once()
         self.assertEqual(mocked_command.call_args.args, ("publish_scheduled",))
 
@@ -634,10 +636,11 @@ class ScheduledPublishingEndpointTests(TestCase):
 class CanonicalSiteURLTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        locale, _ = Locale.objects.get_or_create(language_code=settings.LANGUAGE_CODE)
         page_type = ContentType.objects.get_for_model(Page, for_concrete_model=False)
         root_page = Page.objects.create(
             title="Root", slug="root", path="0001", depth=1, numchild=0,
-            url_path="/", content_type=page_type,
+            url_path="/", content_type=page_type, locale=locale,
         )
         Site.objects.create(
             hostname="testserver", port=80, root_page=root_page, is_default_site=True
