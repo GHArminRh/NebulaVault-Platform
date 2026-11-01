@@ -23,6 +23,7 @@ on:
       - "config/**"
       - "portal/**"
       - "templates/portal/home.html"
+      - "templates/portal/base.html"
       - "requirements.txt"
       - ".github/workflows/wagtail-tests.yml"
 
