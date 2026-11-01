@@ -1,6 +1,9 @@
 {% extends "portal/base.html" %}
 {% load money static wagtailcore_tags %}
-{% block title %}نبیولا والت — یک فضای یکپارچه برای دنیای دیجیتال شما{% endblock %}
+{% block title %}{{ cms_homepage.seo_title|default:cms_homepage.title|default:"نبیولا والت — یک فضای یکپارچه برای دنیای دیجیتال شما" }}{% endblock %}
+{% block meta_description %}{{ cms_homepage.search_description|default:cms_homepage.hero_description|default:"پلتفرم امن نرم‌افزار نبیولا والت" }}{% endblock %}
+{% block og_title %}{{ cms_homepage.seo_title|default:cms_homepage.title|default:"نبیولا والت" }}{% endblock %}
+{% block og_description %}{{ cms_homepage.search_description|default:cms_homepage.hero_description|default:"پلتفرم امن نرم‌افزار نبیولا والت" }}{% endblock %}
 {% block blog_css %}
   <link rel="stylesheet" href="{% static 'portal/css/blog.css' %}">
 {% endblock %}
@@ -35,6 +38,9 @@
     </div>
     <a class="nv-scroll-cue" href="#products"><span></span> برای کشف بیشتر اسکرول کنید</a>
   </section>
+  {% if cms_homepage and cms_homepage.sections %}
+    {% for block in cms_homepage.sections %}{% include_block block %}{% endfor %}
+  {% endif %}
   {% if cms_homepage and cms_homepage.body %}
     <section class="section page-wrap nv-home-section nv-cms-home-body">
       <div class="rich-content">{{ cms_homepage.body|richtext }}</div>
