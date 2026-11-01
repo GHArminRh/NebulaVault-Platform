@@ -74,6 +74,7 @@ class WagtailIntegrationTests(TestCase):
             ("hero_description", "توضیحات قابل ویرایش"),
             ("hero_primary_cta_label", "کشف محصولات"),
             ("hero_primary_cta_url", "#products"),
+            ("sections", "[]"),
             ("body", ""),
         ]
         columns = [
