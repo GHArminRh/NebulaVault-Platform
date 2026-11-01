@@ -18,7 +18,7 @@
           type="image/svg+xml">
     <link rel="apple-touch-icon"
           href="{% static 'portal/img/pwa-icon-192.svg' %}">
-    <title>{% block title %}نبیولا والت{% endblock %}</title>
+    <title>{% block title %}{{ chrome.brand_title|default:"نبیولا والت" }}{% endblock %}</title>
     <meta name="description"
           content="{% block meta_description %}پلتفرم امن نرم‌افزار نبیولا والت{% endblock %}">
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
@@ -152,9 +152,9 @@
     <footer class="site-footer">
       <div class="footer-top">
         <a class="brand" href="{% url 'portal:home' %}">
-          <span class="brand-mark">◇</span>
-          <span>نبیولا<span class="brand-light"> والت</span>
-            <small>پلتفرم امن نرم‌افزار</small>
+          <span class="brand-mark">{{ chrome.brand_mark|default:"◇" }}</span>
+          <span>{{ chrome.brand_title|default:"نبیولا والت" }}
+            <small>{{ chrome.brand_subtitle|default:"پلتفرم امن نرم‌افزار" }}</small>
           </span>
         </a>
         <p>{{ chrome.footer_description|default:"نرم‌افزارهایی سنجیده و امن، برای آسودگی خاطر شما." }}</p>
