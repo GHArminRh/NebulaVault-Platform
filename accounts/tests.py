@@ -451,6 +451,31 @@ class AccountBackendTests(TestCase):
         self.assertEqual(str(self.client.session["_auth_user_id"]), str(self.user.pk))
         self.assertGreater(self.client.session.get_expiry_age(), 60 * 60 * 24 * 13)
 
+
+    def test_customer_email_two_factor_is_sent_and_verified_after_password(self):
+        self.user.email_two_factor_enabled = True
+        self.user.save(update_fields=["email_two_factor_enabled"])
+        response = self.client.post(
+            reverse("login"),
+            {"username": self.user.email, "password": "Secure-test-password-2026!", "human_check": "on"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "کد ارسال‌شده به ایمیل")
+        self.assertNotContains(response, "کد برنامه احراز هویت")
+        response = self.client.post(
+            reverse("login"),
+            {"two_factor_method": "email", "send_email_code": "1"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        code = mail.outbox[0].body.split("کد تأیید شما: ", 1)[1][:6]
+        response = self.client.post(
+            reverse("login"),
+            {"two_factor_method": "email", "email_otp_token": code},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(str(self.client.session["_auth_user_id"]), str(self.user.pk))
+
     def test_customer_profile_accepts_valid_avatar_upload(self):
         from io import BytesIO
         from PIL import Image
