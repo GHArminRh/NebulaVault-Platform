@@ -136,11 +136,11 @@ test.describe('navigation and shared interactions', () => {
     });
 
     await page.goto('/');
-    const imagesWithoutAlt = await page.locator('img').evaluateAll((images) =>
-      images
-        .filter((img) => !img.hasAttribute('alt'))
-        .map((img) => img.currentSrc || img.src)
-    );
+    const imagesWithoutAlt = await page
+      .locator('img')
+      .evaluateAll((images) =>
+        images.filter((img) => !img.hasAttribute('alt')).map((img) => img.currentSrc || img.src)
+      );
     expect(imagesWithoutAlt).toEqual([]);
     expect(failedImages).toEqual([]);
   });
