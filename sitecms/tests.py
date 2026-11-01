@@ -632,6 +632,17 @@ class ScheduledPublishingEndpointTests(TestCase):
 
 
 class CanonicalSiteURLTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        page_type = ContentType.objects.get_for_model(Page, for_concrete_model=False)
+        root_page = Page.objects.create(
+            title="Root", slug="root", path="0001", depth=1, numchild=0,
+            url_path="/", content_type=page_type,
+        )
+        Site.objects.create(
+            hostname="testserver", port=80, root_page=root_page, is_default_site=True
+        )
+
     @override_settings(SITE_BASE_URL="https://cms.example.test:8443")
     @patch.dict("os.environ", {"NEBULA_BOOTSTRAP_ADMIN_PASSWORD": ""})
     def test_bootstrap_site_domain_comes_from_canonical_site_url(self):
