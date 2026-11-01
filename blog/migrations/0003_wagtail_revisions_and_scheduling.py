@@ -1,5 +1,4 @@
 import django.db.models.deletion
-import django.utils.timezone
 import modelcluster.fields
 from django.db import migrations, models
 
