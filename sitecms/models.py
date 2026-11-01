@@ -2,8 +2,9 @@ from django.core.validators import RegexValidator
 from django.db import models
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.fields import RichTextField, StreamField
+from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
 
-from .blocks import NebulaContentBlock
+from .blocks import NavigationMenuBlock, NebulaContentBlock
 from wagtail.models import Page
 from wagtail.search import index
 
@@ -158,3 +159,80 @@ class ContentPage(Page):
     class Meta:
         verbose_name = "صفحه محتوایی"
         verbose_name_plural = "صفحات محتوایی"
+
+ 
+@register_setting(icon="site")
+class SiteChromeSettings(BaseSiteSetting):
+    """Editable shared brand, navigation and footer content for the public site."""
+
+    brand_title = models.CharField(
+        max_length=80,
+        default="نبیولا والت",
+        verbose_name="نام برند",
+    )
+    brand_subtitle = models.CharField(
+        max_length=120,
+        default="پلتفرم امن نرم‌افزار",
+        verbose_name="زیرعنوان برند",
+    )
+    brand_mark = models.CharField(
+        max_length=4,
+        default="◇",
+        verbose_name="نماد برند",
+    )
+    header_links = StreamField(
+        NavigationMenuBlock(),
+        blank=True,
+        use_json_field=True,
+        verbose_name="پیوندهای سربرگ و منوی موبایل",
+    )
+    footer_description = models.CharField(
+        max_length=300,
+        default="نرم‌افزارهایی سنجیده و امن، برای آسودگی خاطر شما.",
+        verbose_name="توضیحات پابرگ",
+    )
+    footer_note = models.CharField(
+        max_length=180,
+        default="امنیت از ابتدا · پنل حساب و پرداخت",
+        verbose_name="یادداشت پابرگ",
+    )
+    footer_copyright = models.CharField(
+        max_length=180,
+        blank=True,
+        verbose_name="متن حق نشر",
+    )
+    footer_links = StreamField(
+        NavigationMenuBlock(),
+        blank=True,
+        use_json_field=True,
+        verbose_name="پیوندهای پابرگ",
+    )
+    show_install_button = models.BooleanField(
+        default=True,
+        verbose_name="نمایش دکمه نصب اپلیکیشن",
+    )
+
+    content_panels = [
+        MultiFieldPanel(
+            [
+                FieldPanel("brand_title"),
+                FieldPanel("brand_subtitle"),
+                FieldPanel("brand_mark"),
+            ],
+            heading="هویت برند",
+        ),
+        FieldPanel("header_links"),
+        MultiFieldPanel(
+            [
+                FieldPanel("footer_description"),
+                FieldPanel("footer_note"),
+                FieldPanel("footer_copyright"),
+                FieldPanel("footer_links"),
+                FieldPanel("show_install_button"),
+            ],
+            heading="پابرگ سایت",
+        ),
+    ]
+
+    class Meta:
+        verbose_name = "تنظیمات سربرگ و پابرگ"
