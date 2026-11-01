@@ -42,7 +42,7 @@ class HomePage(Page):
         default="#products",
         validators=[
             RegexValidator(
-                regex=r"^(?:#|/(?!/)|https://)\\S*$",
+                regex=r"^(?:#|/(?!/)|https://)\S*$",
                 message="از نشانی داخلی، لنگر صفحه یا پیوند HTTPS استفاده کنید.",
             )
         ],
