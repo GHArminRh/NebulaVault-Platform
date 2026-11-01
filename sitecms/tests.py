@@ -20,6 +20,8 @@ from wagtail.models import (
 
 from .forms import CMSUserCreationForm, CMSUserEditForm
 from .models import ContentPage, HomePage
+from .storage_config import build_default_media_storage_config
+from django.core.exceptions import ImproperlyConfigured
 from .viewsets import CMSUserFilterSet
 from .permissions import (
     StaffCollectionManagementPermissionPolicy,
@@ -92,6 +94,67 @@ class WagtailIntegrationTests(TestCase):
             is_default_site=True,
             root_page=homepage,
         )
+
+    def test_streamfield_blocks_render_on_editorial_pages(self):
+        homepage = HomePage.objects.get(slug="home")
+        content_page = ContentPage(
+            title="صفحه بلوک‌های آزمایشی",
+            slug="cms-blocks-test",
+            sections=[
+                ("heading", "عنوان بلوک آزمایشی"),
+                ("rich_text", "<p>متن بلوک آزمایشی</p>"),
+                ("notice", {
+                    "title": "اطلاعیه آزمایشی",
+                    "text": "متن اطلاعیه",
+                    "tone": "info",
+                }),
+            ],
+        )
+        homepage.add_child(instance=content_page)
+        content_page.save_revision().publish()
+
+        response = self.client.get("/cms-blocks-test/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "عنوان بلوک آزمایشی")
+        self.assertContains(response, "متن بلوک آزمایشی")
+        self.assertContains(response, "اطلاعیه آزمایشی")
+
+    def test_wagtail_sitemap_route_is_available(self):
+        response = self.client.get("/sitemap.xml")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("application/xml", response["Content-Type"])
+
+    def test_object_storage_configuration_fails_closed(self):
+        local = build_default_media_storage_config(backend="local")
+        self.assertEqual(
+            local["BACKEND"],
+            "django.core.files.storage.FileSystemStorage",
+        )
+        with self.assertRaises(ImproperlyConfigured):
+            build_default_media_storage_config(
+                backend="s3",
+                bucket_name="nebula-vault-media-2026",
+                access_key="test-key",
+                secret_key="test-secret",
+                region_name="us-east-005",
+                endpoint_url="",
+            )
+        with self.assertRaises(ImproperlyConfigured):
+            build_default_media_storage_config(backend="unknown")
+
+        configured = build_default_media_storage_config(
+            backend="s3",
+            bucket_name="private-bucket",
+            access_key="test-key",
+            secret_key="test-secret",
+            region_name="us-east-005",
+            endpoint_url="https://s3.us-east-005.backblazeb2.com",
+        )
+        self.assertEqual(
+            configured["BACKEND"],
+            "sitecms.storage.PrivateMediaS3Storage",
+        )
+        self.assertIsNone(configured["OPTIONS"]["default_acl"])
 
     def test_existing_storefront_homepage_is_managed_by_wagtail(self):
         homepage = HomePage.objects.get(slug="home")
