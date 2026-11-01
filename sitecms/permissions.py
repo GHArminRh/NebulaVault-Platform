@@ -10,6 +10,7 @@ from wagtail.models import (
 )
 from wagtail.permission_policies.collections import (
     CollectionManagementPermissionPolicy,
+    CollectionOwnershipPermissionPolicy,
 )
 from wagtail.permission_policies.pages import PagePermissionPolicy
 
@@ -72,6 +73,37 @@ class StaffPagePermissionPolicy(PagePermissionPolicy):
         )
 
 
+class StaffCollectionOwnershipPermissionPolicy(CollectionOwnershipPermissionPolicy):
+    """Use Wagtail group memberships for image/document collection ownership."""
+
+    @staticmethod
+    def _groups_for_user(user):
+        if hasattr(user, "wagtail_groups"):
+            return user.wagtail_groups.all()
+        return user.groups.all()
+
+    def get_all_permissions_for_user(self, user):
+        if not user.is_active or user.is_anonymous or user.is_superuser:
+            return GroupCollectionPermission.objects.none()
+        return GroupCollectionPermission.objects.filter(
+            group__in=self._groups_for_user(user)
+        ).select_related("permission", "collection")
+
+    def _users_with_perm_filter(self, actions, collection=None):
+        permissions = self._get_permission_objects_for_actions(actions)
+        groups = Group.objects.filter(
+            collection_permissions__permission__in=permissions,
+        )
+        if collection is not None:
+            collections = collection.get_ancestors(inclusive=True)
+            groups = groups.filter(
+                collection_permissions__collection__in=collections
+            )
+        return Q(is_active=True) & (
+            Q(is_superuser=True) | Q(wagtail_groups__in=groups)
+        )
+
+
 class StaffCollectionManagementPermissionPolicy(CollectionManagementPermissionPolicy):
     """Use Wagtail groups, not the project's unrelated UUID staff groups."""
 
@@ -130,6 +162,25 @@ def register_staff_permission_policies():
     from wagtail.permissions import policy_registry, register_permission_policy
 
     register_permission_policy(AbstractPage, StaffPagePermissionPolicy())
+    from wagtail.documents import get_document_model
+    from wagtail.images import get_image_model
+
+    register_permission_policy(
+        get_image_model(),
+        StaffCollectionOwnershipPermissionPolicy(
+            get_image_model(),
+            auth_model="wagtailimages.Image",
+            owner_field_name="uploaded_by_user",
+        ),
+    )
+    register_permission_policy(
+        get_document_model(),
+        StaffCollectionOwnershipPermissionPolicy(
+            get_document_model(),
+            auth_model="wagtaildocs.Document",
+            owner_field_name="uploaded_by_user",
+        ),
+    )
     policy_registry.register(
         Collection,
         value=StaffCollectionManagementPermissionPolicy(Collection),
