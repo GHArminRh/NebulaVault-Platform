@@ -2799,8 +2799,14 @@ html body.nv-portal .nv-final-cta {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  html:has(body.nv-portal),
+  html body.nv-portal,
   html body.nv-portal *,
+  html:has(body.nv-portal)::before,
+  html body.nv-portal::before,
   html body.nv-portal *::before,
+  html:has(body.nv-portal)::after,
+  html body.nv-portal::after,
   html body.nv-portal *::after {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
