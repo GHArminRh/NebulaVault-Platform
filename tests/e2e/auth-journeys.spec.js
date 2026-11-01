@@ -125,19 +125,23 @@ test.describe('navigation and shared interactions', () => {
     }
   });
 
-  test('all rendered images have completed successfully or expose a useful alt label', async ({
+  test('images have alternative text and visible image requests succeed', async ({
     page,
   }) => {
+    const failedImages = [];
+    page.on('response', (response) => {
+      if (response.request().resourceType() === 'image' && response.status() >= 400) {
+        failedImages.push(`${response.status()} ${response.url()}`);
+      }
+    });
+
     await page.goto('/');
-    const imageProblems = await page.locator('img').evaluateAll((images) =>
+    const imagesWithoutAlt = await page.locator('img').evaluateAll((images) =>
       images
-        .filter((img) => !img.complete || img.naturalWidth === 0 || !img.hasAttribute('alt'))
-        .map((img) => ({
-          src: img.currentSrc || img.src,
-          alt: img.getAttribute('alt'),
-          loaded: img.complete && img.naturalWidth > 0,
-        }))
+        .filter((img) => !img.hasAttribute('alt'))
+        .map((img) => img.currentSrc || img.src)
     );
-    expect(imageProblems).toEqual([]);
+    expect(imagesWithoutAlt).toEqual([]);
+    expect(failedImages).toEqual([]);
   });
 });
