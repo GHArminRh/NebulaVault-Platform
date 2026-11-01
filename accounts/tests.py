@@ -561,7 +561,6 @@ class AccountBackendTests(TestCase):
         self.assertEqual(sent.status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
         code = re.search(r"کد تأیید شما: (\\d{6})", mail.outbox[0].body).group(1)
-        challenge = self.user.email_history.first() if hasattr(self.user, "email_history") else None
         from accounts.models import TwoFactorEmailChallenge
         email_challenge = TwoFactorEmailChallenge.objects.get(
             user_type=self.user._meta.label_lower, user_id=str(self.user.pk), purpose="login"
