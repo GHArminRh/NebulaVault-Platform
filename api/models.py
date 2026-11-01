@@ -37,7 +37,6 @@ class CustomerAPIToken(models.Model):
         return f"{self.customer_id} · {self.token_prefix}"
 
 
-
 class TokenLoginFailure(models.Model):
     """Privacy-preserving, database-backed failure counter for API token login."""
 
