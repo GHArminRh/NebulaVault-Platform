@@ -391,9 +391,34 @@ class WagtailIntegrationTests(TestCase):
         self.assertContains(response, "hero_title")
         self.assertContains(response, "hero_description")
 
-    def test_wagtail_admin_login_route_is_available(self):
-        response = self.client.get(reverse("wagtailadmin_login"))
-        self.assertEqual(response.status_code, 200)
+    def test_wagtail_admin_login_uses_the_django_admin_login(self):
+        response = self.client.get(
+            "/cms/login/?next=%2Fcms%2Fpages%2F2%2Fedit%2F"
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response["Location"],
+            "/admin/login/?next=%2Fcms%2Fpages%2F2%2Fedit%2F",
+        )
+
+        login_response = self.client.get(response["Location"])
+        self.assertEqual(login_response.status_code, 200)
+        self.assertContains(login_response, 'id="login-form"')
+        self.assertContains(login_response, "Security verification")
+        self.assertEqual(
+            login_response.context["form"].__class__.__name__,
+            "AdminTurnstileAuthenticationForm",
+        )
+
+    def test_cms_login_rejects_external_next_redirects(self):
+        response = self.client.get(
+            "/cms/login/?next=https%3A%2F%2Fevil.example%2F"
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response["Location"],
+            "/admin/login/?next=%2Fcms%2F",
+        )
 
     def test_staff_users_can_be_assigned_wagtail_groups(self):
         creation_form = CMSUserCreationForm()
