@@ -18,6 +18,7 @@ from accounts.views import CustomerLoginView
 from config.admin_toggle import toggle_boolean_field
 from portal.editor_uploads import editor_image_upload
 from sitecms.media_proxy import private_media_proxy
+from sitecms.cron_views import publish_scheduled_pages
 from staff.admin_forms import AdminTurnstileAuthenticationForm
 
 admin.site.login_form = AdminTurnstileAuthenticationForm
@@ -73,6 +74,11 @@ def api_index(request):
 
 
 urlpatterns = [
+    path(
+        "internal/cron/wagtail/publish-scheduled/",
+        publish_scheduled_pages,
+        name="wagtail-publish-scheduled",
+    ),
     path("healthz/", healthcheck, name="healthcheck"),
     path("sitemap.xml", sitemap, name="sitemap"),
     path("media-proxy/<path:path>", private_media_proxy, name="private-media-proxy"),
