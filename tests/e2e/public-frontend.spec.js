@@ -42,7 +42,8 @@ test('deployed frontend styles are updated before regression checks', async ({ p
               });
               if (!assetResponse.ok) return 'stylesheet-unavailable';
               const css = await assetResponse.text();
-              return css.includes('NV_MOBILE_MENU_VIEWPORT_FIXED_V2') ? 'current-assets' : 'old-assets';
+              const isCurrent = css.includes('NV_MOBILE_MENU_VIEWPORT_FIXED_V2');
+              return isCurrent ? 'current-assets' : 'old-assets';
             } catch {
               return 'stylesheet-unavailable';
             }
