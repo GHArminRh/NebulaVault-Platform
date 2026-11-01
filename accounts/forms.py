@@ -65,6 +65,8 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
                 self._configure_methods(customer)
                 self.fields["username"].required = False
                 self.fields["password"].required = False
+            elif self.request:
+                self.request.session.pop(self.PENDING_SESSION_KEY, None)
         elif pending and self.request:
             self.request.session.pop(self.PENDING_SESSION_KEY, None)
 
