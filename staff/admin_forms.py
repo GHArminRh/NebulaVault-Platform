@@ -92,6 +92,7 @@ class AdminTurnstileAuthenticationForm(AdminAuthenticationForm):
 
             pending = self.request.session.pop(self.PENDING_SESSION_KEY, {})
             self._apply_remember_preference(pending.get("remember_me", True))
+            staff_user.backend = "django.contrib.auth.backends.ModelBackend"
             self.user_cache = staff_user
             return self.cleaned_data
 
