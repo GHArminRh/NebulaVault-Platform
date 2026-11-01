@@ -124,6 +124,7 @@ jobs:
               )
               customer.username = username
               customer.is_active = True
+              customer.two_factor_enabled = email_two_factor
               customer.email_two_factor_enabled = email_two_factor
               password = secrets.token_urlsafe(32)
               customer.set_password(password)
