@@ -112,9 +112,6 @@ jobs:
       - name: Install locked browser-test dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Print normalized browser-test formatting for CI diagnostics
-        run: npx prettier tests/e2e/auth-journeys.spec.js
-
       - name: Install Chromium and WebKit
         run: npx playwright install --with-deps chromium webkit
 
