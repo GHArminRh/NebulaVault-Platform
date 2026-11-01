@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -9,6 +10,7 @@ from wagtail.models import (
     Collection,
     GroupCollectionPermission,
     GroupPagePermission,
+    Locale,
     Page,
     Site,
 )
@@ -28,6 +30,7 @@ class WagtailIntegrationTests(TestCase):
         if HomePage.objects.exists():
             return
 
+        Locale.objects.get_or_create(language_code=settings.LANGUAGE_CODE)
         page_type = ContentType.objects.get_for_model(Page, for_concrete_model=False)
         home_type = ContentType.objects.get_for_model(HomePage, for_concrete_model=False)
         Page.objects.create(
