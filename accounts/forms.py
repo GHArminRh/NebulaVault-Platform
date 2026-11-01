@@ -115,6 +115,7 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
 
             pending = self.request.session.pop(self.PENDING_SESSION_KEY, {})
             self._apply_remember_preference(pending.get("remember_me", True))
+            customer.backend = "accounts.backends.CustomerAuthenticationBackend"
             self.user_cache = customer
             return self.cleaned_data
 
