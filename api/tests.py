@@ -234,7 +234,7 @@ class CustomerApiAuthenticationTests(APITestCase):
         self.customer.save(update_fields=("email_two_factor_enabled",))
         with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
             send_email_code(RequestFactory().post("/login/"), self.customer, purpose="login")
-            code = re.search(r"کد تأیید شما: (\\d{6})", mail.outbox[-1].body).group(1)
+            code = re.search(r"کد تأیید شما: (\d{6})", mail.outbox[-1].body).group(1)
         denied = self.client.post(
             "/api/v1/auth/token/",
             {"email": self.customer.email, "password": "Strong-password-123!"},
