@@ -33,6 +33,24 @@ class BlogPostWagtailEditorialTests(TestCase):
             [tag.pk],
         )
 
+    def test_saving_a_draft_does_not_replace_the_live_article(self):
+        original_content = "<p>نسخه منتشرشده</p>"
+        post = BlogPost.objects.create(
+            title="مقاله منتشرشده",
+            slug="wagtail-live-draft-test",
+            content=original_content,
+            status=BlogPost.Status.PUBLISHED,
+            live=True,
+        )
+        post.content = "<p>نسخه پیش‌نویس جدید</p>"
+        revision = post.save_revision()
+        post.refresh_from_db()
+
+        self.assertTrue(post.live)
+        self.assertTrue(post.has_unpublished_changes)
+        self.assertEqual(post.content, original_content)
+        self.assertEqual(revision.as_object().content, "<p>نسخه پیش‌نویس جدید</p>")
+
     def test_publishing_revision_updates_legacy_publication_fields(self):
         post = BlogPost.objects.create(
             title="مقاله قابل انتشار",
