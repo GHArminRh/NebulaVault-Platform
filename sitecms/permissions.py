@@ -18,6 +18,10 @@ class StaffPagePermissionPolicy(PagePermissionPolicy):
     """Use the dedicated Wagtail group relation for staff permission lookups."""
 
     def users_with_any_permission(self, actions, include_superusers=True):
+        actions = set(actions)
+        if "change" in actions:
+            actions.add("add")
+
         groups = GroupPagePermission.objects.filter(
             permission__codename__in=self._get_permission_codenames(actions)
         ).values_list("group_id", flat=True)
