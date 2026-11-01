@@ -6,12 +6,6 @@ on:
     paths:
       - "sitecms/**"
       - "blog/**"
-      - "templates/blog/**"
-      - "blog/**"
-      - "templates/blog/**"
-      - "templates/portal/base.html"
-      - "config/urls.py"
-      - "blog/wagtail_hooks.py"
       - "staff/**"
       - "accounts/backends.py"
       - "config/**"
@@ -22,7 +16,7 @@ on:
   pull_request:
     paths:
       - "sitecms/**"
-      - "blog/wagtail_hooks.py"
+      - "blog/**"
       - "staff/**"
       - "accounts/backends.py"
       - "config/**"
