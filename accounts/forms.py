@@ -140,6 +140,7 @@ class AccountProfileForm(forms.ModelForm):
             "first_name": "نام",
             "last_name": "نام خانوادگی",
             "email": "نشانی ایمیل",
+            "avatar": "تصویر نمایه",
         }
         widgets = {
             "username": forms.TextInput(attrs={"autocomplete": "username"}),
