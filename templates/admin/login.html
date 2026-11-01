@@ -102,16 +102,21 @@
         {% else %}
           {% for method, label in form.two_factor_methods %}<input type="hidden" name="two_factor_method" value="{{ method }}"><p>{{ label }}</p>{% endfor %}
         {% endif %}
-        <div class="nv-two-factor-input" data-factor="authenticator" hidden>
-          <div class="form-row">{{ form.otp_token.label_tag }}{{ form.otp_token }}</div>
-        </div>
-        <div class="nv-two-factor-input" data-factor="email" hidden>
-          <div class="form-row">{{ form.email_otp_token.label_tag }}{{ form.email_otp_token }}</div>
-          
-        </div>
-        <div class="nv-two-factor-input" data-factor="recovery" hidden>
-          <div class="form-row">{{ form.recovery_code.label_tag }}{{ form.recovery_code }}</div>
-        </div>
+        {% for method, label in form.two_factor_methods %}
+          {% if method == "authenticator" %}
+            <div class="nv-two-factor-input" data-factor="authenticator" hidden>
+              <div class="form-row">{{ form.otp_token.label_tag }}{{ form.otp_token }}</div>
+            </div>
+          {% elif method == "email" %}
+            <div class="nv-two-factor-input" data-factor="email" hidden>
+              <div class="form-row">{{ form.email_otp_token.label_tag }}{{ form.email_otp_token }}</div>
+            </div>
+          {% elif method == "recovery" %}
+            <div class="nv-two-factor-input" data-factor="recovery" hidden>
+              <div class="form-row">{{ form.recovery_code.label_tag }}{{ form.recovery_code }}</div>
+            </div>
+          {% endif %}
+        {% endfor %}
       {% else %}
         <div class="form-row">{{ form.username.errors }}{{ form.username.label_tag }}{{ form.username }}</div>
         <div class="form-row">{{ form.password.errors }}{{ form.password.label_tag }}{{ form.password }}</div>
@@ -147,9 +152,13 @@
       <div class="submit-row">
         <input type="submit" value="{% translate 'Log in' %}">
       </div>
-      <div class="nv-two-factor-input" data-factor="email" hidden>
-        <button type="submit" name="send_email_code" value="1" class="button">Send email verification code</button>
-      </div>
+      {% for method, label in form.two_factor_methods %}
+        {% if method == "email" %}
+          <div class="nv-two-factor-input" data-factor="email" hidden>
+            <button type="submit" name="send_email_code" value="1" class="button">Send email verification code</button>
+          </div>
+        {% endif %}
+      {% endfor %}
       <div class="nv-two-factor-input" data-factor="email" hidden>
         
       </div>
