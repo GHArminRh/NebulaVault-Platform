@@ -75,6 +75,9 @@
           <div class="nv-two-factor-input" data-factor="email" hidden>
             <button class="button button-secondary button-full" type="submit" name="send_email_code" value="1">ارسال کد به ایمیل</button>
           </div>
+          <div class="nv-two-factor-input" data-factor="email" hidden>
+            
+          </div>
         </form>
         <p class="nv-auth-small-link"><a href="{% url 'accounts:password_reset' %}">رمز عبور را فراموش کرده‌اید؟</a></p>
         <div class="nv-auth-flip-prompt"><span>هنوز حساب ندارید؟</span><button type="button" data-auth-flip="register">ساخت حساب <span>↶</span></button><a class="nv-auth-nojs-link" href="{% url 'accounts:register' %}">ساخت حساب</a></div>
