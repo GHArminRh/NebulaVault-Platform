@@ -1,10 +1,13 @@
+from urllib.parse import urlencode, urlsplit
+
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.shortcuts import render
-from django.urls import include, path
+from django.shortcuts import redirect, render
+from django.urls import include, path, reverse
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
@@ -22,6 +25,23 @@ from sitecms.cron_views import publish_scheduled_pages
 from staff.admin_forms import AdminTurnstileAuthenticationForm
 
 admin.site.login_form = AdminTurnstileAuthenticationForm
+
+
+def wagtail_login_redirect(request):
+    """Use the existing protected Django admin login for Wagtail sessions."""
+    next_url = request.GET.get("next") or request.POST.get("next") or "/cms/"
+    if (
+        not next_url.startswith("/")
+        or not url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        )
+        or urlsplit(next_url).path in {"/cms/login/", reverse("admin:login")}
+    ):
+        next_url = "/cms/"
+
+    return redirect(f"{reverse('admin:login')}?{urlencode({'next': next_url})}")
 
 
 def service_worker(request):
@@ -100,6 +120,8 @@ urlpatterns = [
     path("tinymce/", include("tinymce.urls")),
     path("comment/", include("comment.urls")),
     path("blog/", include("blog.urls")),
+    # Share the existing Django admin login, including its Turnstile protection.
+    path("cms/login/", wagtail_login_redirect, name="cms-login-redirect"),
     path("cms/", include(wagtailadmin_urls)),
     path("documents/", include(wagtaildocs_urls)),
     path("api/v1/", include("api.urls")),
