@@ -3,7 +3,8 @@ from django.db import connection
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from unittest.mock import patch
 from django.urls import reverse
 
 from accounts.backends import WagtailGroupPermissionsBackend
@@ -483,3 +484,51 @@ class WagtailIntegrationTests(TestCase):
             )
             self.assertTrue(model_policy.user_has_permission(user, "add"), diagnostic)
             self.assertIn(user, model_policy.users_with_any_permission({"add"}))
+
+
+
+@override_settings(WAGTAIL_CRON_SECRET="test-wagtail-cron-secret-that-is-long-enough-123456")
+class ScheduledPublishingEndpointTests(TestCase):
+    def setUp(self):
+        self.url = reverse("wagtail-publish-scheduled")
+        self.secret = "test-wagtail-cron-secret-that-is-long-enough-123456"
+
+    @patch("sitecms.cron_views.call_command")
+    def test_valid_bearer_secret_runs_wagtail_command(self, mocked_command):
+        response = self.client.post(
+            self.url,
+            HTTP_AUTHORIZATION=f"Bearer {self.secret}",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "ok")
+        mocked_command.assert_called_once()
+        self.assertEqual(mocked_command.call_args.args, ("publish_scheduled",))
+
+    @patch("sitecms.cron_views.call_command")
+    def test_invalid_bearer_secret_is_rejected(self, mocked_command):
+        response = self.client.post(
+            self.url,
+            HTTP_AUTHORIZATION="Bearer incorrect-secret",
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["status"], "unauthorized")
+        mocked_command.assert_not_called()
+
+    def test_endpoint_accepts_post_only(self):
+        response = self.client.get(
+            self.url,
+            HTTP_AUTHORIZATION=f"Bearer {self.secret}",
+        )
+
+        self.assertEqual(response.status_code, 405)
+
+    @override_settings(WAGTAIL_CRON_SECRET="")
+    def test_endpoint_is_disabled_when_secret_is_not_configured(self):
+        response = self.client.post(
+            self.url,
+            HTTP_AUTHORIZATION=f"Bearer {self.secret}",
+        )
+
+        self.assertEqual(response.status_code, 503)
