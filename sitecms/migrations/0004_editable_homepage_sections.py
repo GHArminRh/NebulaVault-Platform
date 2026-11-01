@@ -29,6 +29,14 @@ def seed_homepage_sections(apps, schema_editor):
             },
         ),
         (
+            "product_listing",
+            {
+                "eyebrow": "مجموعه محصولات",
+                "title": "ابزارهایی که با شما هماهنگ‌اند.",
+                "description": "محصولات نبیولا والت را در یک فضای منظم کشف کنید.",
+            },
+        ),
+        (
             "feature_grid",
             {
                 "eyebrow": "طراحی حول محور شما",
@@ -57,6 +65,23 @@ def seed_homepage_sections(apps, schema_editor):
                         "link_url": "/dashboard/#my-licenses",
                     },
                 ],
+            },
+        ),
+        (
+            "blog_listing",
+            {
+                "eyebrow": "مجله‌ی نبیولا",
+                "title": "تازه‌ترین نوشته‌ها.",
+                "description": "راهنماها، خبرها و نکته‌های کاربردی در یک جا.",
+                "link_label": "همه‌ی نوشته‌ها",
+            },
+        ),
+        (
+            "release_listing",
+            {
+                "eyebrow": "نسخه‌های منتشرشده",
+                "title": "همیشه آماده‌ی قدم بعدی.",
+                "description": "نسخه‌های منتشرشده را از یک نقطه پیدا کنید.",
             },
         ),
         (
