@@ -1,0 +1,33 @@
+<section class="nv-release-section" id="releases">
+  <div class="page-wrap section nv-home-section">
+    <div class="section-heading">
+      <div>
+        <div class="eyebrow">{{ value.eyebrow }}</div>
+        <h2>{{ value.title }}</h2>
+        {% if value.description %}<p>{{ value.description }}</p>{% endif %}
+      </div>
+      <span class="nv-section-index">04 / RELEASES</span>
+    </div>
+    {% if releases %}
+      <div class="release-list nv-release-list">
+        {% for release in releases %}
+          <div class="release-row">
+            <div class="release-mark">↓</div>
+            <div class="release-info">
+              <strong>{{ release.product.name }} <span>v{{ release.version }}</span></strong>
+              <small>
+                {% if release.platform == "windows" %}ویندوز{% elif release.platform == "macos" %}مک‌اواس{% elif release.platform == "linux" %}لینوکس{% else %}سایر سامانه‌ها{% endif %}
+                ·
+                {% if release.architecture == "universal" %}همه معماری‌ها{% elif release.architecture == "x64" %}x64{% elif release.architecture == "arm64" %}ARM64{% else %}معماری نامشخص{% endif %}
+                {% if release.published_at %} · {{ release.published_at|date:"Y/m/d" }}{% endif %}
+              </small>
+            </div>
+            <a class="button button-quiet button-small" href="{{ release.download_url }}" rel="noopener noreferrer">دریافت ↗</a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="nv-section-empty">نسخه‌های جدید پس از انتشار در اینجا فهرست می‌شوند.</div>
+    {% endif %}
+  </div>
+</section>
