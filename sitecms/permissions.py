@@ -17,6 +17,13 @@ from wagtail.permission_policies.pages import PagePermissionPolicy
 class StaffPagePermissionPolicy(PagePermissionPolicy):
     """Use the dedicated Wagtail group relation for staff permission lookups."""
 
+    def get_all_permissions_for_user(self, user):
+        if not user.is_active or user.is_anonymous or user.is_superuser:
+            return GroupPagePermission.objects.none()
+        return GroupPagePermission.objects.filter(
+            group__in=user.wagtail_groups.all()
+        ).select_related("page", "permission")
+
     def users_with_any_permission(self, actions, include_superusers=True):
         actions = set(actions)
         if "change" in actions:
@@ -73,6 +80,13 @@ class StaffCollectionManagementPermissionPolicy(CollectionManagementPermissionPo
         if hasattr(user, "wagtail_groups"):
             return user.wagtail_groups.all()
         return user.groups.all()
+
+    def get_all_permissions_for_user(self, user):
+        if not user.is_active or user.is_anonymous or user.is_superuser:
+            return GroupCollectionPermission.objects.none()
+        return GroupCollectionPermission.objects.filter(
+            group__in=self._groups_for_user(user)
+        ).select_related("permission", "collection")
 
     def _descendants_with_perm(self, user, action):
         permission = self._get_permission_objects_for_actions([action]).first()
