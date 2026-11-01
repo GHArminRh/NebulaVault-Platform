@@ -77,7 +77,7 @@ class Migration(migrations.Migration):
                         validators=[
                             django.core.validators.RegexValidator(
                                 message="از نشانی داخلی، لنگر صفحه یا پیوند HTTPS استفاده کنید.",
-                                regex=r"^(?:#|/(?!/)|https://)\\S*$",
+                                regex=r"^(?:#|/(?!/)|https://)\S*$",
                             )
                         ],
                         verbose_name="پیوند دکمه اصلی",
