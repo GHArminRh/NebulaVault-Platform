@@ -6,6 +6,7 @@ from django.contrib.auth.password_validation import validate_password
 
 from .models import Customer
 from .turnstile import verify_turnstile
+from .two_factor import verify_totp
 
 
 class HumanCheckMixin:
@@ -39,6 +40,8 @@ class HumanCheckMixin:
 
 
 class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
+    remember_me = forms.BooleanField(required=False, initial=True, label="مرا به خاطر بسپار")
+    otp_token = forms.CharField(required=False, max_length=12, label="کد تأیید دومرحله‌ای", widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "inputmode": "numeric", "placeholder": "کد ۶ رقمی برنامه احراز هویت"}))
     username = forms.EmailField(
         label="نشانی ایمیل",
         widget=forms.EmailInput(attrs={"autocomplete": "username", "autofocus": True}),
@@ -59,6 +62,13 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
                 elif not customer.is_active:
                     self.inactive_email = customer.email
             raise
+        customer = self.get_user()
+        if customer.two_factor_enabled and not verify_totp(customer.two_factor_secret, self.cleaned_data.get("otp_token")):
+            self.add_error("otp_token", "کد تأیید دومرحله‌ای نامعتبر است یا وارد نشده است.")
+            return self.cleaned_data
+        if self.request is not None:
+            self.request.session.set_expiry(60 * 60 * 24 * 14 if self.cleaned_data.get("remember_me") else 0)
+        return self.cleaned_data
 
 
 class RegisterForm(HumanCheckMixin, forms.ModelForm):
@@ -124,7 +134,7 @@ class AccountProfileForm(forms.ModelForm):
 
     class Meta:
         model = Customer
-        fields = ("username", "first_name", "last_name", "email")
+        fields = ("username", "first_name", "last_name", "email", "avatar")
         labels = {
             "username": "نام کاربری",
             "first_name": "نام",
