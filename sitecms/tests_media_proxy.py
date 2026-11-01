@@ -1,10 +1,11 @@
 from unittest.mock import patch
 
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.test import TestCase
 from django.urls import reverse
 
-from .media_proxy import media_proxy_signature
+from .media_proxy import _valid_storage_name, media_proxy_signature
 from .storage import PrivateMediaS3Storage
 
 
@@ -33,13 +34,14 @@ class PrivateMediaProxyTests(TestCase):
             self.assertEqual(b"".join(response.streaming_content), content)
             open_file.assert_called_once_with(path, "rb")
 
-    def test_path_traversal_is_rejected_even_with_a_valid_signature(self):
-        path = "images/../private/secret.png"
-        response = self.client.get(
-            reverse("private-media-proxy", kwargs={"path": path}),
-            {"signature": media_proxy_signature(path)},
-        )
-        self.assertEqual(response.status_code, 404)
+    def test_path_traversal_and_unsafe_names_are_rejected(self):
+        self.assertFalse(_valid_storage_name("images/../private/secret.png"))
+        self.assertFalse(_valid_storage_name("/private/secret.png"))
+        self.assertFalse(_valid_storage_name("images\\\\private.png"))
+        self.assertFalse(_valid_storage_name("images/"))
+
+    def test_wagtail_documents_keep_collection_permission_checks(self):
+        self.assertEqual(settings.WAGTAILDOCS_SERVE_METHOD, "serve_view")
 
     def test_storage_returns_a_signed_same_origin_proxy_url(self):
         path = "images/example.png"
