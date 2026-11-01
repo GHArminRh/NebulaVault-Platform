@@ -33,15 +33,15 @@
   gap: 8px;
 }
 
-.nv-dashboard-page .nv-license-key-input {
+html body.nv-portal.nv-dashboard-page .nv-license-key-input {
   flex: 1;
   min-width: 260px;
   max-width: 100%;
   padding: 13px 15px;
   border: 1px solid rgba(95, 230, 170, 0.55);
   border-radius: 10px;
-  background: #101827 !important;
-  color: #d9ffeb !important;
+  background: #101827;
+  color: #d9ffeb;
   -webkit-text-fill-color: #d9ffeb;
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: 0.94rem;

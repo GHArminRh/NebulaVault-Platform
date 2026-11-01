@@ -125,3 +125,16 @@ This pass starts from the current `deploy/render-ready` frontend after Django CM
 The core design stylesheets were intentionally not flattened or mass-pruned. `unified-experience.css` and `responsive-system.css` contain layered component and breakpoint overrides, including protections for mobile navigation, dashboard layout, and horizontal overflow. Selector repetition or `!important` alone does not establish that a rule is dead. A further reduction should be performed by component with browser visual comparisons, not by deleting late rules in bulk.
 
 The Playwright suite now additionally checks that `blog.css` is present on the home/blog pages and absent from unrelated public pages. Source checks, formatter checks, JavaScript lint/syntax checks, and browser regression checks remain the validation gates for this maintenance branch. This branch is not considered production-deployed until it is merged into `deploy/render-ready` and its Render deployment is verified.
+
+
+## CSS cascade cleanup pass (1 November 2026)
+
+The follow-up pass reduced the current public frontend's !important declarations from **593 to 21** (a 96.5% reduction) without deleting the responsive layout rules themselves.
+
+- The selectors in unified-experience.css and responsive-system.css are now explicitly scoped to the public portal root (body.nv-portal). The root and dashboard selectors use the existing body classes, while the source order of the two stylesheets is retained.
+- Component styles in blog.css, dashboard.css, and the relevant overrides in site.css now use scoped selectors instead of priority flags. This keeps blog, account-dashboard, and public-shell styling from leaking to unrelated documents.
+- The 21 remaining declarations are deliberate reduced-motion safeguards in unified-experience.css, responsive-system.css, site.css, site-shell.css, and the separate Django Admin motion stylesheet. They are retained so reduced-motion preferences continue to take precedence over decorative animation and transitions.
+- The source audit now enforces a maximum budget of 25 !important declarations. A small allowance remains for accessibility-specific overrides; ordinary component styling should use scoped selectors and predictable cascade order.
+- Playwright now checks that the mobile navigation opens as a fixed, scrollable two-column menu and returns to its hidden state when toggled closed.
+
+This pass keeps the existing breakpoints and component declarations; it does not mass-delete responsive rules. The full quality workflow and the deployed browser suite remain the acceptance gates for this cascade change.

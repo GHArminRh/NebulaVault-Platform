@@ -345,11 +345,11 @@
   flex-wrap: wrap;
   margin-top: 12px;
 }
-.nv-comment-spoiler {
-  display: flex !important;
+html body.nv-portal .nv-comment-spoiler {
+  display: flex;
   align-items: center;
   gap: 8px;
-  color: #9eabc8 !important;
+  color: #9eabc8;
 }
 .nv-comment-login a {
   color: #b5aaff;
@@ -538,17 +538,17 @@
   color: #8997b7;
   font-size: 11px;
 }
-.nv-blog-tag {
+html body.nv-portal .nv-blog-tag {
   display: inline-flex;
   align-items: center;
   padding: 5px 10px;
   border: 1px solid rgba(151, 169, 226, 0.2);
   border-radius: 999px;
   background: rgba(123, 111, 255, 0.07);
-  color: #b9b1ff !important;
+  color: #b9b1ff;
   font-size: 11px;
   line-height: 1.7;
-  text-decoration: none !important;
+  text-decoration: none;
   transition:
     background 0.18s,
     border-color 0.18s;

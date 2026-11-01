@@ -6,7 +6,7 @@
  */
 
 /* Fluid foundations */
-:root {
+html:has(body.nv-portal) {
   --nv-content-width: 1160px;
   --nv-wide-width: 1320px;
   --nv-gutter: clamp(16px, 3.2vw, 32px);
@@ -14,7 +14,7 @@
   --nv-card-padding: clamp(16px, 2.2vw, 26px);
 }
 
-html {
+html:has(body.nv-portal) {
   max-width: 100%;
   overflow-x: clip;
   scroll-padding-top: 88px;
@@ -22,209 +22,209 @@ html {
   text-size-adjust: 100%;
 }
 
-body.nv-portal {
+html body.nv-portal {
   max-width: 100%;
 }
 
 /* Keep decorative glows inside the layout width; a right-side negative offset widens the document. */
-body.nv-portal > .ambient-one {
+html body.nv-portal > .ambient-one {
   left: 0;
 }
 
-body.nv-portal > .ambient-two {
+html body.nv-portal > .ambient-two {
   right: 0;
 }
 
-body.nv-portal main,
-body.nv-portal .nv-dashboard-layout,
-body.nv-portal .nv-dashboard-content,
-body.nv-portal section,
-body.nv-portal article {
+html body.nv-portal main,
+html body.nv-portal .nv-dashboard-layout,
+html body.nv-portal .nv-dashboard-content,
+html body.nv-portal section,
+html body.nv-portal article {
   min-width: 0;
 }
 
-body.nv-portal img,
-body.nv-portal video,
-body.nv-portal canvas,
-body.nv-portal svg,
-body.nv-portal iframe {
+html body.nv-portal img,
+html body.nv-portal video,
+html body.nv-portal canvas,
+html body.nv-portal svg,
+html body.nv-portal iframe {
   max-width: 100%;
 }
 
-body.nv-portal img,
-body.nv-portal video {
+html body.nv-portal img,
+html body.nv-portal video {
   height: auto;
 }
 
-body.nv-portal input,
-body.nv-portal select,
-body.nv-portal textarea,
-body.nv-portal button {
+html body.nv-portal input,
+html body.nv-portal select,
+html body.nv-portal textarea,
+html body.nv-portal button {
   max-width: 100%;
 }
 
-body.nv-portal input,
-body.nv-portal select,
-body.nv-portal textarea {
+html body.nv-portal input,
+html body.nv-portal select,
+html body.nv-portal textarea {
   min-width: 0;
 }
 
-body.nv-portal :where(h1, h2, h3, h4, p, small, strong, label, a, button) {
+html body.nv-portal :where(h1, h2, h3, h4, p, small, strong, label, a, button) {
   overflow-wrap: anywhere;
 }
 
-body.nv-portal :where(.page-wrap, .site-header, .site-footer) {
+html body.nv-portal :where(.page-wrap, .site-header, .site-footer) {
   width: min(var(--nv-content-width), calc(100% - (var(--nv-gutter) * 2)));
   max-width: 100%;
 }
 
-body.nv-portal .section-heading,
-body.nv-portal .panel-heading,
-body.nv-portal .nv-section-heading {
+html body.nv-portal .section-heading,
+html body.nv-portal .panel-heading,
+html body.nv-portal .nv-section-heading {
   min-width: 0;
 }
 
-body.nv-portal .button {
+html body.nv-portal .button {
   max-width: 100%;
   white-space: normal;
   text-align: center;
 }
 
-body.nv-portal .table-list,
-body.nv-portal .release-list,
-body.nv-portal .cart-items {
+html body.nv-portal .table-list,
+html body.nv-portal .release-list,
+html body.nv-portal .cart-items {
   min-width: 0;
   max-width: 100%;
 }
 
-body.nv-portal .table-row,
-body.nv-portal .release-row {
+html body.nv-portal .table-row,
+html body.nv-portal .release-row {
   min-width: 0;
 }
 
-body.nv-portal .table-main,
-body.nv-portal .release-info,
-body.nv-portal .row-end {
+html body.nv-portal .table-main,
+html body.nv-portal .release-info,
+html body.nv-portal .row-end {
   min-width: 0;
 }
 
-body.nv-portal .table-main strong,
-body.nv-portal .table-main small,
-body.nv-portal .release-info strong,
-body.nv-portal .release-info small {
+html body.nv-portal .table-main strong,
+html body.nv-portal .table-main small,
+html body.nv-portal .release-info strong,
+html body.nv-portal .release-info small {
   overflow-wrap: anywhere;
   word-break: normal;
 }
 
-body.nv-portal .status-pill,
-body.nv-portal .pill {
+html body.nv-portal .status-pill,
+html body.nv-portal .pill {
   max-width: 100%;
   white-space: normal;
   text-align: center;
 }
 
-body.nv-portal .nv-auth-face,
-body.nv-portal .auth-card,
-body.nv-portal .auth-card-premium,
-body.nv-portal .nv-settings-card,
-body.nv-portal .nv-panel {
+html body.nv-portal .nv-auth-face,
+html body.nv-portal .auth-card,
+html body.nv-portal .auth-card-premium,
+html body.nv-portal .nv-settings-card,
+html body.nv-portal .nv-panel {
   min-width: 0;
 }
 
 /* Wide screens: keep content readable and avoid oversized line lengths. */
 @media (min-width: 1500px) {
-  body.nv-portal .page-wrap {
+  html body.nv-portal .page-wrap {
     width: min(var(--nv-wide-width), calc(100% - 80px));
   }
 
-  body.nv-portal .site-header,
-  body.nv-portal .site-footer {
+  html body.nv-portal .site-header,
+  html body.nv-portal .site-footer {
     width: min(1420px, calc(100% - 80px));
   }
 }
 
 /* Tablet landscape and compact laptops */
 @media (max-width: 1050px) {
-  :root {
+  html:has(body.nv-portal) {
     --nv-gutter: 24px;
     --nv-layout-gap: 18px;
   }
 
-  body.nv-portal .site-header {
+  html body.nv-portal .site-header {
     gap: 14px;
   }
 
-  body.nv-portal .desktop-nav {
+  html body.nv-portal .desktop-nav {
     gap: clamp(10px, 1.2vw, 16px);
     margin-inline: auto;
   }
 
-  body.nv-portal .desktop-nav a {
+  html body.nv-portal .desktop-nav a {
     font-size: 11px;
   }
 
-  body.nv-portal .header-actions {
+  html body.nv-portal .header-actions {
     gap: 7px;
   }
 
-  body.nv-portal .nv-home-hero {
+  html body.nv-portal .nv-home-hero {
     gap: 24px;
   }
 
-  body.nv-portal .nv-home-product-grid,
-  body.nv-portal .nv-plan-grid,
-  body.nv-portal .nv-feature-grid {
+  html body.nv-portal .nv-home-product-grid,
+  html body.nv-portal .nv-plan-grid,
+  html body.nv-portal .nv-feature-grid {
     gap: 14px;
   }
 
-  body.nv-portal .nv-dashboard-layout {
+  html body.nv-portal .nv-dashboard-layout {
     gap: 16px;
   }
 
-  body.nv-portal .nv-auth-shell {
+  html body.nv-portal .nv-auth-shell {
     gap: 24px;
   }
 }
 
 /* Tablet portrait / mobile navigation breakpoint */
 @media (max-width: 900px) {
-  :root {
+  html:has(body.nv-portal) {
     --nv-gutter: 20px;
   }
 
-  html {
+  html:has(body.nv-portal) {
     scroll-padding-top: 80px;
   }
 
-  body.nv-portal .site-header {
+  html body.nv-portal .site-header {
     width: calc(100% - 32px);
     min-height: 72px;
     height: auto;
     gap: 10px;
   }
 
-  body.nv-portal .desktop-nav {
-    display: none !important;
+  html body.nv-portal .desktop-nav {
+    display: none;
   }
 
-  body.nv-portal .menu-toggle {
+  html body.nv-portal .menu-toggle {
     display: block;
     flex: 0 0 40px;
   }
 
-  body.nv-portal .header-actions {
+  html body.nv-portal .header-actions {
     margin-inline-start: auto;
     min-width: 0;
     gap: 8px;
   }
 
-  body.nv-portal .header-actions > .user-chip,
-  body.nv-portal .header-actions > .inline-form,
-  body.nv-portal .header-actions > .button-small {
-    display: none !important;
+  html body.nv-portal .header-actions > .user-chip,
+  html body.nv-portal .header-actions > .inline-form,
+  html body.nv-portal .header-actions > .button-small {
+    display: none;
   }
 
-  body.nv-portal .mobile-nav:not([hidden]) {
+  html body.nv-portal .mobile-nav:not([hidden]) {
     position: relative;
     inset: auto;
     z-index: 45;
@@ -239,13 +239,13 @@ body.nv-portal .nv-panel {
     backdrop-filter: blur(20px);
   }
 
-  body.nv-portal .mobile-nav .nv-mobile-logout {
+  html body.nv-portal .mobile-nav .nv-mobile-logout {
     display: flex;
     min-width: 0;
     margin: 0;
   }
 
-  body.nv-portal .mobile-nav .nv-mobile-logout button {
+  html body.nv-portal .mobile-nav .nv-mobile-logout button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -262,7 +262,7 @@ body.nv-portal .nv-panel {
     line-height: 1.6;
   }
 
-  body.nv-portal .mobile-nav a {
+  html body.nv-portal .mobile-nav a {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -275,75 +275,75 @@ body.nv-portal .nv-panel {
     line-height: 1.6;
   }
 
-  body.nv-portal .nv-home-hero {
+  html body.nv-portal .nv-home-hero {
     min-height: 0;
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
     padding-block: 34px 58px;
   }
 
-  body.nv-portal .nv-hero-copy {
+  html body.nv-portal .nv-hero-copy {
     grid-row: 1;
     max-width: 760px;
   }
 
-  body.nv-portal .nv-hero-visual {
+  html body.nv-portal .nv-hero-visual {
     grid-row: 2;
     width: min(100%, 620px);
     height: clamp(270px, 52vw, 400px);
     margin-inline: auto;
   }
 
-  body.nv-portal .nv-hero-copy h1 {
+  html body.nv-portal .nv-hero-copy h1 {
     font-size: clamp(34px, 6.2vw, 54px);
     line-height: 1.45;
     letter-spacing: -0.8px;
   }
 
-  body.nv-portal .nv-proof-inner {
+  html body.nv-portal .nv-proof-inner {
     justify-content: center;
     flex-wrap: wrap;
     gap: 12px 18px;
     padding-block: 16px;
   }
 
-  body.nv-portal .nv-home-product-grid,
-  body.nv-portal .nv-plan-grid {
+  html body.nv-portal .nv-home-product-grid,
+  html body.nv-portal .nv-plan-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  body.nv-portal .nv-feature-grid {
+  html body.nv-portal .nv-feature-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  body.nv-portal .nv-product-card,
-  body.nv-portal .nv-feature-card {
+  html body.nv-portal .nv-product-card,
+  html body.nv-portal .nv-feature-card {
     min-height: 0;
   }
 
-  body.nv-portal .nv-product-card > p,
-  body.nv-portal .nv-feature-card p {
+  html body.nv-portal .nv-product-card > p,
+  html body.nv-portal .nv-feature-card p {
     min-height: 0;
   }
 
-  body.nv-portal .product-grid {
+  html body.nv-portal .product-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  body.nv-portal .product-hero-grid {
+  html body.nv-portal .product-hero-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 28px;
   }
 
-  body.nv-portal .feature-layout,
-  body.nv-portal .auth-layout,
-  body.nv-portal .auth-layout-premium {
+  html body.nv-portal .feature-layout,
+  html body.nv-portal .auth-layout,
+  html body.nv-portal .auth-layout-premium {
     grid-template-columns: minmax(0, 1fr);
     max-width: 680px;
     gap: 22px;
   }
 
-  body.nv-portal .nv-auth-shell {
+  html body.nv-portal .nv-auth-shell {
     grid-template-columns: minmax(0, 1fr);
     max-width: 680px;
     min-height: 0;
@@ -351,406 +351,406 @@ body.nv-portal .nv-panel {
     padding-top: 24px;
   }
 
-  body.nv-portal .nv-auth-intro {
+  html body.nv-portal .nv-auth-intro {
     min-height: 0;
     padding-block: 12px 18px;
   }
 
-  body.nv-portal .nv-auth-brand {
+  html body.nv-portal .nv-auth-brand {
     margin-bottom: 22px;
   }
 
-  body.nv-portal .nv-auth-stage {
+  html body.nv-portal .nv-auth-stage {
     width: 100%;
     max-width: 650px;
     margin-inline: auto;
   }
 
-  body.nv-portal .nv-dashboard-page .nv-dashboard-layout,
-  body.nv-dashboard-page .nv-dashboard-layout.page-wrap {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 16px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 12px 0 32px !important;
-    padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right)) !important;
-    box-sizing: border-box !important;
-    overflow-x: clip !important;
+  html body.nv-portal .nv-dashboard-page .nv-dashboard-layout,
+  html body.nv-dashboard-page .nv-dashboard-layout.page-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    width: 100%;
+    max-width: 100%;
+    margin: 12px 0 32px;
+    padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right));
+    box-sizing: border-box;
+    overflow-x: clip;
   }
 
-  body.nv-dashboard-page .nv-dash-rail {
-    position: relative !important;
-    inset: auto !important;
-    float: none !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    margin: 0 !important;
-    padding: 12px !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 8px !important;
-    overflow: visible !important;
-    white-space: normal !important;
-    border-radius: 16px !important;
-    transform: none !important;
+  html body.nv-dashboard-page .nv-dash-rail {
+    position: relative;
+    inset: auto;
+    float: none;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    margin: 0;
+    padding: 12px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    overflow: visible;
+    white-space: normal;
+    border-radius: 16px;
+    transform: none;
   }
 
-  body.nv-dashboard-page .nv-dash-rail .nv-rail-brand {
-    flex: 1 0 100% !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    margin: 0 0 4px !important;
-    padding: 0 0 10px !important;
-    box-sizing: border-box !important;
+  html body.nv-dashboard-page .nv-dash-rail .nv-rail-brand {
+    flex: 1 0 100%;
+    width: 100%;
+    min-width: 0;
+    margin: 0 0 4px;
+    padding: 0 0 10px;
+    box-sizing: border-box;
   }
 
-  body.nv-dashboard-page .nv-dash-rail .nv-rail-label {
-    display: none !important;
+  html body.nv-dashboard-page .nv-dash-rail .nv-rail-label {
+    display: none;
   }
 
-  body.nv-dashboard-page .nv-dash-rail .nv-rail-link,
-  body.nv-dashboard-page .nv-dash-rail .nv-dashboard-logout {
-    flex: 1 1 calc(50% - 8px) !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    box-sizing: border-box !important;
+  html body.nv-dashboard-page .nv-dash-rail .nv-rail-link,
+  html body.nv-dashboard-page .nv-dash-rail .nv-dashboard-logout {
+    flex: 1 1 calc(50% - 8px);
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    box-sizing: border-box;
   }
 
-  body.nv-dashboard-page .nv-dash-rail .nv-rail-bottom {
-    display: contents !important;
-    margin: 0 !important;
-    padding: 0 !important;
+  html body.nv-dashboard-page .nv-dash-rail .nv-rail-bottom {
+    display: contents;
+    margin: 0;
+    padding: 0;
   }
 
-  body.nv-dashboard-page .nv-dashboard-content {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important;
+  html body.nv-dashboard-page .nv-dashboard-content {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
   }
 
-  body.nv-dashboard-page .nv-dashboard {
+  html body.nv-dashboard-page .nv-dashboard {
     width: 100%;
     min-width: 0;
   }
 
-  body.nv-portal .stats-grid,
-  body.nv-portal .nv-stats {
+  html body.nv-portal .stats-grid,
+  html body.nv-portal .nv-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  body.nv-portal .dashboard-columns,
-  body.nv-portal .nv-settings-grid {
+  html body.nv-portal .dashboard-columns,
+  html body.nv-portal .nv-settings-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  body.nv-portal .cart-layout {
+  html body.nv-portal .cart-layout {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  body.nv-portal .cart-summary {
+  html body.nv-portal .cart-summary {
     position: static;
   }
 
-  body.nv-portal .cart-item {
+  html body.nv-portal .cart-item {
     grid-template-columns: 44px minmax(0, 1fr) auto;
     gap: 12px;
   }
 
-  body.nv-portal .release-row {
+  html body.nv-portal .release-row {
     gap: 12px;
   }
 
-  body.nv-portal .nv-dashboard-banner {
+  html body.nv-portal .nv-dashboard-banner {
     min-width: 0;
   }
 }
 
 /* Phones */
 @media (max-width: 640px) {
-  :root {
+  html:has(body.nv-portal) {
     --nv-gutter: 16px;
     --nv-card-padding: 16px;
   }
 
-  html {
+  html:has(body.nv-portal) {
     scroll-padding-top: 76px;
   }
 
-  body.nv-portal .page-wrap,
-  body.nv-portal .site-footer {
+  html body.nv-portal .page-wrap,
+  html body.nv-portal .site-footer {
     width: calc(100% - 32px);
   }
 
-  body.nv-portal .site-header {
+  html body.nv-portal .site-header {
     width: calc(100% - 24px);
     min-height: 68px;
   }
 
-  body.nv-portal .brand {
+  html body.nv-portal .brand {
     gap: 7px;
     font-size: 16px;
     letter-spacing: -0.3px;
   }
 
-  body.nv-portal .brand-mark {
+  html body.nv-portal .brand-mark {
     flex: 0 0 32px;
     width: 32px;
     height: 32px;
     font-size: 23px;
   }
 
-  body.nv-portal .brand small {
+  html body.nv-portal .brand small {
     font-size: 7px;
     letter-spacing: 0.8px;
   }
 
-  body.nv-portal .header-actions {
+  html body.nv-portal .header-actions {
     gap: 6px;
   }
 
-  body.nv-portal .cart-nav-link {
+  html body.nv-portal .cart-nav-link {
     width: 35px;
     height: 35px;
   }
 
-  body.nv-portal .mobile-nav:not([hidden]) {
+  html body.nv-portal .mobile-nav:not([hidden]) {
     width: calc(100% - 24px);
     gap: 5px;
     padding-block: 10px 14px;
   }
 
-  body.nv-portal .mobile-nav .nv-mobile-logout button {
+  html body.nv-portal .mobile-nav .nv-mobile-logout button {
     min-height: 40px;
     padding: 8px;
     font-size: 12px;
   }
 
-  body.nv-portal .mobile-nav a {
+  html body.nv-portal .mobile-nav a {
     min-height: 40px;
     padding: 8px;
     font-size: 12px;
   }
 
-  body.nv-portal .nv-home-hero {
+  html body.nv-portal .nv-home-hero {
     padding-block: 26px 44px;
   }
 
-  body.nv-portal .nv-hero-copy h1 {
+  html body.nv-portal .nv-hero-copy h1 {
     font-size: clamp(30px, 8vw, 42px);
     line-height: 1.5;
     letter-spacing: -0.6px;
   }
 
-  body.nv-portal .nv-hero-copy .hero-lede {
+  html body.nv-portal .nv-hero-copy .hero-lede {
     font-size: 13px;
     line-height: 1.95;
   }
 
-  body.nv-portal .nv-hero-copy .hero-actions {
+  html body.nv-portal .nv-hero-copy .hero-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
   }
 
-  body.nv-portal .nv-hero-copy .hero-actions .button {
+  html body.nv-portal .nv-hero-copy .hero-actions .button {
     flex: 1 1 140px;
     min-width: 0;
     padding: 11px 10px;
   }
 
-  body.nv-portal .nv-hero-visual {
+  html body.nv-portal .nv-hero-visual {
     height: clamp(230px, 68vw, 320px);
   }
 
-  body.nv-portal .nv-float-card {
+  html body.nv-portal .nv-float-card {
     max-width: 78%;
     padding: 8px 9px;
     gap: 7px;
   }
 
-  body.nv-portal .nv-float-card strong {
+  html body.nv-portal .nv-float-card strong {
     font-size: 9px;
   }
 
-  body.nv-portal .nv-float-card small {
+  html body.nv-portal .nv-float-card small {
     font-size: 8px;
   }
 
-  body.nv-portal .nv-home-section,
-  body.nv-portal .nv-pricing-band,
-  body.nv-portal .nv-release-section,
-  body.nv-portal .nv-faq-section {
-    min-height: 0 !important;
-    padding-block: 30px !important;
+  html body.nv-portal .nv-home-section,
+  html body.nv-portal .nv-pricing-band,
+  html body.nv-portal .nv-release-section,
+  html body.nv-portal .nv-faq-section {
+    min-height: 0;
+    padding-block: 30px;
   }
 
-  body.nv-portal .nv-home-section .section-heading,
-  body.nv-portal .section-heading {
+  html body.nv-portal .nv-home-section .section-heading,
+  html body.nv-portal .section-heading {
     align-items: flex-start;
     flex-direction: column;
     gap: 8px;
   }
 
-  body.nv-portal .nv-home-section .section-heading h2 {
+  html body.nv-portal .nv-home-section .section-heading h2 {
     font-size: clamp(23px, 6.2vw, 30px);
     line-height: 1.5;
   }
 
-  body.nv-portal .nv-home-product-grid,
-  body.nv-portal .nv-plan-grid,
-  body.nv-portal .nv-feature-grid,
-  body.nv-portal .product-grid {
+  html body.nv-portal .nv-home-product-grid,
+  html body.nv-portal .nv-plan-grid,
+  html body.nv-portal .nv-feature-grid,
+  html body.nv-portal .product-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
   }
 
-  body.nv-portal .nv-product-card,
-  body.nv-portal .nv-plan-card,
-  body.nv-portal .nv-feature-card,
-  body.nv-portal .nv-panel,
-  body.nv-portal .nv-settings-card {
+  html body.nv-portal .nv-product-card,
+  html body.nv-portal .nv-plan-card,
+  html body.nv-portal .nv-feature-card,
+  html body.nv-portal .nv-panel,
+  html body.nv-portal .nv-settings-card {
     padding: var(--nv-card-padding);
   }
 
-  body.nv-portal .nv-product-card h3 {
+  html body.nv-portal .nv-product-card h3 {
     font-size: 18px;
   }
 
-  body.nv-portal .nv-product-card > p,
-  body.nv-portal .nv-feature-card p {
+  html body.nv-portal .nv-product-card > p,
+  html body.nv-portal .nv-feature-card p {
     min-height: 0;
     line-height: 1.8;
   }
 
-  body.nv-portal .nv-plan-price strong {
+  html body.nv-portal .nv-plan-price strong {
     font-size: clamp(24px, 7vw, 30px);
   }
 
-  body.nv-portal .nv-auth-shell {
+  html body.nv-portal .nv-auth-shell {
     padding-top: 16px;
     padding-bottom: 32px;
   }
 
-  body.nv-portal .nv-auth-intro h1 {
+  html body.nv-portal .nv-auth-intro h1 {
     font-size: clamp(27px, 7.5vw, 35px);
     line-height: 1.5;
   }
 
-  body.nv-portal .nv-auth-points {
+  html body.nv-portal .nv-auth-points {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  body.nv-portal .nv-auth-flip-card {
+  html body.nv-portal .nv-auth-flip-card {
     height: min(780px, calc(100svh - 100px));
     min-height: 660px;
   }
 
-  body.nv-portal .nv-auth-face {
+  html body.nv-portal .nv-auth-face {
     padding: 22px 17px;
     border-radius: 20px;
   }
 
-  body.nv-portal .auth-layout,
-  body.nv-portal .auth-layout-premium {
+  html body.nv-portal .auth-layout,
+  html body.nv-portal .auth-layout-premium {
     padding-top: 22px;
     padding-bottom: 36px;
     min-height: 0;
   }
 
-  body.nv-portal .auth-card,
-  body.nv-portal .auth-card-premium {
+  html body.nv-portal .auth-card,
+  html body.nv-portal .auth-card-premium {
     padding: 22px 17px;
   }
 
-  body.nv-portal .stats-grid,
-  body.nv-portal .nv-stats {
+  html body.nv-portal .stats-grid,
+  html body.nv-portal .nv-stats {
     grid-template-columns: minmax(0, 1fr);
     gap: 10px;
   }
 
-  body.nv-dashboard-page .nv-dashboard-layout.page-wrap {
-    padding-inline: 12px !important;
-    gap: 12px !important;
+  html body.nv-dashboard-page .nv-dashboard-layout.page-wrap {
+    padding-inline: 12px;
+    gap: 12px;
   }
 
-  body.nv-dashboard-page .nv-dash-rail {
-    padding: 10px !important;
-    gap: 6px !important;
+  html body.nv-dashboard-page .nv-dash-rail {
+    padding: 10px;
+    gap: 6px;
   }
 
-  body.nv-dashboard-page .nv-dash-rail .nv-rail-link,
-  body.nv-dashboard-page .nv-dash-rail .nv-dashboard-logout {
-    flex-basis: calc(50% - 6px) !important;
+  html body.nv-dashboard-page .nv-dash-rail .nv-rail-link,
+  html body.nv-dashboard-page .nv-dash-rail .nv-dashboard-logout {
+    flex-basis: calc(50% - 6px);
   }
 
-  body.nv-dashboard-page .nv-welcome {
+  html body.nv-dashboard-page .nv-welcome {
     align-items: flex-start;
     flex-direction: column;
     gap: 14px;
   }
 
-  body.nv-dashboard-page .nv-welcome h1 {
+  html body.nv-dashboard-page .nv-welcome h1 {
     font-size: clamp(24px, 7vw, 32px);
     line-height: 1.6;
     overflow-wrap: anywhere;
   }
 
-  body.nv-dashboard-page .nv-dashboard-banner {
+  html body.nv-dashboard-page .nv-dashboard-banner {
     padding: 18px;
     min-height: 0;
   }
 
-  body.nv-dashboard-page .nv-banner-version {
+  html body.nv-dashboard-page .nv-banner-version {
     display: none;
   }
 
-  body.nv-dashboard-page .nv-panel,
-  body.nv-dashboard-page .nv-settings-card {
-    padding: 14px !important;
+  html body.nv-dashboard-page .nv-panel,
+  html body.nv-dashboard-page .nv-settings-card {
+    padding: 14px;
   }
 
-  body.nv-portal .table-row {
+  html body.nv-portal .table-row {
     gap: 9px;
     padding: 12px;
   }
 
-  body.nv-portal .table-symbol {
+  html body.nv-portal .table-symbol {
     flex: 0 0 32px;
     width: 32px;
     height: 32px;
   }
 
-  body.nv-portal .row-end {
+  html body.nv-portal .row-end {
     max-width: none;
   }
 
-  body.nv-portal .cart-item {
+  html body.nv-portal .cart-item {
     grid-template-columns: 38px minmax(0, 1fr);
     gap: 10px;
     padding: 14px;
   }
 
-  body.nv-portal .cart-item-icon {
+  html body.nv-portal .cart-item-icon {
     width: 38px;
     height: 38px;
   }
 
-  body.nv-portal .cart-item-price {
+  html body.nv-portal .cart-item-price {
     grid-column: 2;
     display: flex;
     align-items: center;
@@ -760,118 +760,118 @@ body.nv-portal .nv-panel {
     white-space: normal;
   }
 
-  body.nv-portal .cart-item-price form {
+  html body.nv-portal .cart-item-price form {
     margin-top: 0;
   }
 
-  body.nv-portal .cart-actions {
+  html body.nv-portal .cart-actions {
     align-items: stretch;
     flex-direction: column;
     padding: 14px;
   }
 
-  body.nv-portal .cart-actions .button,
-  body.nv-portal .cart-summary .button {
+  html body.nv-portal .cart-actions .button,
+  html body.nv-portal .cart-summary .button {
     width: 100%;
   }
 
-  body.nv-portal .cart-summary {
+  html body.nv-portal .cart-summary {
     padding: 18px;
   }
 
-  body.nv-portal .footer-top,
-  body.nv-portal .footer-bottom {
+  html body.nv-portal .footer-top,
+  html body.nv-portal .footer-bottom {
     align-items: flex-start;
     flex-direction: column;
     gap: 12px;
   }
 
-  body.nv-portal .footer-bottom {
+  html body.nv-portal .footer-bottom {
     margin-top: 18px;
     padding-top: 16px;
   }
 
-  body.nv-portal .nv-final-cta {
+  html body.nv-portal .nv-final-cta {
     margin-bottom: 28px;
     padding: 24px 16px;
   }
 
-  body.nv-portal .nv-release-list .release-row,
-  body.nv-portal .release-row {
+  html body.nv-portal .nv-release-list .release-row,
+  html body.nv-portal .release-row {
     align-items: flex-start;
     flex-wrap: wrap;
   }
 
-  body.nv-portal .release-info {
+  html body.nv-portal .release-info {
     flex: 1 1 calc(100% - 50px);
   }
 
-  body.nv-portal .release-row > .button {
+  html body.nv-portal .release-row > .button {
     margin-inline-start: 42px;
   }
 }
 
 /* Very narrow phones */
 @media (max-width: 420px) {
-  :root {
+  html:has(body.nv-portal) {
     --nv-gutter: 12px;
     --nv-card-padding: 13px;
   }
 
-  body.nv-portal .page-wrap,
-  body.nv-portal .site-footer {
+  html body.nv-portal .page-wrap,
+  html body.nv-portal .site-footer {
     width: calc(100% - 24px);
   }
 
-  body.nv-portal .site-header,
-  body.nv-portal .mobile-nav:not([hidden]) {
+  html body.nv-portal .site-header,
+  html body.nv-portal .mobile-nav:not([hidden]) {
     width: calc(100% - 20px);
   }
 
-  body.nv-portal .brand {
+  html body.nv-portal .brand {
     font-size: 14px;
   }
 
-  body.nv-portal .brand small {
+  html body.nv-portal .brand small {
     font-size: 6px;
   }
 
-  body.nv-portal .nv-hero-copy h1 {
+  html body.nv-portal .nv-hero-copy h1 {
     font-size: 29px;
   }
 
-  body.nv-portal .nv-hero-visual {
+  html body.nv-portal .nv-hero-visual {
     height: 225px;
   }
 
-  body.nv-portal .nv-float-card {
+  html body.nv-portal .nv-float-card {
     max-width: 80%;
     padding: 7px;
   }
 
-  body.nv-portal .nv-dash-rail .nv-rail-link,
-  body.nv-portal .nv-dash-rail .nv-dashboard-logout {
-    flex-basis: 100% !important;
+  html body.nv-portal .nv-dash-rail .nv-rail-link,
+  html body.nv-portal .nv-dash-rail .nv-dashboard-logout {
+    flex-basis: 100%;
   }
 
-  body.nv-portal .nv-auth-face {
+  html body.nv-portal .nv-auth-face {
     padding: 18px 13px;
   }
 
-  body.nv-portal .table-row {
+  html body.nv-portal .table-row {
     padding: 10px;
   }
 
-  body.nv-portal .status-pill {
+  html body.nv-portal .status-pill {
     font-size: 9px;
   }
 }
 
 /* Accessibility: keep the layout responsive without forcing motion. */
 @media (prefers-reduced-motion: reduce) {
-  body.nv-portal *,
-  body.nv-portal *::before,
-  body.nv-portal *::after {
+  html body.nv-portal *,
+  html body.nv-portal *::before,
+  html body.nv-portal *::after {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
@@ -881,143 +881,143 @@ body.nv-portal .nv-panel {
 
 /* Mobile menu must be viewport-anchored, not placed back in the scrolled document flow. */
 @media (max-width: 900px) {
-  body.nv-portal > nav.mobile-nav:not([hidden]) {
-    position: fixed !important;
-    top: 72px !important;
-    inset-inline: 12px !important;
-    width: auto !important;
-    max-width: none !important;
-    max-height: calc(100vh - 84px) !important;
-    max-height: calc(100dvh - 84px) !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
+  html body.nv-portal > nav.mobile-nav:not([hidden]) {
+    position: fixed;
+    top: 72px;
+    inset-inline: 12px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100vh - 84px);
+    max-height: calc(100dvh - 84px);
+    overflow-x: hidden;
+    overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    z-index: 10000 !important;
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    z-index: 10000;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-content: start;
-    padding: 12px !important;
-    border: 1px solid rgba(166, 183, 231, 0.18) !important;
-    border-radius: 16px !important;
-    background: rgba(9, 13, 25, 0.99) !important;
+    padding: 12px;
+    border: 1px solid rgba(166, 183, 231, 0.18);
+    border-radius: 16px;
+    background: rgba(9, 13, 25, 0.99);
     box-shadow:
       0 20px 60px rgba(0, 0, 0, 0.62),
       0 4px 18px rgba(0, 0, 0, 0.35);
     isolation: isolate;
   }
 
-  body.nv-portal > nav.mobile-nav:not([hidden]) a,
-  body.nv-portal > nav.mobile-nav:not([hidden]) .nv-mobile-logout button {
+  html body.nv-portal > nav.mobile-nav:not([hidden]) a,
+  html body.nv-portal > nav.mobile-nav:not([hidden]) .nv-mobile-logout button {
     min-width: 0;
     overflow-wrap: anywhere;
   }
 }
 
 @media (max-width: 420px) {
-  body.nv-portal > nav.mobile-nav:not([hidden]) {
-    inset-inline: 8px !important;
-    max-height: calc(100vh - 80px) !important;
-    max-height: calc(100dvh - 80px) !important;
-    padding: 9px !important;
-    gap: 5px !important;
+  html body.nv-portal > nav.mobile-nav:not([hidden]) {
+    inset-inline: 8px;
+    max-height: calc(100vh - 80px);
+    max-height: calc(100dvh - 80px);
+    padding: 9px;
+    gap: 5px;
   }
 
-  body.nv-portal > nav.mobile-nav:not([hidden]) a,
-  body.nv-portal > nav.mobile-nav:not([hidden]) .nv-mobile-logout button {
+  html body.nv-portal > nav.mobile-nav:not([hidden]) a,
+  html body.nv-portal > nav.mobile-nav:not([hidden]) .nv-mobile-logout button {
     padding: 8px 6px;
     font-size: 11px;
   }
 }
 
 /* Header containment + reliable mobile sticky navigation overrides. */
-body.nv-portal > header.site-header {
-  position: sticky !important;
-  top: 8px !important;
-  z-index: 1000 !important;
-  box-sizing: border-box !important;
-  width: min(var(--nv-content-width), calc(100% - 24px)) !important;
-  max-width: calc(100% - 24px) !important;
-  min-width: 0 !important;
-  margin: 8px auto 0 !important;
-  padding-inline: clamp(12px, 2vw, 24px) !important;
-  border: 1px solid rgba(166, 183, 231, 0.17) !important;
-  border-radius: 20px !important;
-  background: rgba(11, 16, 32, 0.96) !important;
+html body.nv-portal > header.site-header {
+  position: sticky;
+  top: 8px;
+  z-index: 1000;
+  box-sizing: border-box;
+  width: min(var(--nv-content-width), calc(100% - 24px));
+  max-width: calc(100% - 24px);
+  min-width: 0;
+  margin: 8px auto 0;
+  padding-inline: clamp(12px, 2vw, 24px);
+  border: 1px solid rgba(166, 183, 231, 0.17);
+  border-radius: 20px;
+  background: rgba(11, 16, 32, 0.96);
   box-shadow:
     0 12px 34px rgba(0, 0, 0, 0.22),
-    inset 0 1px rgba(255, 255, 255, 0.035) !important;
-  overflow: visible !important;
+    inset 0 1px rgba(255, 255, 255, 0.035);
+  overflow: visible;
 }
-body.nv-portal > header.site-header > .brand {
-  flex: 0 1 auto !important;
-  min-width: 0 !important;
-  max-width: 42% !important;
+html body.nv-portal > header.site-header > .brand {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 42%;
 }
-body.nv-portal > header.site-header > .brand > span:last-child {
-  min-width: 0 !important;
+html body.nv-portal > header.site-header > .brand > span:last-child {
+  min-width: 0;
 }
-body.nv-portal > header.site-header .header-actions {
-  flex: 0 0 auto !important;
-  min-width: 0 !important;
+html body.nv-portal > header.site-header .header-actions {
+  flex: 0 0 auto;
+  min-width: 0;
 }
-body.nv-portal > nav.mobile-nav:not([hidden]) {
-  position: sticky !important;
-  top: 88px !important;
-  z-index: 999 !important;
-  box-sizing: border-box !important;
-  width: min(680px, calc(100% - 24px)) !important;
-  max-width: calc(100% - 24px) !important;
-  margin: 8px auto 0 !important;
-  padding: 12px !important;
-  border: 1px solid rgba(166, 183, 231, 0.16) !important;
-  border-radius: 16px !important;
-  background: rgba(9, 13, 25, 0.98) !important;
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32) !important;
+html body.nv-portal > nav.mobile-nav:not([hidden]) {
+  position: sticky;
+  top: 88px;
+  z-index: 999;
+  box-sizing: border-box;
+  width: min(680px, calc(100% - 24px));
+  max-width: calc(100% - 24px);
+  margin: 8px auto 0;
+  padding: 12px;
+  border: 1px solid rgba(166, 183, 231, 0.16);
+  border-radius: 16px;
+  background: rgba(9, 13, 25, 0.98);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
 }
 @media (max-width: 900px) {
-  body.nv-portal > header.site-header {
-    top: 6px !important;
-    width: calc(100% - 20px) !important;
-    max-width: calc(100% - 20px) !important;
-    min-height: 68px !important;
-    gap: 8px !important;
-    padding-inline: 12px !important;
+  html body.nv-portal > header.site-header {
+    top: 6px;
+    width: calc(100% - 20px);
+    max-width: calc(100% - 20px);
+    min-height: 68px;
+    gap: 8px;
+    padding-inline: 12px;
   }
-  body.nv-portal > header.site-header > .brand {
-    max-width: 48% !important;
-    gap: 7px !important;
-    font-size: clamp(13px, 3.8vw, 17px) !important;
+  html body.nv-portal > header.site-header > .brand {
+    max-width: 48%;
+    gap: 7px;
+    font-size: clamp(13px, 3.8vw, 17px);
   }
-  body.nv-portal > header.site-header > .brand .brand-mark {
-    flex: 0 0 32px !important;
-    width: 32px !important;
-    height: 32px !important;
+  html body.nv-portal > header.site-header > .brand .brand-mark {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
   }
-  body.nv-portal > header.site-header .header-actions {
-    gap: 7px !important;
+  html body.nv-portal > header.site-header .header-actions {
+    gap: 7px;
   }
-  body.nv-portal > header.site-header .menu-toggle {
-    flex: 0 0 36px !important;
-    width: 36px !important;
-    min-width: 36px !important;
+  html body.nv-portal > header.site-header .menu-toggle {
+    flex: 0 0 36px;
+    width: 36px;
+    min-width: 36px;
   }
-  body.nv-portal > nav.mobile-nav:not([hidden]) {
-    top: 80px !important;
-    width: calc(100% - 20px) !important;
-    max-width: calc(100% - 20px) !important;
+  html body.nv-portal > nav.mobile-nav:not([hidden]) {
+    top: 80px;
+    width: calc(100% - 20px);
+    max-width: calc(100% - 20px);
   }
 }
 @media (max-width: 420px) {
-  body.nv-portal > header.site-header > .brand {
-    max-width: 50% !important;
+  html body.nv-portal > header.site-header > .brand {
+    max-width: 50%;
   }
-  body.nv-portal > header.site-header > .brand small {
-    font-size: 8px !important;
+  html body.nv-portal > header.site-header > .brand small {
+    font-size: 8px;
   }
-  body.nv-portal > header.site-header .cart-nav-link {
-    width: 32px !important;
-    height: 32px !important;
+  html body.nv-portal > header.site-header .cart-nav-link {
+    width: 32px;
+    height: 32px;
   }
 }
 
@@ -1028,14 +1028,14 @@ body.nv-portal > nav.mobile-nav:not([hidden]) {
  * are siblings of <main> and use negative inline offsets on desktop, so they
  * are disabled on compact viewports rather than allowed to enlarge the canvas.
  */
-html {
+html:has(body.nv-portal) {
   width: 100%;
   min-width: 0;
   max-width: 100%;
   overflow-x: clip;
 }
 
-body.nv-portal {
+html body.nv-portal {
   width: 100%;
   min-width: 0;
   max-width: 100%;
@@ -1043,7 +1043,7 @@ body.nv-portal {
   overflow-x: clip;
 }
 
-body.nv-portal > main {
+html body.nv-portal > main {
   width: 100%;
   min-width: 0;
   max-width: 100%;
@@ -1052,41 +1052,41 @@ body.nv-portal > main {
 }
 
 @media (max-width: 900px) {
-  html,
-  body.nv-portal,
-  body.nv-portal > main {
+  html:has(body.nv-portal),
+  html body.nv-portal,
+  html body.nv-portal > main {
     width: 100%;
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
   }
 
-  body.nv-portal > main {
+  html body.nv-portal > main {
     margin-inline: 0;
     overflow-x: clip;
   }
 
   /* These two blurred decorations are outside <main>; their desktop negative
      offsets are unnecessary on phones and can expand the RTL scrollable area. */
-  body.nv-portal > .ambient {
-    display: none !important;
+  html body.nv-portal > .ambient {
+    display: none;
   }
 
-  body.nv-portal .page-wrap,
-  body.nv-portal .site-header,
-  body.nv-portal .site-footer,
-  body.nv-portal .nv-home-hero,
-  body.nv-portal .nv-home-section,
-  body.nv-portal .nv-pricing-band,
-  body.nv-portal .nv-release-section,
-  body.nv-portal .nv-faq-section,
-  body.nv-portal .nv-dashboard-layout,
-  body.nv-portal .nv-dashboard-content {
+  html body.nv-portal .page-wrap,
+  html body.nv-portal .site-header,
+  html body.nv-portal .site-footer,
+  html body.nv-portal .nv-home-hero,
+  html body.nv-portal .nv-home-section,
+  html body.nv-portal .nv-pricing-band,
+  html body.nv-portal .nv-release-section,
+  html body.nv-portal .nv-faq-section,
+  html body.nv-portal .nv-dashboard-layout,
+  html body.nv-portal .nv-dashboard-content {
     min-width: 0;
     box-sizing: border-box;
   }
 
-  body.nv-portal .nv-home-hero.page-wrap {
+  html body.nv-portal .nv-home-hero.page-wrap {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     width: calc(100% - 24px);
@@ -1096,34 +1096,34 @@ body.nv-portal > main {
     padding-inline: 0;
   }
 
-  body.nv-portal .nv-home-hero > *,
-  body.nv-portal .nv-home-section,
-  body.nv-portal .nv-pricing-band,
-  body.nv-portal .nv-pricing-band > .page-wrap,
-  body.nv-portal .nv-proof-strip,
-  body.nv-portal .nv-proof-inner,
-  body.nv-portal .nv-feature-grid,
-  body.nv-portal .nv-plan-grid,
-  body.nv-portal .nv-home-product-grid {
+  html body.nv-portal .nv-home-hero > *,
+  html body.nv-portal .nv-home-section,
+  html body.nv-portal .nv-pricing-band,
+  html body.nv-portal .nv-pricing-band > .page-wrap,
+  html body.nv-portal .nv-proof-strip,
+  html body.nv-portal .nv-proof-inner,
+  html body.nv-portal .nv-feature-grid,
+  html body.nv-portal .nv-plan-grid,
+  html body.nv-portal .nv-home-product-grid {
     min-width: 0;
     max-width: 100%;
     box-sizing: border-box;
   }
 
-  body.nv-portal .nv-hero-copy,
-  body.nv-portal .nv-hero-visual {
+  html body.nv-portal .nv-hero-copy,
+  html body.nv-portal .nv-hero-visual {
     width: 100%;
     min-width: 0;
     max-width: 100%;
   }
 
-  body.nv-portal .nv-hero-visual {
+  html body.nv-portal .nv-hero-visual {
     overflow: clip;
   }
 
-  body.nv-portal .nv-home-product-grid,
-  body.nv-portal .nv-plan-grid,
-  body.nv-portal .nv-feature-grid {
+  html body.nv-portal .nv-home-product-grid,
+  html body.nv-portal .nv-plan-grid,
+  html body.nv-portal .nv-feature-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 }

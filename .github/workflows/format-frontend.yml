@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - maintenance/frontend-full-quality-oct-2026
+      - refactor/css-important-reduction-2026-11
   workflow_dispatch:
 
 permissions:
@@ -19,10 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check out the maintenance branch
+      - name: Check out the branch that triggered formatting
         uses: actions/checkout@v4
-        with:
-          ref: maintenance/frontend-full-quality-oct-2026
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -56,4 +55,4 @@ jobs:
             exit 0
           fi
           git commit -m "style(frontend): format browser source [skip ci]"
-          git push origin HEAD:maintenance/frontend-full-quality-oct-2026
+          git push origin "HEAD:${GITHUB_REF_NAME}"
