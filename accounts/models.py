@@ -33,6 +33,8 @@ class Customer(AbstractBaseUser):
     avatar = models.ImageField(upload_to=avatar_upload_to, blank=True, validators=[validate_avatar_size])
     two_factor_enabled = models.BooleanField(default=False)
     two_factor_secret = models.CharField(max_length=255, blank=True, editable=False)
+    email_two_factor_enabled = models.BooleanField(default=False)
+    recovery_codes = models.JSONField(default=list, blank=True, editable=False)
     date_joined = models.DateTimeField(auto_now_add=True)
 
     objects = CustomerManager()
@@ -109,3 +111,30 @@ class AccountEmailLog(models.Model):
 
     def __str__(self):
         return f"{self.get_purpose_display()} to {self.recipient} ({self.get_status_display()})"
+
+
+class TwoFactorEmailChallenge(models.Model):
+    """Short-lived, single-use email challenges for 2FA login and enrollment."""
+
+    class Purpose(models.TextChoices):
+        LOGIN = "login", "Login"
+        SETUP = "setup", "Enrollment"
+
+    user_type = models.CharField(max_length=80, db_index=True)
+    user_id = models.CharField(max_length=36, db_index=True)
+    recipient = models.EmailField()
+    purpose = models.CharField(max_length=8, choices=Purpose.choices, db_index=True)
+    code_hash = models.CharField(max_length=64, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    expires_at = models.DateTimeField(db_index=True)
+    failed_attempts = models.PositiveSmallIntegerField(default=0)
+    consumed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user_type", "user_id", "purpose", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"2FA email challenge for {self.recipient} ({self.purpose})"
