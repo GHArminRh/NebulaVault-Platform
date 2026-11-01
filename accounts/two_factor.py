@@ -1,11 +1,15 @@
 import base64
 import hashlib
+import hmac
+import secrets
 from io import BytesIO
 
 import pyotp
 import qrcode
 from cryptography.fernet import Fernet, InvalidToken
 from django.conf import settings
+from django.utils.crypto import salted_hmac
+from django.utils import timezone
 
 
 def new_totp_secret():
@@ -45,3 +49,70 @@ def qr_data_uri(uri):
     image.save(output, format="PNG")
     encoded = base64.b64encode(output.getvalue()).decode("ascii")
     return f"data:image/png;base64,{encoded}"
+
+
+
+def generate_recovery_codes(count=10):
+    """Return one-time recovery codes; callers must display them only once."""
+    alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    codes = []
+    for _ in range(count):
+        raw = "".join(secrets.choice(alphabet) for _ in range(12))
+        codes.append(f"{raw[:4]}-{raw[4:8]}-{raw[8:]}")
+    return codes
+
+
+def _recovery_code_digest(code):
+    normalized = (code or "").replace("-", "").replace(" ", "").strip().upper()
+    if len(normalized) != 12:
+        return ""
+    return salted_hmac("accounts.two_factor_recovery_code", normalized, algorithm="sha256").hexdigest()
+
+
+def store_recovery_codes(user, codes=None):
+    """Persist only hashes and return the plaintext codes for one-time display."""
+    codes = codes or generate_recovery_codes()
+    user.recovery_codes = [_recovery_code_digest(code) for code in codes]
+    user.save(update_fields=["recovery_codes"])
+    return codes
+
+
+def consume_recovery_code(user, code):
+    digest = _recovery_code_digest(code)
+    if not digest:
+        return False
+    for index, saved_digest in enumerate(user.recovery_codes or []):
+        if hmac.compare_digest(saved_digest, digest):
+            remaining = list(user.recovery_codes)
+            remaining.pop(index)
+            user.recovery_codes = remaining
+            user.save(update_fields=["recovery_codes"])
+            return True
+    return False
+
+
+def verify_email_challenge(user, token, purpose="login"):
+    """Verify and consume the latest short-lived email challenge."""
+    from .models import TwoFactorEmailChallenge
+
+    token = (token or "").strip().replace(" ", "")
+    if len(token) != 6 or not token.isdigit():
+        return False
+    challenge = TwoFactorEmailChallenge.objects.filter(
+        user_type=user._meta.label_lower,
+        user_id=str(user.pk),
+        purpose=purpose,
+        consumed_at__isnull=True,
+        expires_at__gt=timezone.now(),
+        failed_attempts__lt=5,
+    ).order_by("-created_at").first()
+    if challenge is None:
+        return False
+    digest = salted_hmac("accounts.two_factor_email_code", token, algorithm="sha256").hexdigest()
+    if hmac.compare_digest(challenge.code_hash, digest):
+        challenge.consumed_at = timezone.now()
+        challenge.save(update_fields=["consumed_at"])
+        return True
+    challenge.failed_attempts += 1
+    challenge.save(update_fields=["failed_attempts"])
+    return False
