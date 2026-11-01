@@ -144,7 +144,9 @@ class WagtailIntegrationTests(TestCase):
             email="wagtail-admin@example.invalid",
             password="test-password-only",
         )
-        self.client.force_login(admin_user)
+        self.client.force_login(
+            admin_user, backend="django.contrib.auth.backends.ModelBackend"
+        )
 
         homepage = HomePage.objects.get(slug="home")
         response = self.client.get(
