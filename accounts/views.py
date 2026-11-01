@@ -24,7 +24,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 from .forms import AccountPasswordChangeForm, AccountPasswordResetForm, AccountProfileForm, AccountSetPasswordForm, RegisterForm, StaffAccountProfileForm, VerificationResendForm
 from .models import AccountEmailLog, Customer
-from .two_factor import new_totp_secret, provisioning_uri, qr_data_uri, verify_totp
+from .two_factor import decrypt_totp_secret, encrypt_totp_secret, new_totp_secret, provisioning_uri, qr_data_uri, verify_totp
 
 logger = logging.getLogger(__name__)
 
@@ -413,7 +413,7 @@ def _process_two_factor_post(request, user):
     if action == "enable_two_factor":
         secret = request.session.get(_two_factor_session_key(user), "")
         if secret and verify_totp(secret, request.POST.get("otp_token")):
-            user.two_factor_secret = secret
+            user.two_factor_secret = encrypt_totp_secret(secret)
             user.two_factor_enabled = True
             user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
             request.session.pop(_two_factor_session_key(user), None)
@@ -422,7 +422,7 @@ def _process_two_factor_post(request, user):
             messages.error(request, "کد برنامه احراز هویت معتبر نیست؛ ساعت دستگاه را بررسی و دوباره تلاش کنید.")
     elif action == "disable_two_factor":
         password = request.POST.get("current_password", "")
-        if user.check_password(password) and verify_totp(user.two_factor_secret, request.POST.get("otp_token")):
+        if user.check_password(password) and verify_totp(decrypt_totp_secret(user.two_factor_secret), request.POST.get("otp_token")):
             user.two_factor_enabled = False
             user.two_factor_secret = ""
             user.save(update_fields=["two_factor_enabled", "two_factor_secret"])
