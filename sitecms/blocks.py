@@ -151,6 +151,37 @@ class ProofStripBlock(blocks.StructBlock):
         label = "نوار اعتماد"
         template = "sitecms/blocks/proof_strip.html"
 
+
+class ProductListingBlock(blocks.StructBlock):
+    eyebrow = blocks.CharBlock(max_length=100, label="متن بالایی")
+    title = blocks.CharBlock(max_length=180, label="عنوان")
+    description = blocks.CharBlock(max_length=300, required=False, label="توضیحات")
+
+    class Meta:
+        label = "فهرست محصولات"
+        template = "sitecms/blocks/products.html"
+
+
+class BlogListingBlock(blocks.StructBlock):
+    eyebrow = blocks.CharBlock(max_length=100, label="متن بالایی")
+    title = blocks.CharBlock(max_length=180, label="عنوان")
+    description = blocks.CharBlock(max_length=300, required=False, label="توضیحات")
+    link_label = blocks.CharBlock(max_length=80, label="متن پیوند")
+
+    class Meta:
+        label = "فهرست تازه‌های بلاگ"
+        template = "sitecms/blocks/blog.html"
+
+
+class ReleaseListingBlock(blocks.StructBlock):
+    eyebrow = blocks.CharBlock(max_length=100, label="متن بالایی")
+    title = blocks.CharBlock(max_length=180, label="عنوان")
+    description = blocks.CharBlock(max_length=300, required=False, label="توضیحات")
+
+    class Meta:
+        label = "فهرست نسخه‌های منتشرشده"
+        template = "sitecms/blocks/releases.html"
+
 class NebulaContentBlock(blocks.StreamBlock):
     heading = blocks.CharBlock(
         max_length=180,
@@ -181,6 +212,9 @@ class NebulaContentBlock(blocks.StreamBlock):
     feature_grid = FeatureGridBlock()
     faq = FAQBlock()
     proof_strip = ProofStripBlock()
+    product_listing = ProductListingBlock()
+    blog_listing = BlogListingBlock()
+    release_listing = ReleaseListingBlock()
     quote = QuoteBlock()
     notice = NoticeBlock()
 
