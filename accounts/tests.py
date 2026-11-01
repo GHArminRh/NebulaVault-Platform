@@ -408,7 +408,7 @@ class AccountBackendTests(TestCase):
         import pyotp
 
         secret = pyotp.random_base32()
-        self.user.two_factor_secret = secret
+        self.user.two_factor_secret = __import__("accounts.two_factor", fromlist=["encrypt_totp_secret"]).encrypt_totp_secret(secret)
         self.user.two_factor_enabled = True
         self.user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
         response = self.client.post(
