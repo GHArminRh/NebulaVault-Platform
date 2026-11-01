@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from dotenv import load_dotenv
 
@@ -199,11 +200,16 @@ LANGUAGES = [("en", "English"), ("fa", "Persian")]
 
 # Wagtail CMS configuration. The existing Django admin remains on /admin/.
 WAGTAIL_SITE_NAME = "Nebula Vault"
+# Canonical public origin used for absolute links in emails, Wagtail and sitemaps.
+# Request hosts may include the temporary Render hostname, but canonical links
+# must consistently point to the configured public domain.
+SITE_BASE_URL = os.environ.get("SITE_BASE_URL", "http://localhost:8000").strip().rstrip("/")
+_site_base = urlsplit(SITE_BASE_URL)
+if _site_base.scheme not in {"http", "https"} or not _site_base.netloc:
+    raise ValueError("SITE_BASE_URL must be an absolute http:// or https:// URL.")
+WAGTAILADMIN_BASE_URL = SITE_BASE_URL
 # Shared bearer secret for the external free cron-job.org scheduler.
 WAGTAIL_CRON_SECRET = os.environ.get("WAGTAIL_CRON_SECRET", "").strip()
-WAGTAILADMIN_BASE_URL = os.environ.get(
-    "WAGTAILADMIN_BASE_URL", "https://mydigigi.ir"
-).strip()
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10_000
 WAGTAILDOCS_EXTENSIONS = [
     "csv", "docx", "key", "odt", "pdf", "pptx", "rtf", "txt", "xlsx", "zip"

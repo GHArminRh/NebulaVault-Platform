@@ -1,4 +1,7 @@
+import json
+
 from django.conf import settings
+from django.contrib.sites.models import Site as DjangoSite
 from django.db import connection
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser, Group, Permission
@@ -561,7 +564,7 @@ class ScheduledPublishingEndpointTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["status"], "ok")
+        self.assertEqual(json.loads(response.content)["status"], "ok")
         mocked_command.assert_called_once()
         self.assertEqual(mocked_command.call_args.args, ("publish_scheduled",))
 
@@ -573,7 +576,7 @@ class ScheduledPublishingEndpointTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json()["status"], "unauthorized")
+        self.assertEqual(json.loads(response.content)["status"], "unauthorized")
         mocked_command.assert_not_called()
 
     @override_settings(WAGTAIL_CRON_SECRET="a" * 40 + "رمز-محرمانه")
@@ -591,7 +594,7 @@ class ScheduledPublishingEndpointTests(TestCase):
         response = publish_scheduled_pages(request)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["status"], "ok")
+        self.assertEqual(json.loads(response.content)["status"], "ok")
         mocked_command.assert_called_once()
         self.assertEqual(mocked_command.call_args.args, ("publish_scheduled",))
 
@@ -609,7 +612,7 @@ class ScheduledPublishingEndpointTests(TestCase):
         response = publish_scheduled_pages(request)
 
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json()["status"], "unauthorized")
+        self.assertEqual(json.loads(response.content)["status"], "unauthorized")
         mocked_command.assert_not_called()
 
     def test_endpoint_accepts_post_only(self):
@@ -628,3 +631,32 @@ class ScheduledPublishingEndpointTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 503)
+
+
+class CanonicalSiteURLTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        locale, _ = Locale.objects.get_or_create(language_code=settings.LANGUAGE_CODE)
+        page_type = ContentType.objects.get_for_model(Page, for_concrete_model=False)
+        root_page = Page.objects.create(
+            title="Root", slug="root", path="0001", depth=1, numchild=0,
+            url_path="/", content_type=page_type, locale=locale,
+        )
+        Site.objects.create(
+            hostname="testserver", port=80, root_page=root_page, is_default_site=True
+        )
+
+    @override_settings(SITE_BASE_URL="https://cms.example.test:8443")
+    @patch.dict("os.environ", {"NEBULA_BOOTSTRAP_ADMIN_PASSWORD": ""})
+    def test_bootstrap_site_domain_comes_from_canonical_site_url(self):
+        from django.core.management import call_command
+
+        call_command("bootstrap_render_admin", verbosity=0)
+        django_site = DjangoSite.objects.get(pk=settings.SITE_ID)
+        self.assertEqual(django_site.domain, "cms.example.test:8443")
+        wagtail_site = Site.objects.get(is_default_site=True)
+        self.assertEqual(wagtail_site.hostname, "cms.example.test")
+        self.assertEqual(wagtail_site.port, 8443)
+
+    def test_wagtail_admin_base_url_uses_canonical_site_setting(self):
+        self.assertEqual(settings.WAGTAILADMIN_BASE_URL, settings.SITE_BASE_URL)
