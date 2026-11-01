@@ -19,6 +19,12 @@
     <title>{% block title %}نبیولا والت{% endblock %}</title>
     <meta name="description"
           content="{% block meta_description %}پلتفرم امن نرم‌افزار نبیولا والت{% endblock %}">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:site_name" content="نبیولا والت">
+    <meta property="og:title" content="{% block og_title %}نبیولا والت{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}پلتفرم امن نرم‌افزار نبیولا والت{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700;800&display=swap"
