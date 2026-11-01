@@ -15,6 +15,10 @@ const PUBLIC_ROUTES = [
 ];
 
 test('deployed frontend styles are updated before regression checks', async ({ page }) => {
+  // Render deploys begin at the same time as this push-triggered workflow.
+  // Give the production instance time to restart and publish the new assets.
+  test.setTimeout(250_000);
+
   await expect
     .poll(
       async () => {

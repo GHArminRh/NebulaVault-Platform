@@ -962,14 +962,23 @@ html body.nv-portal > header.site-header .header-actions {
   min-width: 0;
 }
 html body.nv-portal > nav.mobile-nav:not([hidden]) {
-  position: sticky;
+  /* Keep the expanded menu anchored to the viewport. A later sticky rule
+     previously overrode the earlier fixed mobile-menu declaration. */
+  position: fixed;
   top: 88px;
-  z-index: 999;
+  inset-inline: 12px;
+  z-index: 10000;
   box-sizing: border-box;
-  width: min(680px, calc(100% - 24px));
-  max-width: calc(100% - 24px);
+  width: auto;
+  max-width: none;
+  max-height: calc(100vh - 100px);
+  max-height: calc(100dvh - 100px);
   margin: 8px auto 0;
   padding: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid rgba(166, 183, 231, 0.16);
   border-radius: 16px;
   background: rgba(9, 13, 25, 0.98);
@@ -1004,8 +1013,11 @@ html body.nv-portal > nav.mobile-nav:not([hidden]) {
   }
   html body.nv-portal > nav.mobile-nav:not([hidden]) {
     top: 80px;
-    width: calc(100% - 20px);
-    max-width: calc(100% - 20px);
+    inset-inline: 10px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100vh - 92px);
+    max-height: calc(100dvh - 92px);
   }
 }
 @media (max-width: 420px) {
@@ -1018,6 +1030,13 @@ html body.nv-portal > nav.mobile-nav:not([hidden]) {
   html body.nv-portal > header.site-header .cart-nav-link {
     width: 32px;
     height: 32px;
+  }
+  html body.nv-portal > nav.mobile-nav:not([hidden]) {
+    top: 76px;
+    inset-inline: 8px;
+    max-height: calc(100vh - 84px);
+    max-height: calc(100dvh - 84px);
+    padding: 9px;
   }
 }
 
