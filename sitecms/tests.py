@@ -22,7 +22,7 @@ class WagtailIntegrationTests(TestCase):
 
         page_type = ContentType.objects.get_for_model(Page, for_concrete_model=False)
         home_type = ContentType.objects.get_for_model(HomePage, for_concrete_model=False)
-        root = Page.objects.create(
+        Page.objects.create(
             title="Root",
             slug="root",
             path="0001",
