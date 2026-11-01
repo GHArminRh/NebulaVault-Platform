@@ -68,6 +68,89 @@ class NoticeBlock(blocks.StructBlock):
         template = "sitecms/blocks/notice.html"
 
 
+
+class FeatureItemBlock(blocks.StructBlock):
+    icon = blocks.CharBlock(max_length=8, required=False, default="◇", label="نماد")
+    title = blocks.CharBlock(max_length=120, label="عنوان")
+    text = blocks.TextBlock(max_length=400, label="توضیحات")
+    link_label = blocks.CharBlock(max_length=80, required=False, label="متن پیوند")
+    link_url = blocks.CharBlock(
+        max_length=300,
+        required=False,
+        validators=[INTERNAL_OR_HTTPS_URL],
+        label="نشانی پیوند",
+    )
+
+    class Meta:
+        label = "ویژگی"
+
+
+class FeatureGridBlock(blocks.StructBlock):
+    eyebrow = blocks.CharBlock(max_length=100, label="متن بالایی")
+    title = blocks.CharBlock(max_length=180, label="عنوان")
+    description = blocks.CharBlock(max_length=300, required=False, label="توضیحات")
+    items = blocks.ListBlock(
+        FeatureItemBlock(),
+        min_num=1,
+        max_num=4,
+        label="کارت‌های ویژگی",
+    )
+
+    class Meta:
+        label = "بخش ویژگی‌ها"
+        template = "sitecms/blocks/features.html"
+
+
+class FAQItemBlock(blocks.StructBlock):
+    question = blocks.CharBlock(max_length=240, label="پرسش")
+    answer = blocks.TextBlock(max_length=1200, label="پاسخ")
+
+    class Meta:
+        label = "پرسش و پاسخ"
+
+
+class FAQBlock(blocks.StructBlock):
+    eyebrow = blocks.CharBlock(max_length=100, label="متن بالایی")
+    title = blocks.CharBlock(max_length=180, label="عنوان")
+    description = blocks.CharBlock(max_length=300, required=False, label="توضیحات")
+    items = blocks.ListBlock(
+        FAQItemBlock(),
+        min_num=1,
+        max_num=12,
+        label="پرسش‌ها",
+    )
+
+    class Meta:
+        label = "پرسش‌های متداول"
+        template = "sitecms/blocks/faq.html"
+
+
+class ProofItemBlock(blocks.StructBlock):
+    number = blocks.CharBlock(max_length=8, label="شماره")
+    label = blocks.CharBlock(max_length=100, label="متن")
+
+    class Meta:
+        label = "مورد نوار اعتماد"
+
+
+class ProofStripBlock(blocks.StructBlock):
+    title = blocks.CharBlock(
+        max_length=120,
+        required=False,
+        default="یک تجربه‌ی یکپارچه",
+        label="عنوان",
+    )
+    items = blocks.ListBlock(
+        ProofItemBlock(),
+        min_num=1,
+        max_num=6,
+        label="موارد",
+    )
+
+    class Meta:
+        label = "نوار اعتماد"
+        template = "sitecms/blocks/proof_strip.html"
+
 class NebulaContentBlock(blocks.StreamBlock):
     heading = blocks.CharBlock(
         max_length=180,
@@ -95,6 +178,9 @@ class NebulaContentBlock(blocks.StreamBlock):
         template="sitecms/blocks/cards.html",
     )
     call_to_action = CallToActionBlock()
+    feature_grid = FeatureGridBlock()
+    faq = FAQBlock()
+    proof_strip = ProofStripBlock()
     quote = QuoteBlock()
     notice = NoticeBlock()
 
