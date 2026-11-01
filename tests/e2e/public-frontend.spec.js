@@ -83,16 +83,26 @@ test('registration form is visible and usable on narrow mobile screens', async (
 
     const layout = await registerFace.evaluate((element) => {
       const rect = element.getBoundingClientRect();
+      const faceStyle = getComputedStyle(element);
+      const cardStyle = getComputedStyle(element.closest('.nv-auth-flip-card'));
       return {
         width: rect.width,
         height: rect.height,
         right: rect.right,
         viewport: window.innerWidth,
+        position: faceStyle.position,
+        transform: faceStyle.transform,
+        backfaceVisibility: faceStyle.backfaceVisibility,
+        cardTransform: cardStyle.transform,
       };
     });
     expect(layout.width).toBeGreaterThan(0);
     expect(layout.height).toBeGreaterThan(0);
     expect(layout.right).toBeLessThanOrEqual(layout.viewport + 1);
+    expect(layout.position).toBe('relative');
+    expect(layout.transform).toBe('none');
+    expect(layout.backfaceVisibility).toBe('visible');
+    expect(layout.cardTransform).toBe('none');
   }
 });
 
