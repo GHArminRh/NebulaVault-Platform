@@ -7,6 +7,11 @@ class SiteCMSConfig(AppConfig):
     name = "sitecms"
     verbose_name = "Nebula Vault CMS"
 
+    def ready(self):
+        from .permissions import register_staff_permission_policies
+
+        register_staff_permission_policies()
+
 
 class WagtailUsersAppConfig(BaseWagtailUsersAppConfig):
     """Keep Wagtail user management compatible with the staff account model."""
