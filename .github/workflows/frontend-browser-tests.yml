@@ -1,29 +1,153 @@
-name: Public frontend browser audit
+name: Public frontend browser tests
 
 on:
+  pull_request:
+    branches:
+      - deploy/render-ready
+    paths:
+      - "templates/**"
+      - "static/**"
+      - "accounts/templates/**"
+      - "accounts/static/**"
+      - "blog/templates/**"
+      - "comment/templates/**"
+      - "portal/**"
+      - "accounts/**"
+      - "blog/**"
+      - "comment/**"
+      - "config/**"
+      - "tests/e2e/**"
+      - "playwright.config.js"
+      - "package.json"
+      - "package-lock.json"
+      - "requirements.txt"
+      - ".github/workflows/frontend-browser-tests.yml"
   push:
     branches:
       - deploy/render-ready
+    paths:
+      - "templates/**"
+      - "static/**"
+      - "accounts/templates/**"
+      - "accounts/static/**"
+      - "blog/templates/**"
+      - "comment/templates/**"
+      - "portal/**"
+      - "accounts/**"
+      - "blog/**"
+      - "comment/**"
+      - "config/**"
+      - "tests/e2e/**"
+      - "playwright.config.js"
+      - "package.json"
+      - "package-lock.json"
+      - "requirements.txt"
+      - ".github/workflows/frontend-browser-tests.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: public-frontend-browser-audit-${{ github.ref }}
+  group: frontend-browser-tests-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   browser:
-    name: Smoke, responsive, and accessibility tests
+    name: Browser regression (Chromium + WebKit)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: nebula_e2e
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d nebula_e2e"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
     env:
-      PLAYWRIGHT_BASE_URL: https://nebula-vault-oesn.onrender.com
       CI: "true"
+      DJANGO_SETTINGS_MODULE: config.test_settings
+      DJANGO_SECRET_KEY: ci-only-not-for-production
+      DJANGO_DEBUG: "True"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0
+      DB_NAME: nebula_e2e
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
+      TURNSTILE_ENABLED: "False"
+      DJANGO_EMAIL_BACKEND: django.core.mail.backends.locmem.EmailBackend
+      MEDIA_STORAGE_BACKEND: local
+      E2E_CUSTOMER_EMAIL: e2e-customer@example.test
+      E2E_2FA_EMAIL: e2e-two-factor@example.test
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Django application dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Prepare isolated browser-test database
+        run: python manage.py migrate --noinput --run-syncdb --settings=config.test_settings
+
+      - name: Seed isolated browser-test customer accounts
+        run: |
+          python manage.py shell --settings=config.test_settings <<'PY'
+          import os
+          import secrets
+          from accounts.models import Customer
+          from catalog.models import Plan, Product
+
+          fixtures = [
+              ("e2e-customer@example.test", "e2e-customer", "E2E_CUSTOMER_PASSWORD", False),
+              ("e2e-two-factor@example.test", "e2e-two-factor", "E2E_2FA_PASSWORD", True),
+          ]
+          for email, username, password_variable, email_two_factor in fixtures:
+              customer, _ = Customer.objects.get_or_create(
+                  email=email,
+                  defaults={"username": username, "is_active": True},
+              )
+              customer.username = username
+              customer.is_active = True
+              customer.email_two_factor_enabled = email_two_factor
+              password = secrets.token_urlsafe(32)
+              customer.set_password(password)
+              customer.save()
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
+                  env_file.write(f"{password_variable}={password}\n")
+          product, _ = Product.objects.get_or_create(
+              slug="e2e-browser-product",
+              defaults={"name": "E2E Browser Product", "is_active": True},
+          )
+          Plan.objects.get_or_create(
+              product=product,
+              slug="e2e-browser-plan",
+              defaults={
+                  "name": "E2E Browser Plan",
+                  "duration_unit": "months",
+                  "duration_value": 1,
+                  "price_minor_units": 199900,
+                  "currency": "IRR",
+                  "device_limit": 1,
+                  "is_active": True,
+              },
+          )
+          PY
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -31,17 +155,17 @@ jobs:
           node-version: "22"
           cache: npm
 
-      - name: Install locked development dependencies
+      - name: Install locked browser-test dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install Chromium and WebKit
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Run browser regression suite
         run: npm run test:e2e
 
-      - name: Upload browser diagnostics
-        if: failure()
+      - name: Upload Playwright diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: frontend-browser-diagnostics
@@ -49,4 +173,4 @@ jobs:
             playwright-report/
             test-results/
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: 14
