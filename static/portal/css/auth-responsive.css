@@ -1,6 +1,6 @@
 /* Mobile authentication layout: normal flow without nested scrolling or 3D transforms. */
 @media (max-width: 767px) {
-  body.nv-portal .nv-auth-shell {
+  html body.nv-portal .nv-auth-shell {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
@@ -14,41 +14,41 @@
     box-sizing: border-box;
   }
 
-  body.nv-portal .nv-auth-intro {
+  html body.nv-portal .nv-auth-intro {
     min-height: 0;
     padding: 8px 0 12px;
     overflow: visible;
   }
 
-  body.nv-portal .nv-auth-brand {
+  html body.nv-portal .nv-auth-brand {
     margin-bottom: 16px;
   }
 
-  body.nv-portal .nv-auth-intro h1 {
+  html body.nv-portal .nv-auth-intro h1 {
     margin: 10px 0 8px;
     font-size: clamp(26px, 7vw, 34px);
     line-height: 1.45;
   }
 
-  body.nv-portal .nv-auth-intro > p {
+  html body.nv-portal .nv-auth-intro > p {
     max-width: 100%;
     margin: 0;
     font-size: 12px;
     line-height: 1.9;
   }
 
-  body.nv-portal .nv-auth-points {
+  html body.nv-portal .nv-auth-points {
     grid-template-columns: minmax(0, 1fr);
     gap: 8px;
     margin-top: 12px;
     font-size: 10px;
   }
 
-  body.nv-portal .nv-auth-orbit {
+  html body.nv-portal .nv-auth-orbit {
     display: none;
   }
 
-  body.nv-portal .nv-auth-stage {
+  html body.nv-portal .nv-auth-stage {
     width: 100%;
     min-width: 0;
     max-width: none;
@@ -56,8 +56,8 @@
     perspective: none;
   }
 
-  body.nv-portal .nv-auth-flip-card,
-  body.nv-portal .nv-auth-flip-card.is-register {
+  html body.nv-portal .nv-auth-flip-card,
+  html body.nv-portal .nv-auth-flip-card.is-register {
     display: block;
     width: 100%;
     height: auto;
@@ -68,7 +68,7 @@
     will-change: auto;
   }
 
-  body.nv-portal .nv-auth-face {
+  html body.nv-portal .nv-auth-face {
     position: relative;
     inset: auto;
     display: none;
@@ -85,32 +85,32 @@
     overscroll-behavior: auto;
   }
 
-  body.nv-portal .nv-auth-shell[data-auth-side='login'] .nv-auth-login,
-  body.nv-portal .nv-auth-shell[data-auth-side='register'] .nv-auth-register {
+  html body.nv-portal .nv-auth-shell[data-auth-side='login'] .nv-auth-login,
+  html body.nv-portal .nv-auth-shell[data-auth-side='register'] .nv-auth-register {
     display: block;
   }
 
-  body.nv-portal .nv-auth-face h2 {
+  html body.nv-portal .nv-auth-face h2 {
     margin-top: 15px;
     font-size: clamp(25px, 7vw, 29px);
   }
 
-  body.nv-portal .nv-auth-subtitle {
+  html body.nv-portal .nv-auth-subtitle {
     margin-bottom: 16px;
   }
 
-  body.nv-portal .nv-auth-form {
+  html body.nv-portal .nv-auth-form {
     display: flex;
     flex-direction: column;
     gap: 8px;
     min-width: 0;
   }
 
-  body.nv-portal .nv-auth-form label {
+  html body.nv-portal .nv-auth-form label {
     margin-top: 7px;
   }
 
-  body.nv-portal .nv-auth-form input {
+  html body.nv-portal .nv-auth-form input {
     min-height: 46px;
     padding: 12px;
     font-size: 16px;
@@ -118,22 +118,22 @@
     box-sizing: border-box;
   }
 
-  body.nv-portal .nv-auth-form .password-wrap {
+  html body.nv-portal .nv-auth-form .password-wrap {
     width: 100%;
     min-width: 0;
   }
 
-  body.nv-portal .nv-auth-form .password-wrap input {
+  html body.nv-portal .nv-auth-form .password-wrap input {
     padding-inline-start: 70px;
   }
 
-  body.nv-portal .nv-auth-form .password-toggle {
+  html body.nv-portal .nv-auth-form .password-toggle {
     min-width: 48px;
     min-height: 40px;
     left: 5px;
   }
 
-  body.nv-portal .nv-auth-form .turnstile-shell {
+  html body.nv-portal .nv-auth-form .turnstile-shell {
     width: 100%;
     max-width: 100%;
     min-height: 70px;
@@ -142,24 +142,24 @@
     transform: none;
   }
 
-  body.nv-portal .nv-auth-form .nv-turnstile-widget,
-  body.nv-portal .nv-auth-form .cf-turnstile {
+  html body.nv-portal .nv-auth-form .nv-turnstile-widget,
+  html body.nv-portal .nv-auth-form .cf-turnstile {
     max-width: 100%;
     overflow: visible;
   }
 
-  body.nv-portal .nv-auth-form .button-full {
+  html body.nv-portal .nv-auth-form .button-full {
     width: 100%;
     min-height: 48px;
     margin-top: 10px;
   }
 
-  body.nv-portal .nv-auth-small-link {
+  html body.nv-portal .nv-auth-small-link {
     margin-top: 16px;
     line-height: 1.8;
   }
 
-  body.nv-portal .nv-auth-flip-prompt {
+  html body.nv-portal .nv-auth-flip-prompt {
     justify-content: center;
     gap: 7px;
     margin-top: 17px;
@@ -168,12 +168,12 @@
     text-align: center;
   }
 
-  body.nv-portal .nv-auth-flip-prompt button {
+  html body.nv-portal .nv-auth-flip-prompt button {
     min-height: 40px;
     padding: 7px 9px;
   }
 
-  body.nv-portal .nv-auth-security-note {
+  html body.nv-portal .nv-auth-security-note {
     margin-top: 13px;
     padding-inline: 8px;
     text-align: center;
@@ -182,26 +182,26 @@
 }
 
 @media (max-width: 360px) {
-  body.nv-portal .nv-auth-shell {
+  html body.nv-portal .nv-auth-shell {
     width: calc(100% - 20px);
   }
 
-  body.nv-portal .nv-auth-face {
+  html body.nv-portal .nv-auth-face {
     padding: 17px 13px;
   }
 
-  body.nv-portal .nv-auth-face-head {
+  html body.nv-portal .nv-auth-face-head {
     gap: 8px;
   }
 
-  body.nv-portal .nv-auth-kicker,
-  body.nv-portal .nv-auth-step {
+  html body.nv-portal .nv-auth-kicker,
+  html body.nv-portal .nv-auth-step {
     font-size: 9px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body.nv-portal .nv-auth-flip-card {
+  html body.nv-portal .nv-auth-flip-card {
     transition: none;
   }
 }
