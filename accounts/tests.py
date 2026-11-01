@@ -487,3 +487,58 @@ class AccountBackendTests(TestCase):
         response = self.client.get("/admin/login/")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context["form"]["remember_me"].value())
+
+
+    def test_staff_can_enable_two_factor_with_password_and_authenticator_code(self):
+        import pyotp
+        from django.contrib.auth import get_user_model
+        from accounts.two_factor import decrypt_totp_secret
+
+        staff = get_user_model().objects.create_superuser(
+            username="enroll_admin", email="enroll-admin@example.com",
+            password="Secure-admin-password-2026!",
+        )
+        self.client.force_login(staff, backend="django.contrib.auth.backends.ModelBackend")
+        response = self.client.get("/admin/account/")
+        self.assertEqual(response.status_code, 200)
+        secret = response.context["two_factor_secret"]
+        response = self.client.post(
+            "/admin/account/",
+            {
+                "security_action": "enable_two_factor",
+                "current_password": "Secure-admin-password-2026!",
+                "otp_token": pyotp.TOTP(secret).now(),
+            },
+        )
+        self.assertRedirects(response, "/admin/account/")
+        staff.refresh_from_db()
+        self.assertTrue(staff.two_factor_enabled)
+        self.assertEqual(decrypt_totp_secret(staff.two_factor_secret), secret)
+
+    def test_staff_can_upload_a_profile_photo(self):
+        from io import BytesIO
+        from PIL import Image
+        from django.contrib.auth import get_user_model
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        staff = get_user_model().objects.create_superuser(
+            username="avatar_admin", email="avatar-admin@example.com",
+            password="Secure-admin-password-2026!",
+        )
+        image_buffer = BytesIO()
+        Image.new("RGB", (32, 32), "green").save(image_buffer, format="PNG")
+        upload = SimpleUploadedFile("staff.png", image_buffer.getvalue(), content_type="image/png")
+        self.client.force_login(staff, backend="django.contrib.auth.backends.ModelBackend")
+        response = self.client.post(
+            "/admin/account/",
+            {
+                "account_action": "profile",
+                "first_name": "Admin",
+                "last_name": "Photo",
+                "email": staff.email,
+                "avatar": upload,
+            },
+        )
+        self.assertRedirects(response, "/admin/account/")
+        staff.refresh_from_db()
+        self.assertTrue(staff.avatar.name.startswith("avatars/"))
