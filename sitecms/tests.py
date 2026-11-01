@@ -6,6 +6,8 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.backends import WagtailGroupPermissionsBackend
+from wagtail.documents import get_document_model
+from wagtail.images import get_image_model
 from wagtail.models import (
     Collection,
     GroupCollectionPermission,
@@ -17,7 +19,11 @@ from wagtail.models import (
 
 from .forms import CMSUserCreationForm, CMSUserEditForm
 from .models import HomePage
-from .permissions import StaffCollectionManagementPermissionPolicy, StaffPagePermissionPolicy
+from .permissions import (
+    StaffCollectionManagementPermissionPolicy,
+    StaffCollectionOwnershipPermissionPolicy,
+    StaffPagePermissionPolicy,
+)
 from wagtail.permissions import policy_registry
 
 
@@ -81,6 +87,14 @@ class WagtailIntegrationTests(TestCase):
         )
         self.assertIsInstance(
             policy_registry.get_by_type(Collection), StaffCollectionManagementPermissionPolicy
+        )
+        self.assertIsInstance(
+            policy_registry.get_by_type(get_image_model()),
+            StaffCollectionOwnershipPermissionPolicy,
+        )
+        self.assertIsInstance(
+            policy_registry.get_by_type(get_document_model()),
+            StaffCollectionOwnershipPermissionPolicy,
         )
 
     def test_wagtail_admin_login_route_is_available(self):
@@ -161,3 +175,20 @@ class WagtailIntegrationTests(TestCase):
             user,
             policy.users_with_any_permission_for_instance({"change"}, child_collection),
         )
+
+        for model, action in (
+            (get_image_model(), "add_image"),
+            (get_document_model(), "add_document"),
+        ):
+            permission = Permission.objects.get(
+                content_type=ContentType.objects.get_for_model(model),
+                codename=action,
+            )
+            GroupCollectionPermission.objects.create(
+                group=group,
+                collection=root_collection,
+                permission=permission,
+            )
+            model_policy = policy_registry.get_by_type(model)
+            self.assertTrue(model_policy.user_has_permission(user, "add"))
+            self.assertIn(user, model_policy.users_with_any_permission({"add"}))
