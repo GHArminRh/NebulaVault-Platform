@@ -3,16 +3,38 @@ import hashlib
 import secrets
 
 from django.contrib.auth import get_user_model
+from django.test import SimpleTestCase
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APIRequestFactory, APITestCase
 
 from accounts.models import Customer
 from api.models import CustomerAPIToken
+from api.views import TokenLoginThrottle
 from blog.models import BlogPost
 from catalog.models import Plan, Product
 from licensing.models import License
 from subscriptions.models import Subscription
+
+
+class TokenLoginThrottleProxyTests(SimpleTestCase):
+    def test_ignores_untrusted_leftmost_forwarded_for_values(self):
+        request = APIRequestFactory().post(
+            "/api/v1/auth/token/",
+            {},
+            format="json",
+            HTTP_X_FORWARDED_FOR="198.51.100.77, 198.51.100.88, 203.0.113.25",
+        )
+
+        # Cloudflare appends the actual connecting client IP. DRF must use
+        # that rightmost value, not attacker-controlled values to its left.
+        self.assertEqual(TokenLoginThrottle().get_ident(request), "203.0.113.25")
+
+    def test_falls_back_to_remote_addr_when_forwarded_for_is_missing(self):
+        request = APIRequestFactory().post("/api/v1/auth/token/", {}, format="json")
+        request.META["REMOTE_ADDR"] = "203.0.113.40"
+
+        self.assertEqual(TokenLoginThrottle().get_ident(request), "203.0.113.40")
 
 
 class PublicApiTests(APITestCase):
