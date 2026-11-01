@@ -381,7 +381,7 @@ class AccountBackendTests(TestCase):
         secret = response.context["two_factor_secret"]
         response = self.client.post(
             reverse("accounts:two_factor_settings"),
-            {"security_action": "enable_two_factor", "otp_token": pyotp.TOTP(secret).now()},
+            {"security_action": "enable_two_factor", "current_password": "Secure-test-password-2026!", "otp_token": pyotp.TOTP(secret).now()},
         )
         self.assertRedirects(response, reverse("accounts:two_factor_settings"))
         self.user.refresh_from_db()
