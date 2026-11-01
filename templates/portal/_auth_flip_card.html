@@ -33,19 +33,24 @@
             {% else %}
               {% for method, label in form.two_factor_methods %}<input type="hidden" name="two_factor_method" value="{{ method }}"><p>{{ label }}</p>{% endfor %}
             {% endif %}
-            <div class="nv-two-factor-input" data-factor="authenticator" hidden>
-              <label for="nv-login-otp">کد برنامه احراز هویت</label>
-              <input id="nv-login-otp" name="otp_token" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد شش‌رقمی">
-            </div>
-            <div class="nv-two-factor-input" data-factor="email" hidden>
-              <label for="nv-login-email-code">کد ارسال‌شده به ایمیل</label>
-              <input id="nv-login-email-code" name="email_otp_token" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد شش‌رقمی ایمیل">
-              
-            </div>
-            <div class="nv-two-factor-input" data-factor="recovery" hidden>
-              <label for="nv-login-recovery">کد بازیابی</label>
-              <input id="nv-login-recovery" name="recovery_code" type="text" autocomplete="off" maxlength="16" placeholder="XXXX-XXXX-XXXX">
-            </div>
+            {% for method, label in form.two_factor_methods %}
+              {% if method == "authenticator" %}
+                <div class="nv-two-factor-input" data-factor="authenticator" hidden>
+                  <label for="nv-login-otp">کد برنامه احراز هویت</label>
+                  <input id="nv-login-otp" name="otp_token" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد شش‌رقمی">
+                </div>
+              {% elif method == "email" %}
+                <div class="nv-two-factor-input" data-factor="email" hidden>
+                  <label for="nv-login-email-code">کد ارسال‌شده به ایمیل</label>
+                  <input id="nv-login-email-code" name="email_otp_token" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد شش‌رقمی ایمیل">
+                </div>
+              {% elif method == "recovery" %}
+                <div class="nv-two-factor-input" data-factor="recovery" hidden>
+                  <label for="nv-login-recovery">کد بازیابی</label>
+                  <input id="nv-login-recovery" name="recovery_code" type="text" autocomplete="off" maxlength="16" placeholder="XXXX-XXXX-XXXX">
+                </div>
+              {% endif %}
+            {% endfor %}
           {% else %}
             <label for="nv-login-email">نشانی ایمیل</label><input id="nv-login-email" name="username" type="email" autocomplete="username" required placeholder="ایمیل خود را وارد کنید" value="{% if auth_side == 'login' %}{{ form.username.value|default:'' }}{% endif %}">
             <label for="nv-login-password">رمز عبور</label>
@@ -72,9 +77,13 @@
           {% endif %}
           <button class="button button-primary button-full button-large auth-submit"
                   type="submit">ورود به حساب <span>↗</span></button>
-          <div class="nv-two-factor-input" data-factor="email" hidden>
-            <button class="button button-secondary button-full" type="submit" name="send_email_code" value="1">ارسال کد به ایمیل</button>
-          </div>
+          {% for method, label in form.two_factor_methods %}
+            {% if method == "email" %}
+              <div class="nv-two-factor-input" data-factor="email" hidden>
+                <button class="button button-secondary button-full" type="submit" name="send_email_code" value="1">ارسال کد به ایمیل</button>
+              </div>
+            {% endif %}
+          {% endfor %}
           <div class="nv-two-factor-input" data-factor="email" hidden>
             
           </div>
