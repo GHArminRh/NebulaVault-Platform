@@ -12,6 +12,9 @@ services:
     startCommand: python manage.py migrate --noinput && python manage.py createcachetable django_cache --database default && python manage.py bootstrap_render_admin && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120
     healthCheckPath: /healthz/
     envVars:
+      # Set SITE_BASE_URL in the Render Dashboard; keep it environment-specific.
+      - key: SITE_BASE_URL
+        sync: false
       - key: DJANGO_SECRET_KEY
         generateValue: true
       - key: DJANGO_DEBUG
