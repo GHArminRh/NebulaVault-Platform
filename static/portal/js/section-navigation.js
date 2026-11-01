@@ -25,9 +25,7 @@ const homeTargets = [
     homeLinks
       .map((link) => {
         try {
-          return document.querySelector(
-            decodeURIComponent(new URL(link.href, location.href).hash)
-          );
+          return document.querySelector(decodeURIComponent(new URL(link.href, location.href).hash));
         } catch {
           return null;
         }
@@ -45,8 +43,7 @@ const syncScrollNavigation = () => {
     for (const target of targets) {
       if (target.getBoundingClientRect().top <= line) current = target;
     }
-    if (window.scrollY < 8 && fallbackId)
-      current = document.getElementById(fallbackId) || current;
+    if (window.scrollY < 8 && fallbackId) current = document.getElementById(fallbackId) || current;
     links.forEach((link) => {
       let hash = '';
       try {
