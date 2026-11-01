@@ -130,6 +130,9 @@ class WagtailIntegrationTests(TestCase):
         edit_form = CMSUserEditForm()
         self.assertIn("wagtail_groups", creation_form.fields)
         self.assertIn("wagtail_groups", edit_form.fields)
+        self.assertTrue(creation_form.fields["is_staff"].initial)
+        self.assertIn("is_staff", edit_form.fields)
+        self.assertNotIn("is_staff", CMSUserEditForm(editing_self=True).fields)
         self.assertNotIn("groups", creation_form.fields)
         self.assertNotIn("groups", edit_form.fields)
         self.assertEqual(
