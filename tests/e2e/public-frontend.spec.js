@@ -167,7 +167,7 @@ test.describe('responsive layout', () => {
       await page.setViewportSize({ width, height: 900 });
 
       for (const route of responsiveRoutes) {
-        await page.goto(route, { waitUntil: 'load' });
+        await page.goto(route, { waitUntil: 'domcontentloaded' });
         await page.evaluate(async () => {
           await document.fonts.ready;
           await new Promise((resolve) =>
