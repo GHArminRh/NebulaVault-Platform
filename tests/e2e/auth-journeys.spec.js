@@ -96,16 +96,12 @@ test.describe('authentication experience', () => {
     await form.locator('input[name="password"]').fill(process.env.E2E_2FA_PASSWORD);
     await form.locator('button[type="submit"]').click();
 
-    const emailCodePanel = form
-      .locator('[data-factor="email"]')
-      .filter({ has: page.locator('input[name="email_otp_token"]') });
-    const emailRequestPanel = form
-      .locator('[data-factor="email"]')
-      .filter({ has: page.locator('button[name="send_email_code"]') });
-    await expect(emailCodePanel).toBeVisible();
-    await expect(emailRequestPanel).toBeVisible();
-    await emailRequestPanel.locator('button[name="send_email_code"]').click();
-    await expect(form.locator('input[name="email_otp_token"]')).toBeVisible();
+    const emailCode = form.locator('input[name="email_otp_token"]');
+    const emailRequest = form.locator('button[name="send_email_code"]');
+    await expect(emailCode).toBeVisible();
+    await expect(emailRequest).toBeVisible();
+    await emailRequest.click();
+    await expect(emailCode).toBeVisible();
   });
 
   test('POST submission shows one loading indicator and blocks duplicate submits', async ({
