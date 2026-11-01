@@ -48,7 +48,7 @@
     display: none;
   }
 
-  html body.nv-portal .nv-auth-stage {
+  html body.nv-portal .nv-auth-shell .nv-auth-stage {
     width: 100%;
     min-width: 0;
     max-width: none;
@@ -56,8 +56,8 @@
     perspective: none;
   }
 
-  html body.nv-portal .nv-auth-flip-card,
-  html body.nv-portal .nv-auth-flip-card.is-register {
+  html body.nv-portal .nv-auth-shell .nv-auth-stage .nv-auth-flip-card,
+  html body.nv-portal .nv-auth-shell .nv-auth-stage .nv-auth-flip-card.is-register {
     display: block;
     width: 100%;
     height: auto;
@@ -68,7 +68,7 @@
     will-change: auto;
   }
 
-  html body.nv-portal .nv-auth-face {
+  html body.nv-portal .nv-auth-shell .nv-auth-stage .nv-auth-face {
     position: relative;
     inset: auto;
     display: none;
@@ -195,7 +195,7 @@
     width: calc(100% - 20px);
   }
 
-  body.nv-portal .nv-auth-face {
+  html body.nv-portal .nv-auth-shell .nv-auth-stage .nv-auth-face {
     padding: 17px 13px;
   }
 
