@@ -4,73 +4,108 @@
   <section class="page-wrap auth-layout auth-layout-premium">
     <div class="auth-art auth-art-premium">
       <div class="eyebrow"><i class="eyebrow-dot"></i> امنیت حساب</div>
-      <h2>
-        یک لایه امنیتی
-        <br>
-        <span class="gradient-text">بیشتر.</span>
-      </h2>
-      <p>با برنامه‌ای مانند Google Authenticator، Microsoft Authenticator یا 1Password کد یک‌بارمصرف بسازید.</p>
+      <h2>امنیت بیشتر،<br><span class="gradient-text">با انتخاب تو.</span></h2>
+      <p>می‌توانید از برنامه احراز هویت، ایمیل یا هر دو روش برای محافظت از ورود به حساب استفاده کنید.</p>
     </div>
     <div class="auth-card auth-card-premium">
       <div class="eyebrow">تنظیمات امنیت</div>
       <h1>تأیید دومرحله‌ای</h1>
-      {% if messages %}{% for message in messages %}<div class="notice-line"
-     role="status">{{ message }}</div>{% endfor %}{% endif %}
-      {% if two_factor_enabled %}
-        <p class="auth-subtitle">تأیید دومرحله‌ای برای حساب شما فعال است.</p>
-        <form method="post" class="form-stack auth-form-premium">
-          {% csrf_token %}
-          <input type="hidden" name="security_action" value="disable_two_factor">
-          <label for="id_current_password">رمز عبور فعلی</label><input id="id_current_password"
-       name="current_password"
-       type="password"
-       autocomplete="current-password"
-       required>
-          <label for="id_otp_token">کد برنامه احراز هویت</label><input id="id_otp_token"
-       name="otp_token"
-       type="text"
-       inputmode="numeric"
-       autocomplete="one-time-code"
-       maxlength="6"
-       required>
-          <button class="button button-primary button-full button-large"
-                  type="submit">غیرفعال‌کردن تأیید دومرحله‌ای</button>
-        </form>
-      {% else %}
-        <p class="auth-subtitle">این قابلیت فعلاً خاموش است. ابتدا حساب را در برنامه احراز هویت خود اضافه و سپس کد آن را تأیید کنید.</p>
-        <div class="totp-qr-wrap">
-          <img src="{{ two_factor_qr }}"
-               alt="کد QR برای افزودن حساب به برنامه احراز هویت">
-        </div>
-        <p class="totp-secret-label">اگر امکان اسکن QR ندارید، این کلید را دستی وارد کنید:</p>
-        <code class="totp-secret" dir="ltr">{{ two_factor_secret }}</code>
-        <form method="post" class="form-stack auth-form-premium">
-          {% csrf_token %}
-          <input type="hidden" name="security_action" value="enable_two_factor">
-          <label for="id_current_password">رمز عبور فعلی</label><input id="id_current_password"
-       name="current_password"
-       type="password"
-       autocomplete="current-password"
-       required>
-          <label for="id_otp_token">کد ۶ رقمی برنامه احراز هویت</label><input id="id_otp_token"
-       name="otp_token"
-       type="text"
-       inputmode="numeric"
-       autocomplete="one-time-code"
-       maxlength="6"
-       required>
-          <button class="button button-primary button-full button-large"
-                  type="submit">تأیید و فعال‌سازی</button>
-        </form>
-        <p class="auth-subtitle">کلید دستی را در جای امن نگه دارید؛ در صورت تعویض یا گم‌شدن گوشی برای بازیابی به آن نیاز خواهید داشت. تا زمانی که کد معتبر وارد نکنید، تأیید دومرحله‌ای فعال نمی‌شود.</p>
+      {% if messages %}{% for message in messages %}<div class="notice-line" role="status">{{ message }}</div>{% endfor %}{% endif %}
+      <p class="auth-subtitle">وضعیت کلی: {% if two_factor_active %}<strong>فعال</strong>{% else %}<strong>خاموش</strong>{% endif %}</p>
+
+      {% if new_recovery_codes %}
+        <section class="recovery-codes-panel" aria-labelledby="recovery-codes-title">
+          <h2 id="recovery-codes-title">کدهای بازیابی شما</h2>
+          <p>این کدها فقط همین بار نمایش داده می‌شوند. آن‌ها را در مکانی امن ذخیره کنید. هر کد فقط یک بار قابل استفاده است.</p>
+          <div class="recovery-code-list" dir="ltr">{% for code in new_recovery_codes %}<code>{{ code }}</code>{% endfor %}</div>
+          <button type="button" class="button button-secondary" onclick="navigator.clipboard && navigator.clipboard.writeText({{ new_recovery_codes|join:'\\n'|escapejs|safe|json_script:'recovery-codes-data' }})">کپی کدها</button>
+        </section>
       {% endif %}
+
+      <section class="security-method">
+        <h2>۱. برنامه احراز هویت</h2>
+        {% if two_factor_enabled %}
+          <p>این روش فعال است. برای غیرفعال‌کردن آن، رمز عبور و یکی از کدهای معتبر را وارد کنید.</p>
+          <form method="post" class="form-stack auth-form-premium">
+            {% csrf_token %}<input type="hidden" name="security_action" value="disable_two_factor">
+            <label>رمز عبور فعلی</label><input name="current_password" type="password" autocomplete="current-password" required>
+            <label>کد برنامه احراز هویت</label><input name="otp_token" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+            <label>یا کد ایمیل</label><input name="email_otp_token" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+            <label>یا کد بازیابی</label><input name="recovery_code" autocomplete="off" maxlength="16">
+            <button class="button button-secondary button-full" type="submit">غیرفعال‌کردن برنامه احراز هویت</button>
+          </form>
+        {% else %}
+          <p class="auth-subtitle">با یک برنامه مانند Google Authenticator، Microsoft Authenticator یا 1Password کد یک‌بارمصرف بسازید.</p>
+          <div class="totp-qr-wrap"><img src="{{ two_factor_qr }}" alt="کد QR برای افزودن حساب به برنامه احراز هویت"></div>
+          <p class="totp-secret-label">کلید راه‌اندازی دستی:</p>
+          <code class="totp-secret" dir="ltr">{{ two_factor_secret }}</code>
+          <form method="post" class="form-stack auth-form-premium">
+            {% csrf_token %}<input type="hidden" name="security_action" value="enable_two_factor">
+            <label>رمز عبور فعلی</label><input name="current_password" type="password" autocomplete="current-password" required>
+            <label>کد شش‌رقمی برنامه</label><input name="otp_token" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+            <button class="button button-primary button-full" type="submit">تأیید و فعال‌سازی برنامه</button>
+          </form>
+        {% endif %}
+      </section>
+
+      <section class="security-method">
+        <h2>۲. تأیید از طریق ایمیل</h2>
+        {% if email_two_factor_enabled %}
+          <p>هنگام ورود می‌توانید کد یک‌بارمصرف را به ایمیل ثبت‌شده خود ارسال کنید.</p>
+          <form method="post" class="form-stack auth-form-premium">
+            {% csrf_token %}<input type="hidden" name="security_action" value="disable_email_two_factor">
+            <label>رمز عبور فعلی</label><input name="current_password" type="password" autocomplete="current-password" required>
+            <label>کد برنامه احراز هویت (در صورت فعال بودن)</label><input name="otp_token" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+            <label>کد ایمیل (ابتدا درخواست ارسال کنید)</label><input name="email_otp_token" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+            <label>یا کد بازیابی</label><input name="recovery_code" autocomplete="off" maxlength="16">
+            <button class="button button-secondary button-full" type="submit">غیرفعال‌کردن تأیید ایمیلی</button>
+          </form>
+        {% else %}
+          <p>پس از واردکردن رمز عبور و کد ارسال‌شده به ایمیل حساب، این روش فعال می‌شود.</p>
+          <form method="post" class="form-stack auth-form-premium">
+            {% csrf_token %}<input type="hidden" name="security_action" value="enable_email_two_factor">
+            <label>رمز عبور فعلی</label><input name="current_password" type="password" autocomplete="current-password" required>
+            <label>کد شش‌رقمی ایمیل</label><input name="email_otp_token" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+            <button class="button button-primary button-full" type="submit">تأیید و فعال‌سازی ایمیل</button>
+          </form>
+        {% endif %}
+        <form method="post" class="form-stack auth-form-premium security-email-send">
+          {% csrf_token %}<input type="hidden" name="security_action" value="request_email_setup_code">
+          <label>برای دریافت کد ایمیل، رمز عبور فعلی را وارد کنید</label>
+          <input name="current_password" type="password" autocomplete="current-password" required>
+          <button class="button button-secondary button-full" type="submit">ارسال کد به ایمیل حساب</button>
+        </form>
+        <p class="totp-secret-label">کد ایمیل تا ۱۰ دقیقه اعتبار دارد و پس از ۶۰ ثانیه می‌توانید درخواست جدید بدهید.</p>
+      </section>
+
+      <section class="security-method">
+        <h2>۳. کدهای بازیابی</h2>
+        <p>تعداد کدهای باقی‌مانده: <strong>{{ recovery_codes_remaining }}</strong></p>
+        <p>اگر به تلفن یا ایمیل دسترسی نداشته باشید، می‌توانید با یکی از کدهای بازیابی وارد شوید.</p>
+        {% if two_factor_active %}
+          <form method="post" class="form-stack auth-form-premium">
+            {% csrf_token %}<input type="hidden" name="security_action" value="regenerate_recovery_codes">
+            <label>رمز عبور فعلی</label><input name="current_password" type="password" autocomplete="current-password" required>
+            <label>کد برنامه احراز هویت</label><input name="otp_token" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+            <label>یا کد ایمیل (پس از درخواست ارسال)</label><input name="email_otp_token" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+            <label>یا کد بازیابی فعلی</label><input name="recovery_code" autocomplete="off" maxlength="16">
+            <button class="button button-secondary button-full" type="submit">ساخت ۱۰ کد بازیابی جدید</button>
+          </form>
+        {% endif %}
+      </section>
       <p class="auth-switch"><a href="{% url 'accounts:profile' %}">بازگشت به تنظیمات حساب</a> · <a href="{% url 'portal:dashboard' %}">پیشخوان</a></p>
     </div>
   </section>
   <style>
-.totp-qr-wrap{display:flex;justify-content:center;margin:18px auto;padding:12px;background:#fff;border-radius:14px;width:max-content;max-width:100%}
-.totp-qr-wrap img{width:190px;height:190px;max-width:100%}
-.totp-secret-label{font-size:12px;color:var(--muted,#8b96aa)}
-.totp-secret{display:block;overflow-wrap:anywhere;text-align:center;padding:12px;border-radius:10px;background:rgba(30,50,85,.28);letter-spacing:2px}
+    .totp-qr-wrap{display:flex;justify-content:center;margin:18px auto;padding:12px;background:#fff;border-radius:14px;width:max-content;max-width:100%}
+    .totp-qr-wrap img{width:190px;height:190px;max-width:100%}
+    .totp-secret-label{font-size:12px;color:var(--muted,#8b96aa)}
+    .totp-secret{display:block;overflow-wrap:anywhere;text-align:center;padding:12px;border-radius:10px;background:rgba(30,50,85,.28);letter-spacing:2px}
+    .security-method{margin:24px 0;padding:18px;border:1px solid rgba(130,155,190,.2);border-radius:16px}
+    .security-method h2,.recovery-codes-panel h2{font-size:17px;margin:0 0 12px}
+    .security-email-send{margin-top:18px;padding-top:16px;border-top:1px solid rgba(130,155,190,.2)}
+    .recovery-codes-panel{margin:18px 0;padding:18px;border:1px solid rgba(52,190,132,.45);border-radius:16px}
+    .recovery-code-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:14px 0}
+    .recovery-code-list code{padding:8px;background:rgba(30,50,85,.35);border-radius:8px;text-align:center}
   </style>
 {% endblock %}
