@@ -628,3 +628,17 @@ class ScheduledPublishingEndpointTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 503)
+
+
+class CanonicalSiteURLTests(TestCase):
+    @override_settings(SITE_BASE_URL="https://cms.example.test:8443")
+    @patch.dict("os.environ", {"NEBULA_BOOTSTRAP_ADMIN_PASSWORD": ""})
+    def test_bootstrap_site_domain_comes_from_canonical_site_url(self):
+        from django.core.management import call_command
+
+        call_command("bootstrap_render_admin", verbosity=0)
+        site = Site.objects.get(pk=settings.SITE_ID)
+        self.assertEqual(site.domain, "cms.example.test:8443")
+
+    def test_wagtail_admin_base_url_uses_canonical_site_setting(self):
+        self.assertEqual(settings.WAGTAILADMIN_BASE_URL, settings.SITE_BASE_URL)
