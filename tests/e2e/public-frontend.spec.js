@@ -32,7 +32,9 @@ test('deployed frontend styles are updated before regression checks', async ({ p
           return await page.evaluate(async () => {
             const stylesheet = Array.from(
               document.querySelectorAll('link[rel="stylesheet"]')
-            ).find((link) => link.href.includes('portal/css/responsive-system'));
+            ).find((link) =>
+              link.href.includes('portal/css/responsive-system')
+            );
 
             if (!stylesheet) return 'stylesheet-missing';
 
