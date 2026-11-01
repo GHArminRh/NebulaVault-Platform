@@ -19,6 +19,7 @@ from wagtail.models import (
 
 from .forms import CMSUserCreationForm, CMSUserEditForm
 from .models import HomePage
+from .viewsets import CMSUserFilterSet
 from .permissions import (
     StaffCollectionManagementPermissionPolicy,
     StaffCollectionOwnershipPermissionPolicy,
@@ -102,8 +103,16 @@ class WagtailIntegrationTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_staff_users_can_be_assigned_wagtail_groups(self):
-        self.assertIn("wagtail_groups", CMSUserCreationForm().fields)
-        self.assertIn("wagtail_groups", CMSUserEditForm().fields)
+        creation_form = CMSUserCreationForm()
+        edit_form = CMSUserEditForm()
+        self.assertIn("wagtail_groups", creation_form.fields)
+        self.assertIn("wagtail_groups", edit_form.fields)
+        self.assertNotIn("groups", creation_form.fields)
+        self.assertNotIn("groups", edit_form.fields)
+        self.assertEqual(
+            CMSUserFilterSet().filters["group"].field_name,
+            "wagtail_groups",
+        )
 
     def test_wagtail_group_permissions_use_the_separate_membership(self):
         User = get_user_model()
