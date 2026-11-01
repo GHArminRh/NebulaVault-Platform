@@ -12,6 +12,46 @@ from .models import HomePage
 
 
 class WagtailIntegrationTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # config.test_settings disables migrations and syncs the live model
+        # schema. Build the minimal Wagtail tree that the production data
+        # migration creates so these tests exercise the same homepage lookup.
+        if HomePage.objects.exists():
+            return
+
+        page_type = ContentType.objects.get_for_model(Page, for_concrete_model=False)
+        home_type = ContentType.objects.get_for_model(HomePage, for_concrete_model=False)
+        root = Page.objects.create(
+            title="Root",
+            slug="root",
+            path="0001",
+            depth=1,
+            numchild=1,
+            url_path="/",
+            content_type=page_type,
+        )
+        base_home = Page.objects.create(
+            title="صفحه اصلی نبیولا والت",
+            slug="home",
+            path="00010001",
+            depth=2,
+            numchild=0,
+            url_path="/home/",
+            content_type=home_type,
+        )
+        homepage = HomePage.objects.create(
+            page_ptr_id=base_home.pk,
+            hero_title="عنوان قابل ویرایش از Wagtail",
+            hero_highlight="تأکید قابل ویرایش",
+        )
+        Site.objects.create(
+            hostname="testserver",
+            port=80,
+            is_default_site=True,
+            root_page=homepage,
+        )
+
     def test_existing_storefront_homepage_is_managed_by_wagtail(self):
         homepage = HomePage.objects.get(slug="home")
         self.assertEqual(
