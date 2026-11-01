@@ -157,6 +157,69 @@ class WagtailIntegrationTests(TestCase):
         )
         self.assertIsNone(configured["OPTIONS"]["default_acl"])
 
+    def test_homepage_feature_faq_and_proof_sections_are_editorial(self):
+        homepage = HomePage.objects.get(slug="home")
+        homepage.sections = [
+            (
+                "proof_strip",
+                {
+                    "title": "اعتماد و یکپارچگی",
+                    "items": [{"number": "01", "label": "مدیریت یکپارچه"}],
+                },
+            ),
+            (
+                "feature_grid",
+                {
+                    "eyebrow": "ویژگی آزمایشی",
+                    "title": "عنوان ویژگی قابل ویرایش",
+                    "description": "توضیحات ویژگی",
+                    "items": [
+                        {
+                            "icon": "◇",
+                            "title": "کارت قابل ویرایش",
+                            "text": "توضیحات کارت",
+                            "link_label": "مشاهده",
+                            "link_url": "#products",
+                        }
+                    ],
+                },
+            ),
+            (
+                "faq",
+                {
+                    "eyebrow": "پرسش آزمایشی",
+                    "title": "پرسش‌های قابل ویرایش",
+                    "description": "توضیح پرسش‌ها",
+                    "items": [
+                        {
+                            "question": "پرسش از CMS؟",
+                            "answer": "بله؛ پاسخ از CMS مدیریت می‌شود.",
+                        }
+                    ],
+                },
+            ),
+            (
+                "call_to_action",
+                {
+                    "eyebrow": "دعوت آزمایشی",
+                    "title": "دعوت قابل ویرایش",
+                    "text": "متن دعوت",
+                    "button_label": "شروع",
+                    "button_url": "/accounts/register/",
+                },
+            ),
+        ]
+        homepage.save()
+
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "عنوان ویژگی قابل ویرایش")
+        self.assertContains(response, "کارت قابل ویرایش")
+        self.assertContains(response, "پرسش‌های قابل ویرایش")
+        self.assertContains(response, "پرسش از CMS؟")
+        self.assertContains(response, "اعتماد و یکپارچگی")
+        self.assertContains(response, "دعوت قابل ویرایش")
+
     def test_existing_storefront_homepage_is_managed_by_wagtail(self):
         homepage = HomePage.objects.get(slug="home")
         self.assertEqual(
