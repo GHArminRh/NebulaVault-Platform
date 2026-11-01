@@ -395,7 +395,10 @@ class AccountBackendTests(TestCase):
             reverse("accounts:two_factor_settings"),
             {"security_action": "enable_two_factor", "current_password": "Secure-test-password-2026!", "otp_token": pyotp.TOTP(secret).now()},
         )
-        self.assertRedirects(response, reverse("accounts:two_factor_settings"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["new_recovery_codes"]), 10)
+        self.assertIn("no-store", response["Cache-Control"])
+        self.assertNotIn("nv_new_recovery_codes", self.client.session)
         self.user.refresh_from_db()
         self.assertTrue(self.user.two_factor_enabled)
         api_token.refresh_from_db()
@@ -416,7 +419,7 @@ class AccountBackendTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("_auth_user_id", self.client.session)
-        self.assertContains(response, "کد تأیید دومرحله‌ای نامعتبر است")
+        self.assertContains(response, "کد تأیید یا کد بازیابی نامعتبر است")
 
     def test_customer_two_factor_valid_code_allows_login_and_remember_me(self):
         import pyotp
@@ -510,7 +513,10 @@ class AccountBackendTests(TestCase):
                 "otp_token": pyotp.TOTP(secret).now(),
             },
         )
-        self.assertRedirects(response, "/admin/account/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["new_recovery_codes"]), 10)
+        self.assertIn("no-store", response["Cache-Control"])
+        self.assertNotIn("nv_new_recovery_codes", self.client.session)
         staff.refresh_from_db()
         self.assertTrue(staff.two_factor_enabled)
         self.assertEqual(decrypt_totp_secret(staff.two_factor_secret), secret)
@@ -542,3 +548,166 @@ class AccountBackendTests(TestCase):
         self.assertRedirects(response, "/admin/account/")
         staff.refresh_from_db()
         self.assertTrue(staff.avatar.name.startswith("avatars/"))
+
+
+    def test_customer_can_use_email_as_second_factor_at_login(self):
+        import re
+
+        self.user.email_two_factor_enabled = True
+        self.user.save(update_fields=["email_two_factor_enabled"])
+        sent = self.client.post(
+            reverse("login"),
+            {
+                "username": self.user.email,
+                "password": "Secure-test-password-2026!",
+                "send_email_code": "1",
+                "human_check": "on",
+            },
+        )
+        self.assertEqual(sent.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        code = re.search(r"کد تأیید شما: (\d{6})", mail.outbox[0].body).group(1)
+        from accounts.models import TwoFactorEmailChallenge
+        email_challenge = TwoFactorEmailChallenge.objects.get(
+            user_type=self.user._meta.label_lower, user_id=str(self.user.pk), purpose="login"
+        )
+        response = self.client.post(
+            reverse("login"),
+            {
+                "username": self.user.email,
+                "password": "Secure-test-password-2026!",
+                "email_otp_token": code,
+                "human_check": "on",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(str(self.client.session["_auth_user_id"]), str(self.user.pk))
+        email_challenge.refresh_from_db()
+        self.assertIsNotNone(email_challenge.consumed_at)
+
+    def test_customer_can_login_with_a_single_use_recovery_code(self):
+        from accounts.two_factor import encrypt_totp_secret, store_recovery_codes
+
+        self.user.two_factor_enabled = True
+        self.user.two_factor_secret = encrypt_totp_secret("JBSWY3DPEHPK3PXP")
+        self.user.save(update_fields=["two_factor_enabled", "two_factor_secret"])
+        recovery_codes = store_recovery_codes(self.user)
+        response = self.client.post(
+            reverse("login"),
+            {
+                "username": self.user.email,
+                "password": "Secure-test-password-2026!",
+                "recovery_code": recovery_codes[0],
+                "human_check": "on",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.user.refresh_from_db()
+        self.assertEqual(len(self.user.recovery_codes), 9)
+        self.assertNotIn(
+            __import__("accounts.two_factor", fromlist=["_recovery_code_digest"])._recovery_code_digest(recovery_codes[0]),
+            self.user.recovery_codes,
+        )
+
+    def test_customer_can_enable_email_two_factor_and_receive_recovery_codes(self):
+        import re
+        from accounts.models import TwoFactorEmailChallenge
+
+        self.client.force_login(self.user, backend="accounts.backends.CustomerAuthenticationBackend")
+        sent = self.client.post(
+            reverse("accounts:two_factor_settings"),
+            {"security_action": "request_email_setup_code", "current_password": "Secure-test-password-2026!"},
+        )
+        self.assertEqual(sent.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1)
+        code = re.search(r"کد تأیید شما: (\d{6})", mail.outbox[0].body).group(1)
+        response = self.client.post(
+            reverse("accounts:two_factor_settings"),
+            {
+                "security_action": "enable_email_two_factor",
+                "current_password": "Secure-test-password-2026!",
+                "email_otp_token": code,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["new_recovery_codes"]), 10)
+        self.assertIn("no-store", response["Cache-Control"])
+        self.assertNotIn("nv_new_recovery_codes", self.client.session)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.email_two_factor_enabled)
+        self.assertEqual(len(self.user.recovery_codes), 10)
+        challenge = TwoFactorEmailChallenge.objects.get(
+            user_type=self.user._meta.label_lower, user_id=str(self.user.pk), purpose="setup"
+        )
+        self.assertIsNotNone(challenge.consumed_at)
+
+    def test_staff_can_login_with_email_two_factor(self):
+        import re
+        from django.contrib.auth import get_user_model
+        from accounts.models import TwoFactorEmailChallenge
+
+        staff = get_user_model().objects.create_superuser(
+            username="email_admin", email="email-admin@example.com",
+            password="Secure-admin-password-2026!",
+        )
+        staff.email_two_factor_enabled = True
+        staff.save(update_fields=["email_two_factor_enabled"])
+        sent = self.client.post(
+            "/admin/login/",
+            {
+                "username": staff.username,
+                "password": "Secure-admin-password-2026!",
+                "send_email_code": "1",
+                "next": "/admin/",
+            },
+        )
+        self.assertEqual(sent.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        code = re.search(r"کد تأیید شما: (\d{6})", mail.outbox[0].body).group(1)
+        response = self.client.post(
+            "/admin/login/",
+            {
+                "username": staff.username,
+                "password": "Secure-admin-password-2026!",
+                "email_otp_token": code,
+                "next": "/admin/",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(str(self.client.session["_auth_user_id"]), str(staff.pk))
+        challenge = TwoFactorEmailChallenge.objects.get(
+            user_type=staff._meta.label_lower, user_id=str(staff.pk), purpose="login"
+        )
+        self.assertIsNotNone(challenge.consumed_at)
+
+    def test_staff_can_enable_email_two_factor_and_generate_recovery_codes(self):
+        import re
+        from django.contrib.auth import get_user_model
+
+        staff = get_user_model().objects.create_superuser(
+            username="setup_email_admin", email="setup-email-admin@example.com",
+            password="Secure-admin-password-2026!",
+        )
+        self.client.force_login(staff, backend="django.contrib.auth.backends.ModelBackend")
+        sent = self.client.post(
+            "/admin/account/",
+            {"security_action": "request_email_setup_code", "current_password": "Secure-admin-password-2026!"},
+        )
+        self.assertEqual(sent.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1)
+        code = re.search(r"کد تأیید شما: (\d{6})", mail.outbox[0].body).group(1)
+        response = self.client.post(
+            "/admin/account/",
+            {
+                "security_action": "enable_email_two_factor",
+                "current_password": "Secure-admin-password-2026!",
+                "email_otp_token": code,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["new_recovery_codes"]), 10)
+        self.assertIn("no-store", response["Cache-Control"])
+        self.assertNotIn("nv_new_recovery_codes", self.client.session)
+        staff.refresh_from_db()
+        self.assertTrue(staff.email_two_factor_enabled)
+        self.assertEqual(len(staff.recovery_codes), 10)

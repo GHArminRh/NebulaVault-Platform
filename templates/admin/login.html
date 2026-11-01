@@ -91,6 +91,19 @@
         {{ form.otp_token.label_tag }}
         {{ form.otp_token }}
       </div>
+      <div class="form-row">
+        {{ form.email_otp_token.errors }}
+        {{ form.email_otp_token.label_tag }}
+        {{ form.email_otp_token }}
+      </div>
+      <div class="form-row">
+        {{ form.recovery_code.errors }}
+        {{ form.recovery_code.label_tag }}
+        {{ form.recovery_code }}
+      </div>
+      <div class="form-row">
+        <button type="submit" name="send_email_code" value="1" class="button">Send email verification code</button>
+      </div>
       <div class="form-row remember-me-row">
         {{ form.remember_me }} {{ form.remember_me.label_tag }}
       </div>

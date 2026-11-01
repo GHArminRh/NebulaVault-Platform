@@ -222,3 +222,48 @@ class CustomerApiAuthenticationTests(APITestCase):
             format="json",
         )
         self.assertEqual(accepted.status_code, status.HTTP_201_CREATED)
+
+
+    def test_email_two_factor_is_required_and_can_issue_api_token(self):
+        import re
+        from django.core import mail
+        from django.test import RequestFactory
+        from accounts.two_factor import send_email_code
+
+        self.customer.email_two_factor_enabled = True
+        self.customer.save(update_fields=("email_two_factor_enabled",))
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            send_email_code(RequestFactory().post("/login/"), self.customer, purpose="login")
+            code = re.search(r"کد تأیید شما: (\d{6})", mail.outbox[-1].body).group(1)
+        denied = self.client.post(
+            "/api/v1/auth/token/",
+            {"email": self.customer.email, "password": "Strong-password-123!"},
+            format="json",
+        )
+        self.assertEqual(denied.status_code, status.HTTP_401_UNAUTHORIZED)
+        accepted = self.client.post(
+            "/api/v1/auth/token/",
+            {"email": self.customer.email, "password": "Strong-password-123!", "email_otp_token": code},
+            format="json",
+        )
+        self.assertEqual(accepted.status_code, status.HTTP_201_CREATED)
+
+    def test_recovery_code_is_single_use_for_api_token_login(self):
+        from accounts.two_factor import encrypt_totp_secret, store_recovery_codes
+
+        self.customer.two_factor_enabled = True
+        self.customer.two_factor_secret = encrypt_totp_secret("JBSWY3DPEHPK3PXP")
+        self.customer.save(update_fields=("two_factor_enabled", "two_factor_secret"))
+        code = store_recovery_codes(self.customer)[0]
+        accepted = self.client.post(
+            "/api/v1/auth/token/",
+            {"email": self.customer.email, "password": "Strong-password-123!", "recovery_code": code},
+            format="json",
+        )
+        self.assertEqual(accepted.status_code, status.HTTP_201_CREATED)
+        replay = self.client.post(
+            "/api/v1/auth/token/",
+            {"email": self.customer.email, "password": "Strong-password-123!", "recovery_code": code},
+            format="json",
+        )
+        self.assertEqual(replay.status_code, status.HTTP_401_UNAUTHORIZED)

@@ -36,6 +36,8 @@ class StaffUser(AbstractUser):
     avatar = models.ImageField(upload_to=avatar_upload_to, blank=True, validators=[validate_avatar_size])
     two_factor_enabled = models.BooleanField(default=False)
     two_factor_secret = models.CharField(max_length=255, blank=True, editable=False)
+    email_two_factor_enabled = models.BooleanField(default=False)
+    recovery_codes = models.JSONField(default=list, blank=True, editable=False)
     groups = models.ManyToManyField(
         Group,
         blank=True,

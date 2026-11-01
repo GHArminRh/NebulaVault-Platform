@@ -130,6 +130,8 @@ class TokenLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, trim_whitespace=False)
     otp_token = serializers.CharField(required=False, write_only=True, max_length=12)
+    email_otp_token = serializers.CharField(required=False, write_only=True, max_length=6)
+    recovery_code = serializers.CharField(required=False, write_only=True, max_length=16)
 
 
 class TokenResponseSerializer(serializers.Serializer):

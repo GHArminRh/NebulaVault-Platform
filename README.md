@@ -89,13 +89,13 @@ List endpoints use page-number pagination (25 records per page) and support rele
 
 ### Customer authentication and resources
 
-1. Send `POST /api/v1/auth/token/` with JSON `{"email":"…","password":"…"}`. If customer two-factor authentication is enabled, include `otp_token` with the current six-digit authenticator code.
+1. Send `POST /api/v1/auth/token/` with JSON `{"email":"…","password":"…"}`. If customer two-factor authentication is enabled, provide one configured factor: `otp_token` (authenticator app), `email_otp_token` (a current six-digit email challenge), or `recovery_code` (a single-use recovery code). Email challenges are issued through the customer login page and expire after 10 minutes.
 2. Send the returned token in `Authorization: Bearer <access_token>`.
 3. Tokens expire after 30 days, are stored as SHA-256 digests, and can be revoked with `POST /api/v1/auth/token/revoke/`. The raw token is returned only when issued; save it securely.
 4. Use `GET/PATCH /api/v1/account/me/`, `GET /api/v1/account/subscriptions/`, and `GET /api/v1/account/orders/`. Account email and privilege/status flags are not writable through the API. Order and subscription results are scoped to the authenticated customer.
 5. Submit `POST /api/v1/blog/posts/{slug}/rating/` with `{"score":1}` through `{"score":5}` to create or update your rating.
 
-Customer tokens are separate from staff/admin credentials. Existing desktop licensing endpoints at `/api/licensing/activate/`, `/validate/`, and `/deactivate/` remain available for compatibility.
+Customer tokens are separate from staff/admin credentials. Recovery codes are stored as hashes, shown only once when generated, and invalidated individually after use. Each account can enable authenticator-app and email verification independently. Existing desktop licensing endpoints at `/api/licensing/activate/`, `/validate/`, and `/deactivate/` remain available for compatibility.
 
 ## Safe change policy
 
