@@ -1,14 +1,13 @@
 from django.conf import settings
+from django.db import connection
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.contrib.messages.storage.fallback import FallbackStorage
-from django.core.exceptions import ImproperlyConfigured
-from django.db import connection
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.sessions.middleware import SessionMiddleware
 
 from accounts.backends import WagtailGroupPermissionsBackend
 from wagtail.documents import get_document_model
@@ -25,6 +24,7 @@ from wagtail.models import (
 from .forms import CMSUserCreationForm, CMSUserEditForm
 from .models import ContentPage, HomePage, SiteChromeSettings
 from .storage_config import build_default_media_storage_config
+from django.core.exceptions import ImproperlyConfigured
 from .viewsets import CMSUserFilterSet
 from .permissions import (
     StaffCollectionManagementPermissionPolicy,
@@ -224,7 +224,7 @@ class WagtailIntegrationTests(TestCase):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "برند قابل ویرایش")
-        self.assertContains(response, "زیرعنوان برند")
+        self.assertContains(response, "زیرعنوان قابل ویرایش")
         self.assertContains(response, 'href="/header-test/"')
         self.assertContains(response, "پیوند سربرگ آزمایشی")
         self.assertContains(response, "توضیحات پابرگ آزمایشی")
@@ -233,3 +233,286 @@ class WagtailIntegrationTests(TestCase):
         self.assertContains(response, 'href="/footer-test/"')
         self.assertContains(response, "پیوند پابرگ آزمایشی")
         self.assertNotContains(response, 'id="nv-install-app"')
+
+    def test_homepage_feature_faq_and_proof_sections_are_editorial(self):
+        homepage = HomePage.objects.get(slug="home")
+        homepage.sections = [
+            (
+                "proof_strip",
+                {
+                    "title": "اعتماد و یکپارچگی",
+                    "items": [{"number": "01", "label": "مدیریت یکپارچه"}],
+                },
+            ),
+            (
+                "product_listing",
+                {
+                    "eyebrow": "محصولات آزمایشی",
+                    "title": "فهرست محصولات قابل ویرایش",
+                    "description": "توضیح محصولات",
+                },
+            ),
+            (
+                "feature_grid",
+                {
+                    "eyebrow": "ویژگی آزمایشی",
+                    "title": "عنوان ویژگی قابل ویرایش",
+                    "description": "توضیحات ویژگی",
+                    "items": [
+                        {
+                            "icon": "◇",
+                            "title": "کارت قابل ویرایش",
+                            "text": "توضیحات کارت",
+                            "link_label": "مشاهده",
+                            "link_url": "#products",
+                        }
+                    ],
+                },
+            ),
+            (
+                "blog_listing",
+                {
+                    "eyebrow": "بلاگ آزمایشی",
+                    "title": "فهرست بلاگ قابل ویرایش",
+                    "description": "توضیح بلاگ",
+                    "link_label": "همه نوشته‌ها",
+                },
+            ),
+            (
+                "release_listing",
+                {
+                    "eyebrow": "نسخه‌های آزمایشی",
+                    "title": "فهرست نسخه‌های قابل ویرایش",
+                    "description": "توضیح نسخه‌ها",
+                },
+            ),
+            (
+                "faq",
+                {
+                    "eyebrow": "پرسش آزمایشی",
+                    "title": "پرسش‌های قابل ویرایش",
+                    "description": "توضیح پرسش‌ها",
+                    "items": [
+                        {
+                            "question": "پرسش از CMS؟",
+                            "answer": "بله؛ پاسخ از CMS مدیریت می‌شود.",
+                        }
+                    ],
+                },
+            ),
+            (
+                "call_to_action",
+                {
+                    "eyebrow": "دعوت آزمایشی",
+                    "title": "دعوت قابل ویرایش",
+                    "text": "متن دعوت",
+                    "button_label": "شروع",
+                    "button_url": "/accounts/register/",
+                },
+            ),
+        ]
+        homepage.save()
+
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "فهرست محصولات قابل ویرایش")
+        self.assertContains(response, "فهرست بلاگ قابل ویرایش")
+        self.assertContains(response, "فهرست نسخه‌های قابل ویرایش")
+        self.assertContains(response, "عنوان ویژگی قابل ویرایش")
+        self.assertContains(response, "کارت قابل ویرایش")
+        self.assertContains(response, "پرسش‌های قابل ویرایش")
+        self.assertContains(response, "پرسش از CMS؟")
+        self.assertContains(response, "اعتماد و یکپارچگی")
+        self.assertContains(response, "دعوت قابل ویرایش")
+
+    def test_existing_storefront_homepage_is_managed_by_wagtail(self):
+        homepage = HomePage.objects.get(slug="home")
+        self.assertEqual(
+            Site.objects.get(is_default_site=True).root_page_id,
+            homepage.pk,
+        )
+
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, homepage.hero_title)
+        self.assertContains(response, homepage.hero_highlight)
+        self.assertContains(response, '<meta property="og:type" content="website">')
+
+    def test_published_wagtail_content_page_uses_canonical_root_url(self):
+        homepage = HomePage.objects.get(slug="home")
+        content_page = ContentPage(
+            title="صفحه راهنمای آزمایشی",
+            slug="cms-guide-test",
+            intro="معرفی صفحه",
+            body="<p>محتوای منتشرشده</p>",
+        )
+        homepage.add_child(instance=content_page)
+        content_page.save_revision().publish()
+
+        response = self.client.get("/cms-guide-test/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "صفحه راهنمای آزمایشی")
+        self.assertEqual(content_page.get_url(), "/cms-guide-test/")
+
+    def test_project_permission_policies_are_registered_for_wagtail(self):
+        self.assertIsInstance(
+            policy_registry.get_by_type(Page), StaffPagePermissionPolicy
+        )
+        self.assertIsInstance(
+            policy_registry.get_by_type(Collection), StaffCollectionManagementPermissionPolicy
+        )
+        self.assertIsInstance(
+            policy_registry.get_by_type(get_image_model()),
+            StaffCollectionOwnershipPermissionPolicy,
+        )
+        self.assertIsInstance(
+            policy_registry.get_by_type(get_document_model()),
+            StaffCollectionOwnershipPermissionPolicy,
+        )
+
+    def test_active_staff_superuser_can_open_homepage_editor(self):
+        User = get_user_model()
+        admin_user = User.objects.create_superuser(
+            username="wagtail-admin",
+            email="wagtail-admin@example.invalid",
+            password="test-password-only",
+        )
+        self.client.force_login(
+            admin_user, backend="django.contrib.auth.backends.ModelBackend"
+        )
+
+        homepage = HomePage.objects.get(slug="home")
+        response = self.client.get(
+            reverse("wagtailadmin_pages:edit", args=(homepage.pk,))
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "hero_title")
+        self.assertContains(response, "hero_description")
+
+    def test_wagtail_admin_login_route_is_available(self):
+        response = self.client.get(reverse("wagtailadmin_login"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_staff_users_can_be_assigned_wagtail_groups(self):
+        creation_form = CMSUserCreationForm()
+        edit_form = CMSUserEditForm()
+        self.assertIn("wagtail_groups", creation_form.fields)
+        self.assertIn("wagtail_groups", edit_form.fields)
+        self.assertTrue(creation_form.fields["is_staff"].initial)
+        self.assertIn("is_staff", edit_form.fields)
+        self.assertNotIn("is_staff", CMSUserEditForm(editing_self=True).fields)
+        self.assertNotIn("groups", creation_form.fields)
+        self.assertNotIn("groups", edit_form.fields)
+        self.assertEqual(
+            CMSUserFilterSet().filters["group"].field_name,
+            "wagtail_groups",
+        )
+
+    def test_wagtail_group_permissions_use_the_separate_membership(self):
+        User = get_user_model()
+        user = User.objects.create_user(
+            username="cms-editor",
+            password="test-password-only",
+            is_staff=True,
+        )
+        group = Group.objects.create(name="CMS Editors")
+        user.wagtail_groups.add(group)
+
+        page_content_type = ContentType.objects.get_for_model(Page)
+        permission = Permission.objects.get(
+            content_type=page_content_type,
+            codename="add_page",
+        )
+        root = Page.objects.get(depth=1)
+        root.owner = user
+        root.save(update_fields=["owner"])
+        GroupPagePermission.objects.create(
+            group=group,
+            page=root,
+            permission=permission,
+        )
+
+        self.assertTrue(
+            GroupPagePermission.objects.filter(
+                group__user=user,
+                page=root,
+                permission=permission,
+            ).exists()
+        )
+        standard_permission = Permission.objects.get(
+            content_type=ContentType.objects.get_for_model(Group),
+            codename="view_group",
+        )
+        group.permissions.add(standard_permission)
+        self.assertIn(
+            f"{standard_permission.content_type.app_label}.{standard_permission.codename}",
+            WagtailGroupPermissionsBackend().get_group_permissions(user),
+        )
+        page_policy = StaffPagePermissionPolicy()
+        self.assertIn(user, page_policy.users_with_any_permission({"add"}))
+        self.assertIn(
+            user,
+            page_policy.users_with_any_permission_for_instance({"change"}, root),
+        )
+
+    def test_wagtail_media_collection_permissions_use_wagtail_groups(self):
+        User = get_user_model()
+        user = User.objects.create_user(
+            username="cms-media-editor",
+            password="test-password-only",
+            is_staff=True,
+        )
+        group = Group.objects.create(name="CMS Media Editors")
+        user.wagtail_groups.add(group)
+        root_collection = Collection.add_root(name="CMS Media Root")
+        child_collection = root_collection.add_child(name="CMS Images")
+        content_type = ContentType.objects.get_for_model(Collection)
+        permission, _ = Permission.objects.get_or_create(
+            content_type=content_type,
+            codename="change_collection",
+            defaults={"name": "Can change collection"},
+        )
+        GroupCollectionPermission.objects.create(
+            group=group,
+            collection=root_collection,
+            permission=permission,
+        )
+        policy = StaffCollectionManagementPermissionPolicy(Collection)
+        self.assertIn(child_collection, policy._descendants_with_perm(user, "change"))
+        self.assertIn(
+            user,
+            policy.users_with_any_permission_for_instance({"change"}, child_collection),
+        )
+
+        media_models = (
+            (get_image_model(), "add_image"),
+            (get_document_model(), "add_document"),
+        )
+        # Wagtail caches collection permissions on the user instance. Populate
+        # every media permission before the first policy lookup, as happens in
+        # normal group setup, then verify both policies against that cache.
+        for model, action in media_models:
+            permission = Permission.objects.get(
+                content_type=ContentType.objects.get_for_model(model),
+                codename=action,
+            )
+            GroupCollectionPermission.objects.create(
+                group=group,
+                collection=root_collection,
+                permission=permission,
+            )
+
+        for model, action in media_models:
+            model_policy = policy_registry.get_by_type(model)
+            diagnostic = (
+                f"model={model._meta.label_lower}; "
+                f"auth_model={model_policy.auth_model._meta.label_lower}; "
+                f"authenticated={user.is_authenticated}; active={user.is_active}; "
+                f"wagtail_groups={list(user.wagtail_groups.values_list('name', flat=True))}; "
+                f"expected_codename={action}; "
+                f"policy_codenames={model_policy._get_permission_codenames({'add'})}; "
+                f"cached_permissions={list(model_policy.get_cached_permissions_for_user(user))}; "
+                f"loaded_permissions={list(model_policy.get_all_permissions_for_user(user).values_list('permission__codename', flat=True))}"
+            )
+            self.assertTrue(model_policy.user_has_permission(user, "add"), diagnostic)
+            self.assertIn(user, model_policy.users_with_any_permission({"add"}))
