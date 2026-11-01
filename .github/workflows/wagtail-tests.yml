@@ -63,6 +63,19 @@ jobs:
         run: python manage.py check --settings=config.test_settings
       - name: Exercise the production migration graph on a clean database
         run: python manage.py migrate --noinput --settings=config.settings
+      - name: Verify the converted live homepage and Wagtail site root
+        run: |
+          python manage.py shell --settings=config.settings <<\x27PY\x27
+          from django.contrib.contenttypes.models import ContentType
+          from sitecms.models import HomePage
+          from wagtail.models import Page, Site
+          homepage = HomePage.objects.get(slug="home")
+          assert homepage.path == "00010001" and homepage.depth == 2
+          assert homepage.content_type_id == ContentType.objects.get_for_model(HomePage).pk
+          assert Site.objects.get(is_default_site=True).root_page_id == homepage.pk
+          assert Page.objects.get(depth=1).numchild >= 1
+          print("Wagtail homepage migration verified")
+          PY
       - name: Check model and migration consistency
         run: python manage.py makemigrations --check --dry-run --settings=config.test_settings
       - name: Run Wagtail integration tests
