@@ -15,7 +15,7 @@
         <div class="nv-auth-face-head"><span class="nv-auth-kicker">خوش آمدید</span><span class="nv-auth-step">01 <i>/</i> 02</span></div>
         <h2>ورود به حساب</h2>
         <p class="nv-auth-subtitle">برای ادامه، وارد فضای شخصی خود شوید.</p>
-        {% if auth_side == "login" %}{% if login_throttled %}<div class="form-error" role="alert">ورود شما موقتاً محدود شده است؛ پنج تلاش ناموفق ثبت شده. لطفاً ۱۵ دقیقه صبر کنید و سپس دوباره تلاش کنید.</div>{% elif banned_account %}<div class="form-error" role="alert">شما توسط ادمین بن شده‌اید و امکان ورود به حساب را ندارید.</div>{% elif form.turnstile_error %}<div class="form-error" role="alert">تأیید امنیتی ناموفق بود. لطفاً کپچا را تکمیل کنید و دوباره تلاش کنید.</div>{% elif form.otp_token.errors %}<div class="form-error" role="alert">کد تأیید دومرحله‌ای نامعتبر است یا وارد نشده است.</div>{% elif form.errors %}<div class="form-error" role="alert">نام کاربری یا رمز عبور اشتباه است. اطلاعات را بررسی و دوباره تلاش کنید.</div>{% endif %}{% endif %}
+        {% if auth_side == "login" %}{% if login_throttled %}<div class="form-error" role="alert">ورود شما موقتاً محدود شده است؛ پنج تلاش ناموفق ثبت شده. لطفاً ۱۵ دقیقه صبر کنید و سپس دوباره تلاش کنید.</div>{% elif banned_account %}<div class="form-error" role="alert">شما توسط ادمین بن شده‌اید و امکان ورود به حساب را ندارید.</div>{% elif form.turnstile_error %}<div class="form-error" role="alert">تأیید امنیتی ناموفق بود. لطفاً کپچا را تکمیل کنید و دوباره تلاش کنید.</div>{elif form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors|join:' ' }}</div>{% elif form.otp_token.errors %}<div class="form-error" role="alert">کد تأیید یا کد بازیابی نامعتبر است یا وارد نشده است.</div>{% elif form.errors %}<div class="form-error" role="alert">نام کاربری یا رمز عبور اشتباه است. اطلاعات را بررسی و دوباره تلاش کنید.</div>{% endif %}{% endif %}
         <form method="post"
               action="{% url 'login' %}"
               class="form-stack nv-auth-form">
@@ -46,6 +46,11 @@
                  maxlength="12"
                  placeholder="کد برنامه احراز هویت">
           {% if auth_side == "login" and form.otp_token.errors %}<small class="field-error">{{ form.otp_token.errors|join:', ' }}</small>{% endif %}
+          <label for="nv-login-email-code">کد ارسال‌شده به ایمیل <span class="auth-optional">(در صورت فعال‌بودن)</span></label>
+          <input id="nv-login-email-code" name="email_otp_token" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد ۶ رقمی ایمیل">
+          <label for="nv-login-recovery">کد بازیابی <span class="auth-optional">(در صورت نداشتن دسترسی به روش‌های دیگر)</span></label>
+          <input id="nv-login-recovery" name="recovery_code" type="text" autocomplete="off" maxlength="16" placeholder="XXXX-XXXX-XXXX">
+          <button class="button button-secondary button-full" type="submit" name="send_email_code" value="1">ارسال کد تأیید به ایمیل</button>
           <label class="nv-remember-row" for="nv-login-remember">
             <input id="nv-login-remember"
                    name="remember_me"
