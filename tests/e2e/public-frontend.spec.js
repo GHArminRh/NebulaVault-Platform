@@ -69,7 +69,7 @@ test('homepage declares Persian RTL document metadata', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('lang', 'fa');
 });
 
-test('registration form is visible and laid out normally on iPhone-sized screens', async ({ page }) => {
+test('registration form is visible on iPhone-sized screens', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto('/accounts/register/', { waitUntil: 'domcontentloaded' });
 
