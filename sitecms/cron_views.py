@@ -57,7 +57,9 @@ def publish_scheduled_pages(request):
     if (
         not separator
         or scheme.lower() != "bearer"
-        or not secrets.compare_digest(supplied_secret, expected_secret)
+        or not secrets.compare_digest(
+            supplied_secret.encode("utf-8"), expected_secret.encode("utf-8")
+        )
     ):
         return JsonResponse({"status": "unauthorized"}, status=403)
 
