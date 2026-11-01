@@ -18,7 +18,6 @@
           <h2 id="recovery-codes-title">کدهای بازیابی شما</h2>
           <p>این کدها فقط همین بار نمایش داده می‌شوند. آن‌ها را در مکانی امن ذخیره کنید. هر کد فقط یک بار قابل استفاده است.</p>
           <div class="recovery-code-list" dir="ltr">{% for code in new_recovery_codes %}<code>{{ code }}</code>{% endfor %}</div>
-          <button type="button" class="button button-secondary" onclick="navigator.clipboard && navigator.clipboard.writeText({{ new_recovery_codes|join:'\\n'|escapejs|safe|json_script:'recovery-codes-data' }})">کپی کدها</button>
         </section>
       {% endif %}
 
