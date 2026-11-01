@@ -462,6 +462,7 @@ class AccountBackendTests(TestCase):
             username="profile_admin", email="profile-admin@example.com",
             password="Secure-admin-password-2026!",
         )
+        self.assertFalse(staff.two_factor_enabled)
         self.client.force_login(staff, backend="django.contrib.auth.backends.ModelBackend")
         response = self.client.get("/admin/account/")
         self.assertEqual(response.status_code, 200)
