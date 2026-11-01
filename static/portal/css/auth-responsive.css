@@ -48,7 +48,7 @@
     display: none;
   }
 
-  body.nv-portal .nv-auth-stage {
+  html body.nv-portal .nv-auth-stage {
     width: 100%;
     min-width: 0;
     max-width: none;
@@ -56,8 +56,8 @@
     perspective: none;
   }
 
-  body.nv-portal .nv-auth-flip-card,
-  body.nv-portal .nv-auth-flip-card.is-register {
+  html body.nv-portal .nv-auth-flip-card,
+  html body.nv-portal .nv-auth-flip-card.is-register {
     display: block;
     width: 100%;
     height: auto;
@@ -68,7 +68,7 @@
     will-change: auto;
   }
 
-  body.nv-portal .nv-auth-face {
+  html body.nv-portal .nv-auth-face {
     position: relative;
     inset: auto;
     display: none;
