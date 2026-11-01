@@ -129,6 +129,7 @@ class BlogRatingSerializer(serializers.ModelSerializer):
 class TokenLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, trim_whitespace=False)
+    otp_token = serializers.CharField(required=False, write_only=True, max_length=12)
 
 
 class TokenResponseSerializer(serializers.Serializer):

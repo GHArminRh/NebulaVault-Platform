@@ -1,4 +1,9 @@
 {% extends "portal/base.html" %}
+{% load static %}
+{% block extra_css %}
+  <link rel="stylesheet"
+        href="{% static 'portal/css/account-security.css' %}">
+{% endblock %}
 {% block title %}تنظیمات حساب — نبیولا والت{% endblock %}
 {% block content %}
   <section class="page-wrap auth-layout auth-layout-premium">
@@ -16,8 +21,14 @@
       <div class="eyebrow">تنظیمات حساب</div>
       <h1>نمایه شما</h1>
       <p class="auth-subtitle">نام کاربری و اطلاعات حساب خود را به‌روزرسانی کنید.</p>
-      <form method="post" class="form-stack auth-form-premium">
+      <form method="post"
+            enctype="multipart/form-data"
+            class="form-stack auth-form-premium">
         {% csrf_token %}
+        <div class="account-avatar-preview">
+          {% if request.user.avatar %}<img src="{{ request.user.avatar.url }}"
+     alt="تصویر نمایه">{% else %}<span aria-hidden="true">◇</span>{% endif %}
+        </div>
         {% if form.non_field_errors %}<div class="form-error"
      role="alert">{{ form.non_field_errors }}</div>{% endif %}
         {% for field in form %}
@@ -29,7 +40,7 @@
         <button class="button button-primary button-full button-large auth-submit"
                 type="submit">ذخیره تغییرات <span aria-hidden="true">↗</span></button>
       </form>
-      <p class="auth-switch"><a href="{% url 'accounts:password_change' %}">تغییر رمز عبور</a> · <a href="{% url 'portal:dashboard' %}">بازگشت به پیشخوان</a></p>
+      <p class="auth-switch"><a href="{% url 'accounts:password_change' %}">تغییر رمز عبور</a> · <a href="{% url 'accounts:two_factor_settings' %}">تنظیم تأیید دومرحله‌ای</a> · <a href="{% url 'portal:dashboard' %}">بازگشت به پیشخوان</a></p>
     </div>
   </section>
 {% endblock %}

@@ -3,6 +3,8 @@ import uuid
 from django.contrib.auth.models import AbstractUser, Permission
 from django.db import models
 
+from accounts.validators import avatar_upload_to, validate_avatar_size
+
 
 class Group(models.Model):
     """UUID-backed permission group for staff accounts."""
@@ -31,6 +33,9 @@ class StaffUser(AbstractUser):
     """UUID-backed Django identity for staff and admin access."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    avatar = models.ImageField(upload_to=avatar_upload_to, blank=True, validators=[validate_avatar_size])
+    two_factor_enabled = models.BooleanField(default=False)
+    two_factor_secret = models.CharField(max_length=255, blank=True, editable=False)
     groups = models.ManyToManyField(
         Group,
         blank=True,

@@ -89,7 +89,7 @@ List endpoints use page-number pagination (25 records per page) and support rele
 
 ### Customer authentication and resources
 
-1. Send `POST /api/v1/auth/token/` with JSON `{"email":"…","password":"…"}`.
+1. Send `POST /api/v1/auth/token/` with JSON `{"email":"…","password":"…"}`. If customer two-factor authentication is enabled, include `otp_token` with the current six-digit authenticator code.
 2. Send the returned token in `Authorization: Bearer <access_token>`.
 3. Tokens expire after 30 days, are stored as SHA-256 digests, and can be revoked with `POST /api/v1/auth/token/revoke/`. The raw token is returned only when issued; save it securely.
 4. Use `GET/PATCH /api/v1/account/me/`, `GET /api/v1/account/subscriptions/`, and `GET /api/v1/account/orders/`. Account email and privilege/status flags are not writable through the API. Order and subscription results are scoped to the authenticated customer.

@@ -12,6 +12,7 @@ urlpatterns = [
     path("verify/resend/", views.resend_verification, name="resend_verification"),
     path("verify/code/", views.verify_email_code, name="verify_email_code"),
     path("profile/", views.profile, name="profile"),
+    path("security/two-factor/", views.customer_two_factor_settings, name="two_factor_settings"),
     path("password/change/", views.password_change, name="password_change"),
     path(
         "password/reset/",

@@ -3,6 +3,8 @@ import uuid
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
 
+from .validators import avatar_upload_to, validate_avatar_size
+
 
 class CustomerManager(BaseUserManager):
     use_in_migrations = True
@@ -28,6 +30,9 @@ class Customer(AbstractBaseUser):
     last_name = models.CharField(max_length=150, blank=True)
     is_active = models.BooleanField(default=True)
     is_banned = models.BooleanField(default=False, help_text="Blocked by an administrator; the customer cannot sign in.")
+    avatar = models.ImageField(upload_to=avatar_upload_to, blank=True, validators=[validate_avatar_size])
+    two_factor_enabled = models.BooleanField(default=False)
+    two_factor_secret = models.CharField(max_length=255, blank=True, editable=False)
     date_joined = models.DateTimeField(auto_now_add=True)
 
     objects = CustomerManager()

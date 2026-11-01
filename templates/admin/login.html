@@ -7,6 +7,9 @@
   {{ block.super }}
   {{ form.media }}
   <style>
+    body.login .remember-me-row { display:flex; align-items:center; gap:8px; padding-top:8px; }
+    body.login .remember-me-row input[type="checkbox"] { width:auto; margin:0; accent-color:#648cff; }
+    body.login .form-row input[name="otp_token"] { direction:ltr; text-align:left; letter-spacing:2px; }
     body.login .turnstile-row {
       margin: 10px 0 2px;
       padding: 9px 10px;
@@ -81,6 +84,15 @@
         {{ form.password.label_tag }}
         {{ form.password }}
         <input type="hidden" name="next" value="{{ next }}">
+      </div>
+
+      <div class="form-row">
+        {{ form.otp_token.errors }}
+        {{ form.otp_token.label_tag }}
+        {{ form.otp_token }}
+      </div>
+      <div class="form-row remember-me-row">
+        {{ form.remember_me }} {{ form.remember_me.label_tag }}
       </div>
 
       {% if TURNSTILE_ENABLED|default:True %}

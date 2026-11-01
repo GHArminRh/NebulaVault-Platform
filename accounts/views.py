@@ -19,10 +19,12 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
-from .forms import AccountPasswordChangeForm, AccountPasswordResetForm, AccountProfileForm, AccountSetPasswordForm, RegisterForm, VerificationResendForm
+from .forms import AccountPasswordChangeForm, AccountPasswordResetForm, AccountProfileForm, AccountSetPasswordForm, RegisterForm, StaffAccountProfileForm, VerificationResendForm
 from .models import AccountEmailLog, Customer
+from .two_factor import decrypt_totp_secret, encrypt_totp_secret, new_totp_secret, provisioning_uri, qr_data_uri, verify_totp
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +35,7 @@ def profile(request):
     # ModelForm validation mutates its instance in memory. Capture the persisted
     # value before binding/validating the form so email changes are detected.
     previous_email = request.user.email
-    form = AccountProfileForm(request.POST or None, instance=request.user)
+    form = AccountProfileForm(request.POST or None, request.FILES or None, instance=request.user)
     if request.method == "POST" and form.is_valid():
         customer = form.save(commit=False)
         email_changed = customer.email.casefold() != previous_email.casefold()
@@ -399,6 +401,93 @@ def password_reset_confirm(request, uidb64, token):
         "form": form, "validlink": validlink, "title": "تنظیم رمز عبور جدید",
     }, status=200 if validlink else 400)
 
+
+
+
+def _two_factor_session_key(user):
+    return f"nv_totp_enrollment:{user._meta.label_lower}:{user.pk}"
+
+
+def _process_two_factor_post(request, user):
+    action = request.POST.get("security_action")
+    if action == "enable_two_factor":
+        secret = request.session.get(_two_factor_session_key(user), "")
+        if user.check_password(request.POST.get("current_password", "")) and secret and verify_totp(secret, request.POST.get("otp_token")):
+            user.two_factor_secret = encrypt_totp_secret(secret)
+            user.two_factor_enabled = True
+            user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
+            if isinstance(user, Customer):
+                # Existing API tokens were issued before the account required a second factor.
+                from api.models import CustomerAPIToken
+                CustomerAPIToken.objects.filter(customer=user, revoked_at__isnull=True).update(
+                    revoked_at=timezone.now()
+                )
+            request.session.pop(_two_factor_session_key(user), None)
+            messages.success(request, "تأیید دومرحله‌ای با موفقیت فعال شد.")
+        else:
+            messages.error(request, "رمز عبور یا کد برنامه احراز هویت معتبر نیست؛ دوباره تلاش کنید.")
+    elif action == "disable_two_factor":
+        password = request.POST.get("current_password", "")
+        if user.check_password(password) and verify_totp(decrypt_totp_secret(user.two_factor_secret), request.POST.get("otp_token")):
+            user.two_factor_enabled = False
+            user.two_factor_secret = ""
+            user.save(update_fields=["two_factor_enabled", "two_factor_secret"])
+            request.session.pop(_two_factor_session_key(user), None)
+            messages.success(request, "تأیید دومرحله‌ای غیرفعال شد.")
+        else:
+            messages.error(request, "رمز عبور یا کد تأیید نادرست است؛ تنظیمات امنیتی تغییری نکرد.")
+    else:
+        messages.error(request, "درخواست نامعتبر است.")
+
+
+def _two_factor_context(request, user):
+    context = {"two_factor_enabled": user.two_factor_enabled}
+    if not user.two_factor_enabled:
+        key = _two_factor_session_key(user)
+        secret = request.session.get(key)
+        if not secret:
+            secret = new_totp_secret()
+            request.session[key] = secret
+        uri = provisioning_uri(secret, user.get_username())
+        context.update({
+            "two_factor_secret": secret,
+            "two_factor_qr": qr_data_uri(uri),
+            "two_factor_uri": uri,
+        })
+    return context
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def customer_two_factor_settings(request):
+    if getattr(request.user, "is_staff", False):
+        return redirect("staff-account")
+    if request.method == "POST":
+        _process_two_factor_post(request, request.user)
+        return redirect("accounts:two_factor_settings")
+    return render(request, "accounts/two_factor_settings.html", _two_factor_context(request, request.user))
+
+
+@staff_member_required
+@require_http_methods(["GET", "POST"])
+def staff_account(request):
+    if request.method == "POST":
+        action = request.POST.get("account_action")
+        if action == "profile":
+            form = StaffAccountProfileForm(request.POST, request.FILES, instance=request.user)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Your profile was updated.")
+                return redirect("staff-account")
+            context = _two_factor_context(request, request.user)
+            context["profile_form"] = form
+            return render(request, "admin/staff_account.html", context)
+        _process_two_factor_post(request, request.user)
+        return redirect("staff-account")
+    return render(request, "admin/staff_account.html", {
+        **_two_factor_context(request, request.user),
+        "profile_form": StaffAccountProfileForm(instance=request.user),
+    })
 
 
 class CustomerLoginView(LoginView):

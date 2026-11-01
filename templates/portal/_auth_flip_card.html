@@ -15,7 +15,7 @@
         <div class="nv-auth-face-head"><span class="nv-auth-kicker">خوش آمدید</span><span class="nv-auth-step">01 <i>/</i> 02</span></div>
         <h2>ورود به حساب</h2>
         <p class="nv-auth-subtitle">برای ادامه، وارد فضای شخصی خود شوید.</p>
-        {% if auth_side == "login" %}{% if login_throttled %}<div class="form-error" role="alert">ورود شما موقتاً محدود شده است؛ پنج تلاش ناموفق ثبت شده. لطفاً ۱۵ دقیقه صبر کنید و سپس دوباره تلاش کنید.</div>{% elif banned_account %}<div class="form-error" role="alert">شما توسط ادمین بن شده‌اید و امکان ورود به حساب را ندارید.</div>{% elif form.turnstile_error %}<div class="form-error" role="alert">تأیید امنیتی ناموفق بود. لطفاً کپچا را تکمیل کنید و دوباره تلاش کنید.</div>{% elif form.errors %}<div class="form-error" role="alert">نام کاربری یا رمز عبور اشتباه است. اطلاعات را بررسی و دوباره تلاش کنید.</div>{% endif %}{% endif %}
+        {% if auth_side == "login" %}{% if login_throttled %}<div class="form-error" role="alert">ورود شما موقتاً محدود شده است؛ پنج تلاش ناموفق ثبت شده. لطفاً ۱۵ دقیقه صبر کنید و سپس دوباره تلاش کنید.</div>{% elif banned_account %}<div class="form-error" role="alert">شما توسط ادمین بن شده‌اید و امکان ورود به حساب را ندارید.</div>{% elif form.turnstile_error %}<div class="form-error" role="alert">تأیید امنیتی ناموفق بود. لطفاً کپچا را تکمیل کنید و دوباره تلاش کنید.</div>{% elif form.otp_token.errors %}<div class="form-error" role="alert">کد تأیید دومرحله‌ای نامعتبر است یا وارد نشده است.</div>{% elif form.errors %}<div class="form-error" role="alert">نام کاربری یا رمز عبور اشتباه است. اطلاعات را بررسی و دوباره تلاش کنید.</div>{% endif %}{% endif %}
         <form method="post"
               action="{% url 'login' %}"
               class="form-stack nv-auth-form">
@@ -37,6 +37,23 @@
                    required
                    placeholder="رمز عبور خود را وارد کنید"><button class="password-toggle" type="button">نمایش</button>
           </div>
+          <label for="nv-login-otp">کد تأیید دومرحله‌ای <span class="auth-optional">(در صورت فعال‌سازی)</span></label>
+          <input id="nv-login-otp"
+                 name="otp_token"
+                 type="text"
+                 inputmode="numeric"
+                 autocomplete="one-time-code"
+                 maxlength="12"
+                 placeholder="کد برنامه احراز هویت">
+          {% if auth_side == "login" and form.otp_token.errors %}<small class="field-error">{{ form.otp_token.errors|join:', ' }}</small>{% endif %}
+          <label class="nv-remember-row" for="nv-login-remember">
+            <input id="nv-login-remember"
+                   name="remember_me"
+                   type="checkbox"
+                   value="on"
+                   {% if not form.is_bound or form.remember_me.value %}checked{% endif %}>
+            <span>مرا به خاطر بسپار</span>
+          </label>
           <div class="turnstile-shell" role="group" aria-label="تأیید امنیتی">
             <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
             <div class="nv-turnstile-widget"

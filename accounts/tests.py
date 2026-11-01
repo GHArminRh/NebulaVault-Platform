@@ -365,3 +365,180 @@ class AccountBackendTests(TestCase):
             )
         self.assertEqual(response.status_code, 302)
         self.assertIsNone(cache.get(cache_key))
+
+
+    def test_customer_login_remember_me_is_checked_by_default(self):
+        response = self.client.get(reverse("login"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["form"]["remember_me"].value())
+
+    def test_customer_two_factor_is_disabled_by_default_and_can_be_enabled(self):
+        import pyotp
+
+        self.assertFalse(self.user.two_factor_enabled)
+        import hashlib
+        import secrets
+        from datetime import timedelta
+        from django.utils import timezone
+        from api.models import CustomerAPIToken
+        raw_api_token = secrets.token_urlsafe(48)
+        api_token = CustomerAPIToken.objects.create(
+            customer=self.user,
+            token_prefix=raw_api_token[:12],
+            token_digest=hashlib.sha256(raw_api_token.encode("utf-8")).hexdigest(),
+            expires_at=timezone.now() + timedelta(days=30),
+        )
+        self.client.force_login(self.user, backend="accounts.backends.CustomerAuthenticationBackend")
+        response = self.client.get(reverse("accounts:two_factor_settings"))
+        secret = response.context["two_factor_secret"]
+        response = self.client.post(
+            reverse("accounts:two_factor_settings"),
+            {"security_action": "enable_two_factor", "current_password": "Secure-test-password-2026!", "otp_token": pyotp.TOTP(secret).now()},
+        )
+        self.assertRedirects(response, reverse("accounts:two_factor_settings"))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.two_factor_enabled)
+        api_token.refresh_from_db()
+        self.assertIsNotNone(api_token.revoked_at)
+        from accounts.two_factor import decrypt_totp_secret
+        self.assertEqual(decrypt_totp_secret(self.user.two_factor_secret), secret)
+
+    def test_customer_two_factor_is_required_during_login(self):
+        import pyotp
+
+        secret = pyotp.random_base32()
+        self.user.two_factor_secret = __import__("accounts.two_factor", fromlist=["encrypt_totp_secret"]).encrypt_totp_secret(secret)
+        self.user.two_factor_enabled = True
+        self.user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
+        response = self.client.post(
+            reverse("login"),
+            {"username": self.user.email, "password": "Secure-test-password-2026!", "otp_token": "000000", "human_check": "on"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertContains(response, "کد تأیید دومرحله‌ای نامعتبر است")
+
+    def test_customer_two_factor_valid_code_allows_login_and_remember_me(self):
+        import pyotp
+
+        secret = pyotp.random_base32()
+        self.user.two_factor_secret = __import__("accounts.two_factor", fromlist=["encrypt_totp_secret"]).encrypt_totp_secret(secret)
+        self.user.two_factor_enabled = True
+        self.user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
+        response = self.client.post(
+            reverse("login"),
+            {"username": self.user.email, "password": "Secure-test-password-2026!", "otp_token": pyotp.TOTP(secret).now(), "remember_me": "on", "human_check": "on"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(str(self.client.session["_auth_user_id"]), str(self.user.pk))
+        self.assertGreater(self.client.session.get_expiry_age(), 60 * 60 * 24 * 13)
+
+    def test_customer_profile_accepts_valid_avatar_upload(self):
+        from io import BytesIO
+        from PIL import Image
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        image_buffer = BytesIO()
+        Image.new("RGB", (32, 32), "blue").save(image_buffer, format="PNG")
+        upload = SimpleUploadedFile("profile.png", image_buffer.getvalue(), content_type="image/png")
+        self.client.force_login(self.user, backend="accounts.backends.CustomerAuthenticationBackend")
+        response = self.client.post(
+            reverse("accounts:profile"),
+            {"username": self.user.username, "first_name": "", "last_name": "", "email": self.user.email, "avatar": upload},
+        )
+        self.assertRedirects(response, reverse("accounts:profile"))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.avatar.name.startswith("avatars/"))
+
+    def test_staff_two_factor_is_required_for_admin_login(self):
+        import pyotp
+        from django.contrib.auth import get_user_model
+
+        staff = get_user_model().objects.create_superuser(
+            username="totp_admin", email="totp-admin@example.com",
+            password="Secure-admin-password-2026!",
+        )
+        secret = pyotp.random_base32()
+        staff.two_factor_secret = __import__("accounts.two_factor", fromlist=["encrypt_totp_secret"]).encrypt_totp_secret(secret)
+        staff.two_factor_enabled = True
+        staff.save(update_fields=["two_factor_secret", "two_factor_enabled"])
+        response = self.client.post(
+            "/admin/login/",
+            {"username": staff.username, "password": "Secure-admin-password-2026!", "otp_token": pyotp.TOTP(secret).now(), "remember_me": "on", "next": "/admin/"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(str(self.client.session["_auth_user_id"]), str(staff.pk))
+
+    def test_staff_account_page_is_available_to_staff_and_avatar_form_is_present(self):
+        from django.contrib.auth import get_user_model
+
+        staff = get_user_model().objects.create_superuser(
+            username="profile_admin", email="profile-admin@example.com",
+            password="Secure-admin-password-2026!",
+        )
+        self.assertFalse(staff.two_factor_enabled)
+        self.client.force_login(staff, backend="django.contrib.auth.backends.ModelBackend")
+        response = self.client.get("/admin/account/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Profile photo and details")
+        self.assertContains(response, "Two-factor authentication")
+
+    def test_admin_login_remember_me_is_checked_by_default(self):
+        response = self.client.get("/admin/login/")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["form"]["remember_me"].value())
+
+
+    def test_staff_can_enable_two_factor_with_password_and_authenticator_code(self):
+        import pyotp
+        from django.contrib.auth import get_user_model
+        from accounts.two_factor import decrypt_totp_secret
+
+        staff = get_user_model().objects.create_superuser(
+            username="enroll_admin", email="enroll-admin@example.com",
+            password="Secure-admin-password-2026!",
+        )
+        self.client.force_login(staff, backend="django.contrib.auth.backends.ModelBackend")
+        response = self.client.get("/admin/account/")
+        self.assertEqual(response.status_code, 200)
+        secret = response.context["two_factor_secret"]
+        response = self.client.post(
+            "/admin/account/",
+            {
+                "security_action": "enable_two_factor",
+                "current_password": "Secure-admin-password-2026!",
+                "otp_token": pyotp.TOTP(secret).now(),
+            },
+        )
+        self.assertRedirects(response, "/admin/account/")
+        staff.refresh_from_db()
+        self.assertTrue(staff.two_factor_enabled)
+        self.assertEqual(decrypt_totp_secret(staff.two_factor_secret), secret)
+
+    def test_staff_can_upload_a_profile_photo(self):
+        from io import BytesIO
+        from PIL import Image
+        from django.contrib.auth import get_user_model
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        staff = get_user_model().objects.create_superuser(
+            username="avatar_admin", email="avatar-admin@example.com",
+            password="Secure-admin-password-2026!",
+        )
+        image_buffer = BytesIO()
+        Image.new("RGB", (32, 32), "green").save(image_buffer, format="PNG")
+        upload = SimpleUploadedFile("staff.png", image_buffer.getvalue(), content_type="image/png")
+        self.client.force_login(staff, backend="django.contrib.auth.backends.ModelBackend")
+        response = self.client.post(
+            "/admin/account/",
+            {
+                "account_action": "profile",
+                "first_name": "Admin",
+                "last_name": "Photo",
+                "email": staff.email,
+                "avatar": upload,
+            },
+        )
+        self.assertRedirects(response, "/admin/account/")
+        staff.refresh_from_db()
+        self.assertTrue(staff.avatar.name.startswith("avatars/"))

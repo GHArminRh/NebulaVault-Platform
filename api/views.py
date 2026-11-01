@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 
 from accounts.models import Customer
+from accounts.two_factor import decrypt_totp_secret, verify_totp
 from billing.models import PaymentOrder
 from blog.models import BlogPost, BlogPostRating, Tag
 from catalog.models import Plan, Product, Release
@@ -65,6 +66,11 @@ class TokenCreateView(APIView):
             raise AuthenticationFailed("Invalid email or password.")
         if not customer.is_active or customer.is_banned:
             raise AuthenticationFailed("This account cannot access the API.")
+        if customer.two_factor_enabled and not verify_totp(
+            decrypt_totp_secret(customer.two_factor_secret),
+            credentials.validated_data.get("otp_token"),
+        ):
+            raise AuthenticationFailed("A valid authenticator code is required.")
 
         raw_token = secrets.token_urlsafe(48)
         token = CustomerAPIToken.objects.create(

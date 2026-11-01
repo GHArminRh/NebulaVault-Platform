@@ -6,6 +6,7 @@ from django.contrib.auth.password_validation import validate_password
 
 from .models import Customer
 from .turnstile import verify_turnstile
+from .two_factor import decrypt_totp_secret, verify_totp
 
 
 class HumanCheckMixin:
@@ -39,6 +40,8 @@ class HumanCheckMixin:
 
 
 class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
+    remember_me = forms.BooleanField(required=False, initial=True, label="مرا به خاطر بسپار")
+    otp_token = forms.CharField(required=False, max_length=12, label="کد تأیید دومرحله‌ای", widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "inputmode": "numeric", "placeholder": "کد ۶ رقمی برنامه احراز هویت"}))
     username = forms.EmailField(
         label="نشانی ایمیل",
         widget=forms.EmailInput(attrs={"autocomplete": "username", "autofocus": True}),
@@ -47,7 +50,7 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
     def clean(self):
         try:
             # Keep Django's normal authentication flow for active customers.
-            return super().clean()
+            cleaned = super().clean()
         except ValidationError:
             # Only reveal account state after password and Turnstile both pass.
             email = (self.data.get(self.add_prefix("username")) or "").strip()
@@ -59,6 +62,13 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
                 elif not customer.is_active:
                     self.inactive_email = customer.email
             raise
+        customer = self.get_user()
+        if customer.two_factor_enabled and not verify_totp(decrypt_totp_secret(customer.two_factor_secret), self.cleaned_data.get("otp_token")):
+            self.add_error("otp_token", "کد تأیید دومرحله‌ای نامعتبر است یا وارد نشده است.")
+            return self.cleaned_data
+        if self.request is not None:
+            self.request.session.set_expiry(60 * 60 * 24 * 14 if self.cleaned_data.get("remember_me") else 0)
+        return cleaned
 
 
 class RegisterForm(HumanCheckMixin, forms.ModelForm):
@@ -124,16 +134,18 @@ class AccountProfileForm(forms.ModelForm):
 
     class Meta:
         model = Customer
-        fields = ("username", "first_name", "last_name", "email")
+        fields = ("username", "first_name", "last_name", "email", "avatar")
         labels = {
             "username": "نام کاربری",
             "first_name": "نام",
             "last_name": "نام خانوادگی",
             "email": "نشانی ایمیل",
+            "avatar": "تصویر نمایه",
         }
         widgets = {
             "username": forms.TextInput(attrs={"autocomplete": "username"}),
             "email": forms.EmailInput(attrs={"autocomplete": "email"}),
+            "avatar": forms.ClearableFileInput(attrs={"accept": "image/jpeg,image/png,image/webp"}),
         }
 
     def clean_username(self):
@@ -169,3 +181,21 @@ class VerificationResendForm(forms.Form):
         label="نشانی ایمیل",
         widget=forms.EmailInput(attrs={"autocomplete": "email", "placeholder": "you@example.com"}),
     )
+
+
+from staff.models import StaffUser
+
+
+class StaffAccountProfileForm(forms.ModelForm):
+    class Meta:
+        model = StaffUser
+        fields = ("first_name", "last_name", "email", "avatar")
+        labels = {
+            "first_name": "First name",
+            "last_name": "Last name",
+            "email": "Email address",
+            "avatar": "Profile photo",
+        }
+        widgets = {
+            "avatar": forms.ClearableFileInput(attrs={"accept": "image/jpeg,image/png,image/webp"}),
+        }
