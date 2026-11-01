@@ -85,6 +85,8 @@ jobs:
       TURNSTILE_ENABLED: "False"
       DJANGO_EMAIL_BACKEND: django.core.mail.backends.locmem.EmailBackend
       MEDIA_STORAGE_BACKEND: local
+      E2E_CUSTOMER_EMAIL: e2e-customer@example.test
+      E2E_2FA_EMAIL: e2e-two-factor@example.test
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -102,6 +104,32 @@ jobs:
 
       - name: Prepare isolated browser-test database
         run: python manage.py migrate --noinput --run-syncdb --settings=config.test_settings
+
+      - name: Seed isolated browser-test customer accounts
+        run: |
+          python manage.py shell --settings=config.test_settings <<'PY'
+          import os
+          import secrets
+          from accounts.models import Customer
+
+          fixtures = [
+              ("e2e-customer@example.test", "e2e-customer", "E2E_CUSTOMER_PASSWORD", False),
+              ("e2e-two-factor@example.test", "e2e-two-factor", "E2E_2FA_PASSWORD", True),
+          ]
+          for email, username, password_variable, email_two_factor in fixtures:
+              customer, _ = Customer.objects.get_or_create(
+                  email=email,
+                  defaults={"username": username, "is_active": True},
+              )
+              customer.username = username
+              customer.is_active = True
+              customer.email_two_factor_enabled = email_two_factor
+              password = secrets.token_urlsafe(32)
+              customer.set_password(password)
+              customer.save()
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
+                  env_file.write(f"{password_variable}={password}\\n")
+          PY
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
