@@ -179,3 +179,18 @@ class VerificationResendForm(forms.Form):
         label="نشانی ایمیل",
         widget=forms.EmailInput(attrs={"autocomplete": "email", "placeholder": "you@example.com"}),
     )
+
+
+from staff.models import StaffUser
+
+
+class StaffAccountProfileForm(forms.ModelForm):
+    class Meta:
+        model = StaffUser
+        fields = ("first_name", "last_name", "email", "avatar")
+        labels = {
+            "first_name": "First name",
+            "last_name": "Last name",
+            "email": "Email address",
+            "avatar": "Profile photo",
+        }
