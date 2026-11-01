@@ -10,7 +10,7 @@
   cursor: pointer;
 }
 
-.nv-auth-form .nv-remember-row input[type="checkbox"] {
+.nv-auth-form .nv-remember-row input[type='checkbox'] {
   width: 16px;
   height: 16px;
   min-width: 16px;
