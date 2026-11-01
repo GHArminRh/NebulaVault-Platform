@@ -1,12 +1,13 @@
+from urllib.parse import urlencode, urlsplit
+
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import include, path, reverse
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
 from django.utils.http import url_has_allowed_host_and_scheme
-from urllib.parse import urlencode, urlsplit
 
 from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
