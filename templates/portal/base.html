@@ -1,4 +1,6 @@
-{% load static money %}
+{% load static money wagtailsettings_tags %}
+{% get_settings as wagtail_settings %}
+{% with chrome=wagtail_settings.sitecms.SiteChromeSettings %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
   <head>
@@ -9,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style"
           content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="نبیولا والت">
+    <meta name="apple-mobile-web-app-title" content="{{ chrome.brand_title|default:'نبیولا والت' }}">
     <link rel="manifest" href="{% static 'portal/manifest.webmanifest' %}">
     <link rel="icon"
           href="{% static 'portal/img/pwa-icon-192.svg' %}"
@@ -20,7 +22,7 @@
     <meta name="description"
           content="{% block meta_description %}پلتفرم امن نرم‌افزار نبیولا والت{% endblock %}">
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
-    <meta property="og:site_name" content="نبیولا والت">
+    <meta property="og:site_name" content="{{ chrome.brand_title|default:'نبیولا والت' }}">
     <meta property="og:title" content="{% block og_title %}نبیولا والت{% endblock %}">
     <meta property="og:description" content="{% block og_description %}پلتفرم امن نرم‌افزار نبیولا والت{% endblock %}">
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
@@ -56,18 +58,24 @@
     <div class="ambient ambient-two"></div>
     <header class="site-header">
       <a class="brand" href="{% url 'portal:home' %}">
-        <span class="brand-mark">◇</span>
-        <span>نبیولا<span class="brand-light"> والت</span>
-          <small>پلتفرم امن نرم‌افزار</small>
+        <span class="brand-mark">{{ chrome.brand_mark|default:"◇" }}</span>
+        <span>{{ chrome.brand_title|default:"نبیولا والت" }}
+          <small>{{ chrome.brand_subtitle|default:"پلتفرم امن نرم‌افزار" }}</small>
         </span>
       </a>
       <nav class="desktop-nav" aria-label="ناوبری اصلی">
-        <a href="{% url 'portal:home' %}#home">خانه</a>
-        <a href="{% url 'portal:home' %}#products">محصولات</a>
-        <a href="{% url 'portal:home' %}#features">امکانات</a>
-        <a href="{% url 'portal:home' %}#releases">نسخه‌ها</a>
-        <a href="{% url 'portal:home' %}#blog">بلاگ</a>
-        <a href="{% url 'portal:home' %}#about">پرسش‌ها</a>
+        {% if chrome.header_links %}
+          {% for nav_link in chrome.header_links %}
+            <a href="{{ nav_link.value.url }}"{% if nav_link.value.open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ nav_link.value.label }}</a>
+          {% endfor %}
+        {% else %}
+          <a href="{% url 'portal:home' %}#home">خانه</a>
+          <a href="{% url 'portal:home' %}#products">محصولات</a>
+          <a href="{% url 'portal:home' %}#features">امکانات</a>
+          <a href="{% url 'portal:home' %}#releases">نسخه‌ها</a>
+          <a href="{% url 'portal:home' %}#blog">بلاگ</a>
+          <a href="{% url 'portal:home' %}#about">پرسش‌ها</a>
+        {% endif %}
       </nav>
       <div class="header-actions">
         {% if user.is_authenticated %}
@@ -103,12 +111,18 @@
          class="mobile-nav"
          hidden
          aria-label="ناوبری موبایل">
-      <a href="{% url 'portal:home' %}#home">خانه</a>
-      <a href="{% url 'portal:home' %}#products">محصولات</a>
-      <a href="{% url 'portal:home' %}#features">امکانات</a>
-      <a href="{% url 'portal:home' %}#releases">نسخه‌ها</a>
-      <a href="{% url 'portal:home' %}#blog">بلاگ</a>
-      <a href="{% url 'portal:home' %}#about">پرسش‌ها</a>
+      {% if chrome.header_links %}
+        {% for nav_link in chrome.header_links %}
+          <a href="{{ nav_link.value.url }}"{% if nav_link.value.open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ nav_link.value.label }}</a>
+        {% endfor %}
+      {% else %}
+        <a href="{% url 'portal:home' %}#home">خانه</a>
+        <a href="{% url 'portal:home' %}#products">محصولات</a>
+        <a href="{% url 'portal:home' %}#features">امکانات</a>
+        <a href="{% url 'portal:home' %}#releases">نسخه‌ها</a>
+        <a href="{% url 'portal:home' %}#blog">بلاگ</a>
+        <a href="{% url 'portal:home' %}#about">پرسش‌ها</a>
+      {% endif %}
       {% if user.is_authenticated %}
         <a href="{% url 'portal:dashboard' %}">پیشخوان حساب</a>
         <a href="{% url 'portal:cart' %}">سبد خرید ({{ cart_count|default:0 }})</a>
@@ -143,19 +157,25 @@
             <small>پلتفرم امن نرم‌افزار</small>
           </span>
         </a>
-        <p>نرم‌افزارهایی سنجیده و امن، برای آسودگی خاطر شما.</p>
+        <p>{{ chrome.footer_description|default:"نرم‌افزارهایی سنجیده و امن، برای آسودگی خاطر شما." }}</p>
       </div>
       <div class="footer-bottom">
-        <span>© {% now "Y" %} نبیولا والت</span>
-        <button type="button"
+        <span>{% if chrome.footer_copyright %}{{ chrome.footer_copyright }}{% else %}© {% now "Y" %} {{ chrome.brand_title|default:"نبیولا والت" }}{% endif %}</span>
+        {% if chrome.show_install_button %}<button type="button"
                 id="nv-install-app"
                 class="button button-quiet button-small"
-                aria-label="نصب اپلیکیشن نبیولا والت">نصب اپلیکیشن ↥</button>
+                aria-label="نصب اپلیکیشن نبیولا والت">نصب اپلیکیشن ↥</button>{% endif %}
         <span class="footer-note">
-          <i>
-          </i> امنیت از ابتدا · پنل حساب و پرداخت</span>
-          <a href="{% url 'portal:products' %}">مشاهده محصولات ↗</a>
+          <i></i> {{ chrome.footer_note|default:"امنیت از ابتدا · پنل حساب و پرداخت" }}</span>
+          {% if chrome.footer_links %}
+            {% for footer_link in chrome.footer_links %}
+              <a href="{{ footer_link.value.url }}"{% if footer_link.value.open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ footer_link.value.label }} ↗</a>
+            {% endfor %}
+          {% else %}
+            <a href="{% url 'portal:products' %}">مشاهده محصولات ↗</a>
+          {% endif %}
         </div>
       </footer>
     </body>
   </html>
+{% endwith %}
