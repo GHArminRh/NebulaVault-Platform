@@ -599,33 +599,28 @@ class AccountBackendTests(TestCase):
 
     def test_customer_can_use_email_as_second_factor_at_login(self):
         import re
+        from accounts.models import TwoFactorEmailChallenge
 
         self.user.email_two_factor_enabled = True
         self.user.save(update_fields=["email_two_factor_enabled"])
+        stage = self.client.post(
+            reverse("login"),
+            {"username": self.user.email, "password": "Secure-test-password-2026!", "human_check": "on"},
+        )
+        self.assertEqual(stage.status_code, 200)
         sent = self.client.post(
             reverse("login"),
-            {
-                "username": self.user.email,
-                "password": "Secure-test-password-2026!",
-                "send_email_code": "1",
-                "human_check": "on",
-            },
+            {"two_factor_method": "email", "send_email_code": "1"},
         )
         self.assertEqual(sent.status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
         code = re.search(r"کد تأیید شما: (\d{6})", mail.outbox[0].body).group(1)
-        from accounts.models import TwoFactorEmailChallenge
         email_challenge = TwoFactorEmailChallenge.objects.get(
             user_type=self.user._meta.label_lower, user_id=str(self.user.pk), purpose="login"
         )
         response = self.client.post(
             reverse("login"),
-            {
-                "username": self.user.email,
-                "password": "Secure-test-password-2026!",
-                "email_otp_token": code,
-                "human_check": "on",
-            },
+            {"two_factor_method": "email", "email_otp_token": code},
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(str(self.client.session["_auth_user_id"]), str(self.user.pk))
@@ -639,14 +634,18 @@ class AccountBackendTests(TestCase):
         self.user.two_factor_secret = encrypt_totp_secret("JBSWY3DPEHPK3PXP")
         self.user.save(update_fields=["two_factor_enabled", "two_factor_secret"])
         recovery_codes = store_recovery_codes(self.user)
-        response = self.client.post(
+        stage = self.client.post(
             reverse("login"),
             {
                 "username": self.user.email,
                 "password": "Secure-test-password-2026!",
-                "recovery_code": recovery_codes[0],
                 "human_check": "on",
             },
+        )
+        self.assertEqual(stage.status_code, 200)
+        response = self.client.post(
+            reverse("login"),
+            {"two_factor_method": "recovery", "recovery_code": recovery_codes[0]},
         )
         self.assertEqual(response.status_code, 302)
         self.user.refresh_from_db()
@@ -699,26 +698,21 @@ class AccountBackendTests(TestCase):
         )
         staff.email_two_factor_enabled = True
         staff.save(update_fields=["email_two_factor_enabled"])
+        stage = self.client.post(
+            "/admin/login/",
+            {"username": staff.username, "password": "Secure-admin-password-2026!", "next": "/admin/"},
+        )
+        self.assertEqual(stage.status_code, 200)
         sent = self.client.post(
             "/admin/login/",
-            {
-                "username": staff.username,
-                "password": "Secure-admin-password-2026!",
-                "send_email_code": "1",
-                "next": "/admin/",
-            },
+            {"two_factor_method": "email", "send_email_code": "1", "next": "/admin/"},
         )
         self.assertEqual(sent.status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
         code = re.search(r"کد تأیید شما: (\d{6})", mail.outbox[0].body).group(1)
         response = self.client.post(
             "/admin/login/",
-            {
-                "username": staff.username,
-                "password": "Secure-admin-password-2026!",
-                "email_otp_token": code,
-                "next": "/admin/",
-            },
+            {"two_factor_method": "email", "email_otp_token": code, "next": "/admin/"},
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(str(self.client.session["_auth_user_id"]), str(staff.pk))
