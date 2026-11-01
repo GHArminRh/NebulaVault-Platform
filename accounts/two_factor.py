@@ -116,3 +116,66 @@ def verify_email_challenge(user, token, purpose="login"):
     challenge.failed_attempts += 1
     challenge.save(update_fields=["failed_attempts"])
     return False
+
+
+
+def send_email_code(request, user, purpose="login"):
+    """Send a rate-limited, short-lived 2FA email challenge."""
+    import hashlib
+    import logging
+    from datetime import timedelta
+
+    from django.conf import settings
+    from django.core.cache import cache
+    from django.core.mail import send_mail
+    from django.utils import timezone
+
+    from .models import TwoFactorEmailChallenge
+
+    logger = logging.getLogger(__name__)
+    recipient = (getattr(user, "email", "") or "").strip()
+    if not recipient:
+        return False
+
+    identity = f"{user._meta.label_lower}:{user.pk}:{purpose}"
+    throttle_key = "two-factor-email:" + hashlib.sha256(identity.encode("utf-8")).hexdigest()
+    if not cache.add(throttle_key, 1, timeout=60):
+        return False
+
+    now = timezone.now()
+    TwoFactorEmailChallenge.objects.filter(
+        user_type=user._meta.label_lower,
+        user_id=str(user.pk),
+        purpose=purpose,
+        consumed_at__isnull=True,
+    ).update(consumed_at=now)
+
+    code = f"{secrets.randbelow(1_000_000):06d}"
+    digest = salted_hmac("accounts.two_factor_email_code", code, algorithm="sha256").hexdigest()
+    challenge = TwoFactorEmailChallenge.objects.create(
+        user_type=user._meta.label_lower,
+        user_id=str(user.pk),
+        recipient=recipient,
+        purpose=purpose,
+        code_hash=digest,
+        expires_at=now + timedelta(minutes=10),
+    )
+    try:
+        send_mail(
+            subject="کد تأیید دومرحله‌ای نبیولا والت",
+            message=(
+                f"کد تأیید شما: {code}\n\n"
+                "این کد تا ۱۰ دقیقه معتبر است و فقط یک بار قابل استفاده است. "
+                "اگر شما درخواست نداده‌اید، این پیام را نادیده بگیرید."
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[recipient],
+            fail_silently=False,
+        )
+    except Exception:
+        logger.exception("Could not send two-factor email code to account %s", user.pk)
+        challenge.consumed_at = timezone.now()
+        challenge.save(update_fields=["consumed_at"])
+        cache.delete(throttle_key)
+        raise
+    return True
