@@ -21,50 +21,44 @@
               class="form-stack nv-auth-form">
           {% csrf_token %}
           <input type="hidden" name="next" value="{{ next|default:'' }}">
-          <label for="nv-login-email">نشانی ایمیل</label><input id="nv-login-email"
-       name="username"
-       type="email"
-       autocomplete="username"
-       required
-       placeholder="ایمیل خود را وارد کنید"
-       value="{% if auth_side == 'login' %}{{ form.username.value|default:'' }}{% endif %}">
-          <label for="nv-login-password">رمز عبور</label>
-          <div class="password-wrap">
-            <input id="nv-login-password"
-                   name="password"
-                   type="password"
-                   autocomplete="current-password"
-                   required
-                   placeholder="رمز عبور خود را وارد کنید"><button class="password-toggle" type="button">نمایش</button>
-          </div>
-          <label for="nv-login-otp">کد تأیید دومرحله‌ای <span class="auth-optional">(در صورت فعال‌سازی)</span></label>
-          <input id="nv-login-otp"
-                 name="otp_token"
-                 type="text"
-                 inputmode="numeric"
-                 autocomplete="one-time-code"
-                 maxlength="12"
-                 placeholder="کد برنامه احراز هویت">
-          {% if auth_side == "login" and form.otp_token.errors %}<small class="field-error">{{ form.otp_token.errors|join:', ' }}</small>{% endif %}
-          <label for="nv-login-email-code">کد ارسال‌شده به ایمیل <span class="auth-optional">(در صورت فعال‌بودن)</span></label>
-          <input id="nv-login-email-code"
-                 name="email_otp_token"
-                 type="text"
-                 inputmode="numeric"
-                 autocomplete="one-time-code"
-                 maxlength="6"
-                 placeholder="کد ۶ رقمی ایمیل">
-          <label for="nv-login-recovery">کد بازیابی <span class="auth-optional">(در صورت نداشتن دسترسی به روش‌های دیگر)</span></label>
-          <input id="nv-login-recovery"
-                 name="recovery_code"
-                 type="text"
-                 autocomplete="off"
-                 maxlength="16"
-                 placeholder="XXXX-XXXX-XXXX">
-          <button class="button button-secondary button-full"
-                  type="submit"
-                  name="send_email_code"
-                  value="1">ارسال کد تأیید به ایمیل</button>
+          {% if form.two_factor_required %}
+            <input type="hidden" name="two_factor_challenge" value="1">
+            <p class="nv-auth-subtitle">رمز عبور تأیید شد. برای تکمیل ورود، روش تأیید را انتخاب کنید.</p>
+            {% if form.two_factor_methods|length > 1 %}
+              <label for="nv-two-factor-method">روش تأیید</label>
+              <select id="nv-two-factor-method" name="two_factor_method" required>
+                <option value="">انتخاب روش تأیید</option>
+                {% for method, label in form.two_factor_methods %}<option value="{{ method }}"{% if form.two_factor_method.value == method %} selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            {% else %}
+              {% for method, label in form.two_factor_methods %}<input type="hidden" name="two_factor_method" value="{{ method }}"><p>{{ label }}</p>{% endfor %}
+            {% endif %}
+            {% for method, label in form.two_factor_methods %}
+              {% if method == "authenticator" %}
+                <div class="nv-two-factor-input" data-factor="authenticator" hidden>
+                  <label for="nv-login-otp">کد برنامه احراز هویت</label>
+                  <input id="nv-login-otp" name="otp_token" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد شش‌رقمی">
+                </div>
+              {% elif method == "email" %}
+                <div class="nv-two-factor-input" data-factor="email" hidden>
+                  <label for="nv-login-email-code">کد ارسال‌شده به ایمیل</label>
+                  <input id="nv-login-email-code" name="email_otp_token" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد شش‌رقمی ایمیل">
+                </div>
+              {% elif method == "recovery" %}
+                <div class="nv-two-factor-input" data-factor="recovery" hidden>
+                  <label for="nv-login-recovery">کد بازیابی</label>
+                  <input id="nv-login-recovery" name="recovery_code" type="text" autocomplete="off" maxlength="16" placeholder="XXXX-XXXX-XXXX">
+                </div>
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            <label for="nv-login-email">نشانی ایمیل</label><input id="nv-login-email" name="username" type="email" autocomplete="username" required placeholder="ایمیل خود را وارد کنید" value="{% if auth_side == 'login' %}{{ form.username.value|default:'' }}{% endif %}">
+            <label for="nv-login-password">رمز عبور</label>
+            <div class="password-wrap">
+              <input id="nv-login-password" name="password" type="password" autocomplete="current-password" required placeholder="رمز عبور خود را وارد کنید"><button class="password-toggle" type="button">نمایش</button>
+            </div>
+          {% endif %}
+          {% if not form.two_factor_required %}
           <label class="nv-remember-row" for="nv-login-remember">
             <input id="nv-login-remember"
                    name="remember_me"
@@ -73,13 +67,23 @@
                    {% if not form.is_bound or form.remember_me.value %}checked{% endif %}>
             <span>مرا به خاطر بسپار</span>
           </label>
+          {% endif %}
+          {% if not form.two_factor_required %}
           <div class="turnstile-shell" role="group" aria-label="تأیید امنیتی">
             <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
             <div class="nv-turnstile-widget"
                  data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}"></div>
           </div>
+          {% endif %}
           <button class="button button-primary button-full button-large auth-submit"
                   type="submit">ورود به حساب <span>↗</span></button>
+          {% for method, label in form.two_factor_methods %}
+            {% if method == "email" %}
+              <div class="nv-two-factor-input" data-factor="email" hidden>
+                <button class="button button-secondary button-full" type="submit" name="send_email_code" value="1">ارسال کد به ایمیل</button>
+              </div>
+            {% endif %}
+          {% endfor %}
         </form>
         <p class="nv-auth-small-link"><a href="{% url 'accounts:password_reset' %}">رمز عبور را فراموش کرده‌اید؟</a></p>
         <div class="nv-auth-flip-prompt"><span>هنوز حساب ندارید؟</span><button type="button" data-auth-flip="register">ساخت حساب <span>↶</span></button><a class="nv-auth-nojs-link" href="{% url 'accounts:register' %}">ساخت حساب</a></div>
@@ -127,6 +131,21 @@
     <p class="nv-auth-security-note"><span>⌑</span> اطلاعات حساب شما از طریق اتصال امن ارسال می‌شود.</p>
   </div>
 </section>
+<style>
+  .nv-button-spinner {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-inline-start: .55em;
+    vertical-align: -.15em;
+    border: 2px solid currentColor;
+    border-inline-end-color: transparent;
+    border-radius: 50%;
+    animation: nv-button-spin .7s linear infinite;
+  }
+  .is-loading { opacity: .78; cursor: wait !important; }
+  @keyframes nv-button-spin { to { transform: rotate(360deg); } }
+</style>
 <script src="{% static 'portal/js/auth-turnstile.js' %}" defer></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=nvTurnstileReady&amp;render=explicit"
         defer></script>

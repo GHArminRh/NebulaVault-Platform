@@ -406,7 +406,7 @@ class AccountBackendTests(TestCase):
         from accounts.two_factor import decrypt_totp_secret
         self.assertEqual(decrypt_totp_secret(self.user.two_factor_secret), secret)
 
-    def test_customer_two_factor_is_required_during_login(self):
+    def test_customer_two_factor_is_requested_only_after_primary_login(self):
         import pyotp
 
         secret = pyotp.random_base32()
@@ -415,11 +415,20 @@ class AccountBackendTests(TestCase):
         self.user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
         response = self.client.post(
             reverse("login"),
-            {"username": self.user.email, "password": "Secure-test-password-2026!", "otp_token": "000000", "human_check": "on"},
+            {"username": self.user.email, "password": "Secure-test-password-2026!", "human_check": "on"},
         )
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("_auth_user_id", self.client.session)
-        self.assertContains(response, "کد تأیید یا کد بازیابی نامعتبر است")
+        self.assertContains(response, "رمز عبور تأیید شد")
+        self.assertContains(response, "کد برنامه احراز هویت")
+        self.assertNotContains(response, "کد ارسال‌شده به ایمیل")
+        response = self.client.post(
+            reverse("login"),
+            {"two_factor_method": "authenticator", "otp_token": "000000"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertContains(response, "روش انتخاب‌شده یا کد تأیید معتبر نیست")
 
     def test_customer_two_factor_valid_code_allows_login_and_remember_me(self):
         import pyotp
@@ -430,11 +439,42 @@ class AccountBackendTests(TestCase):
         self.user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
         response = self.client.post(
             reverse("login"),
-            {"username": self.user.email, "password": "Secure-test-password-2026!", "otp_token": pyotp.TOTP(secret).now(), "remember_me": "on", "human_check": "on"},
+            {"username": self.user.email, "password": "Secure-test-password-2026!", "remember_me": "on", "human_check": "on"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+        response = self.client.post(
+            reverse("login"),
+            {"two_factor_method": "authenticator", "otp_token": pyotp.TOTP(secret).now()},
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(str(self.client.session["_auth_user_id"]), str(self.user.pk))
         self.assertGreater(self.client.session.get_expiry_age(), 60 * 60 * 24 * 13)
+
+
+    def test_customer_email_two_factor_is_sent_and_verified_after_password(self):
+        self.user.email_two_factor_enabled = True
+        self.user.save(update_fields=["email_two_factor_enabled"])
+        response = self.client.post(
+            reverse("login"),
+            {"username": self.user.email, "password": "Secure-test-password-2026!", "human_check": "on"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "کد ارسال‌شده به ایمیل")
+        self.assertNotContains(response, "کد برنامه احراز هویت")
+        response = self.client.post(
+            reverse("login"),
+            {"two_factor_method": "email", "send_email_code": "1"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        code = mail.outbox[0].body.split("کد تأیید شما: ", 1)[1][:6]
+        response = self.client.post(
+            reverse("login"),
+            {"two_factor_method": "email", "email_otp_token": code},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(str(self.client.session["_auth_user_id"]), str(self.user.pk))
 
     def test_customer_profile_accepts_valid_avatar_upload(self):
         from io import BytesIO
@@ -453,7 +493,7 @@ class AccountBackendTests(TestCase):
         self.user.refresh_from_db()
         self.assertTrue(self.user.avatar.name.startswith("avatars/"))
 
-    def test_staff_two_factor_is_required_for_admin_login(self):
+    def test_staff_two_factor_is_requested_after_primary_admin_login(self):
         import pyotp
         from django.contrib.auth import get_user_model
 
@@ -467,7 +507,14 @@ class AccountBackendTests(TestCase):
         staff.save(update_fields=["two_factor_secret", "two_factor_enabled"])
         response = self.client.post(
             "/admin/login/",
-            {"username": staff.username, "password": "Secure-admin-password-2026!", "otp_token": pyotp.TOTP(secret).now(), "remember_me": "on", "next": "/admin/"},
+            {"username": staff.username, "password": "Secure-admin-password-2026!", "remember_me": "on", "next": "/admin/"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertContains(response, "Password accepted")
+        response = self.client.post(
+            "/admin/login/",
+            {"two_factor_method": "authenticator", "otp_token": pyotp.TOTP(secret).now(), "next": "/admin/"},
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(str(self.client.session["_auth_user_id"]), str(staff.pk))
@@ -552,33 +599,28 @@ class AccountBackendTests(TestCase):
 
     def test_customer_can_use_email_as_second_factor_at_login(self):
         import re
+        from accounts.models import TwoFactorEmailChallenge
 
         self.user.email_two_factor_enabled = True
         self.user.save(update_fields=["email_two_factor_enabled"])
+        stage = self.client.post(
+            reverse("login"),
+            {"username": self.user.email, "password": "Secure-test-password-2026!", "human_check": "on"},
+        )
+        self.assertEqual(stage.status_code, 200)
         sent = self.client.post(
             reverse("login"),
-            {
-                "username": self.user.email,
-                "password": "Secure-test-password-2026!",
-                "send_email_code": "1",
-                "human_check": "on",
-            },
+            {"two_factor_method": "email", "send_email_code": "1"},
         )
         self.assertEqual(sent.status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
         code = re.search(r"کد تأیید شما: (\d{6})", mail.outbox[0].body).group(1)
-        from accounts.models import TwoFactorEmailChallenge
         email_challenge = TwoFactorEmailChallenge.objects.get(
             user_type=self.user._meta.label_lower, user_id=str(self.user.pk), purpose="login"
         )
         response = self.client.post(
             reverse("login"),
-            {
-                "username": self.user.email,
-                "password": "Secure-test-password-2026!",
-                "email_otp_token": code,
-                "human_check": "on",
-            },
+            {"two_factor_method": "email", "email_otp_token": code},
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(str(self.client.session["_auth_user_id"]), str(self.user.pk))
@@ -592,14 +634,18 @@ class AccountBackendTests(TestCase):
         self.user.two_factor_secret = encrypt_totp_secret("JBSWY3DPEHPK3PXP")
         self.user.save(update_fields=["two_factor_enabled", "two_factor_secret"])
         recovery_codes = store_recovery_codes(self.user)
-        response = self.client.post(
+        stage = self.client.post(
             reverse("login"),
             {
                 "username": self.user.email,
                 "password": "Secure-test-password-2026!",
-                "recovery_code": recovery_codes[0],
                 "human_check": "on",
             },
+        )
+        self.assertEqual(stage.status_code, 200)
+        response = self.client.post(
+            reverse("login"),
+            {"two_factor_method": "recovery", "recovery_code": recovery_codes[0]},
         )
         self.assertEqual(response.status_code, 302)
         self.user.refresh_from_db()
@@ -652,26 +698,21 @@ class AccountBackendTests(TestCase):
         )
         staff.email_two_factor_enabled = True
         staff.save(update_fields=["email_two_factor_enabled"])
+        stage = self.client.post(
+            "/admin/login/",
+            {"username": staff.username, "password": "Secure-admin-password-2026!", "next": "/admin/"},
+        )
+        self.assertEqual(stage.status_code, 200)
         sent = self.client.post(
             "/admin/login/",
-            {
-                "username": staff.username,
-                "password": "Secure-admin-password-2026!",
-                "send_email_code": "1",
-                "next": "/admin/",
-            },
+            {"two_factor_method": "email", "send_email_code": "1", "next": "/admin/"},
         )
         self.assertEqual(sent.status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
         code = re.search(r"کد تأیید شما: (\d{6})", mail.outbox[0].body).group(1)
         response = self.client.post(
             "/admin/login/",
-            {
-                "username": staff.username,
-                "password": "Secure-admin-password-2026!",
-                "email_otp_token": code,
-                "next": "/admin/",
-            },
+            {"two_factor_method": "email", "email_otp_token": code, "next": "/admin/"},
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(str(self.client.session["_auth_user_id"]), str(staff.pk))

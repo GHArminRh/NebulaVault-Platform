@@ -9,6 +9,47 @@
     <link rel="stylesheet" href="{% static 'portal/css/admin-motion.css' %}">
     <script src="{% static 'portal/js/admin-motion.js' %}" defer></script>
   {% endif %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll("form[method='post'], form[method='POST']").forEach(function (form) {
+        form.addEventListener("submit", function (event) {
+          if (form.dataset.submitting === "true") {
+            event.preventDefault();
+            return;
+          }
+          form.dataset.submitting = "true";
+          form.setAttribute("aria-busy", "true");
+          var submitter = event.submitter || form.querySelector("button[type='submit'], input[type='submit']");
+          if (!submitter) return;
+          if (submitter.name && submitter.value) {
+            var hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.name = submitter.name;
+            hidden.value = submitter.value;
+            form.append(hidden);
+          }
+          submitter.classList.add("is-loading");
+          submitter.setAttribute("aria-disabled", "true");
+          submitter.disabled = true;
+          if (submitter.tagName === "BUTTON") {
+            var spinner = document.createElement("span");
+            spinner.className = "nv-button-spinner";
+            spinner.setAttribute("aria-hidden", "true");
+            submitter.append(spinner);
+          } else {
+            submitter.value = "Processing…";
+            var spinner = document.createElement("span");
+            spinner.className = "nv-button-spinner";
+            spinner.setAttribute("aria-hidden", "true");
+            submitter.insertAdjacentElement("afterend", spinner);
+          }
+          form.querySelectorAll("button[type='submit'], input[type='submit']").forEach(function (control) {
+            if (control !== submitter) control.disabled = true;
+          });
+        });
+      });
+    });
+  </script>
 {% endblock %}
 
 {% block branding %}
@@ -21,6 +62,22 @@
 {% block extrastyle %}
   {{ block.super }}
   <style>
+
+/* Shared loading state for native POST form submissions. */
+.nv-button-spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-inline-start: .55em;
+  vertical-align: -.15em;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: nv-button-spin .7s linear infinite;
+}
+.is-loading { opacity: .78; cursor: wait !important; }
+@keyframes nv-button-spin { to { transform: rotate(360deg); } }
+
     /*
      * Login-only visual language follows the public Nebula Vault site:
      * midnight navy, electric blue, violet and cyan. Authenticated admin

@@ -620,12 +620,24 @@ class CustomerLoginView(LoginView):
             )
         return super().post(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context.get("form")
+        if form is not None:
+            context["two_factor_required"] = bool(getattr(form, "two_factor_required", False))
+        return context
+
     def form_valid(self, form):
         # A successful login clears the counter for this IP/account pair.
         cache.delete(self._login_attempt_key())
         return super().form_valid(form)
 
     def form_invalid(self, form):
+        # A staged second-factor POST is not a failed password attempt. Keep the
+        # pending challenge alive and render only its selected verification UI.
+        if getattr(form, "two_factor_required", False):
+            return super().form_invalid(form)
+
         # Resolve the account state here as well as in the form. This keeps the
         # verification route reliable when AuthenticationForm rejects an inactive
         # customer before Django assigns form.get_user().

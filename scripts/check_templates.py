@@ -22,6 +22,9 @@ TEMPLATE_ROOTS = (
 MANUALLY_FORMATTED_TEMPLATES = {
     "templates/portal/base.html",
     "templates/portal/_cart_nav.html",
+    # The staged login template combines several Django control-flow branches;
+    # keep its intentional structure and validate it with the independent source audit.
+    "templates/portal/_auth_flip_card.html",
     "blog/templates/blog/post_list.html",
     "blog/templates/blog/post_detail.html",
     "blog/templates/blog/post_preview.html",
