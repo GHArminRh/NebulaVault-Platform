@@ -196,3 +196,27 @@ class CustomerApiAuthenticationTests(APITestCase):
         self.create_token()
         token = CustomerAPIToken.objects.get(customer=self.customer)
         self.assertGreater(token.expires_at, timezone.now() + timedelta(days=29))
+
+
+    def test_two_factor_is_required_to_issue_api_tokens(self):
+        import pyotp
+        from accounts.two_factor import encrypt_totp_secret
+
+        secret = pyotp.random_base32()
+        self.customer.two_factor_secret = encrypt_totp_secret(secret)
+        self.customer.two_factor_enabled = True
+        self.customer.save(update_fields=("two_factor_secret", "two_factor_enabled"))
+
+        denied = self.client.post(
+            "/api/v1/auth/token/",
+            {"email": self.customer.email, "password": "Strong-password-123!"},
+            format="json",
+        )
+        self.assertEqual(denied.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        accepted = self.client.post(
+            "/api/v1/auth/token/",
+            {"email": self.customer.email, "password": "Strong-password-123!", "otp_token": pyotp.TOTP(secret).now()},
+            format="json",
+        )
+        self.assertEqual(accepted.status_code, status.HTTP_201_CREATED)
