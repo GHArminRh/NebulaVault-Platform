@@ -23,8 +23,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 from .forms import AccountPasswordChangeForm, AccountPasswordResetForm, AccountProfileForm, AccountSetPasswordForm, RegisterForm, StaffAccountProfileForm, VerificationResendForm
-from .models import AccountEmailLog, Customer
-from .two_factor import decrypt_totp_secret, encrypt_totp_secret, new_totp_secret, provisioning_uri, qr_data_uri, verify_totp
+from .models import AccountEmailLog, Customer, TwoFactorEmailChallenge
+from .two_factor import consume_recovery_code, decrypt_totp_secret, encrypt_totp_secret, new_totp_secret, provisioning_uri, qr_data_uri, send_email_code, store_recovery_codes, verify_email_challenge, verify_totp
 
 logger = logging.getLogger(__name__)
 
@@ -408,40 +408,113 @@ def _two_factor_session_key(user):
     return f"nv_totp_enrollment:{user._meta.label_lower}:{user.pk}"
 
 
+def _has_two_factor(user):
+    return bool(user.two_factor_enabled or user.email_two_factor_enabled)
+
+
+def _verify_user_second_factor(user, data, purpose="setup"):
+    valid = False
+    if user.two_factor_enabled and verify_totp(
+        decrypt_totp_secret(user.two_factor_secret), data.get("otp_token")
+    ):
+        valid = True
+    if not valid and user.email_two_factor_enabled and verify_email_challenge(
+        user, data.get("email_otp_token"), purpose=purpose
+    ):
+        valid = True
+    if not valid and consume_recovery_code(user, data.get("recovery_code")):
+        valid = True
+    return valid
+
+
+def _revoke_customer_api_tokens(user):
+    if isinstance(user, Customer):
+        from api.models import CustomerAPIToken
+        CustomerAPIToken.objects.filter(
+            customer=user, revoked_at__isnull=True
+        ).update(revoked_at=timezone.now())
+
+
 def _process_two_factor_post(request, user):
     action = request.POST.get("security_action")
+    password = request.POST.get("current_password", "")
+    if action == "request_email_setup_code":
+        if not user.check_password(password):
+            messages.error(request, "رمز عبور فعلی نادرست است.")
+            return
+        try:
+            sent = send_email_code(request, user, purpose="setup")
+        except Exception:
+            messages.error(request, "ارسال کد ایمیل ممکن نشد. لطفاً بعداً دوباره تلاش کنید.")
+            return
+        if sent:
+            messages.success(request, "کد تأیید به ایمیل حساب شما ارسال شد و ۱۰ دقیقه اعتبار دارد.")
+        else:
+            messages.warning(request, "برای ارسال کد جدید، حداقل ۶۰ ثانیه صبر کنید.")
+        return
+
     if action == "enable_two_factor":
         secret = request.session.get(_two_factor_session_key(user), "")
-        if user.check_password(request.POST.get("current_password", "")) and secret and verify_totp(secret, request.POST.get("otp_token")):
+        if user.check_password(password) and secret and verify_totp(secret, request.POST.get("otp_token")):
             user.two_factor_secret = encrypt_totp_secret(secret)
             user.two_factor_enabled = True
             user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
-            if isinstance(user, Customer):
-                # Existing API tokens were issued before the account required a second factor.
-                from api.models import CustomerAPIToken
-                CustomerAPIToken.objects.filter(customer=user, revoked_at__isnull=True).update(
-                    revoked_at=timezone.now()
-                )
+            _revoke_customer_api_tokens(user)
+            if not user.recovery_codes:
+                request.session["nv_new_recovery_codes"] = store_recovery_codes(user)
             request.session.pop(_two_factor_session_key(user), None)
-            messages.success(request, "تأیید دومرحله‌ای با موفقیت فعال شد.")
+            messages.success(request, "تأیید با برنامه احراز هویت فعال شد.")
         else:
             messages.error(request, "رمز عبور یا کد برنامه احراز هویت معتبر نیست؛ دوباره تلاش کنید.")
-    elif action == "disable_two_factor":
-        password = request.POST.get("current_password", "")
-        if user.check_password(password) and verify_totp(decrypt_totp_secret(user.two_factor_secret), request.POST.get("otp_token")):
+    elif action == "enable_email_two_factor":
+        if (
+            user.check_password(password)
+            and verify_email_challenge(user, request.POST.get("email_otp_token"), purpose="setup")
+        ):
+            user.email_two_factor_enabled = True
+            user.save(update_fields=["email_two_factor_enabled"])
+            _revoke_customer_api_tokens(user)
+            if not user.recovery_codes:
+                request.session["nv_new_recovery_codes"] = store_recovery_codes(user)
+            messages.success(request, "تأیید دومرحله‌ای ایمیلی فعال شد.")
+        else:
+            messages.error(request, "رمز عبور یا کد ایمیل معتبر نیست، منقضی شده یا قبلاً استفاده شده است.")
+    elif action in {"disable_two_factor", "disable_email_two_factor"}:
+        if not user.check_password(password) or not _verify_user_second_factor(user, request.POST, purpose="setup"):
+            messages.error(request, "رمز عبور یا کد تأیید معتبر نیست؛ تنظیمات امنیتی تغییری نکرد.")
+            return
+        if action == "disable_two_factor":
             user.two_factor_enabled = False
             user.two_factor_secret = ""
-            user.save(update_fields=["two_factor_enabled", "two_factor_secret"])
-            request.session.pop(_two_factor_session_key(user), None)
-            messages.success(request, "تأیید دومرحله‌ای غیرفعال شد.")
+            fields = ["two_factor_enabled", "two_factor_secret"]
+            message = "تأیید با برنامه احراز هویت غیرفعال شد."
         else:
-            messages.error(request, "رمز عبور یا کد تأیید نادرست است؛ تنظیمات امنیتی تغییری نکرد.")
+            user.email_two_factor_enabled = False
+            fields = ["email_two_factor_enabled"]
+            message = "تأیید دومرحله‌ای ایمیلی غیرفعال شد."
+        if not _has_two_factor(user):
+            user.recovery_codes = []
+            fields.append("recovery_codes")
+        user.save(update_fields=fields)
+        messages.success(request, message)
+    elif action == "regenerate_recovery_codes":
+        if user.check_password(password) and _has_two_factor(user) and _verify_user_second_factor(user, request.POST, purpose="setup"):
+            request.session["nv_new_recovery_codes"] = store_recovery_codes(user)
+            messages.success(request, "کدهای بازیابی جدید ساخته شدند؛ کدهای قبلی دیگر معتبر نیستند.")
+        else:
+            messages.error(request, "برای ساخت کدهای جدید، رمز عبور و یک روش تأیید معتبر لازم است.")
     else:
         messages.error(request, "درخواست نامعتبر است.")
 
 
 def _two_factor_context(request, user):
-    context = {"two_factor_enabled": user.two_factor_enabled}
+    context = {
+        "two_factor_enabled": user.two_factor_enabled,
+        "email_two_factor_enabled": user.email_two_factor_enabled,
+        "two_factor_active": _has_two_factor(user),
+        "recovery_codes_remaining": len(user.recovery_codes or []),
+        "new_recovery_codes": request.session.pop("nv_new_recovery_codes", []),
+    }
     if not user.two_factor_enabled:
         key = _two_factor_session_key(user)
         secret = request.session.get(key)
@@ -455,7 +528,6 @@ def _two_factor_context(request, user):
             "two_factor_uri": uri,
         })
     return context
-
 
 @login_required
 @require_http_methods(["GET", "POST"])
