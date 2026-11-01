@@ -23,7 +23,7 @@ def media_proxy_signature(name):
 
 
 def _valid_storage_name(name):
-    if not name or name.startswith("/") or "\\" in name or "\0" in name:
+    if not name or name.startswith("/") or "\\\\" in name or "\\0" in name:
         return False
     if posixpath.normpath(name) != name:
         return False
@@ -49,6 +49,9 @@ def private_media_proxy(request, path):
             raise Http404 from exc
         logger.exception("Object storage rejected a media read")
         return HttpResponse("Media storage temporarily unavailable", status=503)
+    except FileNotFoundError as exc:
+        # A missing local file is a missing resource, not a storage outage.
+        raise Http404 from exc
     except (BotoCoreError, OSError, ValueError):
         logger.exception("Unable to stream media from object storage")
         return HttpResponse("Media storage temporarily unavailable", status=503)
