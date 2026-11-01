@@ -69,40 +69,31 @@ test('homepage declares Persian RTL document metadata', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('lang', 'fa');
 });
 
-test('registration form is visible on iPhone-sized screens', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto('/accounts/register/', { waitUntil: 'domcontentloaded' });
+test('registration form is visible and usable on narrow mobile screens', async ({ page }) => {
+  for (const width of [320, 375, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto('/accounts/register/', { waitUntil: 'domcontentloaded' });
 
-  const shell = page.locator('.nv-auth-shell');
-  const card = page.locator('[data-auth-card]');
-  const registrationFace = page.locator('.nv-auth-register');
-  const registrationForm = registrationFace.locator('form');
+    const registerFace = page.locator('.nv-auth-register');
+    await expect(registerFace).toBeVisible();
+    await expect(registerFace.locator('input[name="email"]')).toBeVisible();
+    await expect(registerFace.locator('input[name="password1"]')).toBeVisible();
+    await expect(registerFace.locator('input[name="password2"]')).toBeVisible();
+    await expect(registerFace.locator('button[type="submit"]')).toBeVisible();
 
-  await expect(shell).toHaveAttribute('data-auth-side', 'register');
-  await expect(registrationFace).toBeVisible();
-  await expect(registrationForm).toBeVisible();
-  await expect(registrationForm.locator('input[name="email"]')).toBeVisible();
-  await expect(registrationForm.locator('input[name="password1"]')).toBeVisible();
-  await expect(registrationForm.locator('input[name="password2"]')).toBeVisible();
-
-  const layout = await page.evaluate(() => {
-    const shellElement = document.querySelector('.nv-auth-shell');
-    const cardElement = document.querySelector('[data-auth-card]');
-    const faceElement = document.querySelector('.nv-auth-register');
-    return {
-      columns: getComputedStyle(shellElement).gridTemplateColumns,
-      cardDisplay: getComputedStyle(cardElement).display,
-      cardTransform: getComputedStyle(cardElement).transform,
-      facePosition: getComputedStyle(faceElement).position,
-      faceDisplay: getComputedStyle(faceElement).display,
-    };
-  });
-
-  expect(layout.cardDisplay).toBe('block');
-  expect(layout.cardTransform).toBe('none');
-  expect(layout.facePosition).toBe('relative');
-  expect(layout.faceDisplay).toBe('block');
-  expect(layout.columns.trim().split(/\s+/)).toHaveLength(1);
+    const layout = await registerFace.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        width: rect.width,
+        height: rect.height,
+        right: rect.right,
+        viewport: window.innerWidth,
+      };
+    });
+    expect(layout.width).toBeGreaterThan(0);
+    expect(layout.height).toBeGreaterThan(0);
+    expect(layout.right).toBeLessThanOrEqual(layout.viewport + 1);
+  }
 });
 
 test('mobile navigation opens as a fixed menu and closes cleanly', async ({ page }) => {
