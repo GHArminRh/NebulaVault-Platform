@@ -102,7 +102,7 @@ test('registration form is visible and laid out normally on iPhone-sized screens
   expect(layout.cardTransform).toBe('none');
   expect(layout.facePosition).toBe('relative');
   expect(layout.faceDisplay).toBe('block');
-  expect(layout.columns.trim().split(/\\s+/)).toHaveLength(1);
+  expect(layout.columns.trim().split(/\s+/)).toHaveLength(1);
 });
 
 test('mobile navigation opens as a fixed menu and closes cleanly', async ({ page }) => {
