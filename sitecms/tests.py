@@ -19,7 +19,7 @@ from wagtail.models import (
 )
 
 from .forms import CMSUserCreationForm, CMSUserEditForm
-from .models import HomePage
+from .models import ContentPage, HomePage
 from .viewsets import CMSUserFilterSet
 from .permissions import (
     StaffCollectionManagementPermissionPolicy,
@@ -104,6 +104,22 @@ class WagtailIntegrationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, homepage.hero_title)
         self.assertContains(response, homepage.hero_highlight)
+
+    def test_published_wagtail_content_page_uses_canonical_root_url(self):
+        homepage = HomePage.objects.get(slug="home")
+        content_page = ContentPage(
+            title="صفحه راهنمای آزمایشی",
+            slug="cms-guide-test",
+            intro="معرفی صفحه",
+            body="<p>محتوای منتشرشده</p>",
+        )
+        homepage.add_child(instance=content_page)
+        content_page.save_revision().publish()
+
+        response = self.client.get("/cms-guide-test/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "صفحه راهنمای آزمایشی")
+        self.assertEqual(content_page.get_url(), "/cms-guide-test/")
 
     def test_project_permission_policies_are_registered_for_wagtail(self):
         self.assertIsInstance(
