@@ -218,14 +218,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const hasSectionNavigation =
     document.querySelector('.nv-rail-link[href^="#"]') ||
-    [...document.querySelectorAll('.desktop-nav a[href*="#"], .mobile-nav a[href*="#"]')].some((link) => {
-      try {
-        const url = new URL(link.href, location.href);
-        return url.pathname === location.pathname && Boolean(url.hash);
-      } catch {
-        return false;
+    [...document.querySelectorAll('.desktop-nav a[href*="#"], .mobile-nav a[href*="#"]')].some(
+      (link) => {
+        try {
+          const url = new URL(link.href, location.href);
+          return url.pathname === location.pathname && Boolean(url.hash);
+        } catch {
+          return false;
+        }
       }
-    });
+    );
   if (hasSectionNavigation) {
     void import('./section-navigation.js');
   }
