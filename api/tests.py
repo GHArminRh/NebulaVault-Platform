@@ -17,7 +17,6 @@ from licensing.models import License
 from subscriptions.models import Subscription
 
 
-
 class TokenLoginThrottleProxyTests(SimpleTestCase):
     def test_ignores_untrusted_leftmost_forwarded_for_values(self):
         request = APIRequestFactory().post(
