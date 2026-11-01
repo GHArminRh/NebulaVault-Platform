@@ -168,6 +168,14 @@ class WagtailIntegrationTests(TestCase):
                 },
             ),
             (
+                "product_listing",
+                {
+                    "eyebrow": "محصولات آزمایشی",
+                    "title": "فهرست محصولات قابل ویرایش",
+                    "description": "توضیح محصولات",
+                },
+            ),
+            (
                 "feature_grid",
                 {
                     "eyebrow": "ویژگی آزمایشی",
@@ -182,6 +190,23 @@ class WagtailIntegrationTests(TestCase):
                             "link_url": "#products",
                         }
                     ],
+                },
+            ),
+            (
+                "blog_listing",
+                {
+                    "eyebrow": "بلاگ آزمایشی",
+                    "title": "فهرست بلاگ قابل ویرایش",
+                    "description": "توضیح بلاگ",
+                    "link_label": "همه نوشته‌ها",
+                },
+            ),
+            (
+                "release_listing",
+                {
+                    "eyebrow": "نسخه‌های آزمایشی",
+                    "title": "فهرست نسخه‌های قابل ویرایش",
+                    "description": "توضیح نسخه‌ها",
                 },
             ),
             (
@@ -213,6 +238,9 @@ class WagtailIntegrationTests(TestCase):
 
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "فهرست محصولات قابل ویرایش")
+        self.assertContains(response, "فهرست بلاگ قابل ویرایش")
+        self.assertContains(response, "فهرست نسخه‌های قابل ویرایش")
         self.assertContains(response, "عنوان ویژگی قابل ویرایش")
         self.assertContains(response, "کارت قابل ویرایش")
         self.assertContains(response, "پرسش‌های قابل ویرایش")
