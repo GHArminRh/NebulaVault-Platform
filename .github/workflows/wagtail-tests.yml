@@ -1,0 +1,67 @@
+name: Wagtail CMS tests
+
+on:
+  push:
+    branches: [feat/wagtail-cms-integration]
+    paths:
+      - "sitecms/**"
+      - "blog/wagtail_hooks.py"
+      - "staff/**"
+      - "accounts/backends.py"
+      - "config/**"
+      - "portal/**"
+      - "templates/portal/home.html"
+      - "requirements.txt"
+      - ".github/workflows/wagtail-tests.yml"
+  pull_request:
+    paths:
+      - "sitecms/**"
+      - "blog/wagtail_hooks.py"
+      - "staff/**"
+      - "accounts/backends.py"
+      - "config/**"
+      - "portal/**"
+      - "templates/portal/home.html"
+      - "requirements.txt"
+      - ".github/workflows/wagtail-tests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: nebula_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d nebula_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DJANGO_SECRET_KEY: ci-only-not-for-production
+      DJANGO_DEBUG: "True"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+      DB_NAME: nebula_test
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+      - name: Check Django configuration
+        run: python manage.py check --settings=config.test_settings
+      - name: Check model and migration consistency
+        run: python manage.py makemigrations --check --dry-run --settings=config.test_settings
+      - name: Run Wagtail integration tests
+        run: python manage.py test sitecms --settings=config.test_settings --verbosity=2
