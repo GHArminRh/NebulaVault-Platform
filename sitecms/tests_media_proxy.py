@@ -19,7 +19,7 @@ class PrivateMediaProxyTests(TestCase):
 
     def test_signed_media_is_streamed_from_default_storage(self):
         path = "images/example.png"
-        content = b"\\x89PNG\\r\\n\\x1a\\nproxy-test"
+        content = b"\x89PNG\r\n\x1a\nproxy-test"
         with patch(
             "sitecms.media_proxy.default_storage.open",
             return_value=ContentFile(content, name="example.png"),
