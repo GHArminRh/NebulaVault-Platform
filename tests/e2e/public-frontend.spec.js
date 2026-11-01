@@ -15,9 +15,8 @@ const PUBLIC_ROUTES = [
 ];
 
 test('deployed frontend styles are updated before regression checks', async ({ page }) => {
-  // Render deploys begin at the same time as this push-triggered workflow.
-  // Wait for the exact stylesheet marker from this source revision; old CSS
-  // can contain the same visual colors and must not satisfy this gate.
+  // Wait for the exact stylesheet marker from this source revision. The old
+  // production CSS can contain the same visual colors and must not pass this gate.
   test.setTimeout(250_000);
 
   await expect
@@ -29,25 +28,19 @@ test('deployed frontend styles are updated before regression checks', async ({ p
             timeout: 20_000,
           });
           if (!response || response.status() >= 500) return 'unavailable';
-          return await page.evaluate(async () => {
-            const stylesheet = Array.from(
-              document.querySelectorAll('link[rel="stylesheet"]')
-            ).find((link) => link.href.includes('portal/css/responsive-system'));
 
-            if (!stylesheet) return 'stylesheet-missing';
+          const stylesheet = await page
+            .locator('link[rel="stylesheet"][href*="portal/css/responsive-system"]')
+            .getAttribute('href');
+          if (!stylesheet) return 'stylesheet-missing';
 
-            try {
-              const assetResponse = await fetch(stylesheet.href, {
-                cache: 'no-store',
-              });
-              if (!assetResponse.ok) return 'stylesheet-unavailable';
-              const css = await assetResponse.text();
-              const isCurrent = css.includes('NV_MOBILE_MENU_VIEWPORT_FIXED_V2');
-              return isCurrent ? 'current-assets' : 'old-assets';
-            } catch {
-              return 'stylesheet-unavailable';
-            }
-          });
+          const assetUrl = new URL(stylesheet, page.url()).toString();
+          const assetResponse = await page.request.get(assetUrl);
+          if (!assetResponse.ok()) return 'stylesheet-unavailable';
+
+          const css = await assetResponse.text();
+          const isCurrent = css.includes('NV_MOBILE_MENU_VIEWPORT_FIXED_V2');
+          return isCurrent ? 'current-assets' : 'old-assets';
         } catch {
           return 'unavailable';
         }
@@ -60,7 +53,6 @@ test('deployed frontend styles are updated before regression checks', async ({ p
     )
     .toBe('current-assets');
 }, 250_000);
-
 test('blog styles are loaded only on pages that render blog components', async ({ page }) => {
   for (const route of ['/', '/blog/']) {
     await page.goto(route, { waitUntil: 'domcontentloaded' });
