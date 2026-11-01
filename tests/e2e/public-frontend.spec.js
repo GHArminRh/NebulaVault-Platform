@@ -167,7 +167,14 @@ test.describe('responsive layout', () => {
       await page.setViewportSize({ width, height: 900 });
 
       for (const route of responsiveRoutes) {
-        await page.goto(route, { waitUntil: 'domcontentloaded' });
+        await page.goto(route, { waitUntil: 'load' });
+        await page.evaluate(async () => {
+          await document.fonts.ready;
+          await new Promise((resolve) =>
+            requestAnimationFrame(() => requestAnimationFrame(resolve))
+          );
+        });
+        await expect(page.locator('canvas.nv-starfield')).toHaveCSS('position', 'fixed');
         const dimensions = await page.evaluate(() => {
           const viewport = window.innerWidth;
           const overflowingElements = Array.from(document.querySelectorAll('*'))
