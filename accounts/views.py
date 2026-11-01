@@ -620,6 +620,13 @@ class CustomerLoginView(LoginView):
             )
         return super().post(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context.get("form")
+        if form is not None:
+            context["two_factor_required"] = bool(getattr(form, "two_factor_required", False))
+        return context
+
     def form_valid(self, form):
         # A successful login clears the counter for this IP/account pair.
         cache.delete(self._login_attempt_key())
