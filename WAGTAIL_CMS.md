@@ -37,6 +37,26 @@ StreamField rather than remaining hard-coded. The actual product, article, and
 release records continue to come from the existing Django models; do not
 duplicate product, pricing, release, order, or license records in Wagtail.
 
+## Manage the global header and footer
+
+Open **Settings → تنظیمات سربرگ و پابرگ** in Wagtail. This is a site-specific
+setting for the current Wagtail site.
+
+You can edit:
+- Brand name, subtitle and symbol shown in the header and footer
+- Desktop and mobile navigation links (the same menu is used in both places)
+- Footer description, note, copyright text and footer links
+- Whether the install-app button is shown
+
+Each navigation item accepts an internal path, a page fragment, or an HTTPS
+address. External links can optionally open in a new tab. If a settings record
+has not been created yet, the public site keeps its existing navigation and
+branding as a safe fallback.
+
+Account controls such as login, registration, dashboard, cart and logout remain
+application-controlled links. They are intentionally not arbitrary CMS links,
+so changing site navigation cannot break authentication or checkout behavior.
+
 ## Create ordinary content pages
 
 1. From **Pages**, select the homepage or another content page.
