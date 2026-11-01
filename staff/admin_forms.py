@@ -10,10 +10,11 @@ from accounts.two_factor import decrypt_totp_secret, verify_totp
 
 
 class AdminTurnstileAuthenticationForm(AdminAuthenticationForm):
+    """Require server-verified Turnstile and optional TOTP for staff sign-in."""
+
     remember_me = forms.BooleanField(required=False, initial=True, label="Remember me")
     otp_token = forms.CharField(required=False, max_length=12, label="Authenticator code", widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "inputmode": "numeric", "placeholder": "6-digit code"}))
 
-    """Require a valid server-verified Turnstile token before admin authentication."""
 
     def clean(self):
         if getattr(settings, "TURNSTILE_ENABLED", True):
