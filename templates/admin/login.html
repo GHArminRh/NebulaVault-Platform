@@ -83,6 +83,15 @@
         <input type="hidden" name="next" value="{{ next }}">
       </div>
 
+      <div class="form-row">
+        {{ form.otp_token.errors }}
+        {{ form.otp_token.label_tag }}
+        {{ form.otp_token }}
+      </div>
+      <div class="form-row remember-me-row">
+        {{ form.remember_me }} {{ form.remember_me.label_tag }}
+      </div>
+
       {% if TURNSTILE_ENABLED|default:True %}
         <div class="turnstile-row">
           <p class="turnstile-heading">{% translate "Security verification" %}</p>
