@@ -1,9 +1,9 @@
 {% extends "portal/base.html" %}
 {% load money static wagtailcore_tags %}
-{% block title %}{{ cms_homepage.seo_title|default:cms_homepage.title|default:"نبیولا والت — یک فضای یکپارچه برای دنیای دیجیتال شما" }}{% endblock %}
-{% block meta_description %}{{ cms_homepage.search_description|default:cms_homepage.hero_description|default:"پلتفرم امن نرم‌افزار نبیولا والت" }}{% endblock %}
-{% block og_title %}{{ cms_homepage.seo_title|default:cms_homepage.title|default:"نبیولا والت" }}{% endblock %}
-{% block og_description %}{{ cms_homepage.search_description|default:cms_homepage.hero_description|default:"پلتفرم امن نرم‌افزار نبیولا والت" }}{% endblock %}
+{% block title %}{% if cms_homepage %}{{ cms_homepage.seo_title|default:cms_homepage.title }}{% else %}نبیولا والت — یک فضای یکپارچه برای دنیای دیجیتال شما{% endif %}{% endblock %}
+{% block meta_description %}{% if cms_homepage %}{{ cms_homepage.search_description|default:cms_homepage.hero_description|default:"پلتفرم امن نرم‌افزار نبیولا والت" }}{% else %}پلتفرم امن نرم‌افزار نبیولا والت{% endif %}{% endblock %}
+{% block og_title %}{% if cms_homepage %}{{ cms_homepage.seo_title|default:cms_homepage.title }}{% else %}نبیولا والت{% endif %}{% endblock %}
+{% block og_description %}{% if cms_homepage %}{{ cms_homepage.search_description|default:cms_homepage.hero_description|default:"پلتفرم امن نرم‌افزار نبیولا والت" }}{% else %}پلتفرم امن نرم‌افزار نبیولا والت{% endif %}{% endblock %}
 {% block blog_css %}
   <link rel="stylesheet" href="{% static 'portal/css/blog.css' %}">
 {% endblock %}
