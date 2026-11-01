@@ -1,11 +1,14 @@
 from django.conf import settings
 from django.db import connection
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import AnonymousUser, Group, Permission
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.contrib.contenttypes.models import ContentType
 from unittest.mock import patch
 
-from django.test import TestCase, override_settings
+from django.template.loader import render_to_string
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
 from accounts.backends import WagtailGroupPermissionsBackend
@@ -97,6 +100,36 @@ class WagtailIntegrationTests(TestCase):
             is_default_site=True,
             root_page=homepage,
         )
+
+    def test_homepage_wagtail_preview_renders_all_editorial_fields(self):
+        homepage = HomePage.objects.get(slug="home")
+        homepage.sections = [("heading", "عنوان بخش پیش‌نمایش")]
+        homepage.body = "<p>متن تکمیلی پیش‌نمایش</p>"
+        homepage.save()
+
+        request = RequestFactory().get("/")
+        SessionMiddleware(lambda current_request: None).process_request(request)
+        request.user = AnonymousUser()
+        request._messages = FallbackStorage(request)
+
+        rendered = render_to_string(
+            "sitecms/home_page.html",
+            {
+                "page": homepage,
+                "products": [],
+                "releases": [],
+                "latest_blog_posts": [],
+            },
+            request=request,
+        )
+
+        self.assertIn(homepage.hero_eyebrow, rendered)
+        self.assertIn(homepage.hero_title, rendered)
+        self.assertIn(homepage.hero_highlight, rendered)
+        self.assertIn(homepage.hero_description, rendered)
+        self.assertIn(homepage.hero_primary_cta_label, rendered)
+        self.assertIn("عنوان بخش پیش‌نمایش", rendered)
+        self.assertIn("متن تکمیلی پیش‌نمایش", rendered)
 
     def test_streamfield_blocks_render_on_editorial_pages(self):
         homepage = HomePage.objects.get(slug="home")
