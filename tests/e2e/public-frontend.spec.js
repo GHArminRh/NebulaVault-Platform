@@ -69,6 +69,37 @@ test('homepage declares Persian RTL document metadata', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('lang', 'fa');
 });
 
+test('mobile navigation opens as a fixed menu and closes cleanly', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 844 });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+  const toggle = page.locator('.menu-toggle');
+  const nav = page.locator('.mobile-nav');
+
+  await expect(toggle).toBeVisible();
+  await expect(nav).toBeHidden();
+  await toggle.click();
+  await expect(nav).toBeVisible();
+
+  const menuStyle = await nav.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      position: style.position,
+      display: style.display,
+      overflowY: style.overflowY,
+    };
+  });
+
+  expect(menuStyle).toEqual({
+    position: 'fixed',
+    display: 'grid',
+    overflowY: 'auto',
+  });
+
+  await toggle.click();
+  await expect(nav).toBeHidden();
+});
+
 test.describe('public frontend smoke checks', () => {
   for (const route of PUBLIC_ROUTES) {
     test(`${route.name} route renders without a server error`, async ({ page }) => {

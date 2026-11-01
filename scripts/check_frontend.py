@@ -52,6 +52,7 @@ HTML_ATTRIBUTE = re.compile(
 )
 STATIC_TAG = re.compile(r"{%\s*static\s+['\"]([^'\"]+)['\"]")
 STYLE_ATTRIBUTE = re.compile(r"\sstyle\s*=", re.IGNORECASE)
+CSS_IMPORTANT_BUDGET = 25
 
 
 def relative(path: Path) -> str:
@@ -220,6 +221,12 @@ def main() -> int:
         for path in css_files
     )
 
+    if css_important_count > CSS_IMPORTANT_BUDGET:
+        failures.append(
+            f"CSS !important count ({css_important_count}) exceeds the budget "
+            f"of {CSS_IMPORTANT_BUDGET}; prefer scoped selectors and cascade order"
+        )
+
     print("Nebula Vault frontend source audit")
     print(f"  Public templates checked: {len(templates)}")
     print(f"  Source files scanned: {len(files)}")
@@ -230,7 +237,7 @@ def main() -> int:
     print(f"  Duplicate HTML attributes: {duplicate_attribute_count}")
     print(f"  Inline style attributes: {inline_style_count}")
     print(f"  CSS files checked: {len(css_files)}")
-    print(f"  !important declarations: {css_important_count}")
+    print(f"  !important declarations: {css_important_count} (budget: {CSS_IMPORTANT_BUDGET})")
     print(f"  Suspected unreferenced assets: {len(unreferenced_assets)}")
 
     for warning in warnings:
