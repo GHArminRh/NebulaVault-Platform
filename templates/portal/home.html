@@ -72,23 +72,4 @@
       <div class="rich-content">{{ cms_homepage.body|richtext }}</div>
     </section>
   {% endif %}
-  <section class="section page-wrap nv-home-section" id="products">
-    <div class="section-heading">
-      <div>
-        <div class="eyebrow">مجموعه محصولات</div>
-        <h2>ابزارهایی که با شما هماهنگ‌اند.</h2>
-        <p>محصولات نبیولا والت را در یک فضای منظم کشف کنید.</p>
-      </div>
-      <span class="nv-section-index">01 / PRODUCTS</span>
-    </div>
-    {% if products %}<div class="product-grid nv-home-product-grid">{% for product in products %}<article class="product-card nv-product-card"><div class="nv-product-topline"><span class="product-icon product-icon-{{ forloop.counter }}">◈</span><span class="nv-product-index">NV · 0{{ forloop.counter }}</span></div><h3>{{ product.name }}</h3><p>{{ product.description|striptags|default:'ابزاری سنجیده برای ساده‌تر کردن کارهای دیجیتال شما.'|truncatewords:25 }}</p><div class="nv-product-meta"><span class="pill pill-live"><i></i> آماده‌ی بررسی</span><span>{{ product.plans.all|length }} طرح</span></div><a class="nv-card-link"
-   href="{% url 'portal:product_detail' product.slug %}">بررسی محصول <span>↗</span></a></article>{% endfor %}</div>{% else %}<div class="empty-state"><span class="empty-symbol">◈</span><h3>محصول بعدی از اینجا شروع می‌شود.</h3><p>محصولات پس از انتشار توسط تیم در این بخش نمایش داده می‌شوند.</p>{% if user.is_staff %}<a class="button button-primary" href="/admin/">مدیریت محصولات ↗</a>{% endif %}</div>{% endif %}
-  </section>
-  <section class="section page-wrap nv-home-section nv-blog-home" id="blog"><div class="section-heading"><div><div class="eyebrow">مجله‌ی نبیولا</div><h2>تازه‌ترین نوشته‌ها.</h2><p>راهنماها، خبرها و نکته‌های کاربردی در یک جا.</p></div><a class="button button-quiet button-small"
-   href="{% url 'blog:post_list' %}">همه‌ی نوشته‌ها ↗</a></div>{% if latest_blog_posts %}<div class="nv-blog-grid">{% for post in latest_blog_posts %}<article class="nv-blog-card"><a class="nv-blog-cover" href="{% url 'blog:post_detail' post.slug %}">{% if post.cover_image %}<img src="{{ post.cover_image.url }}"
-     alt="{{ post.title }}"
-     loading="lazy">{% else %}<span class="nv-blog-cover-placeholder">◇<small>NEBULA JOURNAL</small></span>{% endif %}</a><div class="nv-blog-card-body"><div class="nv-blog-meta">{{ post.published_at|date:"Y/m/d" }}{% if post.category %} · {{ post.category }}{% endif %}</div><h3><a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a></h3><p>{{ post.excerpt|default:post.content|striptags|truncatewords:24 }}</p><a class="nv-card-link" href="{% url 'blog:post_detail' post.slug %}">ادامه‌ی مطلب <span>↗</span></a></div></article>{% endfor %}</div>{% else %}<div class="nv-section-empty">نوشته‌های بلاگ پس از انتشار در این بخش نمایش داده می‌شوند.</div>{% endif %}</section><section class="nv-release-section" id="releases"><div class="page-wrap section nv-home-section"><div class="section-heading"><div><div class="eyebrow">نسخه‌های منتشرشده</div><h2>همیشه آماده‌ی قدم بعدی.</h2><p>نسخه‌های منتشرشده را از یک نقطه پیدا کنید.</p></div><span class="nv-section-index">04 / RELEASES</span></div>
-  {% if releases %}<div class="release-list nv-release-list">{% for release in releases %}<div class="release-row"><div class="release-mark">↓</div><div class="release-info"><strong>{{ release.product.name }} <span>v{{ release.version }}</span></strong><small>{% if release.platform == "windows" %}ویندوز{% elif release.platform == "macos" %}مک‌اواس{% elif release.platform == "linux" %}لینوکس{% else %}سایر سامانه‌ها{% endif %} · {% if release.architecture == "universal" %}همه معماری‌ها{% elif release.architecture == "x64" %}x64{% elif release.architecture == "arm64" %}ARM64{% else %}معماری نامشخص{% endif %}{% if release.published_at %} · {{ release.published_at|date:'Y/m/d' }}{% endif %}</small></div><a class="button button-quiet button-small"
-   href="{{ release.download_url }}"
-   rel="noopener noreferrer">دریافت ↗</a></div>{% endfor %}</div>{% else %}<div class="nv-section-empty">نسخه‌های جدید پس از انتشار در اینجا فهرست می‌شوند.</div>{% endif %}</div></section>
 {% endblock %}
