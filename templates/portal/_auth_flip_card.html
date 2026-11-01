@@ -84,9 +84,6 @@
               </div>
             {% endif %}
           {% endfor %}
-          <div class="nv-two-factor-input" data-factor="email" hidden>
-            
-          </div>
         </form>
         <p class="nv-auth-small-link"><a href="{% url 'accounts:password_reset' %}">رمز عبور را فراموش کرده‌اید؟</a></p>
         <div class="nv-auth-flip-prompt"><span>هنوز حساب ندارید؟</span><button type="button" data-auth-flip="register">ساخت حساب <span>↶</span></button><a class="nv-auth-nojs-link" href="{% url 'accounts:register' %}">ساخت حساب</a></div>
@@ -135,19 +132,19 @@
   </div>
 </section>
 <style>
-    .nv-button-spinner {
-      display: inline-block;
-      width: 1em;
-      height: 1em;
-      margin-inline-start: .55em;
-      vertical-align: -.15em;
-      border: 2px solid currentColor;
-      border-inline-end-color: transparent;
-      border-radius: 50%;
-      animation: nv-button-spin .7s linear infinite;
-    }
-    .is-loading { opacity: .78; cursor: wait !important; }
-    @keyframes nv-button-spin { to { transform: rotate(360deg); } }
+  .nv-button-spinner {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-inline-start: .55em;
+    vertical-align: -.15em;
+    border: 2px solid currentColor;
+    border-inline-end-color: transparent;
+    border-radius: 50%;
+    animation: nv-button-spin .7s linear infinite;
+  }
+  .is-loading { opacity: .78; cursor: wait !important; }
+  @keyframes nv-button-spin { to { transform: rotate(360deg); } }
 </style>
 <script src="{% static 'portal/js/auth-turnstile.js' %}" defer></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=nvTurnstileReady&amp;render=explicit"
