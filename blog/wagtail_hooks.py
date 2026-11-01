@@ -1,4 +1,4 @@
-from wagtail.admin.panels import FieldPanel, MultiFieldPanel
+from wagtail.admin.panels import FieldPanel, MultiFieldPanel, PublishingPanel
 from wagtail.admin.rich_text.editors.draftail import DraftailRichTextArea
 from wagtail.snippets.models import register_snippet
 from wagtail.snippets.views.snippets import SnippetViewSet
@@ -27,7 +27,7 @@ class BlogPostViewSet(SnippetViewSet):
     add_to_admin_menu = True
     list_display = (
         "title",
-        "status",
+        "status_string",
         "category",
         "is_featured",
         "published_at",
@@ -53,12 +53,11 @@ class BlogPostViewSet(SnippetViewSet):
         ),
         MultiFieldPanel(
             [
-                FieldPanel("status"),
                 FieldPanel("is_featured"),
-                FieldPanel("published_at"),
             ],
             heading="انتشار",
         ),
+        PublishingPanel(),
         MultiFieldPanel(
             [
                 FieldPanel("seo_title"),
