@@ -1,0 +1,35 @@
+name: Format Wagtail homepage template
+
+on:
+  push:
+    branches: [feat/wagtail-cms-integration]
+    paths:
+      - "templates/portal/home.html"
+      - ".github/workflows/format-wagtail-template.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/wagtail-cms-integration
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install the repository template formatter
+        run: python -m pip install djlint==1.47.1
+      - name: Format the Wagtail-enabled homepage template
+        run: djlint --reformat --profile=django --indent=2 templates/portal/home.html
+      - name: Commit formatting changes when needed
+        run: |
+          if ! git diff --quiet -- templates/portal/home.html; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add templates/portal/home.html
+            git commit -m "style(cms): format Wagtail homepage template"
+            git push origin HEAD:feat/wagtail-cms-integration
+          fi
