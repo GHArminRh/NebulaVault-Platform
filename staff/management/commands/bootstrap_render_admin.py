@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlsplit
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -18,9 +19,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         site_id = getattr(settings, "SITE_ID", 1)
+        canonical_domain = urlsplit(settings.SITE_BASE_URL).netloc
         Site.objects.update_or_create(
             pk=site_id,
-            defaults={"domain": "mydigigi.ir", "name": "Nebula Vault"},
+            defaults={"domain": canonical_domain, "name": "Nebula Vault"},
         )
         self.stdout.write(self.style.SUCCESS(f"Primary Django Site {site_id} is ready."))
 
