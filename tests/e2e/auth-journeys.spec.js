@@ -125,9 +125,7 @@ test.describe('navigation and shared interactions', () => {
     }
   });
 
-  test('images have alternative text and visible image requests succeed', async ({
-    page,
-  }) => {
+  test('images have alternative text and visible image requests succeed', async ({ page }) => {
     const failedImages = [];
     page.on('response', (response) => {
       if (response.request().resourceType() === 'image' && response.status() >= 400) {
