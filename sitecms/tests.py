@@ -168,6 +168,7 @@ class WagtailIntegrationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, homepage.hero_title)
         self.assertContains(response, homepage.hero_highlight)
+        self.assertContains(response, '<meta property="og:type" content="website">')
 
     def test_published_wagtail_content_page_uses_canonical_root_url(self):
         homepage = HomePage.objects.get(slug="home")
