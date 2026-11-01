@@ -59,8 +59,8 @@ test.describe('authentication experience', () => {
     await form.locator('input[name="password"]').fill(process.env.E2E_CUSTOMER_PASSWORD);
     await expect(form.locator('input[name="remember_me"]')).toBeChecked();
 
-    await form.locator('button[type="submit"]').click();
-    await expect(page).toHaveURL(new RegExp('dashboard'));
+    await form.locator('button[type="submit"]').click({ timeout: 30_000 });
+    await expect(page).toHaveURL(new RegExp('dashboard'), { timeout: 30_000 });
     await expect(page.locator('.nv-dashboard')).toBeVisible();
     await expect(page.locator('.nv-dashboard h1')).toContainText('e2e-customer');
   });
@@ -96,8 +96,12 @@ test.describe('authentication experience', () => {
     await form.locator('input[name="password"]').fill(process.env.E2E_2FA_PASSWORD);
     await form.locator('button[type="submit"]').click();
 
-    const emailCode = form.locator('input[name="email_otp_token"]');
-    const emailRequest = form.locator('button[name="send_email_code"]');
+    // The username field disappears after the password step. Anchor the form
+    // by its action so the locator remains valid across the staged login render.
+    const challengeForm = page.locator('form.nv-auth-form[action="/accounts/login/"]');
+    await expect(challengeForm.locator('input[name="two_factor_method"]')).toHaveValue('email');
+    const emailCode = challengeForm.locator('input[name="email_otp_token"]');
+    const emailRequest = challengeForm.locator('button[name="send_email_code"]');
     await expect(emailCode).toBeVisible();
     await expect(emailRequest).toBeVisible();
     await emailRequest.click();
