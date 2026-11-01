@@ -576,6 +576,45 @@ class ScheduledPublishingEndpointTests(TestCase):
         self.assertEqual(response.json()["status"], "unauthorized")
         mocked_command.assert_not_called()
 
+    @override_settings(WAGTAIL_CRON_SECRET="a" * 40 + "رمز-محرمانه")
+    @patch("sitecms.cron_views.call_command")
+    def test_valid_unicode_bearer_secret_runs_wagtail_command(self, mocked_command):
+        from sitecms.cron_views import publish_scheduled_pages
+
+        secret = "a" * 40 + "رمز-محرمانه"
+        request = RequestFactory().post(
+            self.url,
+            HTTP_AUTHORIZATION="Bearer placeholder",
+        )
+        request.META["HTTP_AUTHORIZATION"] = f"Bearer {secret}"
+
+        response = publish_scheduled_pages(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "ok")
+        mocked_command.assert_called_once_with(
+            "publish_scheduled",
+            stdout=mocked_command.call_args.kwargs["stdout"],
+            stderr=mocked_command.call_args.kwargs["stderr"],
+        )
+
+    @override_settings(WAGTAIL_CRON_SECRET="a" * 40 + "رمز-محرمانه")
+    @patch("sitecms.cron_views.call_command")
+    def test_invalid_unicode_bearer_secret_returns_forbidden(self, mocked_command):
+        from sitecms.cron_views import publish_scheduled_pages
+
+        request = RequestFactory().post(
+            self.url,
+            HTTP_AUTHORIZATION="Bearer placeholder",
+        )
+        request.META["HTTP_AUTHORIZATION"] = f"Bearer {'a' * 40}رمز-اشتباه"
+
+        response = publish_scheduled_pages(request)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["status"], "unauthorized")
+        mocked_command.assert_not_called()
+
     def test_endpoint_accepts_post_only(self):
         response = self.client.get(
             self.url,
