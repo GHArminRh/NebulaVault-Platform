@@ -406,7 +406,7 @@ class AccountBackendTests(TestCase):
         from accounts.two_factor import decrypt_totp_secret
         self.assertEqual(decrypt_totp_secret(self.user.two_factor_secret), secret)
 
-    def test_customer_two_factor_is_required_during_login(self):
+    def test_customer_two_factor_is_requested_only_after_primary_login(self):
         import pyotp
 
         secret = pyotp.random_base32()
@@ -415,11 +415,20 @@ class AccountBackendTests(TestCase):
         self.user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
         response = self.client.post(
             reverse("login"),
-            {"username": self.user.email, "password": "Secure-test-password-2026!", "otp_token": "000000", "human_check": "on"},
+            {"username": self.user.email, "password": "Secure-test-password-2026!", "human_check": "on"},
         )
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("_auth_user_id", self.client.session)
-        self.assertContains(response, "کد تأیید یا کد بازیابی نامعتبر است")
+        self.assertContains(response, "رمز عبور تأیید شد")
+        self.assertContains(response, "کد برنامه احراز هویت")
+        self.assertNotContains(response, "کد ارسال‌شده به ایمیل")
+        response = self.client.post(
+            reverse("login"),
+            {"two_factor_method": "authenticator", "otp_token": "000000"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertContains(response, "روش انتخاب‌شده یا کد تأیید معتبر نیست")
 
     def test_customer_two_factor_valid_code_allows_login_and_remember_me(self):
         import pyotp
@@ -430,7 +439,13 @@ class AccountBackendTests(TestCase):
         self.user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
         response = self.client.post(
             reverse("login"),
-            {"username": self.user.email, "password": "Secure-test-password-2026!", "otp_token": pyotp.TOTP(secret).now(), "remember_me": "on", "human_check": "on"},
+            {"username": self.user.email, "password": "Secure-test-password-2026!", "remember_me": "on", "human_check": "on"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+        response = self.client.post(
+            reverse("login"),
+            {"two_factor_method": "authenticator", "otp_token": pyotp.TOTP(secret).now()},
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(str(self.client.session["_auth_user_id"]), str(self.user.pk))
@@ -453,7 +468,7 @@ class AccountBackendTests(TestCase):
         self.user.refresh_from_db()
         self.assertTrue(self.user.avatar.name.startswith("avatars/"))
 
-    def test_staff_two_factor_is_required_for_admin_login(self):
+    def test_staff_two_factor_is_requested_after_primary_admin_login(self):
         import pyotp
         from django.contrib.auth import get_user_model
 
@@ -467,7 +482,14 @@ class AccountBackendTests(TestCase):
         staff.save(update_fields=["two_factor_secret", "two_factor_enabled"])
         response = self.client.post(
             "/admin/login/",
-            {"username": staff.username, "password": "Secure-admin-password-2026!", "otp_token": pyotp.TOTP(secret).now(), "remember_me": "on", "next": "/admin/"},
+            {"username": staff.username, "password": "Secure-admin-password-2026!", "remember_me": "on", "next": "/admin/"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertContains(response, "Password accepted")
+        response = self.client.post(
+            "/admin/login/",
+            {"two_factor_method": "authenticator", "otp_token": pyotp.TOTP(secret).now(), "next": "/admin/"},
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(str(self.client.session["_auth_user_id"]), str(staff.pk))
