@@ -53,6 +53,7 @@
               <input id="nv-login-password" name="password" type="password" autocomplete="current-password" required placeholder="رمز عبور خود را وارد کنید"><button class="password-toggle" type="button">نمایش</button>
             </div>
           {% endif %}
+          {% if not form.two_factor_required %}
           <label class="nv-remember-row" for="nv-login-remember">
             <input id="nv-login-remember"
                    name="remember_me"
@@ -61,6 +62,7 @@
                    {% if not form.is_bound or form.remember_me.value %}checked{% endif %}>
             <span>مرا به خاطر بسپار</span>
           </label>
+          {% endif %}
           {% if not form.two_factor_required %}
           <div class="turnstile-shell" role="group" aria-label="تأیید امنیتی">
             <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
