@@ -1,48 +1,8 @@
 name: Public frontend browser tests
 
+# Full browser regression is intentionally manual because it is relatively slow.
+# Run it from GitHub Actions -> Public frontend browser tests -> Run workflow.
 on:
-  pull_request:
-    branches:
-      - deploy/render-ready
-    paths:
-      - "templates/**"
-      - "static/**"
-      - "accounts/templates/**"
-      - "accounts/static/**"
-      - "blog/templates/**"
-      - "comment/templates/**"
-      - "portal/**"
-      - "accounts/**"
-      - "blog/**"
-      - "comment/**"
-      - "config/**"
-      - "tests/e2e/**"
-      - "playwright.config.js"
-      - "package.json"
-      - "package-lock.json"
-      - "requirements.txt"
-      - ".github/workflows/frontend-browser-tests.yml"
-  push:
-    branches:
-      - deploy/render-ready
-    paths:
-      - "templates/**"
-      - "static/**"
-      - "accounts/templates/**"
-      - "accounts/static/**"
-      - "blog/templates/**"
-      - "comment/templates/**"
-      - "portal/**"
-      - "accounts/**"
-      - "blog/**"
-      - "comment/**"
-      - "config/**"
-      - "tests/e2e/**"
-      - "playwright.config.js"
-      - "package.json"
-      - "package-lock.json"
-      - "requirements.txt"
-      - ".github/workflows/frontend-browser-tests.yml"
   workflow_dispatch:
 
 permissions:
@@ -129,7 +89,7 @@ jobs:
               customer.set_password(password)
               customer.save()
               with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
-                  env_file.write(f"{password_variable}={password}\n")
+                  env_file.write(f"{password_variable}={password}\\n")
           product, _ = Product.objects.get_or_create(
               slug="e2e-browser-product",
               defaults={"name": "E2E Browser Product", "is_active": True},
