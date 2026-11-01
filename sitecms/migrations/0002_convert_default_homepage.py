@@ -22,8 +22,8 @@ def convert_default_homepage(apps, schema_editor):
     )
 
     if not HomePage.objects.using(alias).filter(pk=page.pk).exists():
-        HomePage.objects.using(alias).create(
-            page_ptr_id=page.pk,
+        HomePage(
+            page_ptr=page,
             hero_eyebrow="فضای دیجیتال شما، با نظم تازه",
             hero_title="همه‌چیز سر جای خودش؛",
             hero_highlight="کنترل در دست شما.",
@@ -34,7 +34,7 @@ def convert_default_homepage(apps, schema_editor):
             hero_primary_cta_label="کشف محصولات",
             hero_primary_cta_url="#products",
             body="",
-        )
+        ).save(using=alias)
 
     Page.objects.using(alias).filter(pk=page.pk).update(
         content_type_id=homepage_type.pk,
