@@ -395,7 +395,10 @@ class AccountBackendTests(TestCase):
             reverse("accounts:two_factor_settings"),
             {"security_action": "enable_two_factor", "current_password": "Secure-test-password-2026!", "otp_token": pyotp.TOTP(secret).now()},
         )
-        self.assertRedirects(response, reverse("accounts:two_factor_settings"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["new_recovery_codes"]), 10)
+        self.assertEqual(response["Cache-Control"], "no-store")
+        self.assertNotIn("nv_new_recovery_codes", self.client.session)
         self.user.refresh_from_db()
         self.assertTrue(self.user.two_factor_enabled)
         api_token.refresh_from_db()
@@ -510,7 +513,10 @@ class AccountBackendTests(TestCase):
                 "otp_token": pyotp.TOTP(secret).now(),
             },
         )
-        self.assertRedirects(response, "/admin/account/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["new_recovery_codes"]), 10)
+        self.assertEqual(response["Cache-Control"], "no-store")
+        self.assertNotIn("nv_new_recovery_codes", self.client.session)
         staff.refresh_from_db()
         self.assertTrue(staff.two_factor_enabled)
         self.assertEqual(decrypt_totp_secret(staff.two_factor_secret), secret)
@@ -623,11 +629,13 @@ class AccountBackendTests(TestCase):
                 "email_otp_token": code,
             },
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["new_recovery_codes"]), 10)
+        self.assertEqual(response["Cache-Control"], "no-store")
+        self.assertNotIn("nv_new_recovery_codes", self.client.session)
         self.user.refresh_from_db()
         self.assertTrue(self.user.email_two_factor_enabled)
         self.assertEqual(len(self.user.recovery_codes), 10)
-        self.assertTrue(self.client.session.get("nv_new_recovery_codes"))
         challenge = TwoFactorEmailChallenge.objects.get(
             user_type=self.user._meta.label_lower, user_id=str(self.user.pk), purpose="setup"
         )
@@ -696,8 +704,10 @@ class AccountBackendTests(TestCase):
                 "email_otp_token": code,
             },
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["new_recovery_codes"]), 10)
+        self.assertEqual(response["Cache-Control"], "no-store")
+        self.assertNotIn("nv_new_recovery_codes", self.client.session)
         staff.refresh_from_db()
         self.assertTrue(staff.email_two_factor_enabled)
         self.assertEqual(len(staff.recovery_codes), 10)
-        self.assertTrue(self.client.session.get("nv_new_recovery_codes"))
