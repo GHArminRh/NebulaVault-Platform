@@ -11,6 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
       form.setAttribute('aria-busy', 'true');
       const submitter = event.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
       if (!submitter) return;
+      // Preserve the clicked submit button's name/value before disabling it.
+      if (submitter.name && submitter.value) {
+        const submittedValue = document.createElement('input');
+        submittedValue.type = 'hidden';
+        submittedValue.name = submitter.name;
+        submittedValue.value = submitter.value;
+        form.append(submittedValue);
+      }
       submitter.classList.add('is-loading');
       submitter.setAttribute('aria-disabled', 'true');
       submitter.disabled = true;
@@ -21,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitter.append(spinner);
       } else {
         submitter.dataset.originalValue = submitter.value;
-        submitter.value = 'در حال پردازش…';
+        submitter.value = 'Processing…';
       }
       form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((control) => {
         if (control !== submitter) control.disabled = true;
