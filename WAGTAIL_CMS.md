@@ -26,14 +26,15 @@ separate and unchanged.
    button label/link, or the additional editorial content.
 5. In **بخش‌های قابل چیدمان صفحه اصلی**, add, remove, or reorder StreamField
    blocks. The available blocks are heading, formatted text, image, card list,
-   call to action, quote, and notice.
+   call to action, quote, notice, feature grid, FAQ, proof strip, product listing,
+   blog listing, and release listing.
 6. Preview the draft, then publish it.
 
 The StreamField blocks render in their saved order after the hero section. The
-existing storefront layout, product/plan/release data, blog listing, account
-links, and other dynamic sections are still rendered by the original templates.
-The CMS does not replace the storefront with a generic Wagtail starter theme.
-The business data continues to come from the existing Django models; do not
+previous feature cards, trust strip, FAQ, final call-to-action, and product,
+blog, and release section headings are seeded into Wagtail and rendered from
+StreamField rather than remaining hard-coded. The actual product, article, and
+release records continue to come from the existing Django models; do not
 duplicate product, pricing, release, order, or license records in Wagtail.
 
 ## Create ordinary content pages
