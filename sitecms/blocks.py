@@ -182,6 +182,31 @@ class ReleaseListingBlock(blocks.StructBlock):
         label = "فهرست نسخه‌های منتشرشده"
         template = "sitecms/blocks/releases.html"
 
+
+class NavigationLinkBlock(blocks.StructBlock):
+    label = blocks.CharBlock(max_length=60, label="عنوان پیوند")
+    url = blocks.CharBlock(
+        max_length=300,
+        validators=[INTERNAL_OR_HTTPS_URL],
+        label="نشانی پیوند",
+    )
+    open_in_new_tab = blocks.BooleanBlock(
+        required=False,
+        default=False,
+        label="بازشدن در زبانه جدید",
+    )
+
+    class Meta:
+        label = "پیوند ناوبری"
+
+
+class NavigationMenuBlock(blocks.StreamBlock):
+    link = NavigationLinkBlock()
+
+    class Meta:
+        label = "پیوندهای منو"
+        icon = "list-ul"
+
 class NebulaContentBlock(blocks.StreamBlock):
     heading = blocks.CharBlock(
         max_length=180,
