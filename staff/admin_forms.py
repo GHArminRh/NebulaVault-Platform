@@ -6,7 +6,7 @@ from django.contrib.admin.forms import AdminAuthenticationForm
 from django.core.exceptions import ValidationError
 
 from accounts.turnstile import verify_turnstile
-from accounts.two_factor import verify_totp
+from accounts.two_factor import decrypt_totp_secret, verify_totp
 
 
 class AdminTurnstileAuthenticationForm(AdminAuthenticationForm):
@@ -41,7 +41,7 @@ class AdminTurnstileAuthenticationForm(AdminAuthenticationForm):
 
         cleaned = super().clean()
         staff_user = self.get_user()
-        if staff_user.two_factor_enabled and not verify_totp(staff_user.two_factor_secret, cleaned.get("otp_token")):
+        if staff_user.two_factor_enabled and not verify_totp(decrypt_totp_secret(staff_user.two_factor_secret), cleaned.get("otp_token")):
             self.add_error("otp_token", "The two-factor authentication code is invalid or missing.")
             return cleaned
         if self.request is not None:
