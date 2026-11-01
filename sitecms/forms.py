@@ -16,7 +16,7 @@ class CMSUserCreationForm(UserCreationForm):
     )
 
     class Meta(UserCreationForm.Meta):
-        fields = UserCreationForm.Meta.fields | {"wagtail_groups"}
+        fields = (UserCreationForm.Meta.fields - {"groups"}) | {"wagtail_groups"}
         widgets = {
             **UserCreationForm.Meta.widgets,
             "wagtail_groups": forms.CheckboxSelectMultiple,
@@ -36,7 +36,7 @@ class CMSUserEditForm(UserEditForm):
     )
 
     class Meta(UserEditForm.Meta):
-        fields = UserEditForm.Meta.fields | {"wagtail_groups"}
+        fields = (UserEditForm.Meta.fields - {"groups"}) | {"wagtail_groups"}
         widgets = {
             **UserEditForm.Meta.widgets,
             "wagtail_groups": forms.CheckboxSelectMultiple,
