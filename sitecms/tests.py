@@ -5,10 +5,17 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.backends import WagtailGroupPermissionsBackend
-from wagtail.models import GroupPagePermission, Page, Site
+from wagtail.models import (
+    Collection,
+    GroupCollectionPermission,
+    GroupPagePermission,
+    Page,
+    Site,
+)
 
 from .forms import CMSUserCreationForm, CMSUserEditForm
 from .models import HomePage
+from .permissions import StaffCollectionManagementPermissionPolicy, StaffPagePermissionPolicy
 
 
 class WagtailIntegrationTests(TestCase):
@@ -88,6 +95,8 @@ class WagtailIntegrationTests(TestCase):
             codename="add_page",
         )
         root = Page.objects.get(depth=1)
+        root.owner = user
+        root.save(update_fields=["owner"])
         GroupPagePermission.objects.create(
             group=group,
             page=root,
@@ -104,4 +113,39 @@ class WagtailIntegrationTests(TestCase):
         self.assertIn(
             f"{permission.content_type.app_label}.{permission.codename}",
             WagtailGroupPermissionsBackend().get_group_permissions(user),
+        )
+        page_policy = StaffPagePermissionPolicy()
+        self.assertIn(user, page_policy.users_with_any_permission({"add"}))
+        self.assertIn(
+            user,
+            page_policy.users_with_any_permission_for_instance({"change"}, root),
+        )
+
+    def test_wagtail_media_collection_permissions_use_wagtail_groups(self):
+        User = get_user_model()
+        user = User.objects.create_user(
+            username="cms-media-editor",
+            password="test-password-only",
+            is_staff=True,
+        )
+        group = Group.objects.create(name="CMS Media Editors")
+        user.wagtail_groups.add(group)
+        root_collection = Collection.add_root(name="CMS Media Root")
+        child_collection = root_collection.add_child(name="CMS Images")
+        content_type = ContentType.objects.get_for_model(Collection)
+        permission, _ = Permission.objects.get_or_create(
+            content_type=content_type,
+            codename="change_collection",
+            defaults={"name": "Can change collection"},
+        )
+        GroupCollectionPermission.objects.create(
+            group=group,
+            collection=root_collection,
+            permission=permission,
+        )
+        policy = StaffCollectionManagementPermissionPolicy(Collection)
+        self.assertIn(child_collection, policy._descendants_with_perm(user, "change"))
+        self.assertIn(
+            user,
+            policy.users_with_any_permission_for_instance({"change"}, child_collection),
         )
