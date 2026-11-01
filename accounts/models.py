@@ -32,7 +32,7 @@ class Customer(AbstractBaseUser):
     is_banned = models.BooleanField(default=False, help_text="Blocked by an administrator; the customer cannot sign in.")
     avatar = models.ImageField(upload_to=avatar_upload_to, blank=True, validators=[validate_avatar_size])
     two_factor_enabled = models.BooleanField(default=False)
-    two_factor_secret = models.CharField(max_length=32, blank=True, editable=False)
+    two_factor_secret = models.CharField(max_length=255, blank=True, editable=False)
     date_joined = models.DateTimeField(auto_now_add=True)
 
     objects = CustomerManager()
