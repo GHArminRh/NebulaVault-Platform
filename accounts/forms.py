@@ -1,3 +1,4 @@
+import time
 from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm
@@ -41,57 +42,94 @@ class HumanCheckMixin:
 
 class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
     remember_me = forms.BooleanField(required=False, initial=True, label="مرا به خاطر بسپار")
-    otp_token = forms.CharField(required=False, max_length=12, label="کد برنامه احراز هویت", widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "inputmode": "numeric", "placeholder": "کد ۶ رقمی برنامه احراز هویت"}))
+    otp_token = forms.CharField(required=False, max_length=12, label="کد برنامه احراز هویت", widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "inputmode": "numeric"}))
     email_otp_token = forms.CharField(required=False, max_length=6, label="کد ایمیل")
     recovery_code = forms.CharField(required=False, max_length=16, label="کد بازیابی")
-    username = forms.EmailField(
-        label="نشانی ایمیل",
-        widget=forms.EmailInput(attrs={"autocomplete": "username", "autofocus": True}),
-    )
+    two_factor_method = forms.ChoiceField(required=False, choices=(), label="روش تأیید")
+    username = forms.EmailField(label="نشانی ایمیل", widget=forms.EmailInput(attrs={"autocomplete": "username", "autofocus": True}))
+
+    PENDING_SESSION_KEY = "customer_two_factor_pending"
+    CHALLENGE_TTL_SECONDS = 300
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.two_factor_required = False
+        self.two_factor_methods = []
+        self._pending_customer = None
+        pending = self.request.session.get(self.PENDING_SESSION_KEY) if self.request else None
+        if pending and time.time() - pending.get("created_at", 0) <= self.CHALLENGE_TTL_SECONDS:
+            customer = Customer.objects.filter(pk=pending.get("user_id"), is_active=True, is_banned=False).first()
+            if customer and (customer.two_factor_enabled or customer.email_two_factor_enabled or customer.recovery_codes):
+                self._pending_customer = customer
+                self.two_factor_required = True
+                self._configure_methods(customer)
+                self.fields["username"].required = False
+                self.fields["password"].required = False
+        elif pending and self.request:
+            self.request.session.pop(self.PENDING_SESSION_KEY, None)
+
+    def _configure_methods(self, customer):
+        methods = []
+        if customer.two_factor_enabled:
+            methods.append(("authenticator", "برنامه احراز هویت"))
+        if customer.email_two_factor_enabled:
+            methods.append(("email", "کد ایمیل"))
+        if customer.recovery_codes:
+            methods.append(("recovery", "کد بازیابی"))
+        self.two_factor_methods = methods
+        self.fields["two_factor_method"].choices = methods
+
+    def _apply_remember_preference(self, remember):
+        if self.request is not None:
+            self.request.session.set_expiry(60 * 60 * 24 * 14 if remember else 0)
 
     def clean(self):
-        try:
-            # Keep Django's normal authentication flow for active customers.
-            cleaned = super().clean()
-        except ValidationError:
-            # Only reveal account state after password and Turnstile both pass.
-            email = (self.data.get(self.add_prefix("username")) or "").strip()
-            password = self.data.get(self.add_prefix("password")) or ""
-            customer = Customer.objects.filter(email__iexact=email).first()
-            if self.cleaned_data.get("turnstile_verified") and customer and password and customer.check_password(password):
-                if customer.is_banned:
-                    self.banned_account = True
-                elif not customer.is_active:
-                    self.inactive_email = customer.email
-            raise
-        customer = self.get_user()
-        if self.data.get("send_email_code") == "1":
-            if not customer.email_two_factor_enabled:
-                self.add_error(None, "تأیید دومرحله‌ای ایمیلی برای این حساب فعال نیست.")
-            else:
+        if self._pending_customer is not None:
+            customer = self._pending_customer
+            self.cleaned_data["turnstile_verified"] = True
+            method = self.cleaned_data.get("two_factor_method") or ""
+            if method == "email" and self.data.get("send_email_code") == "1":
                 try:
                     sent = send_email_code(self.request, customer, purpose="login")
                 except Exception:
                     sent = False
                 if sent:
-                    self.add_error(None, "کد تأیید به ایمیل حساب شما ارسال شد. کد تا ۱۰ دقیقه اعتبار دارد.")
+                    self.add_error(None, "کد تأیید به ایمیل شما ارسال شد و تا ۱۰ دقیقه اعتبار دارد.")
                 else:
                     self.add_error(None, "ارسال کد ممکن نشد یا اخیراً کدی ارسال شده است؛ کمی بعد دوباره تلاش کنید.")
+                return self.cleaned_data
+
+            valid = False
+            if method == "authenticator" and customer.two_factor_enabled:
+                valid = verify_totp(decrypt_totp_secret(customer.two_factor_secret), self.cleaned_data.get("otp_token"))
+            elif method == "email" and customer.email_two_factor_enabled:
+                valid = verify_email_challenge(customer, self.cleaned_data.get("email_otp_token"), purpose="login")
+            elif method == "recovery" and customer.recovery_codes:
+                valid = consume_recovery_code(customer, self.cleaned_data.get("recovery_code"))
+
+            if not valid:
+                self.add_error(None, "روش انتخاب‌شده یا کد تأیید معتبر نیست. دوباره تلاش کنید.")
+                return self.cleaned_data
+
+            pending = self.request.session.pop(self.PENDING_SESSION_KEY, {})
+            self._apply_remember_preference(pending.get("remember_me", True))
+            self.user_cache = customer
             return self.cleaned_data
 
-        if customer.two_factor_enabled or customer.email_two_factor_enabled:
-            valid_factor = customer.two_factor_enabled and verify_totp(
-                decrypt_totp_secret(customer.two_factor_secret), self.cleaned_data.get("otp_token")
-            )
-            if not valid_factor and customer.email_two_factor_enabled:
-                valid_factor = verify_email_challenge(customer, self.cleaned_data.get("email_otp_token"), purpose="login")
-            if not valid_factor:
-                valid_factor = consume_recovery_code(customer, self.cleaned_data.get("recovery_code"))
-            if not valid_factor:
-                self.add_error("otp_token", "کد تأیید یا کد بازیابی نامعتبر است یا وارد نشده است.")
-                return self.cleaned_data
-        if self.request is not None:
-            self.request.session.set_expiry(60 * 60 * 24 * 14 if self.cleaned_data.get("remember_me") else 0)
+        cleaned = super().clean()
+        customer = self.get_user()
+        if customer.two_factor_enabled or customer.email_two_factor_enabled or customer.recovery_codes:
+            self._configure_methods(customer)
+            self.two_factor_required = True
+            self.request.session[self.PENDING_SESSION_KEY] = {
+                "user_id": str(customer.pk),
+                "created_at": time.time(),
+                "remember_me": bool(cleaned.get("remember_me", True)),
+            }
+            self.add_error(None, "رمز عبور تأیید شد. اکنون روش تأیید دومرحله‌ای را انتخاب کنید.")
+            return self.cleaned_data
+
+        self._apply_remember_preference(cleaned.get("remember_me", True))
         return cleaned
 
 
