@@ -74,7 +74,11 @@ def api_index(request):
 
 
 urlpatterns = [
-    path("internal/cron/wagtail/publish-scheduled/", publish_scheduled_pages, name="wagtail-publish-scheduled"),
+    path(
+        "internal/cron/wagtail/publish-scheduled/",
+        publish_scheduled_pages,
+        name="wagtail-publish-scheduled",
+    ),
     path("healthz/", healthcheck, name="healthcheck"),
     path("sitemap.xml", sitemap, name="sitemap"),
     path("media-proxy/<path:path>", private_media_proxy, name="private-media-proxy"),
