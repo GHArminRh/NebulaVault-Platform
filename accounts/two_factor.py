@@ -1,12 +1,33 @@
 import base64
+import hashlib
 from io import BytesIO
 
 import pyotp
 import qrcode
+from cryptography.fernet import Fernet, InvalidToken
+from django.conf import settings
 
 
 def new_totp_secret():
     return pyotp.random_base32()
+
+
+def _fernet():
+    key = base64.urlsafe_b64encode(hashlib.sha256((settings.SECRET_KEY + ':nebula-totp-v1').encode('utf-8')).digest())
+    return Fernet(key)
+
+
+def encrypt_totp_secret(secret):
+    return _fernet().encrypt(secret.encode('ascii')).decode('ascii')
+
+
+def decrypt_totp_secret(secret):
+    if not secret:
+        return ''
+    try:
+        return _fernet().decrypt(secret.encode('ascii')).decode('ascii')
+    except (InvalidToken, UnicodeError, ValueError):
+        return ''
 
 
 def verify_totp(secret, token):
