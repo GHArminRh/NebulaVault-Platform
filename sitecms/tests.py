@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.sites.models import Site as DjangoSite
 from django.db import connection
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser, Group, Permission
@@ -637,7 +638,7 @@ class CanonicalSiteURLTests(TestCase):
         from django.core.management import call_command
 
         call_command("bootstrap_render_admin", verbosity=0)
-        django_site = __import__("django.contrib.sites.models", fromlist=["Site"]).Site.objects.get(pk=settings.SITE_ID)
+        django_site = DjangoSite.objects.get(pk=settings.SITE_ID)
         self.assertEqual(django_site.domain, "cms.example.test:8443")
         wagtail_site = Site.objects.get(is_default_site=True)
         self.assertEqual(wagtail_site.hostname, "cms.example.test")
