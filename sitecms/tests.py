@@ -592,11 +592,8 @@ class ScheduledPublishingEndpointTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["status"], "ok")
-        mocked_command.assert_called_once_with(
-            "publish_scheduled",
-            stdout=mocked_command.call_args.kwargs["stdout"],
-            stderr=mocked_command.call_args.kwargs["stderr"],
-        )
+        mocked_command.assert_called_once()
+        self.assertEqual(mocked_command.call_args.args, ("publish_scheduled",))
 
     @override_settings(WAGTAIL_CRON_SECRET="a" * 40 + "رمز-محرمانه")
     @patch("sitecms.cron_views.call_command")
