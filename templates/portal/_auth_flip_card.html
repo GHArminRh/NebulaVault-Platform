@@ -38,10 +38,20 @@
                    placeholder="رمز عبور خود را وارد کنید"><button class="password-toggle" type="button">نمایش</button>
           </div>
           <label for="nv-login-otp">کد تأیید دومرحله‌ای <span class="auth-optional">(در صورت فعال‌سازی)</span></label>
-          <input id="nv-login-otp" name="otp_token" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="12" placeholder="کد برنامه احراز هویت">
+          <input id="nv-login-otp"
+                 name="otp_token"
+                 type="text"
+                 inputmode="numeric"
+                 autocomplete="one-time-code"
+                 maxlength="12"
+                 placeholder="کد برنامه احراز هویت">
           {% if auth_side == "login" and form.otp_token.errors %}<small class="field-error">{{ form.otp_token.errors|join:', ' }}</small>{% endif %}
           <label class="nv-remember-row" for="nv-login-remember">
-            <input id="nv-login-remember" name="remember_me" type="checkbox" value="on" {% if not form.is_bound or form.remember_me.value %}checked{% endif %}>
+            <input id="nv-login-remember"
+                   name="remember_me"
+                   type="checkbox"
+                   value="on"
+                   {% if not form.is_bound or form.remember_me.value %}checked{% endif %}>
             <span>مرا به خاطر بسپار</span>
           </label>
           <div class="turnstile-shell" role="group" aria-label="تأیید امنیتی">

@@ -1,44 +1,76 @@
 {% extends "portal/base.html" %}
 {% block title %}تأیید دومرحله‌ای — نبیولا والت{% endblock %}
 {% block content %}
-<section class="page-wrap auth-layout auth-layout-premium">
-  <div class="auth-art auth-art-premium">
-    <div class="eyebrow"><i class="eyebrow-dot"></i> امنیت حساب</div>
-    <h2>یک لایه امنیتی<br><span class="gradient-text">بیشتر.</span></h2>
-    <p>با برنامه‌ای مانند Google Authenticator، Microsoft Authenticator یا 1Password کد یک‌بارمصرف بسازید.</p>
-  </div>
-  <div class="auth-card auth-card-premium">
-    <div class="eyebrow">تنظیمات امنیت</div>
-    <h1>تأیید دومرحله‌ای</h1>
-    {% if messages %}{% for message in messages %}<div class="notice-line" role="status">{{ message }}</div>{% endfor %}{% endif %}
-    {% if two_factor_enabled %}
-      <p class="auth-subtitle">تأیید دومرحله‌ای برای حساب شما فعال است.</p>
-      <form method="post" class="form-stack auth-form-premium">
-        {% csrf_token %}<input type="hidden" name="security_action" value="disable_two_factor">
-        <label for="id_current_password">رمز عبور فعلی</label><input id="id_current_password" name="current_password" type="password" autocomplete="current-password" required>
-        <label for="id_otp_token">کد برنامه احراز هویت</label><input id="id_otp_token" name="otp_token" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
-        <button class="button button-primary button-full button-large" type="submit">غیرفعال‌کردن تأیید دومرحله‌ای</button>
-      </form>
-    {% else %}
-      <p class="auth-subtitle">این قابلیت فعلاً خاموش است. ابتدا حساب را در برنامه احراز هویت خود اضافه و سپس کد آن را تأیید کنید.</p>
-      <div class="totp-qr-wrap"><img src="{{ two_factor_qr }}" alt="کد QR برای افزودن حساب به برنامه احراز هویت"></div>
-      <p class="totp-secret-label">اگر امکان اسکن QR ندارید، این کلید را دستی وارد کنید:</p>
-      <code class="totp-secret" dir="ltr">{{ two_factor_secret }}</code>
-      <form method="post" class="form-stack auth-form-premium">
-        {% csrf_token %}<input type="hidden" name="security_action" value="enable_two_factor">
-        <label for="id_current_password">رمز عبور فعلی</label><input id="id_current_password" name="current_password" type="password" autocomplete="current-password" required>
-        <label for="id_otp_token">کد ۶ رقمی برنامه احراز هویت</label><input id="id_otp_token" name="otp_token" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
-        <button class="button button-primary button-full button-large" type="submit">تأیید و فعال‌سازی</button>
-      </form>
-      <p class="auth-subtitle">تا زمانی که کد معتبر وارد نکنید، تأیید دومرحله‌ای فعال نمی‌شود.</p>
-    {% endif %}
-    <p class="auth-switch"><a href="{% url 'accounts:profile' %}">بازگشت به تنظیمات حساب</a> · <a href="{% url 'portal:dashboard' %}">پیشخوان</a></p>
-  </div>
-</section>
-<style>
+  <section class="page-wrap auth-layout auth-layout-premium">
+    <div class="auth-art auth-art-premium">
+      <div class="eyebrow"><i class="eyebrow-dot"></i> امنیت حساب</div>
+      <h2>
+        یک لایه امنیتی
+        <br>
+        <span class="gradient-text">بیشتر.</span>
+      </h2>
+      <p>با برنامه‌ای مانند Google Authenticator، Microsoft Authenticator یا 1Password کد یک‌بارمصرف بسازید.</p>
+    </div>
+    <div class="auth-card auth-card-premium">
+      <div class="eyebrow">تنظیمات امنیت</div>
+      <h1>تأیید دومرحله‌ای</h1>
+      {% if messages %}{% for message in messages %}<div class="notice-line"
+     role="status">{{ message }}</div>{% endfor %}{% endif %}
+      {% if two_factor_enabled %}
+        <p class="auth-subtitle">تأیید دومرحله‌ای برای حساب شما فعال است.</p>
+        <form method="post" class="form-stack auth-form-premium">
+          {% csrf_token %}
+          <input type="hidden" name="security_action" value="disable_two_factor">
+          <label for="id_current_password">رمز عبور فعلی</label><input id="id_current_password"
+       name="current_password"
+       type="password"
+       autocomplete="current-password"
+       required>
+          <label for="id_otp_token">کد برنامه احراز هویت</label><input id="id_otp_token"
+       name="otp_token"
+       type="text"
+       inputmode="numeric"
+       autocomplete="one-time-code"
+       maxlength="6"
+       required>
+          <button class="button button-primary button-full button-large"
+                  type="submit">غیرفعال‌کردن تأیید دومرحله‌ای</button>
+        </form>
+      {% else %}
+        <p class="auth-subtitle">این قابلیت فعلاً خاموش است. ابتدا حساب را در برنامه احراز هویت خود اضافه و سپس کد آن را تأیید کنید.</p>
+        <div class="totp-qr-wrap">
+          <img src="{{ two_factor_qr }}"
+               alt="کد QR برای افزودن حساب به برنامه احراز هویت">
+        </div>
+        <p class="totp-secret-label">اگر امکان اسکن QR ندارید، این کلید را دستی وارد کنید:</p>
+        <code class="totp-secret" dir="ltr">{{ two_factor_secret }}</code>
+        <form method="post" class="form-stack auth-form-premium">
+          {% csrf_token %}
+          <input type="hidden" name="security_action" value="enable_two_factor">
+          <label for="id_current_password">رمز عبور فعلی</label><input id="id_current_password"
+       name="current_password"
+       type="password"
+       autocomplete="current-password"
+       required>
+          <label for="id_otp_token">کد ۶ رقمی برنامه احراز هویت</label><input id="id_otp_token"
+       name="otp_token"
+       type="text"
+       inputmode="numeric"
+       autocomplete="one-time-code"
+       maxlength="6"
+       required>
+          <button class="button button-primary button-full button-large"
+                  type="submit">تأیید و فعال‌سازی</button>
+        </form>
+        <p class="auth-subtitle">تا زمانی که کد معتبر وارد نکنید، تأیید دومرحله‌ای فعال نمی‌شود.</p>
+      {% endif %}
+      <p class="auth-switch"><a href="{% url 'accounts:profile' %}">بازگشت به تنظیمات حساب</a> · <a href="{% url 'portal:dashboard' %}">پیشخوان</a></p>
+    </div>
+  </section>
+  <style>
 .totp-qr-wrap{display:flex;justify-content:center;margin:18px auto;padding:12px;background:#fff;border-radius:14px;width:max-content;max-width:100%}
 .totp-qr-wrap img{width:190px;height:190px;max-width:100%}
 .totp-secret-label{font-size:12px;color:var(--muted,#8b96aa)}
 .totp-secret{display:block;overflow-wrap:anywhere;text-align:center;padding:12px;border-radius:10px;background:rgba(30,50,85,.28);letter-spacing:2px}
-</style>
+  </style>
 {% endblock %}
