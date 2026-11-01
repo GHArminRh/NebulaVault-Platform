@@ -121,13 +121,13 @@ class WagtailIntegrationTests(TestCase):
             request=request,
         )
 
-        self.assertContains(rendered, homepage.hero_eyebrow)
-        self.assertContains(rendered, homepage.hero_title)
-        self.assertContains(rendered, homepage.hero_highlight)
-        self.assertContains(rendered, homepage.hero_description)
-        self.assertContains(rendered, homepage.hero_primary_cta_label)
-        self.assertContains(rendered, "عنوان بخش پیش‌نمایش")
-        self.assertContains(rendered, "متن تکمیلی پیش‌نمایش")
+        self.assertIn(homepage.hero_eyebrow, rendered)
+        self.assertIn(homepage.hero_title, rendered)
+        self.assertIn(homepage.hero_highlight, rendered)
+        self.assertIn(homepage.hero_description, rendered)
+        self.assertIn(homepage.hero_primary_cta_label, rendered)
+        self.assertIn("عنوان بخش پیش‌نمایش", rendered)
+        self.assertIn("متن تکمیلی پیش‌نمایش", rendered)
 
     def test_streamfield_blocks_render_on_editorial_pages(self):
         homepage = HomePage.objects.get(slug="home")
