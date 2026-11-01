@@ -111,6 +111,7 @@ jobs:
           import os
           import secrets
           from accounts.models import Customer
+          from catalog.models import Plan, Product
 
           fixtures = [
               ("e2e-customer@example.test", "e2e-customer", "E2E_CUSTOMER_PASSWORD", False),
@@ -129,6 +130,23 @@ jobs:
               customer.save()
               with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
                   env_file.write(f"{password_variable}={password}\n")
+          product, _ = Product.objects.get_or_create(
+              slug="e2e-browser-product",
+              defaults={"name": "E2E Browser Product", "is_active": True},
+          )
+          Plan.objects.get_or_create(
+              product=product,
+              slug="e2e-browser-plan",
+              defaults={
+                  "name": "E2E Browser Plan",
+                  "duration_unit": "months",
+                  "duration_value": 1,
+                  "price_minor_units": 199900,
+                  "currency": "IRR",
+                  "device_limit": 1,
+                  "is_active": True,
+              },
+          )
           PY
 
       - name: Set up Node.js
