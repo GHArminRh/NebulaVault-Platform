@@ -65,7 +65,7 @@ jobs:
         run: python manage.py migrate --noinput --settings=config.settings
       - name: Verify the converted live homepage and Wagtail site root
         run: |
-          python manage.py shell --settings=config.settings <<\x27PY\x27
+          python manage.py shell --settings=config.settings <<'PY'
           from django.contrib.contenttypes.models import ContentType
           from sitecms.models import HomePage
           from wagtail.models import Page, Site
