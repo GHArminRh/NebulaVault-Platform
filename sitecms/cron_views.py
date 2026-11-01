@@ -1,9 +1,9 @@
 """Authenticated HTTP trigger for Wagtail's scheduled publishing command."""
 
 import logging
+import secrets
 from contextlib import contextmanager
 from io import StringIO
-import secrets
 
 from django.conf import settings
 from django.core.management import call_command
@@ -35,7 +35,9 @@ def _publishing_lock():
     finally:
         if acquired:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT pg_advisory_unlock(%s)", [_PUBLISH_LOCK_KEY])
+                cursor.execute(
+                    "SELECT pg_advisory_unlock(%s)", [_PUBLISH_LOCK_KEY]
+                )
 
 
 @csrf_exempt
