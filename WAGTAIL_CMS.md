@@ -65,11 +65,21 @@ Existing articles, tags, comments, ratings, and API endpoints remain attached
 to the same models. The blog editor is intentionally limited to rich-text
 features that are compatible with the existing HTML sanitizer.
 
-The current blog snippet integration preserves the existing publication
-status and URL behavior. Dedicated snippet draft/revision history, preview,
-moderation workflow, and scheduled publishing are not yet enabled; these need
-a separate compatibility implementation so that old blog posts, comments,
-ratings, and public API responses remain unchanged.
+The blog editor now uses Wagtail's native snippet revision and draft-state
+mixins. Editors can save unpublished changes without replacing the currently
+published article, inspect revision history, preview article content in the
+site's existing design, publish/unpublish, and set a scheduled go-live or
+expiry time in the Publishing panel. The legacy integer primary key, UUID,
+slug, status, published_at, image field, tag relation table, comments, ratings,
+API fields and public article URLs are retained. Existing published records
+are migrated as live content; existing drafts remain unpublished.
+
+For scheduled publication/expiry to run automatically, a periodic process
+must execute `python manage.py publish_scheduled` (for example, a Render Cron
+Job running every minute). The Wagtail editor can store schedules immediately,
+but this repository change does not provision a separate Render service or
+incur additional hosting cost. Until a scheduler is configured, publish and
+unpublish actions can still be performed manually from the Wagtail editor.
 
 ## Images and documents
 
