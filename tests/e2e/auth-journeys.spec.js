@@ -6,10 +6,15 @@ test.describe('authentication experience', () => {
   }) => {
     await page.goto('/accounts/login/');
 
-    const form = page.locator('form.nv-auth-form').filter({ has: page.locator('input[name="username"]') });
+    const form = page
+      .locator('form.nv-auth-form')
+      .filter({ has: page.locator('input[name="username"]') });
     await expect(form).toBeVisible();
     await expect(form.locator('input[name="username"]')).toHaveAttribute('type', 'email');
-    await expect(form.locator('input[name="username"]')).toHaveAttribute('autocomplete', 'username');
+    await expect(form.locator('input[name="username"]')).toHaveAttribute(
+      'autocomplete',
+      'username'
+    );
     await expect(form.locator('input[name="password"]')).toHaveAttribute('type', 'password');
     await expect(form.locator('input[name="password"]')).toHaveAttribute(
       'autocomplete',
@@ -24,13 +29,21 @@ test.describe('authentication experience', () => {
   }) => {
     await page.goto('/accounts/register/');
 
-    const form = page.locator('form.nv-auth-form').filter({ has: page.locator('input[name="email"]') });
+    const form = page
+      .locator('form.nv-auth-form')
+      .filter({ has: page.locator('input[name="email"]') });
     await expect(form).toBeVisible();
     await expect(form.locator('input[name="email"]')).toHaveAttribute('type', 'email');
     await expect(form.locator('input[name="email"]')).toHaveAttribute('required', '');
     await expect(form.locator('input[name="password1"]')).toHaveAttribute('type', 'password');
-    await expect(form.locator('input[name="password1"]')).toHaveAttribute('autocomplete', 'new-password');
-    await expect(form.locator('input[name="password2"]')).toHaveAttribute('autocomplete', 'new-password');
+    await expect(form.locator('input[name="password1"]')).toHaveAttribute(
+      'autocomplete',
+      'new-password'
+    );
+    await expect(form.locator('input[name="password2"]')).toHaveAttribute(
+      'autocomplete',
+      'new-password'
+    );
     await expect(form.locator('button[type="submit"]')).toBeVisible();
   });
 
