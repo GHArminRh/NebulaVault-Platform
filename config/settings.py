@@ -190,6 +190,8 @@ LANGUAGES = [("en", "English"), ("fa", "Persian")]
 
 # Wagtail CMS configuration. The existing Django admin remains on /admin/.
 WAGTAIL_SITE_NAME = "Nebula Vault"
+# Shared bearer secret for the external free cron-job.org scheduler.
+WAGTAIL_CRON_SECRET = os.environ.get("WAGTAIL_CRON_SECRET", "").strip()
 WAGTAILADMIN_BASE_URL = os.environ.get(
     "WAGTAILADMIN_BASE_URL", "https://mydigigi.ir"
 ).strip()
