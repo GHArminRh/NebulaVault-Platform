@@ -2,9 +2,11 @@ name: Wagtail CMS tests
 
 on:
   push:
-    branches: [feat/wagtail-cms-integration]
+    branches: [feat/wagtail-cms-integration, deploy/render-ready, "feat/wagtail-cms-completion"]
     paths:
       - "sitecms/**"
+      - "templates/portal/base.html"
+      - "config/urls.py"
       - "blog/wagtail_hooks.py"
       - "staff/**"
       - "accounts/backends.py"
