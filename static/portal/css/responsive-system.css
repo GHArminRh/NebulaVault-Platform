@@ -961,6 +961,7 @@ html body.nv-portal > header.site-header .header-actions {
   flex: 0 0 auto;
   min-width: 0;
 }
+/* NV_MOBILE_MENU_VIEWPORT_FIXED_V2 */
 html body.nv-portal > nav.mobile-nav:not([hidden]) {
   /* Keep the expanded menu anchored to the viewport. A later sticky rule
      previously overrode the earlier fixed mobile-menu declaration. */
