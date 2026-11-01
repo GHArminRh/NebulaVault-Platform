@@ -14,7 +14,7 @@ from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 
 from accounts.models import Customer
-from accounts.two_factor import decrypt_totp_secret, verify_totp
+from accounts.two_factor import consume_recovery_code, decrypt_totp_secret, verify_email_challenge, verify_totp
 from billing.models import PaymentOrder
 from blog.models import BlogPost, BlogPostRating, Tag
 from catalog.models import Plan, Product, Release
@@ -66,11 +66,21 @@ class TokenCreateView(APIView):
             raise AuthenticationFailed("Invalid email or password.")
         if not customer.is_active or customer.is_banned:
             raise AuthenticationFailed("This account cannot access the API.")
-        if customer.two_factor_enabled and not verify_totp(
-            decrypt_totp_secret(customer.two_factor_secret),
-            credentials.validated_data.get("otp_token"),
-        ):
-            raise AuthenticationFailed("A valid authenticator code is required.")
+        if customer.two_factor_enabled or customer.email_two_factor_enabled:
+            valid_factor = customer.two_factor_enabled and verify_totp(
+                decrypt_totp_secret(customer.two_factor_secret),
+                credentials.validated_data.get("otp_token"),
+            )
+            if not valid_factor and customer.email_two_factor_enabled:
+                valid_factor = verify_email_challenge(
+                    customer, credentials.validated_data.get("email_otp_token"), purpose="login"
+                )
+            if not valid_factor:
+                valid_factor = consume_recovery_code(
+                    customer, credentials.validated_data.get("recovery_code")
+                )
+            if not valid_factor:
+                raise AuthenticationFailed("A valid two-factor or recovery code is required.")
 
         raw_token = secrets.token_urlsafe(48)
         token = CustomerAPIToken.objects.create(
