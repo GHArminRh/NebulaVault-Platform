@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db import connection
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -58,11 +59,33 @@ class WagtailIntegrationTests(TestCase):
             url_path="/home/",
             content_type=home_type,
         )
-        homepage = HomePage.objects.create(
-            page_ptr_id=base_home.pk,
-            hero_title="عنوان قابل ویرایش از Wagtail",
-            hero_highlight="تأکید قابل ویرایش",
-        )
+        # Avoid a multi-table save rewriting the existing Page parent row.
+        # This test uses config.test_settings (migrations disabled), so mirror
+        # the production data migration's child-table insert.
+        quote_name = connection.ops.quote_name
+        child_table = quote_name(HomePage._meta.db_table)
+        child_fields = [
+            ("page_ptr", base_home.pk),
+            ("hero_eyebrow", "متن بالای عنوان"),
+            ("hero_title", "عنوان قابل ویرایش از Wagtail"),
+            ("hero_highlight", "تأکید قابل ویرایش"),
+            ("hero_description", "توضیحات قابل ویرایش"),
+            ("hero_primary_cta_label", "کشف محصولات"),
+            ("hero_primary_cta_url", "#products"),
+            ("body", ""),
+        ]
+        columns = [
+            quote_name(HomePage._meta.get_field(name).column)
+            for name, _ in child_fields
+        ]
+        placeholders = ", ".join(["%s"] * len(child_fields))
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"INSERT INTO {child_table} ({', '.join(columns)}) "
+                f"VALUES ({placeholders})",
+                [value for _, value in child_fields],
+            )
+        homepage = HomePage.objects.get(pk=base_home.pk)
         Site.objects.create(
             hostname="testserver",
             port=80,
