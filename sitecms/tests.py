@@ -16,6 +16,7 @@ from wagtail.models import (
 from .forms import CMSUserCreationForm, CMSUserEditForm
 from .models import HomePage
 from .permissions import StaffCollectionManagementPermissionPolicy, StaffPagePermissionPolicy
+from wagtail.permissions import policy_registry
 
 
 class WagtailIntegrationTests(TestCase):
@@ -70,6 +71,14 @@ class WagtailIntegrationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, homepage.hero_title)
         self.assertContains(response, homepage.hero_highlight)
+
+    def test_project_permission_policies_are_registered_for_wagtail(self):
+        self.assertIsInstance(
+            policy_registry.get_by_type(Page), StaffPagePermissionPolicy
+        )
+        self.assertIsInstance(
+            policy_registry.get_by_type(Collection), StaffCollectionManagementPermissionPolicy
+        )
 
     def test_wagtail_admin_login_route_is_available(self):
         response = self.client.get(reverse("wagtailadmin_login"))
