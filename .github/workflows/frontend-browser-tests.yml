@@ -128,7 +128,7 @@ jobs:
               customer.set_password(password)
               customer.save()
               with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
-                  env_file.write(f"{password_variable}={password}\\n")
+                  env_file.write(f"{password_variable}={password}\n")
           PY
 
       - name: Set up Node.js
