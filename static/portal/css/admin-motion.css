@@ -86,11 +86,13 @@
 
 
 /* Accessible app-level disclosures on the Django admin dashboard. */
+
 /* prettier-ignore */
 .dashboard #content-main .nv-admin-app-module > table > caption {
   position: relative;
   padding-inline-end: 42px;
 }
+
 /* prettier-ignore */
 .nv-admin-disclosure-toggle {
   position: absolute;
@@ -112,6 +114,7 @@
     border-color .18s ease,
     box-shadow .18s ease;
 }
+
 /* prettier-ignore */
 .nv-admin-disclosure-toggle:hover,
 .nv-admin-disclosure-toggle:focus-visible {
@@ -120,6 +123,7 @@
   box-shadow: 0 0 0 3px rgba(138, 230, 231, .08);
   outline: none;
 }
+
 /* prettier-ignore */
 .nv-admin-disclosure-chevron {
   width: 7px;
@@ -129,16 +133,19 @@
   transform: translateY(-2px) rotate(45deg);
   transition: transform .2s ease;
 }
+
 /* prettier-ignore */
 .nv-admin-disclosure-toggle[aria-expanded="false"] .nv-admin-disclosure-chevron {
   transform: translateY(1px) rotate(-45deg);
 }
+
 /* prettier-ignore */
 .dashboard #content-main .nv-admin-app-module > table > tbody[hidden] {
   display: none !important;
 }
 
 /* Required-field marker: deliberately small, consistent with the admin theme. */
+
 /* prettier-ignore */
 #content-main .form-row label.required::after,
 #content-main .aligned label.required::after,
@@ -153,6 +160,7 @@
   line-height: 1;
   text-shadow: 0 0 8px rgba(255, 145, 173, .24);
 }
+
 /* prettier-ignore */
 @media (prefers-reduced-motion: reduce) {
   .nv-admin-disclosure-toggle,
