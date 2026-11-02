@@ -16,6 +16,45 @@
     progress.append(track, tip);
     document.body.appendChild(progress);
 
+    // Progressive-enhancement disclosure controls for the Django app index.
+    // Keep app sections expanded by default so the existing admin workflow is preserved.
+    const initializeAppDisclosures = () => {
+      if (!document.body.classList.contains('dashboard')) return;
+
+      document.querySelectorAll('#content-main .module').forEach((module, index) => {
+        const table = module.querySelector(':scope > table') || module.querySelector('table');
+        const caption = table?.querySelector('caption');
+        const rows = table?.querySelector('tbody');
+        if (!caption || !rows || module.dataset.nvDisclosureReady === 'true') return;
+
+        const control = document.createElement('button');
+        const contentId = rows.id || `nv-admin-app-content-${index + 1}`;
+        rows.id = contentId;
+        control.type = 'button';
+        control.className = 'nv-admin-disclosure-toggle';
+        control.setAttribute('aria-expanded', 'true');
+        control.setAttribute('aria-controls', contentId);
+        control.setAttribute('aria-label', `Collapse ${caption.textContent.trim()} section`);
+        control.innerHTML = '<span class="nv-admin-disclosure-chevron" aria-hidden="true"></span>';
+
+        control.addEventListener('click', () => {
+          const expanded = control.getAttribute('aria-expanded') === 'true';
+          control.setAttribute('aria-expanded', String(!expanded));
+          control.setAttribute(
+            'aria-label',
+            `${expanded ? 'Expand' : 'Collapse'} ${caption.textContent.trim()} section`
+          );
+          rows.hidden = expanded;
+          module.classList.toggle('is-collapsed', expanded);
+        });
+
+        module.classList.add('nv-admin-app-module');
+        module.dataset.nvDisclosureReady = 'true';
+        caption.append(control);
+      });
+    };
+    initializeAppDisclosures();
+
     const target = 90;
     const frameMs = 1000 / 60;
     let value = 0,
