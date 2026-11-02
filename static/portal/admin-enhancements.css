@@ -1,4 +1,4 @@
-/* Nebula enhancements for the native Django admin interface. */
+/* Accessible Nebula enhancements for the native Django admin interface. */
 .dashboard #content-main .nv-admin-app-module > table > caption {
   position: relative;
   padding-inline-end: 42px;
