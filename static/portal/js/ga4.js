@@ -138,6 +138,7 @@
           return sum + (price?.price || 0);
         }, 0);
       }
+      if (distinctCurrencies.length > 1) items.forEach((item) => delete item.price);
       track(products.length > 1 ? "view_item_list" : "view_item", params);
     }
 
@@ -155,6 +156,7 @@
           return sum + (price?.price || 0);
         }, 0);
       }
+      if (distinctCurrencies.length > 1) items.forEach((item) => delete item.price);
       track("view_cart", params);
     }
   }
@@ -230,6 +232,7 @@
   }
 
   function withdrawConsent() {
+    const wasGranted = window.__nvGa4Consent === "granted";
     saveConsent("denied");
     window.__nvGa4Consent = "denied";
     if (typeof window.gtag === "function") window.gtag("consent", "update", deniedConsent);
@@ -237,6 +240,7 @@
       document.cookie = name + "=; Max-Age=0; Path=/; SameSite=Lax";
     });
     hideConsentBanner();
+    if (wasGranted) window.location.reload();
   }
 
   consentBanner?.querySelector("[data-ga4-accept]")?.addEventListener("click", () => {
