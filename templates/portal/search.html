@@ -23,6 +23,20 @@
                aria-label="عبارت جست‌وجو">
         <button class="button button-primary nv-search-submit" type="submit">جست‌وجو</button>
       </form>
+      <div class="nv-search-filters" data-algolia-filters>
+        <label>
+          <span>پلتفرم محصول</span>
+          <select class="nv-search-select" data-search-filter="platform">
+            <option value="">همه پلتفرم‌ها</option>
+          </select>
+        </label>
+        <label>
+          <span>دسته‌بندی مقاله</span>
+          <select class="nv-search-select" data-search-filter="category">
+            <option value="">همه دسته‌بندی‌ها</option>
+          </select>
+        </label>
+      </div>
       <div class="nv-search-status"
            data-algolia-status
            aria-live="polite">برای شروع، عبارت موردنظرت را وارد کن.</div>
