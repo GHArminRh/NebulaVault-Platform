@@ -1,0 +1,219 @@
+/* Nebula image uploader — scoped to the custom Django admin widget. */
+.nv-image-uploader {
+  width: min(100%, 720px);
+  color: var(--body-fg, #e8edff);
+  font-size: 13px;
+}
+.nv-image-uploader__current,
+.nv-image-uploader__selection {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid rgba(125, 151, 220, .22);
+  border-radius: 13px;
+  background: rgba(12, 23, 48, .58);
+}
+.nv-image-uploader__current img,
+.nv-image-uploader__preview {
+  display: block;
+  flex: 0 0 76px;
+  width: 76px;
+  height: 64px;
+  object-fit: cover;
+  border: 1px solid rgba(138, 230, 231, .22);
+  border-radius: 9px;
+  background: rgba(4, 10, 24, .7);
+}
+.nv-image-uploader__current-meta,
+.nv-image-uploader__file-info {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+.nv-image-uploader__eyebrow,
+.nv-image-uploader__constraints,
+.nv-image-uploader__file-size {
+  color: var(--body-quiet-color, #9aa9c8);
+  font-size: 11px;
+}
+.nv-image-uploader__filename {
+  overflow-wrap: anywhere;
+  color: var(--body-fg, #e8edff);
+  font-weight: 650;
+}
+.nv-image-uploader__dropzone {
+  position: relative;
+  display: flex;
+  min-height: 164px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 20px;
+  overflow: hidden;
+  border: 1px dashed rgba(137, 155, 225, .48);
+  border-radius: 15px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(104, 104, 255, .13), transparent 65%),
+    linear-gradient(145deg, rgba(18, 31, 63, .78), rgba(7, 16, 35, .76));
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.nv-image-uploader__dropzone:hover,
+.nv-image-uploader__dropzone:focus-visible,
+.nv-image-uploader__dropzone.is-dragover {
+  border-color: rgba(105, 220, 236, .82);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(104, 104, 255, .2), transparent 65%),
+    linear-gradient(145deg, rgba(23, 42, 82, .9), rgba(8, 20, 43, .9));
+  box-shadow: 0 0 0 3px rgba(93, 180, 255, .09), 0 10px 28px rgba(25, 68, 155, .13);
+  outline: none;
+}
+.nv-image-uploader__dropzone.is-dragover {
+  transform: scale(1.006);
+}
+.nv-image-uploader__icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgba(139, 153, 255, .3);
+  border-radius: 13px;
+  background: rgba(116, 105, 255, .12);
+  color: #9deaf1;
+}
+.nv-image-uploader__icon svg {
+  width: 25px;
+  height: 25px;
+}
+.nv-image-uploader__drop-title {
+  color: #edf2ff;
+  font-size: 14px;
+  font-weight: 700;
+}
+.nv-image-uploader__drop-copy {
+  color: #aebbd7;
+  font-size: 12px;
+}
+.nv-image-uploader__input {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+}
+.nv-image-uploader__input:focus-visible + * {
+  outline: 2px solid #69dcec;
+}
+.nv-image-uploader__remove {
+  display: grid;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  margin-inline-start: auto;
+  place-items: center;
+  border: 1px solid rgba(255, 125, 155, .28);
+  border-radius: 9px;
+  background: rgba(255, 105, 139, .08);
+  color: #ff9bb2;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.nv-image-uploader__remove:hover {
+  border-color: rgba(255, 125, 155, .65);
+  background: rgba(255, 105, 139, .15);
+}
+.nv-image-uploader__file-state {
+  color: #8fe2d4;
+  font-size: 11px;
+}
+.nv-image-uploader__clear {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  color: #b5c1db;
+  font-size: 12px;
+}
+.nv-image-uploader__upload {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(113, 145, 235, .2);
+  border-radius: 12px;
+  background: rgba(8, 18, 39, .65);
+}
+.nv-image-uploader__upload-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+  color: #c8d4ee;
+  font-size: 12px;
+}
+.nv-image-uploader__upload-heading strong {
+  color: #9deaf1;
+  font-variant-numeric: tabular-nums;
+}
+.nv-image-uploader__progress-track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(120, 139, 190, .17);
+}
+.nv-image-uploader__progress-track > span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #5578ff, #9b7bff 58%, #74e2e5);
+  box-shadow: 0 0 12px rgba(116, 226, 229, .35);
+  transition: width .12s linear;
+}
+.nv-image-uploader__upload-status,
+.nv-image-uploader__message {
+  margin: 8px 0 0;
+  color: #aab8d4;
+  font-size: 11px;
+}
+.nv-image-uploader__message:empty {
+  display: none;
+}
+.nv-image-uploader__message.is-error {
+  color: #ff9daf;
+}
+.nv-image-uploader__message.is-success {
+  color: #8fe2d4;
+}
+.nv-image-uploader [hidden] {
+  display: none !important;
+}
+@media (max-width: 600px) {
+  .nv-image-uploader__dropzone {
+    min-height: 145px;
+    padding: 16px 12px;
+  }
+  .nv-image-uploader__current,
+  .nv-image-uploader__selection {
+    gap: 10px;
+    padding: 9px;
+  }
+  .nv-image-uploader__current img,
+  .nv-image-uploader__preview {
+    flex-basis: 62px;
+    width: 62px;
+    height: 58px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nv-image-uploader__dropzone,
+  .nv-image-uploader__progress-track > span {
+    transition: none;
+  }
+}
