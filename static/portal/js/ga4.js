@@ -244,6 +244,18 @@
       return;
     }
 
+    if (form.hasAttribute('data-ga4-remove-from-cart')) {
+      event.preventDefault();
+      const item = readItem(form);
+      const normalized = normalizedPrice(form.dataset.priceMinor, form.dataset.currency);
+      submitAfterTracking(form, 'remove_from_cart', {
+        currency: normalized?.currency,
+        value: normalized?.price,
+        items: [item],
+      });
+      return;
+    }
+
     if (form.hasAttribute('data-ga4-begin-checkout')) {
       event.preventDefault();
       const itemRows = Array.from(document.querySelectorAll('[data-ga4-cart-item]'));
