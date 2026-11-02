@@ -143,13 +143,22 @@
       if (sequence !== root._algoliaSequence) return;
       renderResults(results, payload);
       if (fullSearch) {
-        renderFacetOptions(root, 'platform', payload.results?.[2]?.facets?.platforms, 'همه پلتفرم‌ها');
-        renderFacetOptions(root, 'category', payload.results?.[3]?.facets?.category, 'همه دسته‌بندی‌ها');
+        renderFacetOptions(
+          root,
+          'platform',
+          payload.results?.[2]?.facets?.platforms,
+          'همه پلتفرم‌ها'
+        );
+        renderFacetOptions(
+          root,
+          'category',
+          payload.results?.[3]?.facets?.category,
+          'همه دسته‌بندی‌ها'
+        );
       }
-      const total = (payload.results || []).slice(0, 2).reduce(
-        (sum, item) => sum + (item.nbHits || 0),
-        0
-      );
+      const total = (payload.results || [])
+        .slice(0, 2)
+        .reduce((sum, item) => sum + (item.nbHits || 0), 0);
       if (status)
         status.textContent = total ? total + ' نتیجه در محصولات و مقالات' : 'نتیجه‌ای پیدا نشد.';
     } catch (error) {
