@@ -149,10 +149,10 @@
       const params = { items };
       if (distinctCurrencies.length === 1) {
         params.currency = distinctCurrencies[0];
-        params.value = products.reduce((sum, product) => {
-          const price = normalizedPrice(product.dataset.priceMinor, product.dataset.currency);
-          return sum + (price?.price || 0);
-        }, 0);
+        if (products.length === 1) {
+          const price = normalizedPrice(products[0].dataset.priceMinor, products[0].dataset.currency);
+          if (price) params.value = price.price;
+        }
       }
       if (distinctCurrencies.length > 1) items.forEach((item) => delete item.price);
       track(products.length > 1 ? 'view_item_list' : 'view_item', params);
