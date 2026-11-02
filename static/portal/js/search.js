@@ -63,13 +63,64 @@
       container.append(element('div', 'nv-search-empty', 'نتیجه‌ای برای این عبارت پیدا نشد.'));
   };
 
+  const renderFacetOptions = (root, name, values, placeholder) => {
+    const select = root.querySelector('[data-search-filter="' + name + '"]');
+    if (!select) return;
+    const selected = select.value;
+    const options = [element('option', '', placeholder)];
+    options[0].value = '';
+    Object.entries(values || {})
+      .sort(([left], [right]) => left.localeCompare(right, 'fa'))
+      .forEach(([value, count]) => {
+        const option = element('option', '', value + ' (' + count + ')');
+        option.value = value;
+        options.push(option);
+      });
+    select.replaceChildren(...options);
+    if (options.some((option) => option.value === selected)) select.value = selected;
+  };
+
   const runSearch = async (root, query, sequence) => {
     const status = root.querySelector('[data-algolia-status]');
     const results = root.querySelector('[data-algolia-results]');
     if (!results || !query) return;
     if (status) status.textContent = 'در حال جست‌وجو…';
+
     const appId = root.dataset.algoliaAppId;
     const apiKey = root.dataset.algoliaSearchKey;
+    const fullSearch = root.dataset.fullSearch === 'true';
+    const hitsPerPage = fullSearch ? '8' : '4';
+    const platform = root.querySelector('[data-search-filter="platform"]')?.value || '';
+    const category = root.querySelector('[data-search-filter="category"]')?.value || '';
+    const productParams = new URLSearchParams({ query, hitsPerPage });
+    const articleParams = new URLSearchParams({ query, hitsPerPage });
+
+    if (platform) productParams.set('facetFilters', JSON.stringify(['platforms:' + platform]));
+    if (category) articleParams.set('facetFilters', JSON.stringify(['category:' + category]));
+
+    const requests = [
+      { indexName: root.dataset.algoliaProductsIndex, params: productParams.toString() },
+      { indexName: root.dataset.algoliaArticlesIndex, params: articleParams.toString() },
+    ];
+    if (fullSearch) {
+      requests.push({
+        indexName: root.dataset.algoliaProductsIndex,
+        params: new URLSearchParams({
+          query,
+          hitsPerPage: '0',
+          facets: JSON.stringify(['platforms']),
+        }).toString(),
+      });
+      requests.push({
+        indexName: root.dataset.algoliaArticlesIndex,
+        params: new URLSearchParams({
+          query,
+          hitsPerPage: '0',
+          facets: JSON.stringify(['category']),
+        }).toString(),
+      });
+    }
+
     const controller = new AbortController();
     root._algoliaController?.abort();
     root._algoliaController = controller;
@@ -83,24 +134,7 @@
             'X-Algolia-Application-Id': appId,
             'X-Algolia-API-Key': apiKey,
           },
-          body: JSON.stringify({
-            requests: [
-              {
-                indexName: root.dataset.algoliaProductsIndex,
-                params: new URLSearchParams({
-                  query,
-                  hitsPerPage: root.dataset.fullSearch === 'true' ? '8' : '4',
-                }).toString(),
-              },
-              {
-                indexName: root.dataset.algoliaArticlesIndex,
-                params: new URLSearchParams({
-                  query,
-                  hitsPerPage: root.dataset.fullSearch === 'true' ? '8' : '4',
-                }).toString(),
-              },
-            ],
-          }),
+          body: JSON.stringify({ requests }),
           signal: controller.signal,
         }
       );
@@ -108,7 +142,14 @@
       const payload = await response.json();
       if (sequence !== root._algoliaSequence) return;
       renderResults(results, payload);
-      const total = (payload.results || []).reduce((sum, item) => sum + (item.nbHits || 0), 0);
+      if (fullSearch) {
+        renderFacetOptions(root, 'platform', payload.results?.[2]?.facets?.platforms, 'همه پلتفرم‌ها');
+        renderFacetOptions(root, 'category', payload.results?.[3]?.facets?.category, 'همه دسته‌بندی‌ها');
+      }
+      const total = (payload.results || []).slice(0, 2).reduce(
+        (sum, item) => sum + (item.nbHits || 0),
+        0
+      );
       if (status)
         status.textContent = total ? total + ' نتیجه در محصولات و مقالات' : 'نتیجه‌ای پیدا نشد.';
     } catch (error) {
@@ -137,9 +178,12 @@
           if (status) status.textContent = 'حداقل دو نویسه وارد کن.';
           return;
         }
-        timer = window.setTimeout(() => runSearch(root, query, sequence), 260);
+        timer = window.setTimeout(() => runSearch(root, query, sequence), 300);
       };
       input.addEventListener('input', search);
+      root.querySelectorAll('[data-search-filter]').forEach((select) => {
+        select.addEventListener('change', search);
+      });
       if (input.value.length >= 2) search();
     });
 
