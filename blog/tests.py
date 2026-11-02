@@ -107,7 +107,6 @@ class BlogPostImageUploaderTests(TestCase):
         from unittest.mock import patch
 
         from django.core.files.uploadedfile import SimpleUploadedFile
-        from django.core.exceptions import ValidationError
         from PIL import Image
 
         from portal.widgets import MAX_IMAGE_UPLOAD_BYTES
@@ -129,6 +128,6 @@ class BlogPostImageUploaderTests(TestCase):
             },
             files={"img": uploaded},
         )
-        with patch("portal.widgets.MAX_IMAGE_UPLOAD_BYTES", len(image_bytes) - 1):
+        with patch("blog.forms.MAX_IMAGE_UPLOAD_BYTES", len(image_bytes) - 1):
             self.assertFalse(form.is_valid())
             self.assertIn("img", form.errors)
