@@ -109,3 +109,73 @@
     padding: 9px 6px;
   }
 }
+
+
+/* Compact, centered customer Turnstile panel, proportioned like admin login. */
+body.nv-portal .nv-auth-form .turnstile-shell {
+  width: min(100%, 340px);
+  max-width: 340px;
+  min-height: 0;
+  margin: 10px auto 4px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+body.nv-portal .nv-auth-form .turnstile-heading {
+  margin-bottom: 6px;
+  text-align: center;
+}
+body.nv-portal .nv-auth-form .nv-turnstile-widget {
+  width: 300px;
+  max-width: 100%;
+  min-height: 65px;
+  margin-inline: auto;
+}
+body.nv-portal .nv-auth-form .turnstile-loading {
+  min-height: 65px;
+}
+body.nv-portal .nv-auth-form .turnstile-shell .nv-turnstile-widget iframe {
+  max-width: 100%;
+}
+
+/* Match POST feedback to the Nebula loading-orb treatment. */
+.nv-auth-form .nv-button-spinner {
+  position: absolute;
+  inset: 0;
+  width: 23px;
+  height: 23px;
+  margin: auto;
+  border: 2px solid rgba(239, 244, 255, .25);
+  border-top-color: #b2a8ff;
+  border-right-color: #8ae6e7;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(138, 230, 231, .22), inset 0 0 8px rgba(178, 168, 255, .12);
+  animation: nv-auth-orb-spin .72s linear infinite;
+}
+.nv-auth-form button.is-loading {
+  position: relative;
+  align-self: center;
+  display: inline-grid;
+  place-items: center;
+  width: 46px !important;
+  min-width: 46px !important;
+  max-width: 46px !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  padding: 0 !important;
+  border: 1px solid rgba(169, 154, 255, .42) !important;
+  border-radius: 50% !important;
+  color: transparent !important;
+  background: radial-gradient(circle at 32% 26%, #e0fbff 0%, #9beaf1 11%, #8e82ff 36%, #5145b5 68%, #171b43 100%) !important;
+  box-shadow: 0 0 12px rgba(138, 230, 231, .25), 0 0 26px rgba(117, 103, 245, .24) !important;
+  opacity: 1 !important;
+  cursor: wait !important;
+}
+@keyframes nv-auth-orb-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nv-auth-form .nv-button-spinner {
+    animation-duration: 2s;
+  }
+}
