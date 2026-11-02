@@ -145,21 +145,6 @@
     <p class="nv-auth-security-note"><span>⌑</span> اطلاعات حساب شما از طریق اتصال امن ارسال می‌شود.</p>
   </div>
 </section>
-<style>
-  .nv-button-spinner {
-    display: inline-block;
-    width: 1em;
-    height: 1em;
-    margin-inline-start: .55em;
-    vertical-align: -.15em;
-    border: 2px solid currentColor;
-    border-inline-end-color: transparent;
-    border-radius: 50%;
-    animation: nv-button-spin .7s linear infinite;
-  }
-  .is-loading { opacity: .78; cursor: wait !important; }
-  @keyframes nv-button-spin { to { transform: rotate(360deg); } }
-</style>
 <script src="{% static 'portal/js/auth-turnstile.js' %}" defer></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=nvTurnstileReady&amp;render=explicit"
         defer></script>
