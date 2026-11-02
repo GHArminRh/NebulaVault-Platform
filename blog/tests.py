@@ -3,6 +3,8 @@ from django.utils import timezone
 
 from wagtail.models import DraftStateMixin, PreviewableMixin, RevisionMixin
 
+from .forms import BlogPostAdminForm
+
 from .models import BlogPost, Tag
 
 
