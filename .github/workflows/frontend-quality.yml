@@ -41,15 +41,16 @@ jobs:
 
       - name: Format customer verification assets
         if: github.event_name == 'pull_request'
-        run: |
-          npx prettier --write static/portal/css/account-security.css static/portal/js/auth-turnstile.js
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add static/portal/css/account-security.css static/portal/js/auth-turnstile.js
-          if ! git diff --cached --quiet; then
-            git commit -m "Format customer Turnstile assets"
-            git push origin "HEAD:${GITHUB_HEAD_REF}"
-          fi
+        run: npx prettier --write static/portal/css/account-security.css static/portal/js/auth-turnstile.js
+
+      - name: Upload formatted customer verification assets
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-customer-verification-assets
+          path: |
+            static/portal/css/account-security.css
+            static/portal/js/auth-turnstile.js
 
       - name: Check CSS, JavaScript, and tooling formatting
         run: npm run check:assets
