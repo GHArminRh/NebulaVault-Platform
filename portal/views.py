@@ -288,3 +288,13 @@ def start_trial(request, slug):
     return redirect("portal:subscriptions")
 
 
+
+
+
+def search_page(request):
+    """Render the public Algolia search results page."""
+    return render(
+        request,
+        "portal/search.html",
+        {"search_query": request.GET.get("q", "").strip()[:120]},
+    )

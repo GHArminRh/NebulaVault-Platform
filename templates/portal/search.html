@@ -1,0 +1,46 @@
+{% extends "portal/base.html" %}
+{% block title %}جست‌وجو | نبیولا والت{% endblock %}
+{% block content %}
+  <section class="page-wrap nv-search-page">
+    <div class="nv-search-panel"
+         data-algolia-search
+         data-full-search="true"
+         data-algolia-app-id="{{ algolia_app_id }}"
+         data-algolia-search-key="{{ algolia_search_api_key }}"
+         data-algolia-products-index="{{ algolia_products_index }}"
+         data-algolia-articles-index="{{ algolia_articles_index }}">
+      <h1>جست‌وجو در نبیولا والت</h1>
+      <form class="nv-search-form"
+            method="get"
+            action="{% url 'portal_search:search' %}">
+        <input class="nv-search-input"
+               type="search"
+               name="q"
+               value="{{ search_query }}"
+               placeholder="نام محصول، نسخه یا مقاله را جست‌وجو کن…"
+               autocomplete="off"
+               data-algolia-search-input
+               aria-label="عبارت جست‌وجو">
+        <button class="button button-primary nv-search-submit" type="submit">جست‌وجو</button>
+      </form>
+      <div class="nv-search-filters" data-algolia-filters>
+        <label>
+          <span>پلتفرم محصول</span>
+          <select class="nv-search-select" data-search-filter="platform">
+            <option value="">همه پلتفرم‌ها</option>
+          </select>
+        </label>
+        <label>
+          <span>دسته‌بندی مقاله</span>
+          <select class="nv-search-select" data-search-filter="category">
+            <option value="">همه دسته‌بندی‌ها</option>
+          </select>
+        </label>
+      </div>
+      <div class="nv-search-status"
+           data-algolia-status
+           aria-live="polite">برای شروع، عبارت موردنظرت را وارد کن.</div>
+      <div class="nv-search-results" data-algolia-results></div>
+    </div>
+  </section>
+{% endblock %}

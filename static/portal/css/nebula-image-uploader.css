@@ -11,9 +11,9 @@
   gap: 14px;
   margin: 0 0 12px;
   padding: 12px;
-  border: 1px solid rgba(125, 151, 220, .22);
+  border: 1px solid rgba(125, 151, 220, 0.22);
   border-radius: 13px;
-  background: rgba(12, 23, 48, .58);
+  background: rgba(12, 23, 48, 0.58);
 }
 .nv-image-uploader__current img,
 .nv-image-uploader__preview {
@@ -22,9 +22,9 @@
   width: 76px;
   height: 64px;
   object-fit: cover;
-  border: 1px solid rgba(138, 230, 231, .22);
+  border: 1px solid rgba(138, 230, 231, 0.22);
   border-radius: 9px;
-  background: rgba(4, 10, 24, .7);
+  background: rgba(4, 10, 24, 0.7);
 }
 .nv-image-uploader__current-meta,
 .nv-image-uploader__file-info {
@@ -53,23 +53,29 @@
   gap: 7px;
   padding: 20px;
   overflow: hidden;
-  border: 1px dashed rgba(137, 155, 225, .48);
+  border: 1px dashed rgba(137, 155, 225, 0.48);
   border-radius: 15px;
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(104, 104, 255, .13), transparent 65%),
-    linear-gradient(145deg, rgba(18, 31, 63, .78), rgba(7, 16, 35, .76));
+    radial-gradient(ellipse at 50% 0%, rgba(104, 104, 255, 0.13), transparent 65%),
+    linear-gradient(145deg, rgba(18, 31, 63, 0.78), rgba(7, 16, 35, 0.76));
   text-align: center;
   cursor: pointer;
-  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
 }
 .nv-image-uploader__dropzone:hover,
 .nv-image-uploader__dropzone:focus-visible,
 .nv-image-uploader__dropzone.is-dragover {
-  border-color: rgba(105, 220, 236, .82);
+  border-color: rgba(105, 220, 236, 0.82);
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(104, 104, 255, .2), transparent 65%),
-    linear-gradient(145deg, rgba(23, 42, 82, .9), rgba(8, 20, 43, .9));
-  box-shadow: 0 0 0 3px rgba(93, 180, 255, .09), 0 10px 28px rgba(25, 68, 155, .13);
+    radial-gradient(ellipse at 50% 0%, rgba(104, 104, 255, 0.2), transparent 65%),
+    linear-gradient(145deg, rgba(23, 42, 82, 0.9), rgba(8, 20, 43, 0.9));
+  box-shadow:
+    0 0 0 3px rgba(93, 180, 255, 0.09),
+    0 10px 28px rgba(25, 68, 155, 0.13);
   outline: none;
 }
 .nv-image-uploader__dropzone.is-dragover {
@@ -80,9 +86,9 @@
   width: 42px;
   height: 42px;
   place-items: center;
-  border: 1px solid rgba(139, 153, 255, .3);
+  border: 1px solid rgba(139, 153, 255, 0.3);
   border-radius: 13px;
-  background: rgba(116, 105, 255, .12);
+  background: rgba(116, 105, 255, 0.12);
   color: #9deaf1;
 }
 .nv-image-uploader__icon svg {
@@ -98,15 +104,15 @@
   color: #aebbd7;
   font-size: 12px;
 }
-.nv-image-uploader__input {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  clip-path: inset(50%) !important;
-  white-space: nowrap !important;
+.nv-image-uploader .nv-image-uploader__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .nv-image-uploader__input:focus-visible + * {
   outline: 2px solid #69dcec;
@@ -118,17 +124,17 @@
   height: 30px;
   margin-inline-start: auto;
   place-items: center;
-  border: 1px solid rgba(255, 125, 155, .28);
+  border: 1px solid rgba(255, 125, 155, 0.28);
   border-radius: 9px;
-  background: rgba(255, 105, 139, .08);
+  background: rgba(255, 105, 139, 0.08);
   color: #ff9bb2;
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
 }
 .nv-image-uploader__remove:hover {
-  border-color: rgba(255, 125, 155, .65);
-  background: rgba(255, 105, 139, .15);
+  border-color: rgba(255, 125, 155, 0.65);
+  background: rgba(255, 105, 139, 0.15);
 }
 .nv-image-uploader__file-state {
   color: #8fe2d4;
@@ -145,9 +151,9 @@
 .nv-image-uploader__upload {
   margin-top: 12px;
   padding: 12px 14px;
-  border: 1px solid rgba(113, 145, 235, .2);
+  border: 1px solid rgba(113, 145, 235, 0.2);
   border-radius: 12px;
-  background: rgba(8, 18, 39, .65);
+  background: rgba(8, 18, 39, 0.65);
 }
 .nv-image-uploader__upload-heading {
   display: flex;
@@ -165,7 +171,7 @@
   height: 7px;
   overflow: hidden;
   border-radius: 99px;
-  background: rgba(120, 139, 190, .17);
+  background: rgba(120, 139, 190, 0.17);
 }
 .nv-image-uploader__progress-track > span {
   display: block;
@@ -173,8 +179,8 @@
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, #5578ff, #9b7bff 58%, #74e2e5);
-  box-shadow: 0 0 12px rgba(116, 226, 229, .35);
-  transition: width .12s linear;
+  box-shadow: 0 0 12px rgba(116, 226, 229, 0.35);
+  transition: width 0.12s linear;
 }
 .nv-image-uploader__upload-status,
 .nv-image-uploader__message {

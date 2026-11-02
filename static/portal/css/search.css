@@ -1,0 +1,215 @@
+/* Nebula Vault — Algolia-powered public search */
+.nv-search-open {
+  white-space: nowrap;
+}
+.nv-search-dialog {
+  width: min(720px, calc(100vw - 28px));
+  max-width: 720px;
+  max-height: min(82vh, 760px);
+  padding: 0;
+  overflow: hidden;
+  color: #eef3ff;
+  border: 1px solid rgba(135, 160, 220, 0.24);
+  border-radius: 22px;
+  background: rgba(9, 16, 33, 0.98);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.58);
+}
+.nv-search-dialog::backdrop {
+  background: rgba(2, 6, 17, 0.76);
+  backdrop-filter: blur(8px);
+}
+.nv-search-shell {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+.nv-search-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.nv-search-heading strong {
+  font-size: 15px;
+}
+.nv-search-close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(150, 170, 220, 0.2);
+  border-radius: 11px;
+  color: #cbd7f2;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+}
+.nv-search-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.nv-search-input {
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  padding: 12px 16px;
+  color: #f4f7ff;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(120, 155, 225, 0.3);
+  border-radius: 13px;
+  outline: none;
+  font: inherit;
+  direction: rtl;
+}
+.nv-search-input:focus {
+  border-color: #7b9dff;
+  box-shadow: 0 0 0 3px rgba(100, 130, 255, 0.14);
+}
+.nv-search-submit {
+  min-height: 48px;
+  white-space: nowrap;
+}
+.nv-search-status {
+  min-height: 22px;
+  color: #8fa2c8;
+  font-size: 12px;
+}
+.nv-search-results {
+  display: grid;
+  gap: 18px;
+  max-height: 54vh;
+  overflow: auto;
+}
+.nv-search-group {
+  display: grid;
+  gap: 8px;
+}
+.nv-search-group-title {
+  color: #aebeff;
+  font-size: 12px;
+  font-weight: 700;
+}
+.nv-search-hit {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid rgba(130, 155, 210, 0.14);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.035);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+.nv-search-hit:hover,
+.nv-search-hit:focus-visible {
+  border-color: rgba(125, 157, 255, 0.55);
+  background: rgba(83, 111, 205, 0.1);
+  transform: translateY(-1px);
+}
+.nv-search-hit strong {
+  font-size: 13px;
+  color: #edf2ff;
+}
+.nv-search-hit p {
+  margin: 0;
+  color: #93a3c3;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.nv-search-hit small {
+  color: #8297c4;
+  font-size: 10px;
+}
+.nv-search-page {
+  padding-top: 54px;
+  padding-bottom: 80px;
+}
+.nv-search-page .nv-search-panel {
+  display: grid;
+  gap: 18px;
+  padding: 26px;
+  border: 1px solid rgba(130, 155, 210, 0.2);
+  border-radius: 22px;
+  background: rgba(13, 21, 42, 0.78);
+}
+.nv-search-page h1 {
+  margin: 0;
+  font-size: clamp(25px, 4vw, 36px);
+}
+.nv-search-page .nv-search-results {
+  max-height: none;
+  overflow: visible;
+}
+.nv-search-page .nv-search-hit {
+  padding: 16px 18px;
+}
+.nv-search-empty {
+  padding: 18px;
+  color: #9aaaca;
+  text-align: center;
+  font-size: 13px;
+}
+@media (max-width: 760px) {
+  .nv-search-open {
+    width: 38px;
+    min-width: 38px;
+    padding: 0;
+    font-size: 0;
+  }
+  .nv-search-open::before {
+    content: '⌕';
+    font-size: 22px;
+  }
+  .nv-search-shell {
+    padding: 16px;
+  }
+  .nv-search-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .nv-search-submit {
+    width: 100%;
+  }
+  .nv-search-page {
+    padding-top: 28px;
+  }
+  .nv-search-page .nv-search-panel {
+    padding: 18px;
+  }
+}
+
+.nv-search-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.nv-search-filters label {
+  display: grid;
+  gap: 7px;
+  color: #aebeff;
+  font-size: 11px;
+  font-weight: 600;
+}
+.nv-search-select {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  color: #eef3ff;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(120, 155, 225, 0.3);
+  border-radius: 11px;
+  font: inherit;
+}
+.nv-search-select:focus {
+  border-color: #7b9dff;
+  outline: 2px solid rgba(100, 130, 255, 0.2);
+}
+.nv-search-select option {
+  color: #17213a;
+}
+@media (max-width: 560px) {
+  .nv-search-filters {
+    grid-template-columns: 1fr;
+  }
+}

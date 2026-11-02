@@ -126,6 +126,7 @@ urlpatterns = [
     path("cms/", include(wagtailadmin_urls)),
     path("documents/", include(wagtaildocs_urls)),
     path("api/v1/", include("api.urls")),
+    path("search/", include("portal.urls_search")),
     path("api/licensing/", include("licensing.urls")),
     path("billing/", include("billing.urls")),
     path(

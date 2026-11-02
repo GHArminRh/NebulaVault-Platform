@@ -21,6 +21,21 @@ class PortalPageTests(TestCase):
             self.assertEqual(self.client.get(reverse(url)).status_code, 200)
         self.assertEqual(self.client.get(reverse("portal:product_detail", args=[self.product.slug])).status_code, 200)
 
+    def test_algolia_search_page_renders_without_credentials(self):
+        response = self.client.get(reverse("portal_search:search"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "جست‌وجو در نبیولا والت")
+
+    @override_settings(
+        ALGOLIA_APP_ID="TESTAPP",
+        ALGOLIA_ADMIN_API_KEY="server-only-admin-secret",
+        ALGOLIA_SEARCH_API_KEY="public-search-key",
+    )
+    def test_storefront_exposes_only_the_search_api_key(self):
+        response = self.client.get(reverse("portal:home"))
+        self.assertContains(response, 'data-algolia-search-key="public-search-key"')
+        self.assertNotContains(response, "server-only-admin-secret")
+
     def test_homepage_renders_for_authenticated_customer(self):
         self.client.force_login(
             self.user,
