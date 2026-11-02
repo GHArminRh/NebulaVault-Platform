@@ -27,8 +27,7 @@
     return node;
   };
 
-  const escapeFilterValue = (value) =>
-    String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  const escapeFilterValue = (value) => String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 
   const renderResults = (container, payload) => {
     container.replaceChildren();
