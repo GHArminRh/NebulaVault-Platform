@@ -87,3 +87,48 @@ class BlogPostWagtailEditorialTests(TestCase):
         self.assertFalse(post.live)
         self.assertEqual(post.status, BlogPost.Status.DRAFT)
         self.assertTrue(BlogPost.objects.filter(pk=post.pk).exists())
+
+
+
+class BlogPostImageUploaderTests(TestCase):
+    def test_admin_image_field_uses_nebula_uploader(self):
+        from .forms import BlogPostAdminForm
+        from portal.widgets import NebulaImageUploaderWidget
+
+        form = BlogPostAdminForm()
+        self.assertIsInstance(form.fields["img"].widget, NebulaImageUploaderWidget)
+        rendered = str(form["img"])
+        self.assertIn("data-nv-image-uploader", rendered)
+        self.assertIn("data-dropzone", rendered)
+        self.assertIn("data-upload-panel", rendered)
+
+    def test_admin_image_upload_rejects_files_over_size_limit(self):
+        from io import BytesIO
+        from unittest.mock import patch
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from django.core.exceptions import ValidationError
+        from PIL import Image
+
+        from portal.widgets import MAX_IMAGE_UPLOAD_BYTES
+
+        image_buffer = BytesIO()
+        Image.new("RGB", (2, 2), color="blue").save(image_buffer, format="PNG")
+        image_bytes = image_buffer.getvalue()
+        uploaded = SimpleUploadedFile(
+            "oversized.png",
+            image_bytes,
+            content_type="image/png",
+        )
+        form = BlogPostAdminForm(
+            data={
+                "title": "Image upload limit test",
+                "slug": "image-upload-limit-test",
+                "content": "Test",
+                "status": BlogPost.Status.DRAFT,
+            },
+            files={"img": uploaded},
+        )
+        with patch("portal.widgets.MAX_IMAGE_UPLOAD_BYTES", len(image_bytes) - 1):
+            self.assertFalse(form.is_valid())
+            self.assertIn("img", form.errors)
