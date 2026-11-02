@@ -10,13 +10,22 @@
          data-algolia-products-index="{{ algolia_products_index }}"
          data-algolia-articles-index="{{ algolia_articles_index }}">
       <h1>جست‌وجو در نبیولا والت</h1>
-      <form class="nv-search-form" method="get" action="{% url 'portal_search:search' %}">
-        <input class="nv-search-input" type="search" name="q" value="{{ search_query }}"
+      <form class="nv-search-form"
+            method="get"
+            action="{% url 'portal_search:search' %}">
+        <input class="nv-search-input"
+               type="search"
+               name="q"
+               value="{{ search_query }}"
                placeholder="نام محصول، نسخه یا مقاله را جست‌وجو کن…"
-               autocomplete="off" data-algolia-search-input aria-label="عبارت جست‌وجو">
+               autocomplete="off"
+               data-algolia-search-input
+               aria-label="عبارت جست‌وجو">
         <button class="button button-primary nv-search-submit" type="submit">جست‌وجو</button>
       </form>
-      <div class="nv-search-status" data-algolia-status aria-live="polite">برای شروع، عبارت موردنظرت را وارد کن.</div>
+      <div class="nv-search-status"
+           data-algolia-status
+           aria-live="polite">برای شروع، عبارت موردنظرت را وارد کن.</div>
       <div class="nv-search-results" data-algolia-results></div>
     </div>
   </section>
