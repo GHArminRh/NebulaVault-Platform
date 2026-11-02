@@ -102,7 +102,7 @@
         transfer.items.add(file);
         input.files = transfer.files;
         setFile(file);
-      } catch (error) {
+      } catch {
         showMessage(
           'Your browser could not attach this dropped file. Please browse for it instead.',
           true
