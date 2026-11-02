@@ -66,6 +66,20 @@ def _delete(index_name, object_id):
         logger.exception("Algolia deletion failed for %s/%s", index_name, object_id)
 
 
+
+def _fit_record(record, max_bytes=9000):
+    """Keep indexed objects below the Free plan's 10 KB per-record ceiling."""
+    def size():
+        return len(json.dumps(record, ensure_ascii=False).encode("utf-8"))
+
+    for field in ("content", "description", "excerpt", "searchText"):
+        while size() > max_bytes and len(record.get(field, "")) > 32:
+            record[field] = record[field][: max(32, int(len(record[field]) * 0.7))]
+    for field in ("versions", "tags", "platforms"):
+        while size() > max_bytes and record.get(field):
+            record[field] = record[field][: max(0, int(len(record[field]) * 0.7))]
+    return record
+
 def product_record(product):
     releases = list(
         product.releases.filter(is_published=True)
@@ -120,11 +134,7 @@ def blog_post_record(post):
         "publishedAt": post.published_at.isoformat(),
         "url": reverse("blog:post_detail", kwargs={"slug": post.slug}),
     }
-    # The Algolia Free plan has a 10 KB record limit; leave a safety margin.
-    for field in ("content", "excerpt", "searchText"):
-        while len(json.dumps(record, ensure_ascii=False).encode("utf-8")) > 9000 and record.get(field):
-            record[field] = record[field][: max(1, int(len(record[field]) * 0.75))]
-    return record
+    return _fit_record(record)
 
 
 def sync_product(product):
