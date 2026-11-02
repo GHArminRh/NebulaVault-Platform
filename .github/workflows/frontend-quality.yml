@@ -39,6 +39,11 @@ jobs:
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
           npm ci --no-audit --no-fund
 
+      - name: Temporarily print Prettier output for GA4 source
+        run: |
+          npx prettier --write static/portal/js/ga4.js
+          cat static/portal/js/ga4.js
+
       - name: Check CSS, JavaScript, and tooling formatting
         run: npm run check:assets
 
