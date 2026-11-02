@@ -40,9 +40,15 @@
     <script defer src="{% static 'portal/js/site.js' %}"></script>
     <script defer src="{% static 'portal/js/pwa.js' %}"></script>
     <link rel="stylesheet" href="{% static 'portal/css/site-shell.css' %}">
+    {% if ga4_measurement_id %}
+      <link rel="stylesheet" href="{% static 'portal/css/analytics-consent.css' %}">
+      <script defer src="{% static 'portal/js/ga4.js' %}"></script>
+    {% endif %}
     {% block extra_css %}{% endblock %}
   </head>
-  <body class="nv-portal {% block body_class %} {% endblock %}">
+  <body class="nv-portal {% block body_class %} {% endblock %}"
+      data-ga4-id="{{ ga4_measurement_id|default:'' }}"
+      data-ga4-pending-event="{{ ga4_pending_event|default:'' }}">
     <div class="nv-page-progress"
          role="progressbar"
          aria-label="وضعیت بارگذاری صفحه"
@@ -167,6 +173,9 @@
                 aria-label="نصب اپلیکیشن نبیولا والت">نصب اپلیکیشن ↥</button>{% endif %}
         <span class="footer-note">
           <i></i> {{ chrome.footer_note|default:"امنیت از ابتدا · پنل حساب و پرداخت" }}</span>
+        {% if ga4_measurement_id %}
+          <button type="button" class="nv-privacy-settings-link" data-ga4-open-settings>تنظیمات حریم خصوصی</button>
+        {% endif %}
           {% if chrome.footer_links %}
             {% for footer_link in chrome.footer_links %}
               <a href="{{ footer_link.value.url }}"{% if footer_link.value.open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ footer_link.value.label }} ↗</a>
@@ -176,6 +185,9 @@
           {% endif %}
         </div>
       </footer>
+      {% if ga4_measurement_id %}
+        {% include "portal/_analytics_consent.html" %}
+      {% endif %}
     </body>
   </html>
 {% endwith %}
