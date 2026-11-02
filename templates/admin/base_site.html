@@ -7,6 +7,7 @@
   {{ block.super }}
   {% if request.user.is_authenticated %}
     <link rel="stylesheet" href="{% static 'portal/css/admin-motion.css' %}">
+    <link rel="stylesheet" href="{% static 'portal/admin-enhancements.css' %}">
     <script src="{% static 'portal/js/admin-motion.js' %}" defer></script>
   {% endif %}
   <script>
