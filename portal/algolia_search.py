@@ -91,7 +91,7 @@ def product_record(product):
     search_text = normalize_search_text(
         " ".join([product.name, product.slug, description, " ".join(platforms), " ".join(versions)])
     )
-    return {
+    record = {
         "objectID": str(product.pk),
         "type": "product",
         "title": product.name,
@@ -103,6 +103,7 @@ def product_record(product):
         "searchText": search_text,
         "url": reverse("portal:product_detail", kwargs={"slug": product.slug}),
     }
+    return _fit_record(record)
 
 
 def blog_post_is_public(post):
