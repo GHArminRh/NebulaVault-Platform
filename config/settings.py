@@ -159,6 +159,7 @@ TEMPLATES = [
                 "portal.context_processors.cart_context",
                 "portal.context_processors.analytics_context",
                 "accounts.context_processors.turnstile",
+                "portal.context_processors.algolia_search_context",
             ],
         },
     },
@@ -380,3 +381,11 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
 }
+
+
+# Algolia public search. Only the search-only key is exposed to the storefront.
+ALGOLIA_APP_ID = os.environ.get("ALGOLIA_APP_ID", "").strip()
+ALGOLIA_ADMIN_API_KEY = os.environ.get("ALGOLIA_ADMIN_API_KEY", "").strip()
+ALGOLIA_SEARCH_API_KEY = os.environ.get("ALGOLIA_SEARCH_API_KEY", "").strip()
+ALGOLIA_PRODUCTS_INDEX = os.environ.get("ALGOLIA_PRODUCTS_INDEX", "nebula_products").strip()
+ALGOLIA_ARTICLES_INDEX = os.environ.get("ALGOLIA_ARTICLES_INDEX", "nebula_articles").strip()
