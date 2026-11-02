@@ -56,3 +56,17 @@ def cart_context(request):
         "cart_preview_has_more": len(plans) > 4,
         "dashboard_licenses": dashboard_licenses,
     }
+
+
+def analytics_context(request):
+    """Expose GA4 configuration and consume one-time, server-confirmed auth events."""
+    from django.conf import settings
+
+    pending_event = request.session.pop("ga4_pending_event", "")
+    if pending_event not in {"login", "sign_up"}:
+        pending_event = ""
+
+    return {
+        "ga4_measurement_id": getattr(settings, "GA4_MEASUREMENT_ID", ""),
+        "ga4_pending_event": pending_event,
+    }
