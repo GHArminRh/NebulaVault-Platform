@@ -39,6 +39,9 @@ jobs:
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
           npm ci --no-audit --no-fund
 
+      - name: Print canonical CSS formatting for review
+        run: npx prettier static/portal/css/account-security.css static/portal/css/admin-motion.css
+
       - name: Check CSS, JavaScript, and tooling formatting
         run: npm run check:assets
 
