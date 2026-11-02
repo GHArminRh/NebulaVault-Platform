@@ -196,13 +196,17 @@
     if (window.__nvGa4PurchaseSent[payload.transaction_id]) return;
     try {
       if (window.localStorage.getItem(key)) return;
-    } catch {}
+    } catch {
+      // Local storage can be disabled by browser privacy settings.
+    }
 
     if (track('purchase', payload)) {
       window.__nvGa4PurchaseSent[payload.transaction_id] = true;
       try {
         window.localStorage.setItem(key, '1');
-      } catch {}
+      } catch {
+        // Local storage can be disabled by browser privacy settings.
+      }
     }
   }
 
