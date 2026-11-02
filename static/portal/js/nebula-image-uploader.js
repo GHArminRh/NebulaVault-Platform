@@ -148,6 +148,11 @@
     event.stopImmediatePropagation();
 
     const submitter = event.submitter;
+    // TinyMCE normally synchronizes its editor contents on the form's submit
+    // event. This capture-phase handler owns submission, so sync explicitly.
+    if (window.tinymce && typeof window.tinymce.triggerSave === "function") {
+      window.tinymce.triggerSave();
+    }
     const data = new FormData(form);
     if (submitter && submitter.name && !submitter.disabled) {
       data.append(submitter.name, submitter.value);
