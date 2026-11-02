@@ -105,7 +105,10 @@
   background: rgba(117, 103, 245, .09);
   color: #b2a8ff;
   cursor: pointer;
-  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
+  transition:
+    background .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease;
 }
 .nv-admin-disclosure-toggle:hover,
 .nv-admin-disclosure-toggle:focus-visible {
