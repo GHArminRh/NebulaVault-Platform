@@ -51,7 +51,7 @@
         url.pathname = '/accounts/password/reset/';
       }
       return url.origin + url.pathname;
-    } catch (_) {
+    } catch {
       return window.location.origin + '/';
     }
   }
@@ -186,7 +186,7 @@
     let payload;
     try {
       payload = JSON.parse(payloadElement.textContent || '{}');
-    } catch (_) {
+    } catch {
       return;
     }
     if (!payload.transaction_id || !Array.isArray(payload.items)) return;
@@ -196,13 +196,13 @@
     if (window.__nvGa4PurchaseSent[payload.transaction_id]) return;
     try {
       if (window.localStorage.getItem(key)) return;
-    } catch (_) {}
+    } catch {}
 
     if (track('purchase', payload)) {
       window.__nvGa4PurchaseSent[payload.transaction_id] = true;
       try {
         window.localStorage.setItem(key, '1');
-      } catch (_) {}
+      } catch {}
     }
   }
 
