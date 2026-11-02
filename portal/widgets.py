@@ -3,7 +3,6 @@
 from pathlib import Path
 
 from django import forms
-from django.conf import settings
 
 
 MAX_IMAGE_UPLOAD_BYTES = 12 * 1024 * 1024
