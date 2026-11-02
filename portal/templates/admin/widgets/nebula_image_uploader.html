@@ -1,0 +1,54 @@
+{% load i18n %}
+<div class="nv-image-uploader" data-nv-image-uploader data-max-bytes="{{ widget.max_upload_bytes }}">
+  {% if widget.is_initial and widget.initial_url %}
+    <div class="nv-image-uploader__current" data-current-preview>
+      <img src="{{ widget.initial_url }}" alt="{% trans 'Current image' %}" loading="lazy">
+      <div class="nv-image-uploader__current-meta">
+        <span class="nv-image-uploader__eyebrow">{% trans "Current image" %}</span>
+        <span class="nv-image-uploader__filename">{{ widget.initial_name }}</span>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="nv-image-uploader__dropzone" data-dropzone role="button" tabindex="0" aria-controls="{{ widget.attrs.id }}">
+    <span class="nv-image-uploader__icon" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none">
+        <path d="M24 31V8m0 0-8 8m8-8 8 8M9 29v9a3 3 0 0 0 3 3h24a3 3 0 0 0 3-3v-9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <span class="nv-image-uploader__drop-title">{% trans "Drop an image here" %}</span>
+    <span class="nv-image-uploader__drop-copy">{% trans "or click to browse your files" %}</span>
+    <span class="nv-image-uploader__constraints">{% trans "Image files · Up to 12 MB" %}</span>
+    <input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
+  </div>
+
+  <div class="nv-image-uploader__selection" data-selection hidden>
+    <img class="nv-image-uploader__preview" data-preview-image alt="{% trans 'Selected image preview' %}">
+    <div class="nv-image-uploader__file-info">
+      <span class="nv-image-uploader__filename" data-file-name></span>
+      <span class="nv-image-uploader__file-size" data-file-size></span>
+      <span class="nv-image-uploader__file-state" data-file-state>{% trans "Ready to upload" %}</span>
+    </div>
+    <button class="nv-image-uploader__remove" type="button" data-remove-selection aria-label="{% trans 'Remove selected image' %}">×</button>
+  </div>
+
+  {% if widget.is_initial and not widget.required %}
+    <div class="nv-image-uploader__clear">
+      <input type="checkbox" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}">
+      <label for="{{ widget.checkbox_id }}">{{ widget.clear_checkbox_label }}</label>
+    </div>
+  {% endif %}
+
+  <div class="nv-image-uploader__upload" data-upload-panel hidden>
+    <div class="nv-image-uploader__upload-heading">
+      <span data-upload-label>{% trans "Uploading image…" %}</span>
+      <strong data-upload-percent>0%</strong>
+    </div>
+    <div class="nv-image-uploader__progress-track" role="progressbar" aria-label="{% trans 'Upload progress' %}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-upload-progress>
+      <span data-upload-bar></span>
+    </div>
+    <p class="nv-image-uploader__upload-status" data-upload-status aria-live="polite">{% trans "Waiting to upload" %}</p>
+  </div>
+
+  <p class="nv-image-uploader__message" data-uploader-message role="status" aria-live="polite"></p>
+</div>
