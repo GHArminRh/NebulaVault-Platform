@@ -68,11 +68,17 @@
             <span>مرا به خاطر بسپار</span>
           </label>
           {% endif %}
-          {% if not form.two_factor_required %}
-          <div class="turnstile-shell" role="group" aria-label="تأیید امنیتی">
-            <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
-            <div class="nv-turnstile-widget"
-                 data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}"></div>
+          {% if not form.two_factor_required and TURNSTILE_ENABLED|default:True %}
+          <div class="turnstile-shell" role="group" aria-labelledby="nv-login-turnstile-heading">
+            <p class="turnstile-heading" id="nv-login-turnstile-heading">Security verification</p>
+            {% if TURNSTILE_SITE_KEY %}
+              <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
+              <div class="nv-turnstile-widget"
+                   data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}"
+                   data-action="customer_login"></div>
+            {% else %}
+              <p class="turnstile-config-error" role="alert">تأیید امنیتی در حال حاضر پیکربندی نشده است؛ ورود تا رفع مشکل غیرفعال می‌ماند.</p>
+            {% endif %}
           </div>
           {% endif %}
           <button class="button button-primary button-full button-large auth-submit"
@@ -117,11 +123,19 @@
        required
        placeholder="رمز عبور را دوباره وارد کنید">{% if auth_side == "register" and form.password2.errors %}<small class="field-error">{{ form.password2.errors|join:', ' }}</small>{% endif %}
           <p class="nv-auth-help">پس از ثبت‌نام، برای فعال‌سازی حساب باید ایمیل خود را تأیید کنید.</p>
-          <div class="turnstile-shell" role="group" aria-label="تأیید امنیتی">
-            <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
-            <div class="nv-turnstile-widget"
-                 data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}"></div>
+          {% if TURNSTILE_ENABLED|default:True %}
+          <div class="turnstile-shell" role="group" aria-labelledby="nv-register-turnstile-heading">
+            <p class="turnstile-heading" id="nv-register-turnstile-heading">Security verification</p>
+            {% if TURNSTILE_SITE_KEY %}
+              <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
+              <div class="nv-turnstile-widget"
+                   data-sitekey="{{ TURNSTILE_SITE_KEY|escape }}"
+                   data-action="customer_register"></div>
+            {% else %}
+              <p class="turnstile-config-error" role="alert">تأیید امنیتی در حال حاضر پیکربندی نشده است؛ ثبت‌نام تا رفع مشکل غیرفعال می‌ماند.</p>
+            {% endif %}
           </div>
+          {% endif %}
           <button class="button button-primary button-full button-large auth-submit"
                   type="submit">ایجاد حساب و تأیید ایمیل <span>↗</span></button>
         </form>
