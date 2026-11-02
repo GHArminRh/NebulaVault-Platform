@@ -149,7 +149,9 @@ body.nv-portal .nv-auth-form .turnstile-shell .nv-turnstile-widget iframe {
   border-top-color: #b2a8ff;
   border-right-color: #8ae6e7;
   border-radius: 50%;
-  box-shadow: 0 0 10px rgba(138, 230, 231, .22), inset 0 0 8px rgba(178, 168, 255, .12);
+  box-shadow:
+    0 0 10px rgba(138, 230, 231, .22),
+    inset 0 0 8px rgba(178, 168, 255, .12);
   animation: nv-auth-orb-spin .72s linear infinite;
 }
 .nv-auth-form button.is-loading {
@@ -166,13 +168,24 @@ body.nv-portal .nv-auth-form .turnstile-shell .nv-turnstile-widget iframe {
   border: 1px solid rgba(169, 154, 255, .42) !important;
   border-radius: 50% !important;
   color: transparent !important;
-  background: radial-gradient(circle at 32% 26%, #e0fbff 0%, #9beaf1 11%, #8e82ff 36%, #5145b5 68%, #171b43 100%) !important;
-  box-shadow: 0 0 12px rgba(138, 230, 231, .25), 0 0 26px rgba(117, 103, 245, .24) !important;
+  background: radial-gradient(
+    circle at 32% 26%,
+    #e0fbff 0%,
+    #9beaf1 11%,
+    #8e82ff 36%,
+    #5145b5 68%,
+    #171b43 100%
+  ) !important;
+  box-shadow:
+    0 0 12px rgba(138, 230, 231, .25),
+    0 0 26px rgba(117, 103, 245, .24) !important;
   opacity: 1 !important;
   cursor: wait !important;
 }
 @keyframes nv-auth-orb-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .nv-auth-form .nv-button-spinner {
