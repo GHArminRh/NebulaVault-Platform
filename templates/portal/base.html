@@ -1,4 +1,4 @@
-{% load static money wagtailsettings_tags %}
+{% load static money wagtailsettings_tags nav_order %}
 {% get_settings as wagtail_settings %}
 {% with chrome=wagtail_settings.sitecms.SiteChromeSettings %}
 <!DOCTYPE html>
@@ -71,15 +71,15 @@
       </a>
       <nav class="desktop-nav" aria-label="ناوبری اصلی">
         {% if chrome.header_links %}
-          {% for nav_link in chrome.header_links %}
+          {% for nav_link in chrome.header_links|blog_before_releases %}
             <a href="{{ nav_link.value.url }}"{% if nav_link.value.open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ nav_link.value.label }}</a>
           {% endfor %}
         {% else %}
           <a href="{% url 'portal:home' %}#home">خانه</a>
           <a href="{% url 'portal:home' %}#products">محصولات</a>
           <a href="{% url 'portal:home' %}#features">امکانات</a>
-          <a href="{% url 'portal:home' %}#releases">نسخه‌ها</a>
           <a href="{% url 'portal:home' %}#blog">بلاگ</a>
+          <a href="{% url 'portal:home' %}#releases">نسخه‌ها</a>
           <a href="{% url 'portal:home' %}#about">پرسش‌ها</a>
         {% endif %}
       </nav>
@@ -118,15 +118,15 @@
          hidden
          aria-label="ناوبری موبایل">
       {% if chrome.header_links %}
-        {% for nav_link in chrome.header_links %}
+        {% for nav_link in chrome.header_links|blog_before_releases %}
           <a href="{{ nav_link.value.url }}"{% if nav_link.value.open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ nav_link.value.label }}</a>
         {% endfor %}
       {% else %}
         <a href="{% url 'portal:home' %}#home">خانه</a>
         <a href="{% url 'portal:home' %}#products">محصولات</a>
         <a href="{% url 'portal:home' %}#features">امکانات</a>
-        <a href="{% url 'portal:home' %}#releases">نسخه‌ها</a>
         <a href="{% url 'portal:home' %}#blog">بلاگ</a>
+        <a href="{% url 'portal:home' %}#releases">نسخه‌ها</a>
         <a href="{% url 'portal:home' %}#about">پرسش‌ها</a>
       {% endif %}
       {% if user.is_authenticated %}
