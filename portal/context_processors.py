@@ -70,3 +70,20 @@ def analytics_context(request):
         "ga4_measurement_id": getattr(settings, "GA4_MEASUREMENT_ID", ""),
         "ga4_pending_event": pending_event,
     }
+
+
+
+def algolia_search_context(request):
+    """Expose only public Algolia settings needed by the browser search UI."""
+    from django.conf import settings
+
+    app_id = getattr(settings, "ALGOLIA_APP_ID", "")
+    search_key = getattr(settings, "ALGOLIA_SEARCH_API_KEY", "")
+    enabled = bool(app_id and search_key)
+    return {
+        "algolia_search_enabled": enabled,
+        "algolia_app_id": app_id if enabled else "",
+        "algolia_search_api_key": search_key if enabled else "",
+        "algolia_products_index": getattr(settings, "ALGOLIA_PRODUCTS_INDEX", "nebula_products"),
+        "algolia_articles_index": getattr(settings, "ALGOLIA_ARTICLES_INDEX", "nebula_articles"),
+    }
