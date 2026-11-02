@@ -185,6 +185,31 @@ class AccountBackendTests(TestCase):
         self.assertTrue(Customer.objects.filter(email="verified-widget@example.com").exists())
         self.assertEqual(verify.call_args.kwargs["expected_action"], "customer_register")
 
+    def test_turnstile_siteverify_rejects_a_token_for_the_wrong_action(self):
+        from unittest.mock import patch
+        from accounts.turnstile import verify_turnstile
+
+        with patch("accounts.turnstile.urlopen") as urlopen:
+            response = urlopen.return_value.__enter__.return_value
+            response.read.return_value = b'{"success": true, "action": "customer_login"}'
+            self.assertTrue(
+                verify_turnstile(
+                    "single-use-token",
+                    secret_key="test-secret",
+                    verify_url="https://example.test/siteverify",
+                    expected_action="customer_login",
+                )
+            )
+            response.read.return_value = b'{"success": true, "action": "customer_register"}'
+            self.assertFalse(
+                verify_turnstile(
+                    "single-use-token",
+                    secret_key="test-secret",
+                    verify_url="https://example.test/siteverify",
+                    expected_action="customer_login",
+                )
+            )
+
     def test_registration_generates_username_from_email_local_part(self):
         response = self.client.post(
             reverse("accounts:register"),
