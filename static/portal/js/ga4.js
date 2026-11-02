@@ -33,7 +33,14 @@
   }
 
   function ensureGoogleTag() {
-    if (window.__nvGa4Loaded) return;
+    if (window.__nvGa4Loaded) {
+      window.gtag("consent", "update", acceptedConsent);
+      window.__nvGa4Consent = "granted";
+      sendPendingAuthEvent();
+      sendPageContextEvents();
+      sendPurchaseEvent();
+      return;
+    }
     window.dataLayer = window.dataLayer || [];
     window.gtag = window.gtag || function gtag() { window.dataLayer.push(arguments); };
     window.gtag("consent", "default", deniedConsent);
@@ -98,15 +105,22 @@
   }
 
   function sendPageContextEvents() {
-    const product = document.querySelector("[data-ga4-view-item]");
-    if (product) {
-      const item = readItem(product);
-      const normalized = normalizedPrice(product.dataset.priceMinor, product.dataset.currency);
-      track("view_item", {
-        currency: normalized?.currency,
-        value: normalized?.price,
-        items: [item]
-      });
+    const products = Array.from(document.querySelectorAll("[data-ga4-view-item]"));
+    if (products.length) {
+      const items = products.map(readItem);
+      const currencies = products.map((product) =>
+        normalizedPrice(product.dataset.priceMinor, product.dataset.currency)?.currency
+      );
+      const distinctCurrencies = [...new Set(currencies.filter(Boolean))];
+      const params = { items };
+      if (distinctCurrencies.length === 1) {
+        params.currency = distinctCurrencies[0];
+        params.value = products.reduce((sum, product) => {
+          const price = normalizedPrice(product.dataset.priceMinor, product.dataset.currency);
+          return sum + (price?.price || 0);
+        }, 0);
+      }
+      track(products.length > 1 ? "view_item_list" : "view_item", params);
     }
 
     const cart = document.querySelector("[data-ga4-view-cart]");
@@ -134,12 +148,14 @@
     try { payload = JSON.parse(payloadElement.textContent || "{}"); } catch (_) { return; }
     if (!payload.transaction_id || !Array.isArray(payload.items)) return;
     const key = "nv_ga4_purchase_" + payload.transaction_id;
+    window.__nvGa4PurchaseSent = window.__nvGa4PurchaseSent || {};
+    if (window.__nvGa4PurchaseSent[payload.transaction_id]) return;
     try {
       if (window.localStorage.getItem(key)) return;
-      track("purchase", payload);
-      window.localStorage.setItem(key, "1");
-    } catch (_) {
-      track("purchase", payload);
+    } catch (_) {}
+    if (track("purchase", payload)) {
+      window.__nvGa4PurchaseSent[payload.transaction_id] = true;
+      try { window.localStorage.setItem(key, "1"); } catch (_) {}
     }
   }
 
@@ -150,7 +166,10 @@
       submitted = true;
       HTMLFormElement.prototype.submit.call(form);
     };
-    if (!track(eventName, params, submit)) return;
+    if (!track(eventName, params, submit)) {
+      submit();
+      return;
+    }
     window.setTimeout(submit, 700);
   }
 
