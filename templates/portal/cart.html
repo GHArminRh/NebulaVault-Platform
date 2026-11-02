@@ -14,7 +14,13 @@
          data-item-name="{{ plan.name }}"
          data-item-category="{{ plan.product.name }}"
          data-price-minor="{{ plan.price_minor_units }}"
-         data-currency="{{ plan.currency }}"><div class="cart-item-icon">◈</div><div class="cart-item-main"><strong>{{ plan.product.name }} · {{ plan.name }}</strong><small>{{ plan.duration_value }} {% if plan.duration_unit == "days" %}روز{% elif plan.duration_unit == "months" %}ماه{% elif plan.duration_unit == "years" %}سال{% else %}مدت نامشخص{% endif %} دسترسی · {{ plan.device_limit }} دستگاه</small><small>قیمت طرح · {{ plan.currency }}</small></div><div class="cart-item-price"><strong>{{ plan.price_minor_units|money }} {{ plan.currency }}</strong><form method="post" action="{% url 'portal:cart_remove' plan.id %}">{% csrf_token %}<button class="cart-remove" type="submit">حذف ×</button></form></div></article>{% endfor %}
+         data-currency="{{ plan.currency }}"><div class="cart-item-icon">◈</div><div class="cart-item-main"><strong>{{ plan.product.name }} · {{ plan.name }}</strong><small>{{ plan.duration_value }} {% if plan.duration_unit == "days" %}روز{% elif plan.duration_unit == "months" %}ماه{% elif plan.duration_unit == "years" %}سال{% else %}مدت نامشخص{% endif %} دسترسی · {{ plan.device_limit }} دستگاه</small><small>قیمت طرح · {{ plan.currency }}</small></div><div class="cart-item-price"><strong>{{ plan.price_minor_units|money }} {{ plan.currency }}</strong><form method="post" action="{% url 'portal:cart_remove' plan.id %}"
+                      data-ga4-remove-from-cart
+                      data-item-id="{{ plan.pk }}"
+                      data-item-name="{{ plan.name }}"
+                      data-item-category="{{ plan.product.name }}"
+                      data-price-minor="{{ plan.price_minor_units }}"
+                      data-currency="{{ plan.currency }}">{% csrf_token %}<button class="cart-remove" type="submit">حذف ×</button></form></div></article>{% endfor %}
         <div class="cart-actions"><form method="post" action="{% url 'portal:cart_clear' %}">{% csrf_token %}<button class="button button-quiet button-small" type="submit">خالی‌کردن سبد</button></form><a class="subtle-link" href="{% url 'portal:pricing' %}">ادامه خرید →</a></div>
       </div><aside class="cart-summary"><div class="eyebrow">خلاصه سفارش</div><h2>برای نهایی‌کردن آماده‌اید؟</h2><div class="cart-summary-line"><span>طرح‌های انتخاب‌شده</span><strong>{{ cart_count }}</strong></div>{% for total in cart_totals %}<div class="cart-summary-line cart-summary-total"><span>مجموع · {{ total.currency }}</span><strong>{{ total.amount_minor_units|money }}</strong></div>{% endfor %}
         {% if user.is_authenticated %}{% if zarinpal_enabled %}{% if cart_currency_supported %}<form method="post"
