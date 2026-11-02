@@ -53,3 +53,59 @@
   background: rgba(75, 110, 180, 0.18);
   font-size: 36px;
 }
+
+/* Keep customer verification visually consistent with the Django admin login. */
+.nv-auth-form .turnstile-shell {
+  width: 100%;
+  min-width: 0;
+  margin: 10px 0 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(104, 157, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(4, 10, 23, 0.48);
+  box-sizing: border-box;
+}
+
+.nv-auth-form .turnstile-heading {
+  margin: 0 0 7px;
+  color: #c2cde2;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: start;
+}
+
+.nv-auth-form .turnstile-loading {
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #aebbd2;
+  font-size: 11px;
+}
+
+.nv-auth-form .turnstile-config-error {
+  margin: 4px 0;
+  color: #f1d28a;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.nv-auth-form .nv-turnstile-widget {
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.nv-auth-form .nv-turnstile-widget iframe {
+  max-width: 100%;
+}
+
+@media (max-width: 420px) {
+  .nv-auth-form .turnstile-shell {
+    padding: 9px 6px;
+  }
+}

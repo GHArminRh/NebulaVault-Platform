@@ -90,6 +90,126 @@ class AccountBackendTests(TestCase):
         self.assertEqual(response.context["purpose"], "password_reset")
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("accounts/password/reset/", mail.outbox[0].body)
+    @override_settings(
+        TURNSTILE_ENABLED=True,
+        TURNSTILE_SITE_KEY="test-site-key",
+        TURNSTILE_SECRET_KEY="test-secret-key",
+    )
+    def test_customer_auth_pages_render_separate_login_and_registration_challenges(self):
+        response = self.client.get(reverse("login"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Security verification")
+        self.assertContains(response, 'data-action="customer_login"')
+        self.assertContains(response, 'data-action="customer_register"')
+
+    @override_settings(
+        TURNSTILE_ENABLED=True,
+        TURNSTILE_SITE_KEY="test-site-key",
+        TURNSTILE_SECRET_KEY="test-secret-key",
+    )
+    def test_customer_login_requires_a_valid_turnstile_token(self):
+        from unittest.mock import patch
+
+        with patch("accounts.forms.verify_turnstile", return_value=False) as verify:
+            response = self.client.post(
+                reverse("login"),
+                {
+                    "username": self.user.email,
+                    "password": "Secure-test-password-2026!",
+                    "cf-turnstile-response": "invalid-token",
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertTrue(response.context["form"].turnstile_error)
+        verify.assert_called_once()
+        self.assertEqual(verify.call_args.kwargs["expected_action"], "customer_login")
+
+    @override_settings(
+        TURNSTILE_ENABLED=True,
+        TURNSTILE_SITE_KEY="test-site-key",
+        TURNSTILE_SECRET_KEY="test-secret-key",
+    )
+    def test_registration_requires_a_valid_turnstile_token(self):
+        from unittest.mock import patch
+
+        with patch("accounts.forms.verify_turnstile", return_value=False) as verify:
+            response = self.client.post(
+                reverse("accounts:register"),
+                {
+                    "email": "protected@example.com",
+                    "password1": "Secure-registration-password-2026!",
+                    "password2": "Secure-registration-password-2026!",
+                    "cf-turnstile-response": "invalid-token",
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Customer.objects.filter(email="protected@example.com").exists())
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertTrue(response.context["form"].turnstile_error)
+        verify.assert_called_once()
+        self.assertEqual(verify.call_args.kwargs["expected_action"], "customer_register")
+
+    @override_settings(
+        TURNSTILE_ENABLED=True,
+        TURNSTILE_SITE_KEY="test-site-key",
+        TURNSTILE_SECRET_KEY="test-secret-key",
+    )
+    def test_valid_customer_turnstile_actions_allow_login_and_registration(self):
+        from unittest.mock import patch
+
+        with patch("accounts.forms.verify_turnstile", return_value=True) as verify:
+            login_response = self.client.post(
+                reverse("login"),
+                {
+                    "username": self.user.email,
+                    "password": "Secure-test-password-2026!",
+                    "cf-turnstile-response": "valid-login-token",
+                },
+            )
+        self.assertEqual(login_response.status_code, 302)
+        self.assertEqual(verify.call_args.kwargs["expected_action"], "customer_login")
+
+        self.client.logout()
+        with patch("accounts.forms.verify_turnstile", return_value=True) as verify:
+            register_response = self.client.post(
+                reverse("accounts:register"),
+                {
+                    "email": "verified-widget@example.com",
+                    "password1": "Secure-registration-password-2026!",
+                    "password2": "Secure-registration-password-2026!",
+                    "cf-turnstile-response": "valid-register-token",
+                },
+            )
+        self.assertEqual(register_response.status_code, 200)
+        self.assertTrue(Customer.objects.filter(email="verified-widget@example.com").exists())
+        self.assertEqual(verify.call_args.kwargs["expected_action"], "customer_register")
+
+    def test_turnstile_siteverify_rejects_a_token_for_the_wrong_action(self):
+        from unittest.mock import patch
+        from accounts.turnstile import verify_turnstile
+
+        with patch("accounts.turnstile.urlopen") as urlopen:
+            response = urlopen.return_value.__enter__.return_value
+            response.read.return_value = b'{"success": true, "action": "customer_login"}'
+            self.assertTrue(
+                verify_turnstile(
+                    "single-use-token",
+                    secret_key="test-secret",
+                    verify_url="https://example.test/siteverify",
+                    expected_action="customer_login",
+                )
+            )
+            response.read.return_value = b'{"success": true, "action": "customer_register"}'
+            self.assertFalse(
+                verify_turnstile(
+                    "single-use-token",
+                    secret_key="test-secret",
+                    verify_url="https://example.test/siteverify",
+                    expected_action="customer_login",
+                )
+            )
+
     def test_registration_generates_username_from_email_local_part(self):
         response = self.client.post(
             reverse("accounts:register"),

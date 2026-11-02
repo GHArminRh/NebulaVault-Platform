@@ -21,6 +21,7 @@
         const compact = (widget.closest('.nv-auth-face')?.clientWidth || window.innerWidth) <= 320;
         window.turnstile.render(widget, {
           sitekey: siteKey,
+          action: widget.getAttribute('data-action') || 'customer_auth',
           theme: 'dark',
           language: 'fa',
           size: compact ? 'compact' : 'normal',

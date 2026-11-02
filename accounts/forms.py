@@ -11,6 +11,7 @@ from .two_factor import consume_recovery_code, decrypt_totp_secret, send_email_c
 
 
 class HumanCheckMixin:
+    turnstile_action = "customer_auth"
     # Compatibility only; this hidden value is never trusted as proof of a human.
     human_check = forms.BooleanField(required=False, widget=forms.HiddenInput())
 
@@ -27,6 +28,7 @@ class HumanCheckMixin:
                     "TURNSTILE_VERIFY_URL",
                     "https://challenges.cloudflare.com/turnstile/v0/siteverify",
                 ),
+                expected_action=self.turnstile_action,
             )
             if not valid:
                 self.turnstile_error = True
@@ -41,6 +43,7 @@ class HumanCheckMixin:
 
 
 class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
+    turnstile_action = "customer_login"
     remember_me = forms.BooleanField(required=False, initial=True, label="مرا به خاطر بسپار")
     otp_token = forms.CharField(required=False, max_length=12, label="کد برنامه احراز هویت", widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "inputmode": "numeric"}))
     email_otp_token = forms.CharField(required=False, max_length=6, label="کد ایمیل")
@@ -137,6 +140,7 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
 
 
 class RegisterForm(HumanCheckMixin, forms.ModelForm):
+    turnstile_action = "customer_register"
     password1 = forms.CharField(
         label="رمز عبور",
         widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
