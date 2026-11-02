@@ -17,7 +17,7 @@
     document.body.appendChild(progress);
 
     // Progressive-enhancement disclosure controls for the Django app index.
-    // Keep app sections expanded by default so the existing admin workflow is preserved.
+    // Keep app cards at their natural width while starting with their contents collapsed.
     const initializeAppDisclosures = () => {
       if (!document.body.classList.contains('dashboard')) return;
 
@@ -32,10 +32,13 @@
         rows.id = contentId;
         control.type = 'button';
         control.className = 'nv-admin-disclosure-toggle';
-        control.setAttribute('aria-expanded', 'true');
+        control.setAttribute('aria-expanded', 'false');
         control.setAttribute('aria-controls', contentId);
-        control.setAttribute('aria-label', `Collapse ${caption.textContent.trim()} section`);
+        control.setAttribute('aria-label', `Expand ${caption.textContent.trim()} section`);
         control.innerHTML = '<span class="nv-admin-disclosure-chevron" aria-hidden="true"></span>';
+
+        rows.hidden = true;
+        module.classList.add('nv-admin-app-module', 'is-collapsed');
 
         control.addEventListener('click', () => {
           const expanded = control.getAttribute('aria-expanded') === 'true';
@@ -48,7 +51,6 @@
           module.classList.toggle('is-collapsed', expanded);
         });
 
-        module.classList.add('nv-admin-app-module');
         module.dataset.nvDisclosureReady = 'true';
         caption.append(control);
       });
