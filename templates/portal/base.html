@@ -40,6 +40,10 @@
     <script defer src="{% static 'portal/js/site.js' %}"></script>
     <script defer src="{% static 'portal/js/pwa.js' %}"></script>
     <link rel="stylesheet" href="{% static 'portal/css/site-shell.css' %}">
+    {% if algolia_search_enabled %}
+      <link rel="stylesheet" href="{% static 'portal/css/search.css' %}">
+      <script defer src="{% static 'portal/js/search.js' %}"></script>
+    {% endif %}
     {% if ga4_measurement_id %}
       <link rel="stylesheet" href="{% static 'portal/css/analytics-consent.css' %}">
       <script defer src="{% static 'portal/js/ga4.js' %}"></script>
@@ -84,6 +88,9 @@
         {% endif %}
       </nav>
       <div class="header-actions">
+        {% if algolia_search_enabled %}
+          <button type="button" id="nv-search-open" class="button button-quiet button-small nv-search-open" aria-haspopup="dialog" aria-controls="nv-search-dialog">⌕ جست‌وجو</button>
+        {% endif %}
         {% if user.is_authenticated %}
           <a class="user-chip"
              href="{% url 'portal:dashboard' %}"
@@ -142,6 +149,29 @@
         <a href="{% url 'accounts:register' %}">ثبت‌نام</a>
       {% endif %}
     </nav>
+    {% if algolia_search_enabled %}
+      <dialog id="nv-search-dialog" class="nv-search-dialog"
+              data-algolia-search
+              data-algolia-app-id="{{ algolia_app_id }}"
+              data-algolia-search-key="{{ algolia_search_api_key }}"
+              data-algolia-products-index="{{ algolia_products_index }}"
+              data-algolia-articles-index="{{ algolia_articles_index }}">
+        <div class="nv-search-shell">
+          <div class="nv-search-heading">
+            <strong>جست‌وجو در نبیولا والت</strong>
+            <button type="button" class="nv-search-close" data-search-close aria-label="بستن جست‌وجو">×</button>
+          </div>
+          <form class="nv-search-form" method="get" action="{% url 'portal_search:search' %}">
+            <input class="nv-search-input" type="search" name="q"
+                   placeholder="نام محصول، نسخه یا مقاله…" autocomplete="off"
+                   data-algolia-search-input aria-label="عبارت جست‌وجو">
+            <button class="button button-primary nv-search-submit" type="submit">مشاهده همه</button>
+          </form>
+          <div class="nv-search-status" data-algolia-status aria-live="polite">برای شروع، عبارت موردنظرت را وارد کن.</div>
+          <div class="nv-search-results" data-algolia-results></div>
+        </div>
+      </dialog>
+    {% endif %}
     <main>
       {% if messages %}
         <div class="message-stack page-wrap">
