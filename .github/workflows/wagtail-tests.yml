@@ -86,4 +86,4 @@ jobs:
       - name: Check model and migration consistency
         run: python manage.py makemigrations --check --dry-run --settings=config.test_settings
       - name: Run Wagtail integration tests
-        run: python manage.py test sitecms blog --settings=config.test_settings --verbosity=2
+        run: python manage.py test sitecms blog portal --settings=config.test_settings --verbosity=2
