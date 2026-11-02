@@ -32,6 +32,22 @@
       "; Max-Age=" + cookieMaxAge + "; Path=/; SameSite=Lax" + secure;
   }
 
+  function safePageUrl(value) {
+    try {
+      const url = new URL(value, window.location.origin);
+      url.search = "";
+      url.hash = "";
+      if (/^\\/accounts\\/verify\\//.test(url.pathname)) {
+        url.pathname = "/accounts/verify/";
+      } else if (/^\\/accounts\\/password\\/reset\\//.test(url.pathname)) {
+        url.pathname = "/accounts/password/reset/";
+      }
+      return url.origin + url.pathname;
+    } catch (_) {
+      return window.location.origin + "/";
+    }
+  }
+
   function ensureGoogleTag() {
     if (window.__nvGa4Loaded) {
       window.gtag("consent", "update", acceptedConsent);
@@ -48,6 +64,8 @@
     window.gtag("js", new Date());
     window.gtag("config", measurementId, {
       send_page_view: false,
+      page_location: safePageUrl(window.location.href),
+      page_referrer: document.referrer ? safePageUrl(document.referrer) : "",
       allow_google_signals: false,
       allow_ad_personalization_signals: false
     });
@@ -59,7 +77,7 @@
     window.__nvGa4Loaded = true;
     window.__nvGa4Consent = "granted";
     window.gtag("event", "page_view", {
-      page_location: window.location.href,
+      page_location: safePageUrl(window.location.href),
       page_title: document.title
     });
     sendPendingAuthEvent();
