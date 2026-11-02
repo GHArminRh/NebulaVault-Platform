@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 
-def verify_turnstile(token, *, secret_key, verify_url):
+def verify_turnstile(token, *, secret_key, verify_url, expected_action=None):
     """Return True only when Cloudflare confirms the submitted token."""
     if not token or not secret_key:
         return False
@@ -19,7 +19,11 @@ def verify_turnstile(token, *, secret_key, verify_url):
     try:
         with urlopen(request, timeout=5) as response:
             result = json.loads(response.read().decode("utf-8"))
-        return result.get("success") is True
+        if result.get("success") is not True:
+            return False
+        if expected_action and result.get("action") != expected_action:
+            return False
+        return True
     except Exception:
         # Fail closed on timeouts, network errors, and malformed provider responses.
         return False
