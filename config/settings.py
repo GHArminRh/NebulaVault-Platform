@@ -53,7 +53,6 @@ INSTALLED_APPS = [
     "storages",
     "easy_thumbnails",
     "filer",
-    "image_uploader_widget",
     # Django Control Room: register the shared base, official panels, then hub.
     "dj_control_room_base",
     "dj_redis_panel",

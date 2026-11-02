@@ -1,10 +1,8 @@
 from django.contrib import admin, messages
-from django.db.models import ImageField
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import ngettext
-from image_uploader_widget.widgets import ImageUploaderWidget
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 
@@ -99,7 +97,6 @@ class TagAdmin(ImportExportModelAdmin):
 class BlogPostAdmin(ImportExportModelAdmin):
     form = BlogPostAdminForm
     resource_classes = (BlogPostResource,)
-    formfield_overrides = {ImageField: {"widget": ImageUploaderWidget}}
     list_display = (
         "title",
         "show_post",
