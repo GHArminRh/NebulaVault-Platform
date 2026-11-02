@@ -85,8 +85,7 @@
 
     const script = document.createElement('script');
     script.async = true;
-    script.src =
-      'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
     document.head.appendChild(script);
     window.__nvGa4Loaded = true;
     window.__nvGa4Consent = 'granted';
@@ -144,8 +143,7 @@
     if (products.length) {
       const items = products.map(readItem);
       const currencies = products.map(
-        (product) =>
-          normalizedPrice(product.dataset.priceMinor, product.dataset.currency)?.currency
+        (product) => normalizedPrice(product.dataset.priceMinor, product.dataset.currency)?.currency
       );
       const distinctCurrencies = [...new Set(currencies.filter(Boolean))];
       const params = { items };
