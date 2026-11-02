@@ -158,6 +158,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "wagtail.contrib.settings.context_processors.settings",
                 "portal.context_processors.cart_context",
+                "portal.context_processors.analytics_context",
                 "accounts.context_processors.turnstile",
             ],
         },
@@ -324,6 +325,9 @@ TURNSTILE_ENABLED = (
 TURNSTILE_SITE_KEY = os.environ.get("TURNSTILE_SITE_KEY", "").strip()
 TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY", "").strip()
 TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+
+# GA4 is disabled until a real web-stream Measurement ID is configured.
+GA4_MEASUREMENT_ID = os.environ.get("GA4_MEASUREMENT_ID", "").strip()
 
 COMMENT_SETTINGS = {"URLHASH_LENGTH": 12, "OFFLINE_IMPORTS": True, "PROFILE_IMAGE_FIELD": None}
 RATING_SETTINGS = {"URLHASH_LENGTH": 8}
