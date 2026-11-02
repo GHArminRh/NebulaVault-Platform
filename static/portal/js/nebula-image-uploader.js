@@ -40,11 +40,19 @@
       if (!file) return;
       if (!file.type || !file.type.startsWith("image/")) {
         input.value = "";
+        selection.hidden = true;
+        if (current) current.hidden = false;
+        root.dataset.hasSelection = "false";
+        releasePreview();
         showMessage("Please choose a valid image file.", true);
         return;
       }
       if (maxBytes && file.size > maxBytes) {
         input.value = "";
+        selection.hidden = true;
+        if (current) current.hidden = false;
+        root.dataset.hasSelection = "false";
+        releasePreview();
         showMessage("This image exceeds the 12 MB upload limit.", true);
         return;
       }
@@ -62,7 +70,7 @@
     input.addEventListener("change", () => setFile(input.files && input.files[0]));
 
     dropzone.addEventListener("click", (event) => {
-      if (event.target.closest("button")) return;
+      if (event.target === input || event.target.closest("button")) return;
       input.click();
     });
     dropzone.addEventListener("keydown", (event) => {
@@ -145,7 +153,12 @@
       data.append(submitter.name, submitter.value);
     }
 
-    const roots = Array.from(form.querySelectorAll("[data-nv-image-uploader]"));
+    const roots = Array.from(form.querySelectorAll("[data-nv-image-uploader]")).filter((root) => {
+      const input = root.querySelector("[data-nv-image-input]");
+      return Boolean(input && input.files && input.files.length);
+    });
+    if (!roots.length) return;
+
     const buttons = Array.from(form.querySelectorAll("button[type='submit'], input[type='submit']"));
     const originalDisabled = buttons.map((button) => button.disabled);
     buttons.forEach((button) => { button.disabled = true; });
