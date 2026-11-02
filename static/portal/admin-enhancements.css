@@ -1,4 +1,16 @@
 /* Accessible Nebula enhancements for the native Django admin interface. */
+/* Keep each app card and its header at the same width in both states. */
+.dashboard #content-main .nv-admin-app-module {
+  min-width: 0;
+}
+.dashboard #content-main .nv-admin-app-module > table {
+  width: 100%;
+  table-layout: fixed;
+}
+.dashboard #content-main .nv-admin-app-module > table > caption {
+  width: 100%;
+  box-sizing: border-box;
+}
 .dashboard #content-main .nv-admin-app-module > table > caption {
   position: relative;
   padding-inline-end: 42px;
