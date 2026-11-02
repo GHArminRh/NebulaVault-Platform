@@ -8,12 +8,15 @@ from import_export.admin import ImportExportModelAdmin
 
 from .forms import BlogPostAdminForm
 from .models import BlogPost, BlogPostRating, Tag
+from portal.algolia_search import sync_blog_post_by_id
 
 
 def make_published(modeladmin, request, queryset):
     """Publish selected articles and initialize publication dates when needed."""
     queryset.filter(published_at__isnull=True).update(published_at=timezone.now())
     updated = queryset.update(status=BlogPost.Status.PUBLISHED)
+    for post_id in queryset.values_list("pk", flat=True):
+        sync_blog_post_by_id(post_id)
     modeladmin.message_user(
         request,
         ngettext(
@@ -30,6 +33,8 @@ make_published.short_description = "Publish selected articles"
 
 def make_drafted(modeladmin, request, queryset):
     updated = queryset.update(status=BlogPost.Status.DRAFT)
+    for post_id in queryset.values_list("pk", flat=True):
+        sync_blog_post_by_id(post_id)
     modeladmin.message_user(
         request,
         ngettext(
