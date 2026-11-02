@@ -1,5 +1,6 @@
 """Algolia indexing and signal handlers for public Nebula Vault content."""
 
+import json
 import logging
 import re
 import unicodedata
@@ -41,7 +42,7 @@ def get_algolia_client():
     return SearchClientSync(app_id, admin_key)
 
 
-def _plain_text(value, limit=2800):
+def _plain_text(value, limit=1400):
     return normalize_search_text(unescape(strip_tags(value or "")))[:limit]
 
 
@@ -99,14 +100,14 @@ def blog_post_is_public(post):
 
 
 def blog_post_record(post):
-    excerpt = _plain_text(post.excerpt, limit=500)
-    content = _plain_text(post.content)
+    excerpt = _plain_text(post.excerpt, limit=350)
+    content = _plain_text(post.content, limit=1400)
     tags = list(post.tags.order_by("name").values_list("name", flat=True))
     category = normalize_search_text(post.category)
     search_text = normalize_search_text(
         " ".join([post.title, excerpt, content, category, " ".join(tags)])
     )
-    return {
+    record = {
         "objectID": str(post.pk),
         "type": "article",
         "title": post.title,
@@ -119,6 +120,11 @@ def blog_post_record(post):
         "publishedAt": post.published_at.isoformat(),
         "url": reverse("blog:post_detail", kwargs={"slug": post.slug}),
     }
+    # The Algolia Free plan has a 10 KB record limit; leave a safety margin.
+    for field in ("content", "excerpt", "searchText"):
+        while len(json.dumps(record, ensure_ascii=False).encode("utf-8")) > 9000 and record.get(field):
+            record[field] = record[field][: max(1, int(len(record[field]) * 0.75))]
+    return record
 
 
 def sync_product(product):
