@@ -112,6 +112,7 @@ class AdminTurnstileAuthenticationForm(AdminAuthenticationForm):
                     "TURNSTILE_VERIFY_URL",
                     "https://challenges.cloudflare.com/turnstile/v0/siteverify",
                 ),
+                expected_action="admin_login",
             ):
                 raise forms.ValidationError(
                     "Security verification failed. Please complete the CAPTCHA and try again."
