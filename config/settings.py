@@ -387,5 +387,5 @@ SPECTACULAR_SETTINGS = {
 ALGOLIA_APP_ID = os.environ.get("ALGOLIA_APP_ID", "").strip()
 ALGOLIA_ADMIN_API_KEY = os.environ.get("ALGOLIA_ADMIN_API_KEY", "").strip()
 ALGOLIA_SEARCH_API_KEY = os.environ.get("ALGOLIA_SEARCH_API_KEY", "").strip()
-ALGOLIA_PRODUCTS_INDEX = os.environ.get("ALGOLIA_PRODUCTS_INDEX", "nebula_products").strip()
-ALGOLIA_ARTICLES_INDEX = os.environ.get("ALGOLIA_ARTICLES_INDEX", "nebula_articles").strip()
+ALGOLIA_PRODUCTS_INDEX = os.environ.get("ALGOLIA_PRODUCTS_INDEX", "nebula_products").strip() or "nebula_products"
+ALGOLIA_ARTICLES_INDEX = os.environ.get("ALGOLIA_ARTICLES_INDEX", "nebula_articles").strip() or "nebula_articles"
