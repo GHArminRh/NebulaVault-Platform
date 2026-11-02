@@ -44,12 +44,18 @@ class Command(BaseCommand):
         product_index = settings.ALGOLIA_PRODUCTS_INDEX
         article_index = settings.ALGOLIA_ARTICLES_INDEX
         for index_name in (product_index, article_index):
+            # Create the index first so the initial setup also works on a new Algolia app.
+            bootstrap_task = client.save_object(
+                index_name=index_name,
+                body={"objectID": "__nebula_bootstrap__"},
+            )
+            client.wait_for_task(index_name=index_name, task_id=bootstrap_task.task_id)
+            clear_task = client.clear_objects(index_name=index_name)
+            client.wait_for_task(index_name=index_name, task_id=clear_task.task_id)
             settings_task = client.set_settings(
                 index_name=index_name, index_settings=INDEX_SETTINGS
             )
             client.wait_for_task(index_name=index_name, task_id=settings_task.task_id)
-            clear_task = client.clear_objects(index_name=index_name)
-            client.wait_for_task(index_name=index_name, task_id=clear_task.task_id)
 
         products = [
             product_record(product)
