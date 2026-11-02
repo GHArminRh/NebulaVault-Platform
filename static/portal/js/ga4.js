@@ -37,9 +37,9 @@
       const url = new URL(value, window.location.origin);
       url.search = "";
       url.hash = "";
-      if (/^\\/accounts\\/verify\\//.test(url.pathname)) {
+      if (/^\/accounts\/verify\//.test(url.pathname)) {
         url.pathname = "/accounts/verify/";
-      } else if (/^\\/accounts\\/password\\/reset\\//.test(url.pathname)) {
+      } else if (/^\/accounts\/password\/reset\//.test(url.pathname)) {
         url.pathname = "/accounts/password/reset/";
       }
       return url.origin + url.pathname;
