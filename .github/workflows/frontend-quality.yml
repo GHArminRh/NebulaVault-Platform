@@ -43,14 +43,73 @@ jobs:
         if: github.event_name == 'pull_request'
         run: npx prettier --write static/portal/css/account-security.css static/portal/js/auth-turnstile.js
 
-      - name: Upload formatted customer verification assets
+      - name: Commit formatted customer verification assets
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/github-script@v7
         with:
-          name: formatted-customer-verification-assets
-          path: |
-            static/portal/css/account-security.css
-            static/portal/js/auth-turnstile.js
+          script: |
+            const fs = require('fs');
+            const { owner, repo } = context.repo;
+            const branch = context.payload.pull_request.head.ref;
+            const paths = [
+              'static/portal/css/account-security.css',
+              'static/portal/js/auth-turnstile.js',
+            ];
+            const { data: ref } = await github.rest.git.getRef({
+              owner,
+              repo,
+              ref: `heads/${branch}`,
+            });
+            const parentSha = ref.object.sha;
+            const { data: parent } = await github.rest.git.getCommit({
+              owner,
+              repo,
+              commit_sha: parentSha,
+            });
+            const tree = [];
+            for (const path of paths) {
+              const content = fs.readFileSync(path, 'utf8');
+              const current = await github.rest.repos.getContent({
+                owner,
+                repo,
+                path,
+                ref: branch,
+              });
+              const existing = Buffer.from(current.data.content, 'base64').toString('utf8');
+              if (existing === content) continue;
+              const blob = await github.rest.git.createBlob({
+                owner,
+                repo,
+                content,
+                encoding: 'utf-8',
+              });
+              tree.push({ path, mode: '100644', type: 'blob', sha: blob.data.sha });
+            }
+            if (!tree.length) {
+              core.info('Customer verification assets already match Prettier output.');
+              return;
+            }
+            const nextTree = await github.rest.git.createTree({
+              owner,
+              repo,
+              base_tree: parent.tree.sha,
+              tree,
+            });
+            const commit = await github.rest.git.createCommit({
+              owner,
+              repo,
+              message: 'Format customer verification assets',
+              tree: nextTree.data.sha,
+              parents: [parentSha],
+            });
+            await github.rest.git.updateRef({
+              owner,
+              repo,
+              ref: `heads/${branch}`,
+              sha: commit.data.sha,
+              force: false,
+            });
+            core.info(`Committed formatted assets: ${commit.data.sha}`);
 
       - name: Check CSS, JavaScript, and tooling formatting
         run: npm run check:assets
