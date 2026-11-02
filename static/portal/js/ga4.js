@@ -150,7 +150,10 @@
       if (distinctCurrencies.length === 1) {
         params.currency = distinctCurrencies[0];
         if (products.length === 1) {
-          const price = normalizedPrice(products[0].dataset.priceMinor, products[0].dataset.currency);
+          const price = normalizedPrice(
+            products[0].dataset.priceMinor,
+            products[0].dataset.currency
+          );
           if (price) params.value = price.price;
         }
       }
