@@ -39,21 +39,8 @@ jobs:
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
           npm ci --no-audit --no-fund
 
-      - name: Temporarily print Prettier output for GA4 source
-        run: |
-          npx prettier --write static/portal/js/ga4.js
-          cat static/portal/js/ga4.js
-
       - name: Check CSS, JavaScript, and tooling formatting
         run: npm run check:assets
-
-      - name: Temporarily print formatted template output
-        run: |
-          python scripts/check_templates.py --reformat
-          for path in templates/portal/cart.html templates/portal/orders.html templates/portal/pricing.html templates/portal/product_detail.html; do
-            echo "FORMATTED_TEMPLATE:$path"
-            cat "$path"
-          done
 
       - name: Check public Django templates
         run: npm run check:templates
