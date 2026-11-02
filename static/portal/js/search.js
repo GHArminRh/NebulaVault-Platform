@@ -79,8 +79,20 @@
           },
           body: JSON.stringify({
             requests: [
-              { indexName: root.dataset.algoliaProductsIndex, query, hitsPerPage: root.dataset.fullSearch === "true" ? 8 : 4 },
-              { indexName: root.dataset.algoliaArticlesIndex, query, hitsPerPage: root.dataset.fullSearch === "true" ? 8 : 4 },
+              {
+                indexName: root.dataset.algoliaProductsIndex,
+                params: new URLSearchParams({
+                  query,
+                  hitsPerPage: root.dataset.fullSearch === "true" ? "8" : "4",
+                }).toString(),
+              },
+              {
+                indexName: root.dataset.algoliaArticlesIndex,
+                params: new URLSearchParams({
+                  query,
+                  hitsPerPage: root.dataset.fullSearch === "true" ? "8" : "4",
+                }).toString(),
+              },
             ],
           }),
           signal: controller.signal,
