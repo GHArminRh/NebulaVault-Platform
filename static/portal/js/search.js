@@ -27,6 +27,9 @@
     return node;
   };
 
+  const escapeFilterValue = (value) =>
+    String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+
   const renderResults = (container, payload) => {
     container.replaceChildren();
     const groups = [
@@ -101,8 +104,8 @@
     const productParams = new URLSearchParams({ query, hitsPerPage });
     const articleParams = new URLSearchParams({ query, hitsPerPage });
 
-    if (platform) productParams.set('facetFilters', JSON.stringify(['platforms:' + platform]));
-    if (category) articleParams.set('facetFilters', JSON.stringify(['category:' + category]));
+    if (platform) productParams.set('filters', 'platforms:"' + escapeFilterValue(platform) + '"');
+    if (category) articleParams.set('filters', 'category:"' + escapeFilterValue(category) + '"');
 
     const requests = [
       { indexName: root.dataset.algoliaProductsIndex, params: productParams.toString() },
