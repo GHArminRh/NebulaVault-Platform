@@ -6,6 +6,9 @@
 {% endblock %}
 {% block content %}
   <section class="page-hero page-wrap"><div class="eyebrow">وضعیت تراکنش{% if sandbox %} · محیط آزمایشی{% endif %}</div><h1>{% if success %}<span class="gradient-text">پرداخت موفق بود.</span>{% else %}پرداخت تکمیل نشد.{% endif %}</h1><p>{{ message }}</p></section>
+  {% if success and analytics_purchase %}
+    {{ analytics_purchase|json_script:"ga4-purchase-data" }}
+  {% endif %}
   <section class="section page-wrap compact-section">
     <div class="panel nv-payment-result-panel">
       {% if order %}<p>شماره سفارش: <strong>{{ order.order_number }}</strong></p><p>وضعیت سفارش: <strong>{{ order.get_status_display }}</strong></p>{% endif %}

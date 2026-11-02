@@ -6,12 +6,28 @@
 </section>
 <section class="section page-wrap compact-section">
   {% if cart_plans %}
-    <div class="cart-layout">
+    <div class="cart-layout" data-ga4-view-cart>
       <div class="cart-items">
-        {% for plan in cart_plans %}<article class="cart-item"><div class="cart-item-icon">◈</div><div class="cart-item-main"><strong>{{ plan.product.name }} · {{ plan.name }}</strong><small>{{ plan.duration_value }} {% if plan.duration_unit == "days" %}روز{% elif plan.duration_unit == "months" %}ماه{% elif plan.duration_unit == "years" %}سال{% else %}مدت نامشخص{% endif %} دسترسی · {{ plan.device_limit }} دستگاه</small><small>قیمت طرح · {{ plan.currency }}</small></div><div class="cart-item-price"><strong>{{ plan.price_minor_units|money }} {{ plan.currency }}</strong><form method="post" action="{% url 'portal:cart_remove' plan.id %}">{% csrf_token %}<button class="cart-remove" type="submit">حذف ×</button></form></div></article>{% endfor %}
+        {% for plan in cart_plans %}<article class="cart-item"
+         data-ga4-cart-item
+         data-item-id="{{ plan.pk }}"
+         data-item-name="{{ plan.name }}"
+         data-item-category="{{ plan.product.name }}"
+         data-price-minor="{{ plan.price_minor_units }}"
+         data-currency="{{ plan.currency }}"><div class="cart-item-icon">◈</div><div class="cart-item-main"><strong>{{ plan.product.name }} · {{ plan.name }}</strong><small>{{ plan.duration_value }} {% if plan.duration_unit == "days" %}روز{% elif plan.duration_unit == "months" %}ماه{% elif plan.duration_unit == "years" %}سال{% else %}مدت نامشخص{% endif %} دسترسی · {{ plan.device_limit }} دستگاه</small><small>قیمت طرح · {{ plan.currency }}</small></div><div class="cart-item-price"><strong>{{ plan.price_minor_units|money }} {{ plan.currency }}</strong><form method="post" action="{% url 'portal:cart_remove' plan.id %}"
+                      data-ga4-remove-from-cart
+                      data-item-id="{{ plan.pk }}"
+                      data-item-name="{{ plan.name }}"
+                      data-item-category="{{ plan.product.name }}"
+                      data-price-minor="{{ plan.price_minor_units }}"
+                      data-currency="{{ plan.currency }}">{% csrf_token %}<button class="cart-remove" type="submit">حذف ×</button></form></div></article>{% endfor %}
         <div class="cart-actions"><form method="post" action="{% url 'portal:cart_clear' %}">{% csrf_token %}<button class="button button-quiet button-small" type="submit">خالی‌کردن سبد</button></form><a class="subtle-link" href="{% url 'portal:pricing' %}">ادامه خرید →</a></div>
       </div><aside class="cart-summary"><div class="eyebrow">خلاصه سفارش</div><h2>برای نهایی‌کردن آماده‌اید؟</h2><div class="cart-summary-line"><span>طرح‌های انتخاب‌شده</span><strong>{{ cart_count }}</strong></div>{% for total in cart_totals %}<div class="cart-summary-line cart-summary-total"><span>مجموع · {{ total.currency }}</span><strong>{{ total.amount_minor_units|money }}</strong></div>{% endfor %}
-        {% if user.is_authenticated %}{% if zarinpal_enabled %}{% if cart_currency_supported %}<form method="post" action="{% url 'billing:zarinpal_cart_start' %}">{% csrf_token %}<button class="button button-primary" type="submit">پرداخت کل سبد با زرین‌پال ↗</button></form><p class="cart-note">اگر سبد تغییر کند، سفارش تازه با مبلغ جدید ساخته می‌شود؛ سفارش قبلی برای تلاش مجدد باقی می‌ماند. سبد فقط پس از تأیید پرداخت و در صورت تغییرنکردن آن پاک می‌شود.</p>{% elif cart_currency_mixed %}<p class="cart-note">برای پرداخت یکجا، همه طرح‌ها باید واحد پول یکسان داشته باشند. واحد پول سبد را یکسان کنید.</p>{% else %}<p class="cart-note">پرداخت یکجای زرین‌پال فقط برای طرح‌های ریالی یا تومانی فعال است.</p>{% endif %}{% else %}<p class="cart-note">درگاه زرین‌پال هنوز پیکربندی نشده است.</p>{% endif %}
+        {% if user.is_authenticated %}{% if zarinpal_enabled %}{% if cart_currency_supported %}<form method="post"
+      action="{% url 'billing:zarinpal_cart_start' %}"
+      data-ga4-begin-checkout
+      data-price-minor="{{ cart_totals.0.amount_minor_units }}"
+      data-currency="{{ cart_totals.0.currency }}">{% csrf_token %}<button class="button button-primary" type="submit">پرداخت کل سبد با زرین‌پال ↗</button></form><p class="cart-note">اگر سبد تغییر کند، سفارش تازه با مبلغ جدید ساخته می‌شود؛ سفارش قبلی برای تلاش مجدد باقی می‌ماند. سبد فقط پس از تأیید پرداخت و در صورت تغییرنکردن آن پاک می‌شود.</p>{% elif cart_currency_mixed %}<p class="cart-note">برای پرداخت یکجا، همه طرح‌ها باید واحد پول یکسان داشته باشند. واحد پول سبد را یکسان کنید.</p>{% else %}<p class="cart-note">پرداخت یکجای زرین‌پال فقط برای طرح‌های ریالی یا تومانی فعال است.</p>{% endif %}{% else %}<p class="cart-note">درگاه زرین‌پال هنوز پیکربندی نشده است.</p>{% endif %}
       {% else %}<a class="button button-primary"
    href="{% url 'login' %}?next={% url 'portal:cart' %}">برای ادامه وارد شوید ↗</a>{% endif %}<p class="cart-note">پس از بازگشت از درگاه، وضعیت پرداخت در سمت سرور بررسی می‌شود.</p></aside></div>
 {% else %}<div class="empty-state"><div class="cart-empty-icon">⌑</div><h3>سبد خرید شما منتظر انتخاب‌های خوب است</h3><p>یک یا چند طرح اشتراک اضافه کنید تا برای بررسی در اینجا نمایش داده شوند.</p><a class="button button-primary" href="{% url 'portal:pricing' %}">مشاهده طرح‌ها ↗</a></div>{% endif %}

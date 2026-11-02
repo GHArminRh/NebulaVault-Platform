@@ -17,6 +17,41 @@ from .services import (
 from .zarinpal import ZarinpalError, amount_in_rials, request_payment, verify_payment
 
 
+def _ga4_purchase_payload(order):
+    """Build a PII-free GA4 purchase payload from a server-verified paid order."""
+    currency = (order.currency or "").upper()
+    divisor = 10 if currency == "IRT" else 100
+    analytics_currency = "IRR" if currency == "IRT" else currency
+
+    lines = list(order.items.select_related("plan").all())
+    items = []
+    if lines:
+        for line in lines:
+            items.append({
+                "item_id": str(line.plan_id),
+                "item_name": line.plan_name,
+                "item_category": line.product_name,
+                "price": round(line.amount_minor_units / divisor, 2),
+                "quantity": 1,
+            })
+    else:
+        plan = order.plan
+        items.append({
+            "item_id": str(plan.pk),
+            "item_name": plan.name,
+            "item_category": plan.product.name,
+            "price": round(order.amount_minor_units / divisor, 2),
+            "quantity": 1,
+        })
+
+    return {
+        "transaction_id": str(order.order_number),
+        "value": round(order.amount_minor_units / divisor, 2),
+        "currency": analytics_currency,
+        "items": items,
+    }
+
+
 def _replace_stale_single_plan_order(order, user):
     """Cancel an unpaid single-plan order when its catalog price has changed.
 
@@ -207,6 +242,7 @@ def zarinpal_callback(request):
             "sandbox": getattr(settings, "ZARINPAL_SANDBOX", True),
             "license_key": getattr(finalized, "issued_license_key", None),
             "license_keys": getattr(finalized, "issued_license_keys", []),
+            "analytics_purchase": _ga4_purchase_payload(attempt.order),
         })
     except (ZarinpalError, PaymentFinalizationError, ValueError) as exc:
         return render(request, "billing/payment_result.html", {

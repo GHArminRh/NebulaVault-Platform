@@ -173,6 +173,7 @@ def verify_email(request, uidb64, token):
         customer.is_active = True
         customer.save(update_fields=["is_active"])
         login(request, customer, backend="accounts.backends.CustomerAuthenticationBackend")
+        request.session["ga4_pending_event"] = "sign_up"
         messages.success(request, "نشانی ایمیل شما با موفقیت تأیید شد. خوش آمدید!")
         return redirect("portal:dashboard")
 
@@ -266,6 +267,7 @@ def verify_email_code(request):
             customer.is_active = True
             customer.save(update_fields=["is_active"])
             login(request, customer, backend="accounts.backends.CustomerAuthenticationBackend")
+            request.session["ga4_pending_event"] = "sign_up"
             messages.success(request, "نشانی ایمیل شما با موفقیت تأیید شد. خوش آمدید!")
             return redirect("portal:dashboard")
         if entry:
@@ -630,6 +632,7 @@ class CustomerLoginView(LoginView):
     def form_valid(self, form):
         # A successful login clears the counter for this IP/account pair.
         cache.delete(self._login_attempt_key())
+        self.request.session["ga4_pending_event"] = "login"
         return super().form_valid(form)
 
     def form_invalid(self, form):
