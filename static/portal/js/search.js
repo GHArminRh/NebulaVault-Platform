@@ -66,10 +66,17 @@
   const renderFacetOptions = (root, name, values, placeholder) => {
     const select = root.querySelector('[data-search-filter="' + name + '"]');
     if (!select) return;
-    const selected = select.value;
+    const cache = (root._algoliaFacetCache ||= {});
+    const facetValues = (cache[name] ||= {});
+    Object.keys(facetValues).forEach((value) => {
+      facetValues[value] = 0;
+    });
+    Object.entries(values || {}).forEach(([value, count]) => {
+      facetValues[value] = count;
+    });
     const options = [element('option', '', placeholder)];
     options[0].value = '';
-    Object.entries(values || {})
+    Object.entries(facetValues)
       .sort(([left], [right]) => left.localeCompare(right, 'fa'))
       .forEach(([value, count]) => {
         const option = element('option', '', value + ' (' + count + ')');
@@ -77,7 +84,6 @@
         options.push(option);
       });
     select.replaceChildren(...options);
-    if (options.some((option) => option.value === selected)) select.value = selected;
   };
 
   const runSearch = async (root, query, sequence) => {
