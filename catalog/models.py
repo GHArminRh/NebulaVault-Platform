@@ -1,6 +1,11 @@
+import uuid
+
+
+import hashlib
 
 from django.core.validators import RegexValidator
 from django.db import models
+from django.utils.text import slugify
 
 
 currency_code_validator = RegexValidator(
@@ -15,6 +20,7 @@ sha256_validator = RegexValidator(
 
 
 class Product(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     """The software product itself; downloading it is free."""
 
     name = models.CharField(max_length=120)
@@ -31,11 +37,26 @@ class Product(models.Model):
         verbose_name = "Software product"
         verbose_name_plural = "Software products"
 
+    def save(self, *args, **kwargs):
+        base_slug = slugify(self.name) or "product"
+        candidate = base_slug[: self._meta.get_field("slug").max_length]
+        suffix = 2
+        queryset = type(self).objects.all()
+        if self.pk:
+            queryset = queryset.exclude(pk=self.pk)
+        while queryset.filter(slug=candidate).exists():
+            ending = f"-{suffix}"
+            candidate = f"{base_slug[: self._meta.get_field('slug').max_length - len(ending)]}{ending}"
+            suffix += 1
+        self.slug = candidate
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
 
 class Release(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     """A freely downloadable published version of a product."""
 
     class Platform(models.TextChoices):
@@ -63,11 +84,9 @@ class Release(models.Model):
         choices=Architecture.choices,
     )
 
-    download_url = models.URLField(max_length=1000)
-    sha256 = models.CharField(
-        max_length=64,
-        validators=[sha256_validator],
-    )
+    installer_file = models.FileField(upload_to="releases/%Y/%m/", blank=True, help_text="Upload the release file; SHA-256 is calculated automatically.")
+    download_url = models.URLField(max_length=1000, blank=True)
+    sha256 = models.CharField(max_length=64, validators=[sha256_validator], blank=True, editable=False)
     release_notes = models.TextField(blank=True)
 
     is_published = models.BooleanField(default=False)
@@ -91,6 +110,37 @@ class Release(models.Model):
             ),
         ]
 
+    def save(self, *args, **kwargs):
+        uploaded_file = self.installer_file
+        if uploaded_file:
+            digest = hashlib.sha256()
+
+            # A new upload still lives in Django's temporary upload handler.
+            # Read that object directly; FieldFile.open() tries to find it in
+            # permanent storage before it has been saved there.
+            if uploaded_file._committed:
+                with uploaded_file.storage.open(uploaded_file.name, "rb") as source:
+                    for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                        digest.update(chunk)
+            else:
+                source = uploaded_file.file
+                try:
+                    source.seek(0)
+                    for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                        digest.update(chunk)
+                finally:
+                    source.seek(0)
+            self.sha256 = digest.hexdigest()
+        else:
+            self.sha256 = ""
+
+        super().save(*args, **kwargs)
+
+        # Now the upload is in permanent storage, so its URL is safe to use.
+        if self.installer_file and not self.download_url:
+            self.download_url = self.installer_file.url
+            type(self).objects.filter(pk=self.pk).update(download_url=self.download_url)
+
     def __str__(self):
         return (
             f"{self.product.name} {self.version} "
@@ -99,6 +149,7 @@ class Release(models.Model):
 
 
 class Plan(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     """A paid subscription offer for a software product."""
 
     class DurationUnit(models.TextChoices):
@@ -159,6 +210,21 @@ class Plan(models.Model):
                 name="catalog_plan_price_must_be_positive",
             ),
         ]
+
+    def save(self, *args, **kwargs):
+        base_slug = slugify(self.name) or "plan"
+        max_length = self._meta.get_field("slug").max_length
+        candidate = base_slug[:max_length]
+        suffix = 2
+        queryset = type(self).objects.filter(product_id=self.product_id)
+        if self.pk:
+            queryset = queryset.exclude(pk=self.pk)
+        while queryset.filter(slug=candidate).exists():
+            ending = f"-{suffix}"
+            candidate = f"{base_slug[: max_length - len(ending)]}{ending}"
+            suffix += 1
+        self.slug = candidate
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.product.name} — {self.name}"

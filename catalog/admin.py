@@ -7,6 +7,8 @@ from .models import Plan, Product, Release
 class ReleaseInline(admin.TabularInline):
     model = Release
     extra = 0
+    fields = ("version", "platform", "architecture", "installer_file", "sha256", "is_published")
+    readonly_fields = ("sha256",)
 
 
 @admin.register(Product)
@@ -31,6 +33,8 @@ class ReleaseAdmin(admin.ModelAdmin):
     list_filter = ("platform", "architecture", "is_published")
     search_fields = ("product__name", "version")
     list_select_related = ("product",)
+    readonly_fields = ("sha256", "created_at")
+    fields = ("product", "version", "platform", "architecture", "installer_file", "download_url", "sha256", "release_notes", "is_published", "published_at", "created_at")
 
 
 @admin.register(Plan)
