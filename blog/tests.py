@@ -109,7 +109,6 @@ class BlogPostImageUploaderTests(TestCase):
         from django.core.files.uploadedfile import SimpleUploadedFile
         from PIL import Image
 
-        from portal.widgets import MAX_IMAGE_UPLOAD_BYTES
 
         image_buffer = BytesIO()
         Image.new("RGB", (2, 2), color="blue").save(image_buffer, format="PNG")
