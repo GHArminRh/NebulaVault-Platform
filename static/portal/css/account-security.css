@@ -10,10 +10,6 @@
   cursor: pointer;
 }
 
-.nv-auth-form .nv-remember-row input[type='checkbox'] {
-  margin: 0;
-}
-
 .nv-auth-form #nv-login-otp {
   direction: ltr;
   text-align: left;
