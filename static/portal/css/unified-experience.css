@@ -3893,6 +3893,7 @@ html body.nv-portal > header.site-header > .header-actions {
 }
 
 
+
 /* Customer Cloudflare Turnstile panel: a single responsive security surface. */
 html body.nv-portal .nv-auth-form .turnstile-shell {
   position: relative;
@@ -3907,12 +3908,22 @@ html body.nv-portal .nv-auth-form .turnstile-shell {
   padding: 13px 14px 12px;
   overflow: hidden;
   isolation: isolate;
-  border: 1px solid rgba(137, 153, 211, .22);
+  border: 1px solid rgba(137, 153, 211, 0.22);
   border-radius: 15px;
   background:
-    radial-gradient(ellipse at 92% 0%, rgba(102, 121, 226, .13), transparent 58%),
-    linear-gradient(135deg, rgba(20, 29, 54, .92), rgba(10, 17, 34, .96));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035), 0 10px 28px rgba(0, 0, 0, .13);
+    radial-gradient(
+      ellipse at 92% 0%,
+      rgba(102, 121, 226, 0.13),
+      transparent 58%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(20, 29, 54, 0.92),
+      rgba(10, 17, 34, 0.96)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 10px 28px rgba(0, 0, 0, 0.13);
 }
 html body.nv-portal .nv-auth-form .turnstile-shell::before {
   content: "";
@@ -3923,7 +3934,7 @@ html body.nv-portal .nv-auth-form .turnstile-shell::before {
   width: 2px;
   border-radius: 2px;
   background: linear-gradient(180deg, #80e3e5, #9b8bff);
-  opacity: .8;
+  opacity: 0.8;
 }
 html body.nv-portal .nv-auth-form .turnstile-heading {
   position: relative;
@@ -3943,9 +3954,9 @@ html body.nv-portal .nv-auth-form .turnstile-heading-mark {
   width: 30px;
   height: 30px;
   place-items: center;
-  border: 1px solid rgba(128, 227, 229, .27);
+  border: 1px solid rgba(128, 227, 229, 0.27);
   border-radius: 10px;
-  background: rgba(94, 207, 222, .09);
+  background: rgba(94, 207, 222, 0.09);
   color: #8de4e5;
   font-size: 14px;
   font-weight: 800;
@@ -3970,7 +3981,7 @@ html body.nv-portal .nv-auth-form .turnstile-heading-copy small {
 html body.nv-portal .nv-auth-form .turnstile-provider {
   margin-inline-start: auto;
   color: #7384a8;
-  font-family: 'DM Sans', sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 8px;
   font-weight: 700;
   letter-spacing: 1.1px;
@@ -3998,14 +4009,16 @@ html body.nv-portal .nv-auth-form .turnstile-loading {
   max-width: calc(100% - 26px);
   min-height: 35px;
   padding: 0 10px;
-  border: 1px solid rgba(148, 163, 184, .17);
+  border: 1px solid rgba(148, 163, 184, 0.17);
   border-radius: 9px;
-  background: rgba(9, 15, 29, .94);
+  background: rgba(9, 15, 29, 0.94);
   color: #aab6cc;
   font-size: 9px;
   direction: rtl;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, .12);
-  transition: opacity .2s ease, visibility .2s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
 }
 html body.nv-portal .nv-auth-form .turnstile-spinner {
   width: 13px;
@@ -4021,9 +4034,9 @@ html body.nv-portal .nv-auth-form .turnstile-script-loaded .turnstile-loading {
 html body.nv-portal .nv-auth-form .turnstile-config-error {
   margin: 0;
   padding: 9px 11px;
-  border: 1px solid rgba(255, 145, 173, .24);
+  border: 1px solid rgba(255, 145, 173, 0.24);
   border-radius: 9px;
-  background: rgba(255, 100, 140, .07);
+  background: rgba(255, 100, 140, 0.07);
   color: #ffb1c4;
   font-size: 10px;
   line-height: 1.8;
@@ -4033,9 +4046,10 @@ html body.nv-portal .nv-auth-form .turnstile-config-error {
     padding: 11px 10px 10px;
     border-radius: 13px;
   }
+
   html body.nv-portal .nv-auth-form .turnstile-provider {
     font-size: 7px;
-    letter-spacing: .7px;
+    letter-spacing: 0.7px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
