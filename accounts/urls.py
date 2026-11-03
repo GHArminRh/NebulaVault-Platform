@@ -1,14 +1,14 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from . import views
+from . import views, social_views
 from .forms import AccountPasswordResetForm, AccountSetPasswordForm
 
 app_name = "accounts"
 
 urlpatterns = [
-    path("social/<str:provider>/<str:flow>/start/", views.social_start, name="social_start"),
-    path("social/<str:provider>/callback/", views.social_callback, name="social_callback"),
+    path("social/<str:provider>/<str:flow>/start/", social_views.social_start, name="social_start"),
+    path("social/<str:provider>/callback/", social_views.social_callback, name="social_callback"),
     path("register/", views.register, name="register"),
     path("verify/<str:uidb64>/<str:token>/", views.verify_email, name="verify_email"),
     path("verify/resend/", views.resend_verification, name="resend_verification"),
