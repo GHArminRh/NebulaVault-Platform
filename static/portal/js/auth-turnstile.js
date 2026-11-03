@@ -32,10 +32,11 @@
         // The provider has accepted the render request. Its iframe may be
         // attached asynchronously or outside this node, so waiting for a
         // descendant iframe can leave our preparation overlay stuck forever.
-        const loading = widget.closest('.turnstile-shell')?.querySelector('.turnstile-loading');
+        const loading = widget
+          .closest('.turnstile-shell')
+          ?.querySelector('.turnstile-loading');
         if (loading) {
           loading.style.display = 'none';
-          loading.setAttribute('data-state', 'ready');
         }
       } catch {
         // Preserve the loading/error surface if the provider is unavailable.
