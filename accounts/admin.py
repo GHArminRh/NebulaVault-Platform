@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from import_export import resources
 from import_export.admin import ExportMixin
 
-from .models import AccountEmailLog, Customer
+from .models import AccountEmailLog, Customer, SocialIdentity
 
 
 class CustomerAdminForm(forms.ModelForm):
@@ -63,8 +63,8 @@ class CustomerAdminForm(forms.ModelForm):
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
     form = CustomerAdminForm
-    list_display = ("email", "username", "first_name", "last_name", "is_active", "is_banned", "date_joined")
-    list_filter = ("is_active", "is_banned", "date_joined")
+    list_display = ("email", "username", "first_name", "last_name", "is_active", "is_banned", "newsletter_opt_in", "terms_accepted_at", "date_joined")
+    list_filter = ("is_active", "is_banned", "newsletter_opt_in", "date_joined")
     search_fields = ("email", "username", "first_name", "last_name")
     ordering = ("-date_joined",)
 
@@ -110,3 +110,12 @@ class AccountEmailLogAdmin(ExportMixin, admin.ModelAdmin):
     ordering = ("-created_at",)
     readonly_fields = tuple(field.name for field in AccountEmailLog._meta.fields if field.name != "code_hash")
     exclude = ("code_hash",)
+
+
+@admin.register(SocialIdentity)
+class SocialIdentityAdmin(admin.ModelAdmin):
+    list_display = ("provider", "email", "customer", "created_at", "last_login_at")
+    list_filter = ("provider", "created_at")
+    search_fields = ("email", "provider_subject", "customer__email", "customer__username")
+    readonly_fields = tuple(field.name for field in SocialIdentity._meta.fields)
+    ordering = ("-last_login_at",)
