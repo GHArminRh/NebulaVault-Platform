@@ -153,7 +153,7 @@
     }
 
     function notifyChange() {
-      select.dispatchEvent(new Event('change', { bubbles: true }));
+      select.dispatchEvent(new window.Event('change', { bubbles: true }));
       refresh();
     }
 
