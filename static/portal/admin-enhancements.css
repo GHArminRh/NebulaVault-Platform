@@ -209,19 +209,35 @@ body:not(.login) #content button {
 
 /* Field-specific glyphs: only labels explicitly associated with form controls
    receive an icon. Unmapped fields and non-field labels remain untouched. */
-body:not(.login) #content .form-row label[for],
-body:not(.login) #content .aligned label[for],
-body:not(.login) #content .fieldBox label[for],
-body:not(.login) .inline-group .form-row label[for] {
+body:not(.login) #content label[for*="username"],
+body:not(.login) #content label[for*="first_name"],
+body:not(.login) #content label[for*="last_name"],
+body:not(.login) #content label[for$="-name"],
+body:not(.login) #content label[for*="password"],
+body:not(.login) #content label[for*="email"],
+body:not(.login) #content label[for*="slug"],
+body:not(.login) #content label[for*="url"],
+body:not(.login) #content label[for*="link"],
+body:not(.login) #content label[for*="title"],
+body:not(.login) #content label[for*="subject"],
+body:not(.login) #content label[for*="heading"],
+body:not(.login) #content label[for*="description"],
+body:not(.login) #content label[for*="content"],
+body:not(.login) #content label[for*="body"],
+body:not(.login) #content label[for*="summary"],
+body:not(.login) #content label[for*="date"],
+body:not(.login) #content label[for*="created"],
+body:not(.login) #content label[for*="expires"],
+body:not(.login) #content label[for*="updated"],
+body:not(.login) #content label[for*="published"],
+body:not(.login) #content label[for*="price"],
+body:not(.login) #content label[for*="amount"],
+body:not(.login) #content label[for*="cost"],
+body:not(.login) #content label[for*="quantity"],
+body:not(.login) #content label[for*="count"] {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-}
-body:not(.login) #content .form-row label[for]::before,
-body:not(.login) #content .aligned label[for]::before,
-body:not(.login) #content .fieldBox label[for]::before,
-body:not(.login) .inline-group .form-row label[for]::before {
-  content: none;
 }
 
 /* Identity and account fields. */
