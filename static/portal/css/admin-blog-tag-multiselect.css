@@ -132,7 +132,7 @@
   display: none;
 }
 
-.nv-blog-tag-select__option:has(.nv-blog-tag-select__checkbox:checked) {
+.nv-blog-tag-select__option[aria-selected="true"] {
   background: rgba(103, 125, 220, .12);
 }
 
