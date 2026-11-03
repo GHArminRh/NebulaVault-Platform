@@ -70,7 +70,7 @@
           {% endif %}
           {% if not form.two_factor_required and TURNSTILE_ENABLED|default:True %}
           <div class="turnstile-shell" role="group" aria-labelledby="nv-login-turnstile-heading">
-            <p class="turnstile-heading" id="nv-login-turnstile-heading">Security verification</p>
+            <div class="turnstile-heading" id="nv-login-turnstile-heading"><span class="turnstile-heading-mark" aria-hidden="true">✓</span><span class="turnstile-heading-copy"><strong>بررسی امنیتی</strong><small>برای محافظت از حساب شما</small></span><span class="turnstile-provider">CLOUDFLARE</span></div>
             {% if TURNSTILE_SITE_KEY %}
               <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
               <div class="nv-turnstile-widget"
@@ -138,7 +138,7 @@
           <p class="nv-auth-help">پس از ثبت‌نام، برای فعال‌سازی حساب باید ایمیل خود را تأیید کنید.</p>
           {% if TURNSTILE_ENABLED|default:True %}
           <div class="turnstile-shell" role="group" aria-labelledby="nv-register-turnstile-heading">
-            <p class="turnstile-heading" id="nv-register-turnstile-heading">Security verification</p>
+            <div class="turnstile-heading" id="nv-register-turnstile-heading"><span class="turnstile-heading-mark" aria-hidden="true">✓</span><span class="turnstile-heading-copy"><strong>بررسی امنیتی</strong><small>برای محافظت از حساب شما</small></span><span class="turnstile-provider">CLOUDFLARE</span></div>
             {% if TURNSTILE_SITE_KEY %}
               <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
               <div class="nv-turnstile-widget"
