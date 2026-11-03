@@ -93,16 +93,6 @@ def api_index(request):
     return response
 
 
-# Keep Wagtail's document/image libraries and Taggit inside Wagtail CMS rather
-# than duplicating their model links in the legacy Django admin index.
-_original_admin_get_app_list = admin.site.get_app_list
-
-def _admin_get_app_list_without_cms_duplicates(request, app_label=None):
-    app_list = _original_admin_get_app_list(request, app_label)
-    hidden_labels = {"wagtaildocs", "wagtailimages", "taggit"}
-    return [app for app in app_list if app.get("app_label") not in hidden_labels]
-
-admin.site.get_app_list = _admin_get_app_list_without_cms_duplicates
 
 
 urlpatterns = [
