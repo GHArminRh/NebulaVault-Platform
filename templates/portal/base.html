@@ -49,6 +49,7 @@
       <script defer src="{% static 'portal/js/ga4.js' %}"></script>
     {% endif %}
     {% block extra_css %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'portal/css/boolean-switches.css' %}">
   </head>
   <body class="nv-portal {% block body_class %} {% endblock %}"
       data-ga4-id="{{ ga4_measurement_id|default:'' }}"
