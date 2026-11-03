@@ -94,3 +94,12 @@ body:not(.nv-portal) input[type='checkbox']:disabled {
     transition: none;
   }
 }
+
+/* Keep the customer login remember-me switch aligned with the shared state. */
+html body.nv-portal .nv-auth-form .nv-remember-row > input#nv-login-remember:checked {
+  background-color: #259d70;
+}
+
+html body.nv-portal .nv-auth-form .nv-remember-row > input#nv-login-remember:checked::before {
+  transform: translateX(18px);
+}
