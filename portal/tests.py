@@ -1,5 +1,5 @@
 from datetime import timedelta
-from accounts.models import Customer
+from customer_accounts.models import Customer
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -23,13 +23,13 @@ class PortalPageTests(TestCase):
         self.assertIn(reverse("login"), response.url)
 
     def test_registration_creates_account_and_signs_in(self):
-        response = self.client.post(reverse("accounts:register"), {"username":"new_portal_user","email":"new@example.com","password1":"Sufficiently-long-pass-947!","password2":"Sufficiently-long-pass-947!", "human_check":"on"})
+        response = self.client.post(reverse("customer_accounts:register"), {"username":"new_portal_user","email":"new@example.com","password1":"Sufficiently-long-pass-947!","password2":"Sufficiently-long-pass-947!", "human_check":"on"})
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Customer.objects.filter(username="new_portal_user", email="new@example.com").exists())
         self.assertIn("_auth_user_id", self.client.session)
 
     def test_trial_starts_for_signed_in_user(self):
-        self.client.force_login(self.user, backend='accounts.backends.CustomerAuthenticationBackend')
+        self.client.force_login(self.user, backend='customer_accounts.backends.CustomerAuthenticationBackend')
         response = self.client.post(reverse("portal:start_trial", args=[self.product.slug]))
         self.assertEqual(response.status_code, 302)
         sub = Subscription.objects.get(user=self.user, product=self.product)
@@ -38,7 +38,7 @@ class PortalPageTests(TestCase):
 
     def test_order_remains_pending_without_payment_provider(self):
         from billing.models import PaymentOrder
-        self.client.force_login(self.user, backend='accounts.backends.CustomerAuthenticationBackend')
+        self.client.force_login(self.user, backend='customer_accounts.backends.CustomerAuthenticationBackend')
         self.client.post(reverse("portal:create_order", args=[self.plan.pk]))
         order = PaymentOrder.objects.get(user=self.user)
         self.assertEqual(order.status, PaymentOrder.Status.PENDING)
