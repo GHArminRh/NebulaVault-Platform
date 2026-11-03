@@ -5,6 +5,7 @@ from tinymce.widgets import TinyMCE
 from portal.widgets import MAX_IMAGE_UPLOAD_BYTES, NebulaImageUploaderWidget
 
 from .models import BlogPost
+from .widgets import BlogTagMultiSelectWidget
 
 
 class BlogPostAdminForm(forms.ModelForm):
@@ -14,6 +15,7 @@ class BlogPostAdminForm(forms.ModelForm):
     class Meta:
         model = BlogPost
         fields = "__all__"
+        widgets = {"tags": BlogTagMultiSelectWidget}
 
     def clean_img(self):
         image = self.cleaned_data.get("img")
