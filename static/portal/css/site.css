@@ -3238,7 +3238,7 @@ button.is-loading::after {
 }
 
 button.is-loading::before {
-  z-index: -1;
+  z-index: 0;
   inset: -120%;
   border-radius: 50%;
   background: conic-gradient(#63e6e2, #9c8cff, #63e6e2);
@@ -3246,10 +3246,15 @@ button.is-loading::before {
 }
 
 button.is-loading::after {
-  z-index: -1;
+  z-index: 0;
   inset: 2px;
   border-radius: inherit;
-  background: linear-gradient(110deg, #1d2752, #153e50, #28204c);
+  background: linear-gradient(
+    110deg,
+    rgba(29, 39, 82, 0.78),
+    rgba(21, 62, 80, 0.72),
+    rgba(40, 32, 76, 0.78)
+  );
   background-size: 200% 100%;
   animation: nv-button-liquid-flow 2.4s ease-in-out infinite alternate;
 }
