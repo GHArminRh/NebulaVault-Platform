@@ -29,21 +29,13 @@
         });
         widget.setAttribute('data-rendered', 'true');
 
-        const box = widget.closest('.turnstile-shell');
-        const loading = box && box.querySelector('.turnstile-loading');
-        if (!loading) return;
-
-        const hideLoaderWhenReady = () => {
-          if (!widget.querySelector('iframe')) return false;
+        // The provider has accepted the render request. Its iframe may be
+        // attached asynchronously or outside this node, so waiting for a
+        // descendant iframe can leave our preparation overlay stuck forever.
+        const loading = widget.closest('.turnstile-shell')?.querySelector('.turnstile-loading');
+        if (loading) {
           loading.style.display = 'none';
-          return true;
-        };
-
-        if (!hideLoaderWhenReady()) {
-          const observer = new MutationObserver(() => {
-            if (hideLoaderWhenReady()) observer.disconnect();
-          });
-          observer.observe(widget, { childList: true, subtree: true });
+          loading.setAttribute('data-state', 'ready');
         }
       } catch {
         // Preserve the loading/error surface if the provider is unavailable.
