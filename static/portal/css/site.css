@@ -3217,3 +3217,93 @@ html body.nv-portal .nv-home-hero .nv-hero-copy h1 > .gradient-text {
     transform: rotate(360deg);
   }
 }
+
+
+/* Full-surface liquid feedback for native POST submissions. */
+button.is-loading {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  opacity: 1;
+  cursor: wait !important;
+  transition: border-color 220ms ease, box-shadow 220ms ease;
+}
+
+button.is-loading::before,
+button.is-loading::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+button.is-loading::before {
+  inset: -115%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg 38deg,
+    rgba(131, 228, 237, 0.08) 68deg,
+    rgba(131, 228, 237, 0.78) 112deg,
+    rgba(169, 154, 255, 0.95) 158deg,
+    rgba(131, 228, 237, 0.16) 205deg,
+    transparent 250deg 360deg
+  );
+  animation: nv-button-liquid-rotate 1.8s linear infinite;
+}
+
+button.is-loading::after {
+  inset: 2px;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse at 18% 120%, rgba(104, 219, 235, 0.3), transparent 54%),
+    radial-gradient(ellipse at 88% -20%, rgba(157, 137, 255, 0.34), transparent 58%),
+    linear-gradient(115deg, rgba(30, 39, 82, 0.97), rgba(18, 57, 75, 0.97));
+  background-size: 150% 180%;
+  animation: nv-button-liquid-flow 2.6s ease-in-out infinite alternate;
+}
+
+button.is-loading > .nv-button-label {
+  position: relative;
+  z-index: 1;
+}
+
+.button.is-loading {
+  border-color: rgba(131, 228, 237, 0.62);
+  box-shadow:
+    0 0 0 1px rgba(131, 228, 237, 0.08),
+    0 0 18px rgba(131, 228, 237, 0.16),
+    0 0 34px rgba(124, 108, 255, 0.14);
+}
+
+.button.is-loading:disabled {
+  opacity: 1;
+  filter: saturate(1.08);
+}
+
+@keyframes nv-button-liquid-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes nv-button-liquid-flow {
+  0% {
+    background-position: 0% 0%;
+    border-radius: 48% 52% 46% 54% / 52% 44% 56% 48%;
+  }
+  50% {
+    border-radius: 42% 58% 54% 46% / 46% 56% 44% 54%;
+  }
+  100% {
+    background-position: 100% 100%;
+    border-radius: 55% 45% 43% 57% / 56% 48% 52% 44%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.is-loading::before,
+  button.is-loading::after {
+    animation: none;
+  }
+}
