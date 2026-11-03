@@ -81,6 +81,37 @@ class Customer(AbstractBaseUser):
         return False
 
 
+class SocialIdentity(models.Model):
+    """Verified external identity linked only to a customer account."""
+
+    class Provider(models.TextChoices):
+        GOOGLE = "google", "Google"
+        APPLE = "apple", "Apple"
+
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.CASCADE,
+        related_name="social_identities",
+    )
+    provider = models.CharField(max_length=12, choices=Provider.choices)
+    provider_subject = models.CharField(max_length=255)
+    email = models.EmailField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_login_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["provider", "provider_subject"],
+                name="unique_customer_social_identity",
+            ),
+        ]
+        ordering = ["provider", "email"]
+
+    def __str__(self):
+        return f"{self.get_provider_display()} · {self.email or self.provider_subject}"
+
+
 class AccountEmailLog(models.Model):
     """Audit metadata for account verification and password recovery emails."""
     class Purpose(models.TextChoices):
