@@ -81,7 +81,7 @@ class PortalPageTests(TestCase):
         self.assertIn(reverse("login"), response.url)
 
     def test_registration_creates_inactive_account_pending_email_verification(self):
-        response = self.client.post(reverse("accounts:register"), {"username":"new_portal_user","email":"new@example.com","password1":"Sufficiently-long-pass-947!","password2":"Sufficiently-long-pass-947!", "human_check":"on"})
+        response = self.client.post(reverse("accounts:register"), {"username":"new_portal_user","email":"new@example.com","password1":"Sufficiently-long-pass-947!","password2":"Sufficiently-long-pass-947!", "accept_terms":"on", "human_check":"on"})
         self.assertEqual(response.status_code, 200)
         customer = Customer.objects.get(email="new@example.com")
         self.assertEqual(customer.username, "new")
