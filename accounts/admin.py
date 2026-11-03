@@ -119,3 +119,12 @@ class SocialIdentityAdmin(admin.ModelAdmin):
     search_fields = ("email", "provider_subject", "customer__email", "customer__username")
     readonly_fields = tuple(field.name for field in SocialIdentity._meta.fields)
     ordering = ("-last_login_at",)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
