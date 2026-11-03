@@ -1684,8 +1684,8 @@ html body.nv-portal .stat-word {
   *,
   *::before,
   *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
+    scroll-behavior: auto;
+    transition-duration: 0.01ms;
   }
   .reveal {
     opacity: 1;
@@ -3219,16 +3219,16 @@ html body.nv-portal .nv-home-hero .nv-hero-copy h1 > .gradient-text {
   animation: nv-dot-circle 0.85s steps(8, end) infinite;
 }
 .is-loading {
-  cursor: wait !important;
+  cursor: wait;
 }
 button.is-loading {
   opacity: 0.82;
-  cursor: wait !important;
+  cursor: wait;
 }
 button.is-loading::before,
 button.is-loading::after {
-  content: none !important;
-  display: none !important;
+  content: none;
+  display: none;
 }
 @keyframes nv-dot-circle {
   to {
