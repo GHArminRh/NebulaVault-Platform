@@ -34,52 +34,52 @@ body:not(.nv-portal) input[type="checkbox"] {
     box-shadow 180ms ease;
 }
 
-body.nv-portal input[type="checkbox"],
-body:not(.nv-portal) #content input[type="checkbox"],
+body.nv-portal input[type="checkbox"]:checked,
+body:not(.nv-portal) #content input[type="checkbox"]:checked,
 body:not(.nv-portal) input[type="checkbox"]:checked {
   border-color: rgba(65, 190, 139, 0.82);
   background-color: #259d70;
   background-position: right 2px center;
 }
 
-body.nv-portal input[type="checkbox"],
-body:not(.nv-portal) #content input[type="checkbox"],
+body.nv-portal input[type="checkbox"]:indeterminate,
+body:not(.nv-portal) #content input[type="checkbox"]:indeterminate,
 body:not(.nv-portal) input[type="checkbox"]:indeterminate {
   background-color: #7567f5;
   background-position: center;
 }
 
-body.nv-portal input[type="checkbox"],
-body:not(.nv-portal) #content input[type="checkbox"],
+body.nv-portal input[type="checkbox"]:hover:not(:disabled),
+body:not(.nv-portal) #content input[type="checkbox"]:hover:not(:disabled),
 body:not(.nv-portal) input[type="checkbox"]:hover:not(:disabled) {
   border-color: rgba(138, 230, 231, 0.82);
   box-shadow: 0 0 0 3px rgba(138, 230, 231, 0.09);
 }
 
-body.nv-portal input[type="checkbox"],
-body:not(.nv-portal) #content input[type="checkbox"],
+body.nv-portal input[type="checkbox"]:focus-visible,
+body:not(.nv-portal) #content input[type="checkbox"]:focus-visible,
 body:not(.nv-portal) input[type="checkbox"]:focus-visible {
   outline: 2px solid #8ae6e7;
   outline-offset: 3px;
 }
 
-body.nv-portal input[type="checkbox"],
-body:not(.nv-portal) #content input[type="checkbox"],
+body.nv-portal input[type="checkbox"]:disabled,
+body:not(.nv-portal) #content input[type="checkbox"]:disabled,
 body:not(.nv-portal) input[type="checkbox"]:disabled {
   cursor: not-allowed;
   opacity: 0.48;
 }
 
-body.nv-portal input[type="checkbox"],
-body:not(.nv-portal) #content input[type="checkbox"],
+body.nv-portal input[type="checkbox"]:checked:disabled,
+body:not(.nv-portal) #content input[type="checkbox"]:checked:disabled,
 body:not(.nv-portal) input[type="checkbox"]:checked:disabled {
   background-color: #438d75;
 }
 
 @media (prefers-reduced-motion: reduce) {
   body.nv-portal input[type="checkbox"],
-body:not(.nv-portal) #content input[type="checkbox"],
-body:not(.nv-portal) input[type="checkbox"] {
+  body:not(.nv-portal) #content input[type="checkbox"],
+  body:not(.nv-portal) input[type="checkbox"] {
     transition: none;
   }
 }
