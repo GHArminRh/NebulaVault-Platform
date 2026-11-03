@@ -642,3 +642,83 @@ html body.nv-portal .nv-blog-tag {
     justify-content: space-between;
   }
 }
+
+
+/* Algolia article search panel in the blog hero. */
+.nv-blog-search-panel {
+  display: grid;
+  gap: 10px;
+  width: min(720px, 100%);
+  margin: 24px auto 0;
+  padding: 14px;
+  border: 1px solid rgba(130, 155, 210, .2);
+  border-radius: 16px;
+  background: rgba(13, 21, 42, .72);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .16);
+  text-align: start;
+}
+
+.nv-blog-search-panel .nv-blog-search {
+  width: 100%;
+  margin: 0;
+}
+
+.nv-blog-search-panel .nv-blog-search-category {
+  display: grid;
+  gap: 6px;
+  width: min(280px, 100%);
+  color: #aebeff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.nv-blog-search-panel .nv-search-select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid rgba(120, 155, 225, .3);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .055);
+  color: #eef3ff;
+  font: inherit;
+}
+
+.nv-blog-search-panel .nv-search-select:focus {
+  border-color: #7b9dff;
+  outline: 2px solid rgba(100, 130, 255, .2);
+}
+
+.nv-blog-search-panel .nv-search-select option {
+  color: #17213a;
+}
+
+.nv-blog-search-status {
+  min-height: 20px;
+  color: #8fa2c8;
+  font-size: 12px;
+}
+
+.nv-blog-search-results {
+  display: grid;
+  gap: 10px;
+  max-height: 440px;
+  overflow: auto;
+}
+
+.nv-blog-search-unavailable {
+  width: min(720px, 100%);
+  margin: 24px auto 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 190, 120, .22);
+  border-radius: 12px;
+  background: rgba(255, 190, 120, .06);
+  color: #d9c5a8;
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .nv-blog-search-panel {
+    padding: 11px;
+    border-radius: 13px;
+  }
+}
