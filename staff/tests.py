@@ -1,10 +1,11 @@
 import os
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 from django.core.cache import cache
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 
 from staff.management.commands.bootstrap_render_admin import Command
+from staff.management.commands.render_startup import Command as RenderStartupCommand
 
 
 @override_settings(
@@ -40,3 +41,43 @@ class AlgoliaBootstrapCommandTests(TestCase):
             Command().handle()
 
         self.assertEqual(call_command.call_count, 2)
+
+
+class RenderStartupCommandTests(SimpleTestCase):
+    @patch("staff.management.commands.render_startup.connection")
+    @patch("staff.management.commands.render_startup.call_command")
+    def test_runs_migrations_and_bootstrap_in_one_command_process(
+        self, call_command, connection
+    ):
+        connection.introspection.table_names.return_value = ["django_cache", "auth_user"]
+
+        RenderStartupCommand().handle(verbosity=1)
+
+        self.assertEqual(
+            call_command.call_args_list,
+            [
+                call("migrate", interactive=False, verbosity=1),
+                call("bootstrap_render_admin", verbosity=1),
+            ],
+        )
+
+    @patch("staff.management.commands.render_startup.connection")
+    @patch("staff.management.commands.render_startup.call_command")
+    def test_creates_cache_table_only_when_missing(self, call_command, connection):
+        connection.introspection.table_names.return_value = ["auth_user"]
+
+        RenderStartupCommand().handle(verbosity=1)
+
+        self.assertEqual(
+            call_command.call_args_list,
+            [
+                call("migrate", interactive=False, verbosity=1),
+                call(
+                    "createcachetable",
+                    "django_cache",
+                    database="default",
+                    verbosity=1,
+                ),
+                call("bootstrap_render_admin", verbosity=1),
+            ],
+        )
