@@ -1,7 +1,7 @@
 /*
  * Shared Nebula sliding switches for native checkbox controls.
- * The dimensions, track color, thumb, shadow, and movement intentionally
- * match the original .nv-boolean-toggle switch in admin_boolean_toggle.js.
+ * The track, thumb, dimensions, shadow, and motion match the original
+ * .nv-boolean-toggle implementation in admin_boolean_toggle.js.
  * Native inputs remain in place for forms, keyboard use, and accessibility.
  */
 body.nv-portal input[type='checkbox'],
@@ -21,31 +21,50 @@ body:not(.nv-portal) input[type='checkbox'] {
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background-color: #667085;
-  background-image: radial-gradient(circle, #fff 0 99%, transparent 100%);
-  background-repeat: no-repeat;
-  background-size: 18px 18px;
-  background-position: left 2px center;
+  background: #667085;
   box-shadow: none;
   vertical-align: middle;
   cursor: pointer;
-  transition:
-    background-color 180ms ease,
-    background-position 220ms cubic-bezier(0.2, 0.75, 0.25, 1);
+  transition: background-color 180ms ease;
+}
+
+body.nv-portal input[type='checkbox']::before,
+body:not(.nv-portal) #content input[type='checkbox']::before,
+body:not(.nv-portal) input[type='checkbox']::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
+  transition: transform 220ms cubic-bezier(0.2, 0.75, 0.25, 1);
 }
 
 body.nv-portal input[type='checkbox']:checked,
 body:not(.nv-portal) #content input[type='checkbox']:checked,
 body:not(.nv-portal) input[type='checkbox']:checked {
-  background-color: #259d70;
-  background-position: right 4px center;
+  background: #259d70;
+}
+
+body.nv-portal input[type='checkbox']:checked::before,
+body:not(.nv-portal) #content input[type='checkbox']:checked::before,
+body:not(.nv-portal) input[type='checkbox']:checked::before {
+  transform: translateX(18px);
 }
 
 body.nv-portal input[type='checkbox']:indeterminate,
 body:not(.nv-portal) #content input[type='checkbox']:indeterminate,
 body:not(.nv-portal) input[type='checkbox']:indeterminate {
-  background-color: #7567f5;
-  background-position: center;
+  background: #7567f5;
+}
+
+body.nv-portal input[type='checkbox']:indeterminate::before,
+body:not(.nv-portal) #content input[type='checkbox']:indeterminate::before,
+body:not(.nv-portal) input[type='checkbox']:indeterminate::before {
+  transform: translateX(9px);
 }
 
 body.nv-portal input[type='checkbox']:focus-visible,
@@ -62,16 +81,16 @@ body:not(.nv-portal) input[type='checkbox']:disabled {
   opacity: 0.48;
 }
 
-body.nv-portal input[type='checkbox'],
-body:not(.nv-portal) #content input[type='checkbox'],
-body:not(.nv-portal) input[type='checkbox'] {
-  --nv-switch-thumb-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
-}
-
 @media (prefers-reduced-motion: reduce) {
   body.nv-portal input[type='checkbox'],
   body:not(.nv-portal) #content input[type='checkbox'],
   body:not(.nv-portal) input[type='checkbox'] {
+    transition: none;
+  }
+
+  body.nv-portal input[type='checkbox']::before,
+  body:not(.nv-portal) #content input[type='checkbox']::before,
+  body:not(.nv-portal) input[type='checkbox']::before {
     transition: none;
   }
 }
