@@ -44,7 +44,7 @@ def get_oauth_client(provider):
             client_id=settings.APPLE_OAUTH_CLIENT_ID,
             client_secret=_apple_client_secret(),
             server_metadata_url="https://appleid.apple.com/.well-known/openid-configuration",
-            client_kwargs={"scope": "openid email name"},
+            client_kwargs={"scope": "name email"},
             token_endpoint_auth_method="client_secret_post",
         )
     else:
