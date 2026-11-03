@@ -160,3 +160,21 @@ class BlogAlgoliaSearchViewTests(TestCase):
         self.assertContains(response, "data-algolia-search-input")
         self.assertContains(response, 'name="q"')
         self.assertNotContains(response, post.title)
+
+
+
+class BlogPostTagMultiSelectWidgetTests(TestCase):
+    def test_blog_tags_use_searchable_single_trigger_widget(self):
+        from .widgets import BlogTagMultiSelectWidget
+
+        form = BlogPostAdminForm()
+        self.assertIsInstance(form.fields["tags"].widget, BlogTagMultiSelectWidget)
+
+        rendered = str(form["tags"])
+        self.assertIn("data-nv-blog-tag-select", rendered)
+        self.assertIn('multiple', rendered)
+        self.assertNotIn("selector-available", rendered)
+
+        media = str(form.media)
+        self.assertIn("admin-blog-tag-multiselect.js", media)
+        self.assertIn("admin-blog-tag-multiselect.css", media)
