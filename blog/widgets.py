@@ -8,4 +8,4 @@ class BlogTagMultiSelectWidget(forms.SelectMultiple):
 
     class Media:
         css = {"all": ("portal/css/admin-blog-tag-multiselect.css",)}
-        js = ("portal/js/admin-blog-tag-multiselect.js",)}
+        js = ("portal/js/admin-blog-tag-multiselect.js",)
