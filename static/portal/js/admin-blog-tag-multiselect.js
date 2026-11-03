@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  function initTagMultiSelect(root) {
+  function initAdminMultiSelect(root) {
     if (root.dataset.nvEnhanced === 'true') return;
 
     var select = root.querySelector('select[multiple]');
@@ -34,7 +34,7 @@
     search.type = 'search';
     search.className = 'nv-admin-multiselect__search';
     search.placeholder = 'Search options…';
-    search.setAttribute('aria-label', 'Search tags');
+    search.setAttribute('aria-label', 'Search options');
     search.autocomplete = 'off';
     searchWrap.append(search);
 
@@ -86,7 +86,7 @@
       var count = selectedCount();
       triggerText.textContent = count
         ? count + (count === 1 ? ' option selected' : ' options selected')
-        : 'Select tags';
+        : 'Select options';
 
       rows.forEach(function (item) {
         item.checkbox.checked = item.option.selected;
@@ -258,7 +258,7 @@
       });
     }
 
-    // Django's green "add related tag" popup inserts a new <option> into
+    // Django's related-object popup inserts a new <option> into
     // the native select. Watch that source of truth so the custom menu stays
     // in sync without requiring a page reload.
     if (window.MutationObserver) {
@@ -272,7 +272,7 @@
   }
 
   function initAll() {
-    document.querySelectorAll('[data-nv-admin-multiselect]').forEach(initTagMultiSelect);
+    document.querySelectorAll('[data-nv-admin-multiselect]').forEach(initAdminMultiSelect);
   }
 
   if (document.readyState === 'loading') {
