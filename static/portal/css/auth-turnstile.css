@@ -129,11 +129,6 @@ html body.nv-portal .nv-auth-form .turnstile-spinner {
   border-width: 2px;
   border-top-color: #8de4e5;
 }
-html.turnstile-script-loaded body.nv-portal .nv-auth-form .turnstile-loading {
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-}
 html body.nv-portal .nv-auth-form .turnstile-config-error {
   margin: 0;
   padding: 9px 11px;
