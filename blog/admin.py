@@ -119,9 +119,8 @@ class BlogPostAdmin(ImportExportModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
     ordering = ("status", "published_at")
     actions = (make_published, make_drafted)
-    # Django autocomplete uses an accessible, searchable combobox and keeps
-    # the normal related-object add flow available for staff.
-    autocomplete_fields = ("tags",)
+    # Preserve Django's familiar dual-list selector for multiple tags.
+    filter_horizontal = ("tags",)
     search_fields = ("title", "slug", "excerpt", "tags__name")
     save_on_top = True
     fieldsets = (
