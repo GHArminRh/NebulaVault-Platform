@@ -3196,7 +3196,6 @@ html body.nv-portal .nv-home-hero .nv-hero-copy h1 > .gradient-text {
   -webkit-text-fill-color: transparent;
 }
 
-
 /* Frosted glass feedback for the single submit control while a POST is pending. */
 .button:disabled[aria-disabled="true"],
 .button[aria-disabled="true"],
