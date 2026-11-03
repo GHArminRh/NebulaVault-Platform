@@ -71,7 +71,7 @@
   const renderFacetOptions = (root, name, values, placeholder) => {
     const select = root.querySelector('[data-search-filter="' + name + '"]');
     if (!select) return;
-    const selectedValue = select.value;
+    const selectedValue = select.value || select.dataset.selected || '';
     const cache = (root._algoliaFacetCache ||= {});
     const facetValues = (cache[name] ||= {});
     Object.keys(facetValues).forEach((value) => {
