@@ -108,6 +108,8 @@ def social_start(request, provider, flow):
         options = {"state": state, "code_verifier": secrets.token_urlsafe(64)}
         if provider == "apple":
             options["response_mode"] = "form_post"
+            options["response_type"] = "code id_token"
+            options["nonce"] = secrets.token_urlsafe(32)
         return client.authorize_redirect(request, callback_uri, **options)
     except SocialAuthNotConfigured:
         return _failure(request, "ورود با این سرویس هنوز پیکربندی نشده است.")
