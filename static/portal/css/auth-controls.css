@@ -126,6 +126,11 @@ body.nv-portal .nv-social-button:hover {
   background: rgba(138, 230, 231, 0.07);
   transform: translateY(-1px);
 }
+body.nv-portal .nv-social-button svg {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+}
 body.nv-portal .nv-google-g {
   color: #4285f4;
   font:
@@ -134,7 +139,6 @@ body.nv-portal .nv-google-g {
 }
 body.nv-portal .nv-apple-mark {
   color: #fff;
-  font-size: 18px;
 }
 @media (max-width: 420px) {
   body.nv-portal .nv-social-actions {
