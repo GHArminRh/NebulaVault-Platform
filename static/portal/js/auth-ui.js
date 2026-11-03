@@ -24,9 +24,7 @@ document.querySelectorAll('.nv-auth-shell').forEach((shell) => {
     socialForm.addEventListener('submit', () => {
       const flow = socialForm.dataset.socialFlow;
       const sourceSelector =
-        flow === 'register'
-          ? '.nv-auth-register .nv-auth-form'
-          : '.nv-auth-login .nv-auth-form';
+        flow === 'register' ? '.nv-auth-register .nv-auth-form' : '.nv-auth-login .nv-auth-form';
       const sourceForm = shell.querySelector(sourceSelector);
       if (!sourceForm) return;
 
