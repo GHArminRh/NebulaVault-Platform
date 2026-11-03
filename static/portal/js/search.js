@@ -29,12 +29,15 @@
 
   const escapeFilterValue = (value) => String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 
-  const renderResults = (container, payload) => {
+  const renderResults = (container, payload, scope = 'all') => {
     container.replaceChildren();
-    const groups = [
-      { label: 'محصولات', hits: payload.results?.[0]?.hits || [] },
-      { label: 'مقالات', hits: payload.results?.[1]?.hits || [] },
-    ];
+    const groups =
+      scope === 'articles'
+        ? [{ label: 'مقالات', hits: payload.results?.[0]?.hits || [] }]
+        : [
+            { label: 'محصولات', hits: payload.results?.[0]?.hits || [] },
+            { label: 'مقالات', hits: payload.results?.[1]?.hits || [] },
+          ];
     let count = 0;
     groups.forEach((group) => {
       if (!group.hits.length) return;
@@ -97,20 +100,36 @@
     const appId = root.dataset.algoliaAppId;
     const apiKey = root.dataset.algoliaSearchKey;
     const fullSearch = root.dataset.fullSearch === 'true';
+    const scope = root.dataset.searchScope === 'articles' ? 'articles' : 'all';
     const hitsPerPage = fullSearch ? '8' : '4';
     const platform = root.querySelector('[data-search-filter="platform"]')?.value || '';
     const category = root.querySelector('[data-search-filter="category"]')?.value || '';
     const productParams = new URLSearchParams({ query, hitsPerPage });
     const articleParams = new URLSearchParams({ query, hitsPerPage });
 
-    if (platform) productParams.set('filters', 'platforms:"' + escapeFilterValue(platform) + '"');
-    if (category) articleParams.set('filters', 'category:"' + escapeFilterValue(category) + '"');
+    if (platform && scope === 'all')
+      productParams.set('filters', 'platforms:"' + escapeFilterValue(platform) + '"');
+    if (category)
+      articleParams.set('filters', 'category:"' + escapeFilterValue(category) + '"');
 
-    const requests = [
-      { indexName: root.dataset.algoliaProductsIndex, params: productParams.toString() },
-      { indexName: root.dataset.algoliaArticlesIndex, params: articleParams.toString() },
-    ];
-    if (fullSearch) {
+    const requests =
+      scope === 'articles'
+        ? [{ indexName: root.dataset.algoliaArticlesIndex, params: articleParams.toString() }]
+        : [
+            { indexName: root.dataset.algoliaProductsIndex, params: productParams.toString() },
+            { indexName: root.dataset.algoliaArticlesIndex, params: articleParams.toString() },
+          ];
+
+    if (fullSearch && scope === 'articles') {
+      requests.push({
+        indexName: root.dataset.algoliaArticlesIndex,
+        params: new URLSearchParams({
+          query,
+          hitsPerPage: '0',
+          facets: JSON.stringify(['category']),
+        }).toString(),
+      });
+    } else if (fullSearch) {
       requests.push({
         indexName: root.dataset.algoliaProductsIndex,
         params: new URLSearchParams({
@@ -149,8 +168,15 @@
       if (!response.ok) throw new Error('Algolia request failed: ' + response.status);
       const payload = await response.json();
       if (sequence !== root._algoliaSequence) return;
-      renderResults(results, payload);
-      if (fullSearch) {
+      renderResults(results, payload, scope);
+      if (fullSearch && scope === 'articles') {
+        renderFacetOptions(
+          root,
+          'category',
+          payload.results?.[1]?.facets?.category,
+          'همه دسته‌بندی‌ها'
+        );
+      } else if (fullSearch) {
         renderFacetOptions(
           root,
           'platform',
@@ -165,12 +191,15 @@
         );
       }
       const total = (payload.results || [])
-        .slice(0, 2)
+        .slice(0, scope === 'articles' ? 1 : 2)
         .reduce((sum, item) => sum + (item.nbHits || 0), 0);
       if (status)
-        status.textContent = total ? total + ' نتیجه در محصولات و مقالات' : 'نتیجه‌ای پیدا نشد.';
+        status.textContent = total
+          ? total + ' نتیجه در ' + (scope === 'articles' ? 'مقالات' : 'محصولات و مقالات')
+          : 'نتیجه‌ای پیدا نشد.';
     } catch (error) {
       if (error.name === 'AbortError') return;
+      console.error('Algolia search request failed', error);
       if (status)
         status.textContent = 'ارتباط با سرویس جست‌وجو برقرار نشد. کمی بعد دوباره تلاش کن.';
     }
