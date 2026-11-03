@@ -77,3 +77,131 @@
     transition: none;
   }
 }
+
+
+/* Headless UI-inspired control language for the native Django admin. */
+body:not(.login) #content .module,
+body:not(.login) #content .inline-group,
+body:not(.login) #changelist,
+body:not(.login) #changelist-filter,
+body:not(.login) #content .submit-row,
+body:not(.login) #content .paginator,
+body:not(.login) #content .selector,
+body:not(.login) #content .selector-available,
+body:not(.login) #content .selector-chosen {
+  border-radius: 14px;
+}
+
+body:not(.login) #content input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
+body:not(.login) #content textarea,
+body:not(.login) #content select:not([multiple]):not(.select2-hidden-accessible) {
+  border-radius: 10px;
+}
+
+body:not(.login) #content select:not([multiple]):not(.select2-hidden-accessible) {
+  min-height: 38px;
+  padding: 7px 34px 7px 11px;
+  border: 1px solid rgba(154, 169, 205, .25);
+  background-color: rgba(16, 22, 39, .88);
+  color: #e8edff;
+  transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+
+body:not(.login) #content select:not([multiple]):not(.select2-hidden-accessible):focus {
+  border-color: rgba(138, 230, 231, .62);
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(138, 230, 231, .10);
+}
+
+body:not(.login) #content select:not([multiple]):not(.select2-hidden-accessible) option {
+  background: #111a30;
+  color: #e8edff;
+}
+
+/* Django autocomplete behaves like a Headless UI Combobox: searchable,
+   keyboard-operable, and still backed by the original Django field. */
+body:not(.login) #content .select2-container--admin-autocomplete .select2-selection,
+body:not(.login) #content .select2-container--default .select2-selection--single,
+body:not(.login) #content .select2-container--default .select2-selection--multiple {
+  min-height: 38px;
+  border: 1px solid rgba(154, 169, 205, .25);
+  border-radius: 11px;
+  background: rgba(16, 22, 39, .88);
+  color: #e8edff;
+  box-shadow: none;
+}
+
+body:not(.login) #content .select2-container--default .select2-selection--single .select2-selection__rendered {
+  color: inherit;
+  line-height: 36px;
+}
+
+body:not(.login) #content .select2-container--default .select2-selection--multiple .select2-selection__choice {
+  margin-top: 5px;
+  padding: 3px 8px;
+  border: 1px solid rgba(138, 230, 231, .22);
+  border-radius: 8px;
+  background: rgba(87, 113, 190, .18);
+  color: #e8edff;
+}
+
+body:not(.login) .select2-dropdown {
+  overflow: hidden;
+  border: 1px solid rgba(154, 169, 205, .28);
+  border-radius: 12px;
+  background: #111a30;
+  color: #e8edff;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, .28);
+}
+
+body:not(.login) .select2-container--default .select2-results__option--highlighted[aria-selected],
+body:not(.login) .select2-container--default .select2-results__option--highlighted[aria-selected="true"] {
+  background: rgba(103, 125, 220, .34);
+  color: #fff;
+}
+
+body:not(.login) #content .selector {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(154, 169, 205, .16);
+  background: rgba(12, 18, 34, .35);
+}
+
+body:not(.login) #content .selector .selector-available,
+body:not(.login) #content .selector .selector-chosen {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(154, 169, 205, .18);
+  border-radius: 11px;
+  background: rgba(16, 22, 39, .7);
+}
+
+body:not(.login) #content .selector select {
+  border-radius: 8px;
+}
+
+body:not(.login) #content .selector input,
+body:not(.login) #content .selector .selector-available input {
+  border-radius: 9px;
+}
+
+body:not(.login) #content .button,
+body:not(.login) #content input[type="submit"],
+body:not(.login) #content button {
+  border-radius: 10px;
+}
+
+@media (max-width: 767px) {
+  body:not(.login) #content .selector {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:not(.login) #content select:not([multiple]):not(.select2-hidden-accessible),
+  body:not(.login) #content .select2-container--admin-autocomplete .select2-selection,
+  body:not(.login) #content .select2-container--default .select2-selection {
+    transition: none;
+  }
+}

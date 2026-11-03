@@ -13,16 +13,43 @@
     <h1>دانش، راهنما و <span class="gradient-text">تازه‌های نبیولا.</span></h1>
     <p>مقاله‌ها و راهنماهای کاربردی برای استفاده‌ی بهتر از محصولات دیجیتال.</p>
 
-    <form class="nv-blog-search" method="get">
-      <input
-        type="search"
-        name="q"
-        value="{{ query }}"
-        placeholder="جست‌وجو در نوشته‌ها…"
-        aria-label="جست‌وجو"
-      >
-      <button class="button button-primary" type="submit">جست‌وجو ↗</button>
-    </form>
+    {% if algolia_search_enabled %}
+      <div class="nv-blog-search-panel"
+           data-algolia-search
+           data-full-search="true"
+           data-search-scope="articles"
+           data-algolia-app-id="{{ algolia_app_id }}"
+           data-algolia-search-key="{{ algolia_search_api_key }}"
+           data-algolia-products-index="{{ algolia_products_index }}"
+           data-algolia-articles-index="{{ algolia_articles_index }}">
+        <form class="nv-blog-search" method="get">
+          <input
+            type="search"
+            name="q"
+            value="{{ query }}"
+            placeholder="جست‌وجو در نوشته‌ها…"
+            autocomplete="off"
+            aria-label="جست‌وجو در مقالات"
+            data-algolia-search-input
+          >
+          <button class="button button-primary" type="submit">جست‌وجو ↗</button>
+        </form>
+        <label class="nv-blog-search-category">
+          <span>دسته‌بندی مقاله</span>
+          <select class="nv-search-select" data-search-filter="category" data-selected="{{ selected_category }}">
+            <option value="">همه دسته‌بندی‌ها</option>
+          </select>
+        </label>
+        <div class="nv-blog-search-status" data-algolia-status aria-live="polite">
+          {% if query %}در حال آماده‌سازی جست‌وجو…{% else %}برای جست‌وجو، عنوان یا واژه‌ای از مقاله را وارد کن.{% endif %}
+        </div>
+        <div class="nv-blog-search-results nv-search-results" data-algolia-results></div>
+      </div>
+    {% else %}
+      <div class="nv-blog-search-unavailable" role="status">
+        جست‌وجوی مقالات در حال حاضر پیکربندی نشده است.
+      </div>
+    {% endif %}
 
     {% if categories %}
       <div class="nv-blog-categories">
@@ -57,10 +84,10 @@
           نوشته‌های منتشرشده
         {% endif %}
       </span>
-      <span>{{ page_obj.paginator.count }} نوشته</span>
+      <span>{% if not query %}{{ page_obj.paginator.count }} نوشته{% endif %}</span>
     </div>
 
-    {% if posts %}
+    {% if not query and posts %}
       <div class="nv-blog-grid">
         {% for post in posts %}
           <article class="nv-blog-card">
@@ -106,7 +133,7 @@
           {% endif %}
         </nav>
       {% endif %}
-    {% else %}
+    {% elif not query %}
       <div class="nv-blog-empty">
         <span>◇</span>
         <h2>هنوز نوشته‌ای برای نمایش نیست.</h2>

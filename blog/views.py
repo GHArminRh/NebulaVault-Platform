@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -24,13 +24,8 @@ def post_list(request):
     category = request.GET.get("category", "").strip()
     tag_id = request.GET.get("tag", "").strip()
     selected_tag = None
-    if query:
-        posts = posts.filter(
-            Q(title__icontains=query)
-            | Q(excerpt__icontains=query)
-            | Q(content__icontains=query)
-            | Q(tags__name__icontains=query)
-        ).distinct()
+    # Search terms are handled by Algolia in the blog UI. Keep the server-side
+    # queryset scoped to published content and preserve category/tag filters.
     if category:
         posts = posts.filter(category=category)
     if tag_id:

@@ -1,4 +1,5 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.urls import reverse
 from django.utils import timezone
 
 from wagtail.models import DraftStateMixin, PreviewableMixin, RevisionMixin
@@ -132,3 +133,30 @@ class BlogPostImageUploaderTests(TestCase):
         with patch("blog.forms.MAX_IMAGE_UPLOAD_BYTES", len(image_bytes) - 1):
             self.assertFalse(form.is_valid())
             self.assertIn("img", form.errors)
+
+
+
+class BlogAlgoliaSearchViewTests(TestCase):
+    @override_settings(
+        ALGOLIA_APP_ID="test-app-id",
+        ALGOLIA_SEARCH_API_KEY="test-search-only-key",
+    )
+    def test_blog_query_uses_algolia_article_search(self):
+        post = BlogPost.objects.create(
+            title="A published article hidden from server-side text search",
+            slug="algolia-blog-search-view-test",
+            content="<p>Article body</p>",
+            status=BlogPost.Status.PUBLISHED,
+            published_at=timezone.now(),
+        )
+
+        response = self.client.get(
+            reverse("blog:post_list"),
+            {"q": "a term that Algolia will search"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-search-scope="articles"')
+        self.assertContains(response, "data-algolia-search-input")
+        self.assertContains(response, 'name="q"')
+        self.assertNotContains(response, post.title)
