@@ -1,18 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Give every POST form an immediate, accessible loading state. The browser
-  // continues the native submission; only the initiating submit control is locked.
+  // POST submissions reuse the same page progress bar as normal navigation.
+  // Only the control that initiated this submission is disabled.
+  let triggerPageProgress = () => {};
+
   document.querySelectorAll('form[method="post"], form[method="POST"]').forEach((form) => {
     form.addEventListener('submit', (event) => {
       if (form.dataset.submitting === 'true') {
         event.preventDefault();
         return;
       }
+
       form.dataset.submitting = 'true';
       form.setAttribute('aria-busy', 'true');
+      triggerPageProgress();
+
       const submitter =
         event.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
       if (!submitter) return;
-      // Preserve the clicked submit button's name/value before disabling it.
+
+      // Preserve the clicked control's name/value before disabling it.
       if (submitter.name && submitter.value) {
         const submittedValue = document.createElement('input');
         submittedValue.type = 'hidden';
@@ -20,35 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
         submittedValue.value = submitter.value;
         form.append(submittedValue);
       }
-      submitter.classList.add('is-loading');
+
       submitter.setAttribute('aria-disabled', 'true');
       submitter.disabled = true;
-      if (submitter.tagName === 'BUTTON') {
-        // Wrap the existing label once so the liquid animation can flow behind
-        // it without changing the button's dimensions or hiding its text.
-        if (!submitter.querySelector(':scope > .nv-button-label')) {
-          const label = document.createElement('span');
-          label.className = 'nv-button-label';
-          while (submitter.firstChild) label.append(submitter.firstChild);
-          submitter.append(label);
-        }
-        if (!submitter.querySelector(':scope > .nv-button-spinner')) {
-          const spinner = document.createElement('span');
-          spinner.className = 'nv-button-spinner';
-          spinner.setAttribute('aria-hidden', 'true');
-          submitter.append(spinner);
-        }
-      } else {
-        submitter.dataset.originalValue = submitter.value;
-        submitter.value = 'Processing…';
-        const spinner = document.createElement('span');
-        spinner.className = 'nv-button-spinner';
-        spinner.setAttribute('aria-hidden', 'true');
-        submitter.insertAdjacentElement('afterend', spinner);
-      }
-      form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((control) => {
-        if (control !== submitter) control.disabled = true;
-      });
     });
   });
 
@@ -163,6 +143,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 420);
       }, 420);
     };
+
+    triggerPageProgress = startProgress;
 
     if (document.readyState !== 'complete') {
       startProgress();

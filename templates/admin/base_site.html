@@ -13,6 +13,47 @@
   {% endif %}
   <script>
     document.addEventListener("DOMContentLoaded", function () {
+      var progress = document.createElement("div");
+      progress.className = "nv-admin-post-progress";
+      progress.setAttribute("role", "progressbar");
+      progress.setAttribute("aria-label", "Page submission progress");
+      progress.setAttribute("aria-valuemin", "0");
+      progress.setAttribute("aria-valuemax", "100");
+      progress.setAttribute("aria-valuenow", "0");
+      var track = document.createElement("span");
+      track.className = "nv-admin-post-progress-track";
+      var glow = document.createElement("span");
+      glow.className = "nv-admin-post-progress-glow";
+      progress.append(track, glow);
+      document.body.prepend(progress);
+
+      var value = 0;
+      var frame = 0;
+      var lastFrame = 0;
+      var running = false;
+      function advance(timestamp) {
+        if (!running) return;
+        var elapsed = lastFrame ? Math.min(timestamp - lastFrame, 100) : 1000 / 60;
+        lastFrame = timestamp;
+        value += (91 - value) * (1 - Math.pow(1 - 0.012, elapsed / (1000 / 60)));
+        value = Math.min(value, 91);
+        progress.style.setProperty("--nv-admin-progress", value + "%");
+        progress.style.setProperty("--nv-admin-progress-ratio", String(value / 100));
+        progress.setAttribute("aria-valuenow", String(Math.round(value)));
+        frame = value < 90.95 ? window.requestAnimationFrame(advance) : 0;
+      }
+      function startProgress() {
+        if (running) return;
+        running = true;
+        value = 4;
+        lastFrame = 0;
+        progress.classList.add("is-loading");
+        progress.style.setProperty("--nv-admin-progress", "4%");
+        progress.style.setProperty("--nv-admin-progress-ratio", "0.04");
+        progress.setAttribute("aria-valuenow", "4");
+        frame = window.requestAnimationFrame(advance);
+      }
+
       document.querySelectorAll("form[method='post'], form[method='POST']").forEach(function (form) {
         form.addEventListener("submit", function (event) {
           if (form.dataset.submitting === "true") {
@@ -21,6 +62,8 @@
           }
           form.dataset.submitting = "true";
           form.setAttribute("aria-busy", "true");
+          startProgress();
+
           var submitter = event.submitter || form.querySelector("button[type='submit'], input[type='submit']");
           if (!submitter) return;
           if (submitter.name && submitter.value) {
@@ -30,27 +73,20 @@
             hidden.value = submitter.value;
             form.append(hidden);
           }
-          submitter.classList.add("is-loading");
           submitter.setAttribute("aria-disabled", "true");
           submitter.disabled = true;
-          if (submitter.tagName === "BUTTON") {
-            var spinner = document.createElement("span");
-            spinner.className = "nv-button-spinner";
-            spinner.setAttribute("aria-hidden", "true");
-            submitter.append(spinner);
-          } else {
-            submitter.dataset.originalValue = submitter.value;
-            submitter.setAttribute("aria-label", submitter.getAttribute("aria-label") || submitter.value);
-            submitter.value = "";
-            var spinner = document.createElement("span");
-            spinner.className = "nv-button-spinner";
-            spinner.setAttribute("aria-hidden", "true");
-            submitter.insertAdjacentElement("afterend", spinner);
-          }
-          form.querySelectorAll("button[type='submit'], input[type='submit']").forEach(function (control) {
-            if (control !== submitter) control.disabled = true;
-          });
         });
+      });
+
+      window.addEventListener("pageshow", function (event) {
+        if (event.persisted) {
+          running = false;
+          if (frame) window.cancelAnimationFrame(frame);
+          progress.classList.remove("is-loading");
+          progress.style.setProperty("--nv-admin-progress", "0%");
+          progress.style.setProperty("--nv-admin-progress-ratio", "0");
+          progress.setAttribute("aria-valuenow", "0");
+        }
       });
     });
   </script>
@@ -67,22 +103,42 @@
   {{ block.super }}
   <style>
 
-/* Shared dot-circle indicator for admin POST forms. */
-.nv-button-spinner {
-  position: relative; display: inline-block; width: 18px; height: 18px;
-  margin-inline-start: .6em; vertical-align: -4px; border-radius: 50%;
-  color: currentColor;
-  box-shadow: 0 -7px 0 -2px currentColor, 5px -5px 0 -2px currentColor,
-    7px 0 0 -2px currentColor, 5px 5px 0 -2px currentColor,
-    0 7px 0 -2px currentColor, -5px 5px 0 -2px currentColor,
-    -7px 0 0 -2px currentColor, -5px -5px 0 -2px currentColor;
-  animation: nv-dot-circle .85s steps(8, end) infinite;
+/* Match the public site's top progress bar for admin POST submissions. */
+.nv-admin-post-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 2147483647;
+  height: 3px;
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+  background: rgba(169, 154, 255, .09);
+  transition: opacity 420ms cubic-bezier(.22, 1, .36, 1);
 }
-button.is-loading, input.is-loading { opacity: .82; cursor: wait; }
-input.is-loading + .nv-button-spinner { margin-inline-start: -34px; margin-inline-end: 12px; vertical-align: middle; }
-@keyframes nv-dot-circle { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .nv-button-spinner { animation: none; } }
-
+.nv-admin-post-progress.is-loading { opacity: 1; }
+.nv-admin-post-progress-track {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(90deg, #7567f5 0%, #a99aff 38%, #91e7ef 76%, #baf5fb 100%);
+  box-shadow: 0 0 7px rgba(131, 228, 237, .48), 0 0 16px rgba(124, 108, 255, .22);
+  transform: scaleX(var(--nv-admin-progress-ratio, 0));
+  transform-origin: left center;
+}
+.nv-admin-post-progress-glow {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: var(--nv-admin-progress, 0%);
+  width: 34px;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(131, 228, 237, .12) 48%, rgba(145, 231, 239, .7) 82%, rgba(217, 251, 255, .98));
+  filter: drop-shadow(0 0 3px rgba(131, 228, 237, .55));
+}
+@media (prefers-reduced-motion: reduce) {
+  .nv-admin-post-progress { transition: none; }
+}
     body.login #content .form-row label {
       display: inline-flex;
       align-items: center;
