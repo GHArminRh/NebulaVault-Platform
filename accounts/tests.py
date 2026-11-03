@@ -211,6 +211,7 @@ class AccountBackendTests(TestCase):
                     "email": "verified-widget@example.com",
                     "password1": "Secure-registration-password-2026!",
                     "password2": "Secure-registration-password-2026!",
+                    "accept_terms": "on",
                     "cf-turnstile-response": "valid-register-token",
                 },
             )
@@ -250,6 +251,7 @@ class AccountBackendTests(TestCase):
                 "email": "GArminRh@gmail.com",
                 "password1": "Secure-registration-password-2026!",
                 "password2": "Secure-registration-password-2026!",
+                "accept_terms": "on",
                 "human_check": "on",
             },
         )
@@ -272,6 +274,7 @@ class AccountBackendTests(TestCase):
                 "email": "GArminRh@gmail.com",
                 "password1": "Secure-registration-password-2026!",
                 "password2": "Secure-registration-password-2026!",
+                "accept_terms": "on",
                 "human_check": "on",
             },
         )
