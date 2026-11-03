@@ -7,12 +7,13 @@ class CustomerAuthenticationBackend(BaseBackend):
     """Authenticate site customers independently of Django staff users."""
 
     def authenticate(self, request, username=None, password=None, **kwargs):
-        email = (kwargs.get("email") or username or "").strip().lower()
-        if not email or password is None:
+        identifier = (kwargs.get("email") or username or "").strip()
+        if not identifier or password is None:
             return None
 
+        lookup = {"email__iexact": identifier} if "@" in identifier else {"username__iexact": identifier}
         try:
-            customer = Customer.objects.get(email__iexact=email)
+            customer = Customer.objects.get(**lookup)
         except Customer.DoesNotExist:
             # Keep the response timing less dependent on whether an account exists.
             from django.contrib.auth.hashers import make_password
