@@ -184,3 +184,4 @@ class BlogPostRatingAdmin(admin.ModelAdmin):
     list_display = ("post", "user", "score", "updated_at")
     list_filter = ("score", "updated_at")
     search_fields = ("post__title", "user__email")
+    readonly_fields = ("created_at", "updated_at")
