@@ -30,7 +30,10 @@ class AlgoliaBootstrapCommandTests(TestCase):
     def test_failed_reindex_can_be_retried(self):
         with (
             patch.dict(os.environ, {"ALGOLIA_REINDEX_ON_BOOT": "retry-token"}),
-            patch("django.core.management.call_command", side_effect=[RuntimeError("temporary"), None]) as call_command,
+            patch(
+                "django.core.management.call_command",
+                side_effect=[RuntimeError("temporary"), None],
+            ) as call_command,
         ):
             with self.assertRaisesMessage(RuntimeError, "temporary"):
                 Command().handle()
