@@ -68,7 +68,7 @@
     var rows = [];
 
     Array.prototype.forEach.call(select.options, function (option, index) {
-      var row = document.createElement("label");
+      var row = document.createElement("div");
       row.className = "nv-blog-tag-select__option";
       row.dataset.searchText = option.textContent.trim().toLocaleLowerCase();
 
@@ -79,6 +79,7 @@
       checkbox.disabled = option.disabled;
       checkbox.value = option.value;
       checkbox.tabIndex = -1;
+      checkbox.setAttribute("aria-hidden", "true");
 
       var checkmark = document.createElement("span");
       checkmark.className = "nv-blog-tag-select__checkmark";
@@ -90,6 +91,7 @@
 
       row.append(checkbox, checkmark, label);
       row.setAttribute("role", "option");
+      row.tabIndex = 0;
       row.setAttribute("aria-selected", option.selected ? "true" : "false");
       row.dataset.optionIndex = String(index);
       list.append(row);
@@ -111,6 +113,7 @@
       rows.forEach(function (item) {
         item.checkbox.checked = item.option.selected;
         item.row.setAttribute("aria-selected", item.option.selected ? "true" : "false");
+        item.row.setAttribute("aria-checked", item.option.selected ? "true" : "false");
       });
 
       reset.disabled = count === 0;
@@ -159,7 +162,15 @@
       });
 
       item.row.addEventListener("click", function (event) {
-        if (event.target === item.checkbox) return;
+        if (event.target === item.checkbox || item.option.disabled) return;
+        item.checkbox.checked = !item.checkbox.checked;
+        item.option.selected = item.checkbox.checked;
+        notifyChange();
+      });
+
+      item.row.addEventListener("keydown", function (event) {
+        if (event.key !== " " && event.key !== "Enter") return;
+        event.preventDefault();
         if (item.option.disabled) return;
         item.checkbox.checked = !item.checkbox.checked;
         item.option.selected = item.checkbox.checked;
