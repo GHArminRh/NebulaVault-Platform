@@ -30,7 +30,10 @@
   font: inherit;
   text-align: start;
   cursor: pointer;
-  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+  transition:
+    border-color .18s ease,
+    box-shadow .18s ease,
+    background .18s ease;
 }
 
 .nv-blog-tag-select__trigger:hover,
