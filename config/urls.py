@@ -138,6 +138,7 @@ urlpatterns = [
         name="login",
     ),
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path("accounts/", include("allauth.urls")),
     path("accounts/", include("accounts.urls")),
     path("", include("portal.urls")),
     # Keep Wagtail last so explicit storefront, account, blog, and API routes win.
