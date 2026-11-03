@@ -69,37 +69,6 @@
 
     var rows = [];
 
-    Array.prototype.forEach.call(select.options, function (option, index) {
-      var row = document.createElement('div');
-      row.className = 'nv-blog-tag-select__option';
-      row.dataset.searchText = option.textContent.trim().toLocaleLowerCase();
-
-      var checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.className = 'nv-blog-tag-select__checkbox';
-      checkbox.checked = option.selected;
-      checkbox.disabled = option.disabled;
-      checkbox.value = option.value;
-      checkbox.tabIndex = -1;
-      checkbox.setAttribute('aria-hidden', 'true');
-
-      var checkmark = document.createElement('span');
-      checkmark.className = 'nv-blog-tag-select__checkmark';
-      checkmark.setAttribute('aria-hidden', 'true');
-
-      var label = document.createElement('span');
-      label.className = 'nv-blog-tag-select__option-label';
-      label.textContent = option.textContent.trim();
-
-      row.append(checkbox, checkmark, label);
-      row.setAttribute('role', 'option');
-      row.tabIndex = 0;
-      row.setAttribute('aria-selected', option.selected ? 'true' : 'false');
-      row.dataset.optionIndex = String(index);
-      list.append(row);
-      rows.push({ row: row, checkbox: checkbox, option: option });
-    });
-
     function selectedCount() {
       return rows.reduce(function (count, item) {
         return count + (item.option.selected ? 1 : 0);
@@ -157,28 +126,88 @@
       refresh();
     }
 
-    rows.forEach(function (item) {
-      item.checkbox.addEventListener('change', function () {
-        item.option.selected = item.checkbox.checked;
+    function addOptionRow(option, index) {
+      var row = document.createElement('div');
+      row.className = 'nv-blog-tag-select__option';
+      row.dataset.searchText = option.textContent.trim().toLocaleLowerCase();
+
+      var checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'nv-blog-tag-select__checkbox';
+      checkbox.checked = option.selected;
+      checkbox.disabled = option.disabled;
+      checkbox.value = option.value;
+      checkbox.tabIndex = -1;
+      checkbox.setAttribute('aria-hidden', 'true');
+
+      var checkmark = document.createElement('span');
+      checkmark.className = 'nv-blog-tag-select__checkmark';
+      checkmark.setAttribute('aria-hidden', 'true');
+
+      var label = document.createElement('span');
+      label.className = 'nv-blog-tag-select__option-label';
+      label.textContent = option.textContent.trim();
+
+      row.append(checkbox, checkmark, label);
+      row.setAttribute('role', 'option');
+      row.tabIndex = 0;
+      row.setAttribute('aria-selected', option.selected ? 'true' : 'false');
+      row.dataset.optionIndex = String(index);
+      list.append(row);
+
+      var item = { row: row, checkbox: checkbox, option: option };
+      rows.push(item);
+
+      checkbox.addEventListener('change', function () {
+        option.selected = checkbox.checked;
         notifyChange();
       });
 
-      item.row.addEventListener('click', function (event) {
-        if (event.target === item.checkbox || item.option.disabled) return;
-        item.checkbox.checked = !item.checkbox.checked;
-        item.option.selected = item.checkbox.checked;
+      row.addEventListener('click', function (event) {
+        if (event.target === checkbox || option.disabled) return;
+        checkbox.checked = !checkbox.checked;
+        option.selected = checkbox.checked;
         notifyChange();
       });
 
-      item.row.addEventListener('keydown', function (event) {
+      row.addEventListener('keydown', function (event) {
         if (event.key !== ' ' && event.key !== 'Enter') return;
         event.preventDefault();
-        if (item.option.disabled) return;
-        item.checkbox.checked = !item.checkbox.checked;
-        item.option.selected = item.checkbox.checked;
+        if (option.disabled) return;
+        checkbox.checked = !checkbox.checked;
+        option.selected = checkbox.checked;
         notifyChange();
       });
-    });
+    }
+
+    function syncOptions() {
+      var options = Array.prototype.slice.call(select.options);
+
+      rows = rows.filter(function (item) {
+        if (options.indexOf(item.option) !== -1) return true;
+        item.row.remove();
+        return false;
+      });
+
+      options.forEach(function (option, index) {
+        var existing = rows.find(function (item) {
+          return item.option === option;
+        });
+        if (!existing) {
+          addOptionRow(option, index);
+        } else {
+          existing.row.dataset.optionIndex = String(index);
+          existing.row.dataset.searchText = option.textContent.trim().toLocaleLowerCase();
+          existing.row.querySelector('.nv-blog-tag-select__option-label').textContent =
+            option.textContent.trim();
+          existing.checkbox.disabled = option.disabled;
+          list.append(existing.row);
+        }
+      });
+
+      refresh();
+      filterOptions();
+    }
 
     trigger.addEventListener('click', function () {
       setOpen(panel.hidden);
@@ -211,7 +240,10 @@
       }
     });
 
-    select.addEventListener('change', refresh);
+    select.addEventListener('change', function () {
+      syncOptions();
+    });
+
     var form = select.closest('form');
     if (form) {
       form.addEventListener('reset', function () {
@@ -219,7 +251,17 @@
       });
     }
 
-    refresh();
+    // Django's green "add related tag" popup inserts a new <option> into
+    // the native select. Watch that source of truth so the custom menu stays
+    // in sync without requiring a page reload.
+    if (window.MutationObserver) {
+      var optionsObserver = new MutationObserver(function () {
+        syncOptions();
+      });
+      optionsObserver.observe(select, { childList: true, subtree: true });
+    }
+
+    syncOptions();
   }
 
   function initAll() {
