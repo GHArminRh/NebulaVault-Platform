@@ -47,11 +47,6 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sites",
-    "allauth",
-    "allauth.account",
-    "allauth.socialaccount",
-    "allauth.socialaccount.providers.google",
-    "allauth.socialaccount.providers.apple",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
@@ -128,7 +123,6 @@ TINYMCE_DEFAULT_CONFIG = {
 AUTH_USER_MODEL = "staff.StaffUser"
 AUTHENTICATION_BACKENDS = [
     "accounts.backends.CustomerAuthenticationBackend",
-    "allauth.account.auth_backends.AuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
     "accounts.backends.WagtailGroupPermissionsBackend",
 ]
@@ -142,7 +136,6 @@ MIDDLEWARE = [
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
     # This layer then resolves the active UUID-backed staff/customer identity.
     "accounts.middleware.UUIDCompatibleAuthenticationMiddleware",
     "portal.middleware.SeparateStaffAndCustomerSessionsMiddleware",
@@ -205,7 +198,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = "fa"
 SITE_ID = 1
 
-# Customer OAuth providers are enabled only when official credentials exist.
+# Customer OAuth uses the independent Customer model; Django staff auth stays separate.
 TERMS_VERSION = os.environ.get("TERMS_VERSION", "2026-11-04")
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "").strip()
 GOOGLE_OAUTH_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "").strip()
@@ -215,42 +208,10 @@ APPLE_OAUTH_TEAM_ID = os.environ.get("APPLE_OAUTH_TEAM_ID", "").strip()
 APPLE_OAUTH_PRIVATE_KEY = os.environ.get("APPLE_OAUTH_PRIVATE_KEY", "").replace("\\n", "\n").strip()
 SOCIAL_AUTH_GOOGLE_ENABLED = bool(GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET)
 SOCIAL_AUTH_APPLE_ENABLED = bool(APPLE_OAUTH_CLIENT_ID and APPLE_OAUTH_KEY_ID and APPLE_OAUTH_TEAM_ID and APPLE_OAUTH_PRIVATE_KEY)
+if SOCIAL_AUTH_APPLE_ENABLED and not DEBUG:
+    # Apple returns OAuth responses through a cross-site POST (form_post).
+    SESSION_COOKIE_SAMESITE = "None"
 
-ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
-ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"
-ACCOUNT_SIGNUP_FIELDS = ["username*", "email*", "password1*", "password2*"]
-ACCOUNT_LOGIN_METHODS = {"email", "username"}
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_SIGNUP_FORM_CLASS = "accounts.social_forms.CustomerSignupExtraForm"
-SOCIALACCOUNT_ADAPTER = "accounts.adapters.CustomerSocialAccountAdapter"
-SOCIALACCOUNT_FORMS = {"signup": "accounts.social_forms.CustomerSocialSignupForm"}
-SOCIALACCOUNT_AUTO_SIGNUP = False
-SOCIALACCOUNT_LOGIN_ON_GET = False
-SOCIALACCOUNT_EMAIL_REQUIRED = True
-SOCIALACCOUNT_QUERY_EMAIL = True
-SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
-SOCIALACCOUNT_PROVIDERS = {}
-if SOCIAL_AUTH_GOOGLE_ENABLED:
-    SOCIALACCOUNT_PROVIDERS["google"] = {
-        "APPS": [{"client_id": GOOGLE_OAUTH_CLIENT_ID, "secret": GOOGLE_OAUTH_CLIENT_SECRET, "key": ""}],
-        "SCOPE": ["profile", "email"],
-        "AUTH_PARAMS": {"access_type": "online"},
-        "VERIFIED_EMAIL": True,
-        "EMAIL_AUTHENTICATION": True,
-        "EMAIL_AUTHENTICATION_AUTO_CONNECT": True,
-    }
-if SOCIAL_AUTH_APPLE_ENABLED:
-    SOCIALACCOUNT_PROVIDERS["apple"] = {
-        "APPS": [{
-            "client_id": APPLE_OAUTH_CLIENT_ID,
-            "secret": APPLE_OAUTH_KEY_ID,
-            "key": APPLE_OAUTH_TEAM_ID,
-            "settings": {"certificate_key": APPLE_OAUTH_PRIVATE_KEY},
-        }],
-        "VERIFIED_EMAIL": True,
-        "EMAIL_AUTHENTICATION": True,
-        "EMAIL_AUTHENTICATION_AUTO_CONNECT": True,
-    }
 X_FRAME_OPTIONS = "SAMEORIGIN"
 LANGUAGES = [("en", "English"), ("fa", "Persian")]
 
