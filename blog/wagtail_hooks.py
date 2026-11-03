@@ -1,3 +1,6 @@
+from django.templatetags.static import static
+from django.utils.html import format_html
+from wagtail import hooks
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel, PublishingPanel
 from wagtail.admin.rich_text.editors.draftail import DraftailRichTextArea
 from wagtail.snippets.models import register_snippet
@@ -81,3 +84,12 @@ class BlogTagViewSet(SnippetViewSet):
 
 register_snippet(BlogPostViewSet)
 register_snippet(BlogTagViewSet)
+
+
+@hooks.register("insert_global_admin_css")
+def nebula_checkbox_switch_styles():
+    """Use the shared Nebula switch styling in the Wagtail admin as well."""
+    return format_html(
+        '<link rel="stylesheet" href="{}">',
+        static("portal/css/boolean-switches.css"),
+    )
