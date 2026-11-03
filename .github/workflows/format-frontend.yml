@@ -5,7 +5,6 @@ on:
     branches:
       - maintenance/frontend-full-quality-oct-2026
       - refactor/css-important-reduction-2026-11
-      - feat/customer-auth-social-consent-ui
   workflow_dispatch:
 
 permissions:
@@ -57,5 +56,3 @@ jobs:
           fi
           git commit -m "style(frontend): format browser source [skip ci]"
           git push origin "HEAD:${GITHUB_REF_NAME}"
-
-# Temporary branch-specific formatting hook; removed before merge.
