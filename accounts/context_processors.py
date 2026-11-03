@@ -7,10 +7,3 @@ def turnstile(request):
         "TURNSTILE_ENABLED": getattr(settings, "TURNSTILE_ENABLED", True),
         "TURNSTILE_SITE_KEY": getattr(settings, "TURNSTILE_SITE_KEY", ""),
     }
-
-
-def social_auth(request):
-    return {
-        "SOCIAL_AUTH_GOOGLE_ENABLED": getattr(settings, "SOCIAL_AUTH_GOOGLE_ENABLED", False),
-        "SOCIAL_AUTH_APPLE_ENABLED": getattr(settings, "SOCIAL_AUTH_APPLE_ENABLED", False),
-    }

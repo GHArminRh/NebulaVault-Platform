@@ -43,7 +43,7 @@ SECURE_HSTS_PRELOAD = False
 # Django apps
 INSTALLED_APPS = [
     "django_admin_dracula",
-    "django.contrib.admin",
+    "config.apps.NebulaAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sites",
@@ -159,7 +159,6 @@ TEMPLATES = [
                 "portal.context_processors.cart_context",
                 "portal.context_processors.analytics_context",
                 "accounts.context_processors.turnstile",
-                "accounts.context_processors.social_auth",
                 "portal.context_processors.algolia_search_context",
             ],
         },
@@ -198,19 +197,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = "fa"
 SITE_ID = 1
 
-# Customer OAuth uses the independent Customer model; Django staff auth stays separate.
 TERMS_VERSION = os.environ.get("TERMS_VERSION", "2026-11-04")
-GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "").strip()
-GOOGLE_OAUTH_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "").strip()
-APPLE_OAUTH_CLIENT_ID = os.environ.get("APPLE_OAUTH_CLIENT_ID", "").strip()
-APPLE_OAUTH_KEY_ID = os.environ.get("APPLE_OAUTH_KEY_ID", "").strip()
-APPLE_OAUTH_TEAM_ID = os.environ.get("APPLE_OAUTH_TEAM_ID", "").strip()
-APPLE_OAUTH_PRIVATE_KEY = os.environ.get("APPLE_OAUTH_PRIVATE_KEY", "").replace("\\n", "\n").strip()
-SOCIAL_AUTH_GOOGLE_ENABLED = bool(GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET)
-SOCIAL_AUTH_APPLE_ENABLED = bool(APPLE_OAUTH_CLIENT_ID and APPLE_OAUTH_KEY_ID and APPLE_OAUTH_TEAM_ID and APPLE_OAUTH_PRIVATE_KEY)
-if SOCIAL_AUTH_APPLE_ENABLED and not DEBUG:
-    # Apple returns OAuth responses through a cross-site POST (form_post).
-    SESSION_COOKIE_SAMESITE = "None"
 
 X_FRAME_OPTIONS = "SAMEORIGIN"
 LANGUAGES = [("en", "English"), ("fa", "Persian")]

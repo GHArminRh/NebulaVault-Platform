@@ -1,0 +1,162 @@
+html body.nv-portal .nv-auth-form .turnstile-shell {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  gap: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 116px;
+  margin: 13px 0 5px;
+  padding: 13px 14px 12px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid rgba(137, 153, 211, 0.22);
+  border-radius: 15px;
+  background:
+    radial-gradient(ellipse at 92% 0%, rgba(102, 121, 226, 0.13), transparent 58%),
+    linear-gradient(135deg, rgba(20, 29, 54, 0.92), rgba(10, 17, 34, 0.96));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 10px 28px rgba(0, 0, 0, 0.13);
+}
+
+html body.nv-portal .nv-auth-form .turnstile-shell::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 13px;
+  bottom: 13px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #80e3e5, #9b8bff);
+  opacity: 0.8;
+}
+
+html body.nv-portal .nv-auth-form .turnstile-heading {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  color: #edf1ff;
+  direction: rtl;
+}
+
+html body.nv-portal .nv-auth-form .turnstile-heading-mark {
+  display: grid;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(128, 227, 229, 0.27);
+  border-radius: 10px;
+  background: rgba(94, 207, 222, 0.09);
+  color: #8de4e5;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+html body.nv-portal .nv-auth-form .turnstile-heading-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+html body.nv-portal .nv-auth-form .turnstile-heading-copy strong {
+  color: #edf1ff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+html body.nv-portal .nv-auth-form .turnstile-heading-copy small {
+  color: #8796b6;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+html body.nv-portal .nv-auth-form .turnstile-provider {
+  margin-inline-start: auto;
+  color: #7384a8;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  white-space: nowrap;
+}
+
+html body.nv-portal .nv-auth-form .nv-turnstile-widget,
+html body.nv-portal .nv-auth-form .turnstile-shell .cf-turnstile {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: min(100%, 304px);
+  min-width: 0;
+  min-height: 65px;
+  overflow: visible;
+  direction: ltr;
+}
+
+html body.nv-portal .nv-auth-form .turnstile-loading {
+  position: absolute;
+  z-index: 2;
+  inset: auto 13px 11px auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100% - 26px);
+  min-height: 35px;
+  padding: 0 10px;
+  border: 1px solid rgba(148, 163, 184, 0.17);
+  border-radius: 9px;
+  background: rgba(9, 15, 29, 0.94);
+  color: #aab6cc;
+  font-size: 9px;
+  direction: rtl;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
+}
+
+html body.nv-portal .nv-auth-form .turnstile-spinner {
+  width: 13px;
+  height: 13px;
+  border-width: 2px;
+  border-top-color: #8de4e5;
+}
+
+html body.nv-portal .nv-auth-form .turnstile-config-error {
+  margin: 0;
+  padding: 9px 11px;
+  border: 1px solid rgba(255, 145, 173, 0.24);
+  border-radius: 9px;
+  background: rgba(255, 100, 140, 0.07);
+  color: #ffb1c4;
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+@media (max-width: 420px) {
+  html body.nv-portal .nv-auth-form .turnstile-shell {
+    padding: 11px 10px 10px;
+    border-radius: 13px;
+  }
+
+  html body.nv-portal .nv-auth-form .turnstile-provider {
+    font-size: 7px;
+    letter-spacing: 0.7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body.nv-portal .nv-auth-form .turnstile-loading {
+    transition: none;
+  }
+}
