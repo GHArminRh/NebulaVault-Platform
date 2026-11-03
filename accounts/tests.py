@@ -70,3 +70,44 @@ class AccountBackendTests(TestCase):
         self.assertRedirects(response, reverse("accounts:password_reset_done"))
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("accounts/password/reset/", mail.outbox[0].body)
+    def test_admin_login_clears_existing_customer_uuid_session(self):
+        from django.contrib.auth import get_user_model
+
+        staff = get_user_model().objects.create_superuser(
+            username="admin_test",
+            email="admin@example.com",
+            password="Secure-admin-password-2026!",
+        )
+        self.client.force_login(
+            self.user, backend="accounts.backends.CustomerAuthenticationBackend"
+        )
+
+        response = self.client.post(
+            "/admin/login/",
+            {
+                "username": staff.username,
+                "password": "Secure-admin-password-2026!",
+                "next": "/admin/",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.endswith("/admin/"))
+        self.assertEqual(str(self.client.session["_auth_user_id"]), str(staff.pk))
+
+    def test_customer_login_persists_uuid_session_across_requests(self):
+        login_response = self.client.post(
+            reverse("login"),
+            {
+                "username": self.user.email,
+                "password": "Secure-test-password-2026!",
+                "human_check": "on",
+            },
+        )
+        self.assertEqual(login_response.status_code, 302)
+        self.assertEqual(login_response.url, reverse("portal:dashboard"))
+        self.assertEqual(str(self.client.session["_auth_user_id"]), str(self.user.pk))
+
+        # A second request must restore the UUID-backed Customer from the session.
+        response = self.client.get(reverse("accounts:profile"))
+        self.assertEqual(response.status_code, 200)
+
