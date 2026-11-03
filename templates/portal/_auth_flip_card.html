@@ -1,4 +1,4 @@
-{% load static socialaccount %}
+{% load static %}
 <section class="nv-auth-shell page-wrap" data-auth-side="{{ auth_side }}">
   <div class="nv-auth-intro">
     <a class="nv-auth-brand" href="{% url 'portal:home' %}"><span class="brand-mark">◇</span><span>نبیولا<span class="brand-light"> والت</span><small>فضای امن شما</small></span></a>
@@ -94,8 +94,8 @@
         {% if SOCIAL_AUTH_GOOGLE_ENABLED or SOCIAL_AUTH_APPLE_ENABLED %}
           <div class="nv-social-divider"><span>یا ورود با</span></div>
           <div class="nv-social-actions">
-            {% if SOCIAL_AUTH_GOOGLE_ENABLED %}<form method="post" action="{% provider_login_url 'google' %}">{% csrf_token %}<button class="nv-social-button" type="submit"><span class="nv-google-g" aria-hidden="true">G</span>ادامه با Google</button></form>{% endif %}
-            {% if SOCIAL_AUTH_APPLE_ENABLED %}<form method="post" action="{% provider_login_url 'apple' %}">{% csrf_token %}<button class="nv-social-button" type="submit"><span class="nv-apple-mark" aria-hidden="true">●</span>ادامه با Apple</button></form>{% endif %}
+            {% if SOCIAL_AUTH_GOOGLE_ENABLED %}<form method="post" action="{% url 'accounts:social_start' provider='google' flow='login' %}" data-social-start data-social-flow="login">{% csrf_token %}<input type="hidden" name="cf-turnstile-response" value=""><input type="hidden" name="next" value="{{ next|default:'' }}"><button class="nv-social-button" type="submit"><span class="nv-google-g" aria-hidden="true">G</span>ادامه با Google</button></form>{% endif %}
+            {% if SOCIAL_AUTH_APPLE_ENABLED %}<form method="post" action="{% url 'accounts:social_start' provider='apple' flow='login' %}" data-social-start data-social-flow="login">{% csrf_token %}<input type="hidden" name="cf-turnstile-response" value=""><input type="hidden" name="next" value="{{ next|default:'' }}"><button class="nv-social-button" type="submit"><span class="nv-apple-mark" aria-hidden="true">●</span>ادامه با Apple</button></form>{% endif %}
           </div>
         {% endif %}
         <p class="nv-auth-small-link"><a href="{% url 'accounts:password_reset' %}">رمز عبور را فراموش کرده‌اید؟</a></p>
@@ -162,8 +162,8 @@
         {% if SOCIAL_AUTH_GOOGLE_ENABLED or SOCIAL_AUTH_APPLE_ENABLED %}
           <div class="nv-social-divider"><span>یا ثبت‌نام با</span></div>
           <div class="nv-social-actions">
-            {% if SOCIAL_AUTH_GOOGLE_ENABLED %}<form method="post" action="{% provider_login_url 'google' process='signup' %}">{% csrf_token %}<button class="nv-social-button" type="submit"><span class="nv-google-g" aria-hidden="true">G</span>ثبت‌نام با Google</button></form>{% endif %}
-            {% if SOCIAL_AUTH_APPLE_ENABLED %}<form method="post" action="{% provider_login_url 'apple' process='signup' %}">{% csrf_token %}<button class="nv-social-button" type="submit"><span class="nv-apple-mark" aria-hidden="true">●</span>ثبت‌نام با Apple</button></form>{% endif %}
+            {% if SOCIAL_AUTH_GOOGLE_ENABLED %}<form method="post" action="{% url 'accounts:social_start' provider='google' flow='register' %}" data-social-start data-social-flow="register">{% csrf_token %}<input type="hidden" name="cf-turnstile-response" value=""><input type="hidden" name="accept_terms" value=""><input type="hidden" name="newsletter_opt_in" value=""><button class="nv-social-button" type="submit"><span class="nv-google-g" aria-hidden="true">G</span>ثبت‌نام با Google</button></form>{% endif %}
+            {% if SOCIAL_AUTH_APPLE_ENABLED %}<form method="post" action="{% url 'accounts:social_start' provider='apple' flow='register' %}" data-social-start data-social-flow="register">{% csrf_token %}<input type="hidden" name="cf-turnstile-response" value=""><input type="hidden" name="accept_terms" value=""><input type="hidden" name="newsletter_opt_in" value=""><button class="nv-social-button" type="submit"><span class="nv-apple-mark" aria-hidden="true">●</span>ثبت‌نام با Apple</button></form>{% endif %}
           </div>
         {% endif %}
         <div class="nv-auth-flip-prompt"><span>از قبل حساب دارید؟</span><button type="button" data-auth-flip="login">ورود به حساب <span>↷</span></button><a class="nv-auth-nojs-link" href="{% url 'login' %}">ورود به حساب</a></div>
