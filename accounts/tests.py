@@ -30,6 +30,18 @@ class AccountBackendTests(TestCase):
         self.assertEqual(by_username, self.user)
         self.assertEqual(by_email, self.user)
 
+    def test_social_registration_requires_terms_before_redirecting(self):
+        with override_settings(SOCIAL_AUTH_GOOGLE_ENABLED=True):
+            response = self.client.post(
+                reverse(
+                    "accounts:social_start",
+                    kwargs={"provider": "google", "flow": "register"},
+                ),
+                {"accept_terms": ""},
+            )
+        self.assertRedirects(response, reverse("login"))
+        self.assertFalse(Customer.objects.filter(email="social-new@example.com").exists())
+
     def test_registration_requires_terms_and_persists_optional_newsletter_consent(self):
         payload = {
             "email": "new-consent@example.com",
