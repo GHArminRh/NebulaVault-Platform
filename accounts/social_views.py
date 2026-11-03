@@ -229,7 +229,7 @@ def social_callback(request, provider):
 
         # Preserve the customer's configured second factor; social sign-in must
         # not silently bypass an already-enabled 2FA policy.
-        if customer.two_factor_enabled or customer.email_two_factor_enabled:
+        if customer.two_factor_enabled or customer.email_two_factor_enabled or customer.recovery_codes:
             request.session["customer_two_factor_pending"] = {
                 "user_id": str(customer.pk),
                 "created_at": time.time(),
