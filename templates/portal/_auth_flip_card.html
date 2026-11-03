@@ -1,4 +1,4 @@
-{% load static %}
+{% load static socialaccount %}
 <section class="nv-auth-shell page-wrap" data-auth-side="{{ auth_side }}">
   <div class="nv-auth-intro">
     <a class="nv-auth-brand" href="{% url 'portal:home' %}"><span class="brand-mark">◇</span><span>نبیولا<span class="brand-light"> والت</span><small>فضای امن شما</small></span></a>
@@ -52,7 +52,7 @@
               {% endif %}
             {% endfor %}
           {% else %}
-            <label for="nv-login-email">نشانی ایمیل</label><input id="nv-login-email" name="username" type="email" autocomplete="username" required placeholder="ایمیل خود را وارد کنید" value="{% if auth_side == 'login' %}{{ form.username.value|default:'' }}{% endif %}">
+            <label for="nv-login-email">نام کاربری یا ایمیل</label><input id="nv-login-email" name="username" type="text" autocomplete="username" dir="auto" required placeholder="نام کاربری یا ایمیل خود را وارد کنید" value="{% if auth_side == 'login' %}{{ form.username.value|default:'' }}{% endif %}">
             <label for="nv-login-password">رمز عبور</label>
             <div class="password-wrap">
               <input id="nv-login-password" name="password" type="password" autocomplete="current-password" required placeholder="رمز عبور خود را وارد کنید"><button class="password-toggle" type="button">نمایش</button>
@@ -91,6 +91,13 @@
             {% endif %}
           {% endfor %}
         </form>
+        {% if SOCIAL_AUTH_GOOGLE_ENABLED or SOCIAL_AUTH_APPLE_ENABLED %}
+          <div class="nv-social-divider"><span>یا ورود با</span></div>
+          <div class="nv-social-actions">
+            {% if SOCIAL_AUTH_GOOGLE_ENABLED %}<form method="post" action="{% provider_login_url 'google' %}">{% csrf_token %}<button class="nv-social-button" type="submit"><span class="nv-google-g" aria-hidden="true">G</span>ادامه با Google</button></form>{% endif %}
+            {% if SOCIAL_AUTH_APPLE_ENABLED %}<form method="post" action="{% provider_login_url 'apple' %}">{% csrf_token %}<button class="nv-social-button" type="submit"><span class="nv-apple-mark" aria-hidden="true">●</span>ادامه با Apple</button></form>{% endif %}
+          </div>
+        {% endif %}
         <p class="nv-auth-small-link"><a href="{% url 'accounts:password_reset' %}">رمز عبور را فراموش کرده‌اید؟</a></p>
         <div class="nv-auth-flip-prompt"><span>هنوز حساب ندارید؟</span><button type="button" data-auth-flip="register">ساخت حساب <span>↶</span></button><a class="nv-auth-nojs-link" href="{% url 'accounts:register' %}">ساخت حساب</a></div>
       </div>
@@ -122,6 +129,19 @@
        autocomplete="new-password"
        required
        placeholder="رمز عبور را دوباره وارد کنید">{% if auth_side == "register" and form.password2.errors %}<small class="field-error">{{ form.password2.errors|join:', ' }}</small>{% endif %}
+          <div class="nv-consent-list">
+            <label class="nv-consent-toggle" for="nv-accept-terms">
+              <input id="nv-accept-terms" name="accept_terms" type="checkbox" value="on" required {% if auth_side == 'register' and form.accept_terms.value %}checked{% endif %}>
+              <span class="nv-consent-track" aria-hidden="true"><i></i></span>
+              <span class="nv-consent-copy">قوانین و مقررات نبیولا والت را می‌پذیرم <b>الزامی</b></span>
+            </label>
+            {% if auth_side == 'register' and form.accept_terms.errors %}<small class="field-error">{{ form.accept_terms.errors|join:', ' }}</small>{% endif %}
+            <label class="nv-consent-toggle" for="nv-newsletter-opt-in">
+              <input id="nv-newsletter-opt-in" name="newsletter_opt_in" type="checkbox" value="on" {% if auth_side == 'register' and form.newsletter_opt_in.value %}checked{% endif %}>
+              <span class="nv-consent-track" aria-hidden="true"><i></i></span>
+              <span class="nv-consent-copy">مایلم آخرین اخبار، محصولات و اطلاعیه‌ها را دریافت کنم <small>اختیاری</small></span>
+            </label>
+          </div>
           <p class="nv-auth-help">پس از ثبت‌نام، برای فعال‌سازی حساب باید ایمیل خود را تأیید کنید.</p>
           {% if TURNSTILE_ENABLED|default:True %}
           <div class="turnstile-shell" role="group" aria-labelledby="nv-register-turnstile-heading">
@@ -139,6 +159,13 @@
           <button class="button button-primary button-full button-large auth-submit"
                   type="submit">ایجاد حساب و تأیید ایمیل <span>↗</span></button>
         </form>
+        {% if SOCIAL_AUTH_GOOGLE_ENABLED or SOCIAL_AUTH_APPLE_ENABLED %}
+          <div class="nv-social-divider"><span>یا ثبت‌نام با</span></div>
+          <div class="nv-social-actions">
+            {% if SOCIAL_AUTH_GOOGLE_ENABLED %}<form method="post" action="{% provider_login_url 'google' process='signup' %}">{% csrf_token %}<button class="nv-social-button" type="submit"><span class="nv-google-g" aria-hidden="true">G</span>ثبت‌نام با Google</button></form>{% endif %}
+            {% if SOCIAL_AUTH_APPLE_ENABLED %}<form method="post" action="{% provider_login_url 'apple' process='signup' %}">{% csrf_token %}<button class="nv-social-button" type="submit"><span class="nv-apple-mark" aria-hidden="true">●</span>ثبت‌نام با Apple</button></form>{% endif %}
+          </div>
+        {% endif %}
         <div class="nv-auth-flip-prompt"><span>از قبل حساب دارید؟</span><button type="button" data-auth-flip="login">ورود به حساب <span>↷</span></button><a class="nv-auth-nojs-link" href="{% url 'login' %}">ورود به حساب</a></div>
       </div>
     </div>
