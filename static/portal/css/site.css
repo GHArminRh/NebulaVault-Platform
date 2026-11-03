@@ -3227,7 +3227,9 @@ button.is-loading {
   cursor: wait !important;
   border-color: rgba(131, 228, 237, 0.62);
   box-shadow: 0 0 18px rgba(131, 228, 237, 0.16);
-  transition: box-shadow 220ms ease, border-color 220ms ease;
+  transition:
+    box-shadow 220ms ease,
+    border-color 220ms ease;
 }
 
 button.is-loading::before,
