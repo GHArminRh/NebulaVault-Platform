@@ -1,0 +1,32 @@
+name: Temporary format feature branch assets
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/admin-combobox-listbox-algolia-blog-polish
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx prettier --write static/portal/css/blog.css static/portal/js/search.js
+      - name: Commit formatted files to feature branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/portal/css/blog.css static/portal/js/search.js
+          if ! git diff --cached --quiet; then
+            git commit -m "Format Algolia blog search assets [skip ci]"
+            git push origin HEAD:feat/admin-combobox-listbox-algolia-blog-polish
+          fi
