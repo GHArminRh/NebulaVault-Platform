@@ -83,7 +83,7 @@ class RenderStartupCommandTests(SimpleTestCase):
         )
 
 
-class StaffPermissionMultiSelectAdminTests(SimpleTestCase):
+class StaffPermissionMultiSelectAdminTests(TestCase):
     def test_group_permissions_use_shared_searchable_widget(self):
         from django.contrib import admin
         from django.test import RequestFactory
