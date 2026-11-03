@@ -183,22 +183,22 @@ def social_callback(request, provider):
                         "terms_accepted_at", "terms_version",
                         "newsletter_opt_in", "newsletter_opt_in_at",
                     ])
-                elif not customer.is_active:
+                if customer.is_banned:
+                    return _failure(request, "دسترسی این حساب توسط مدیر مسدود شده است.")
+                if not customer.is_active:
                     # A verified OIDC email is an alternative proof of ownership
                     # for accounts waiting for the existing email-verification step.
                     customer.is_active = True
                     customer.save(update_fields=["is_active"])
-
-                if customer.is_banned:
-                    return _failure(request, "دسترسی این حساب توسط مدیر مسدود شده است.")
                 try:
-                    SocialIdentity.objects.create(
-                        customer=customer,
-                        provider=provider,
-                        provider_subject=subject,
-                        email=email,
-                        last_login_at=now,
-                    )
+                    with transaction.atomic():
+                        SocialIdentity.objects.create(
+                            customer=customer,
+                            provider=provider,
+                            provider_subject=subject,
+                            email=email,
+                            last_login_at=now,
+                        )
                 except IntegrityError:
                     identity = SocialIdentity.objects.select_related("customer").get(
                         provider=provider,
