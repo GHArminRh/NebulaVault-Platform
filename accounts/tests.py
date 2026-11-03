@@ -1,4 +1,6 @@
 from accounts.models import Customer
+from accounts.backends import CustomerAuthenticationBackend
+from accounts.forms import RegisterForm
 from django.core import mail
 from django.core.cache import cache
 from django.test import TestCase, override_settings
@@ -16,6 +18,37 @@ class AccountBackendTests(TestCase):
             email="account@example.com",
             password="Secure-test-password-2026!",
         )
+
+    def test_customer_authentication_accepts_username_and_email(self):
+        backend = CustomerAuthenticationBackend()
+        by_username = backend.authenticate(
+            None, username="ACCOUNT_USER", password="Secure-test-password-2026!"
+        )
+        by_email = backend.authenticate(
+            None, username="ACCOUNT@example.com", password="Secure-test-password-2026!"
+        )
+        self.assertEqual(by_username, self.user)
+        self.assertEqual(by_email, self.user)
+
+    def test_registration_requires_terms_and_persists_optional_newsletter_consent(self):
+        payload = {
+            "email": "new-consent@example.com",
+            "password1": "Unique-Strong-Password-2026!x7",
+            "password2": "Unique-Strong-Password-2026!x7",
+            "newsletter_opt_in": "on",
+        }
+        without_terms = RegisterForm(data=payload)
+        self.assertFalse(without_terms.is_valid())
+        self.assertIn("accept_terms", without_terms.errors)
+
+        payload["accept_terms"] = "on"
+        form = RegisterForm(data=payload)
+        self.assertTrue(form.is_valid(), form.errors)
+        customer = form.save()
+        self.assertIsNotNone(customer.terms_accepted_at)
+        self.assertEqual(customer.terms_version, "2026-11-04")
+        self.assertTrue(customer.newsletter_opt_in)
+        self.assertIsNotNone(customer.newsletter_opt_in_at)
 
     def test_profile_requires_authentication(self):
         response = self.client.get(reverse("accounts:profile"))
