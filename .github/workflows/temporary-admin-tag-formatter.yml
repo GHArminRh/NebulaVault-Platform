@@ -1,0 +1,29 @@
+name: Temporary admin tag selector formatter
+
+on:
+  pull_request:
+    branches:
+      - deploy/render-ready
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install formatter
+        run: npm ci --no-audit --no-fund
+      - name: Format and print target assets
+        run: |
+          npx prettier --write static/portal/css/admin-blog-tag-multiselect.css static/portal/js/admin-blog-tag-multiselect.js
+          echo '===FORMATTED_CSS_START==='
+          cat static/portal/css/admin-blog-tag-multiselect.css
+          echo '===FORMATTED_CSS_END==='
+          echo '===FORMATTED_JS_START==='
+          cat static/portal/js/admin-blog-tag-multiselect.js
+          echo '===FORMATTED_JS_END==='
