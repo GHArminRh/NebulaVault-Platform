@@ -43,7 +43,7 @@ SECURE_HSTS_PRELOAD = False
 # Django apps
 INSTALLED_APPS = [
     "django_admin_dracula",
-    "django.contrib.admin",
+    "config.apps.NebulaAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sites",
