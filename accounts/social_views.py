@@ -105,7 +105,7 @@ def social_start(request, provider, flow):
     )
     try:
         client = get_oauth_client(provider)
-        options = {"state": state}
+        options = {"state": state, "code_verifier": secrets.token_urlsafe(64)}
         if provider == "apple":
             options["response_mode"] = "form_post"
         return client.authorize_redirect(request, callback_uri, **options)
