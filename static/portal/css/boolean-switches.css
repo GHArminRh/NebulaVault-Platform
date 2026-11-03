@@ -4,9 +4,8 @@
  * .nv-boolean-toggle implementation in admin_boolean_toggle.js.
  * Native inputs remain in place for forms, keyboard use, and accessibility.
  */
-body.nv-portal input[type='checkbox']:not(.action-select, #action-toggle),
-body:not(.nv-portal) #content input[type='checkbox']:not(.action-select, #action-toggle),
-body:not(.nv-portal) input[type='checkbox']:not(.action-select, #action-toggle) {
+body.nv-portal input[type='checkbox'],
+#content input[type='checkbox']:not(.action-select):not(#action-toggle) {
   -webkit-appearance: none;
   appearance: none;
   position: relative;
@@ -28,9 +27,8 @@ body:not(.nv-portal) input[type='checkbox']:not(.action-select, #action-toggle) 
   transition: background-color 180ms ease;
 }
 
-body.nv-portal input[type='checkbox']:not(.action-select, #action-toggle)::before,
-body:not(.nv-portal) #content input[type='checkbox']:not(.action-select, #action-toggle)::before,
-body:not(.nv-portal) input[type='checkbox']:not(.action-select, #action-toggle)::before {
+body.nv-portal input[type='checkbox']::before,
+#content input[type='checkbox']:not(.action-select):not(#action-toggle)::before::before {
   content: '';
   position: absolute;
   top: 2px;
@@ -43,53 +41,47 @@ body:not(.nv-portal) input[type='checkbox']:not(.action-select, #action-toggle):
   transition: transform 220ms cubic-bezier(0.2, 0.75, 0.25, 1);
 }
 
-body.nv-portal input[type='checkbox']:not(.action-select, #action-toggle):checked,
-body:not(.nv-portal) #content input[type='checkbox']:not(.action-select, #action-toggle):checked,
-body:not(.nv-portal) input[type='checkbox']:not(.action-select, #action-toggle):checked {
+body.nv-portal input[type='checkbox']:checked,
+#content input[type='checkbox']:not(.action-select):not(#action-toggle):checked:checked {
   background: #259d70;
 }
 
-body.nv-portal input[type='checkbox']:not(.action-select, #action-toggle):checked::before,
-body:not(.nv-portal) #content input[type='checkbox']:not(.action-select, #action-toggle):checked::before,
-body:not(.nv-portal) input[type='checkbox']:not(.action-select, #action-toggle):checked::before {
+body.nv-portal input[type='checkbox']:checked::before,
+#content input[type='checkbox']:not(.action-select):not(#action-toggle):checked::before:checked::before {
   transform: translateX(18px);
 }
 
-body.nv-portal input[type='checkbox']:not(.action-select, #action-toggle):indeterminate,
-body:not(.nv-portal) #content input[type='checkbox']:not(.action-select, #action-toggle):indeterminate,
-body:not(.nv-portal) input[type='checkbox']:not(.action-select, #action-toggle):indeterminate {
+body.nv-portal input[type='checkbox']:indeterminate,
+#content input[type='checkbox']:not(.action-select):not(#action-toggle):indeterminate:indeterminate {
   background: #7567f5;
 }
 
-body.nv-portal input[type='checkbox']:not(.action-select, #action-toggle):indeterminate::before,
-body:not(.nv-portal) #content input[type='checkbox']:not(.action-select, #action-toggle):indeterminate::before,
-body:not(.nv-portal) input[type='checkbox']:not(.action-select, #action-toggle):indeterminate::before {
+body.nv-portal input[type='checkbox']:indeterminate::before,
+#content input[type='checkbox']:not(.action-select):not(#action-toggle):indeterminate::before:indeterminate::before {
   transform: translateX(9px);
 }
 
-body.nv-portal input[type='checkbox']:not(.action-select, #action-toggle):focus-visible,
-body:not(.nv-portal) #content input[type='checkbox']:not(.action-select, #action-toggle):focus-visible,
-body:not(.nv-portal) input[type='checkbox']:not(.action-select, #action-toggle):focus-visible {
+body.nv-portal input[type='checkbox']:focus-visible,
+#content input[type='checkbox']:not(.action-select):not(#action-toggle):focus-visible:focus-visible {
   outline: 2px solid #8ae6e7;
   outline-offset: 3px;
 }
 
-body.nv-portal input[type='checkbox']:not(.action-select, #action-toggle):disabled,
-body:not(.nv-portal) #content input[type='checkbox']:not(.action-select, #action-toggle):disabled,
-body:not(.nv-portal) input[type='checkbox']:not(.action-select, #action-toggle):disabled {
+body.nv-portal input[type='checkbox']:disabled,
+#content input[type='checkbox']:not(.action-select):not(#action-toggle):disabled:disabled {
   cursor: not-allowed;
   opacity: 0.48;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body.nv-portal input[type='checkbox']:not(.action-select, #action-toggle),
-  body:not(.nv-portal) #content input[type='checkbox']:not(.action-select, #action-toggle),
+  body.nv-portal input[type='checkbox'],
+  #content input[type='checkbox']:not(.action-select):not(#action-toggle),
   body:not(.nv-portal) input[type='checkbox']:not(.action-select, #action-toggle) {
     transition: none;
   }
 
-  body.nv-portal input[type='checkbox']:not(.action-select, #action-toggle)::before,
-  body:not(.nv-portal) #content input[type='checkbox']:not(.action-select, #action-toggle)::before,
+  body.nv-portal input[type='checkbox']::before,
+  #content input[type='checkbox']:not(.action-select):not(#action-toggle)::before,
   body:not(.nv-portal) input[type='checkbox']:not(.action-select, #action-toggle)::before {
     transition: none;
   }
