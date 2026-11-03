@@ -58,7 +58,8 @@
 
     var selectAll = document.createElement("button");
     selectAll.type = "button";
-    selectAll.className = "nv-blog-tag-select__footer-action nv-blog-tag-select__footer-action--primary";
+    selectAll.className =
+      "nv-blog-tag-select__footer-action nv-blog-tag-select__footer-action--primary";
     selectAll.textContent = "Select all";
 
     footer.append(reset, selectAll);
@@ -120,7 +121,9 @@
       selectAll.disabled = rows.length === 0 || count === rows.length;
       trigger.setAttribute(
         "aria-label",
-        count ? count + (count === 1 ? " tag selected" : " tags selected") : "Select blog tags"
+        count
+          ? count + (count === 1 ? " tag selected" : " tags selected")
+          : "Select blog tags"
       );
     }
 
@@ -129,7 +132,8 @@
       var visible = 0;
 
       rows.forEach(function (item) {
-        var matches = !query || item.row.dataset.searchText.indexOf(query) !== -1;
+        var matches =
+          !query || item.row.dataset.searchText.indexOf(query) !== -1;
         item.row.hidden = !matches;
         if (matches) visible += 1;
       });
