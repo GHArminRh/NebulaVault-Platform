@@ -3217,3 +3217,70 @@ html body.nv-portal .nv-home-hero .nv-hero-copy h1 > .gradient-text {
     transform: rotate(360deg);
   }
 }
+
+/* Full-surface liquid feedback for native POST submissions. */
+button.is-loading {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  opacity: 1;
+  cursor: wait !important;
+  border-color: rgba(131, 228, 237, 0.62);
+  box-shadow: 0 0 18px rgba(131, 228, 237, 0.16);
+  transition:
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+
+button.is-loading::before,
+button.is-loading::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+button.is-loading::before {
+  z-index: 0;
+  inset: -120%;
+  border-radius: 50%;
+  background: conic-gradient(#63e6e2, #9c8cff, #63e6e2);
+  animation: nv-button-liquid-rotate 1.8s linear infinite;
+}
+
+button.is-loading::after {
+  z-index: 0;
+  inset: 2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    110deg,
+    rgba(29, 39, 82, 0.78),
+    rgba(21, 62, 80, 0.72),
+    rgba(40, 32, 76, 0.78)
+  );
+  background-size: 200% 100%;
+  animation: nv-button-liquid-flow 2.4s ease-in-out infinite alternate;
+}
+
+button.is-loading > .nv-button-label {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes nv-button-liquid-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes nv-button-liquid-flow {
+  to {
+    background-position: 100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.is-loading::before,
+  button.is-loading::after {
+    animation: none;
+  }
+}

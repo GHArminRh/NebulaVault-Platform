@@ -46,22 +46,22 @@
   font-size: 36px;
 }
 
-/* Keep customer verification visually consistent with the Django admin login. */
+/* Match the customer Turnstile panel to the Django admin login treatment. */
 .nv-auth-form .turnstile-shell {
   width: 100%;
   min-width: 0;
   margin: 10px 0 4px;
-  padding: 10px 12px;
+  padding: 9px 10px;
   border: 1px solid rgba(104, 157, 255, 0.2);
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgba(4, 10, 23, 0.48);
   box-sizing: border-box;
 }
 
 .nv-auth-form .turnstile-heading {
-  margin: 0 0 7px;
+  margin: 0 0 5px;
   color: #c2cde2;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   text-align: start;
 }
@@ -85,10 +85,12 @@
 
 .nv-auth-form .nv-turnstile-widget {
   display: flex;
+  width: 300px;
+  max-width: 100%;
   min-height: 60px;
+  margin-inline: auto;
   align-items: center;
   justify-content: center;
-  max-width: 100%;
   overflow: visible;
 }
 
@@ -98,6 +100,6 @@
 
 @media (max-width: 420px) {
   .nv-auth-form .turnstile-shell {
-    padding: 9px 6px;
+    padding: 8px 6px;
   }
 }

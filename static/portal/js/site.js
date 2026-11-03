@@ -24,10 +24,14 @@ document.addEventListener('DOMContentLoaded', () => {
       submitter.setAttribute('aria-disabled', 'true');
       submitter.disabled = true;
       if (submitter.tagName === 'BUTTON') {
-        const spinner = document.createElement('span');
-        spinner.className = 'nv-button-spinner';
-        spinner.setAttribute('aria-hidden', 'true');
-        submitter.append(spinner);
+        // Wrap the existing label once so the liquid animation can flow behind
+        // it without changing the button's dimensions or hiding its text.
+        if (!submitter.querySelector(':scope > .nv-button-label')) {
+          const label = document.createElement('span');
+          label.className = 'nv-button-label';
+          while (submitter.firstChild) label.append(submitter.firstChild);
+          submitter.append(label);
+        }
       } else {
         submitter.dataset.originalValue = submitter.value;
         submitter.value = 'Processing…';
