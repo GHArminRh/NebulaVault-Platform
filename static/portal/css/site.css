@@ -3230,7 +3230,7 @@ button.is-loading {
 
 button.is-loading::before,
 button.is-loading::after {
-  content: "";
+  content: '';
   position: absolute;
   pointer-events: none;
   z-index: 0;
