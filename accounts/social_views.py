@@ -134,21 +134,38 @@ def social_callback(request, provider):
         if not claims:
             raise ValueError("Provider did not return verified OpenID user information.")
         claims = dict(claims)
-        email = (claims.get("email") or "").strip().lower()
         subject = str(claims.get("sub") or "").strip()
-        if not email or not subject or not _verified_email(claims.get("email_verified")):
+        if not subject:
+            return _failure(request, "شناسه حساب دریافتی از سرویس ورود معتبر نیست.")
+
+        apple_user = {}
+        if provider == "apple" and request.method == "POST":
+            try:
+                apple_user = json.loads(request.POST.get("user") or "{}")
+            except (TypeError, ValueError):
+                apple_user = {}
+
+        email_claim = (claims.get("email") or apple_user.get("email") or "").strip().lower()
+        identity_hint = (
+            SocialIdentity.objects.select_related("customer")
+            .filter(provider=provider, provider_subject=subject)
+            .first()
+        )
+        if email_claim and _verified_email(claims.get("email_verified")):
+            email = email_claim
+        elif identity_hint:
+            # Apple may omit the email claim after the first authorization.
+            # Reuse the address saved when this provider identity was verified.
+            email = identity_hint.email or identity_hint.customer.email
+        else:
             return _failure(request, "سرویس ارائه‌دهنده نشانی ایمیل تأییدشده‌ای ارسال نکرد.")
 
         first_name = (claims.get("given_name") or "").strip()
         last_name = (claims.get("family_name") or "").strip()
-        if provider == "apple" and request.method == "POST":
-            try:
-                apple_user = json.loads(request.POST.get("user") or "{}")
-                name = apple_user.get("name") or {}
-                first_name = first_name or (name.get("firstName") or "").strip()
-                last_name = last_name or (name.get("lastName") or "").strip()
-            except (TypeError, ValueError):
-                pass
+        if provider == "apple":
+            name = apple_user.get("name") or {}
+            first_name = first_name or (name.get("firstName") or "").strip()
+            last_name = last_name or (name.get("lastName") or "").strip()
 
         now = timezone.now()
         with transaction.atomic():
