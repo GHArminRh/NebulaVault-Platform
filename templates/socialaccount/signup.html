@@ -1,0 +1,34 @@
+{% extends "portal/base.html" %}
+{% load static %}
+{% block title %}تکمیل ثبت‌نام — نبیولا والت{% endblock %}
+{% block extra_css %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'portal/css/auth-controls.css' %}">
+{% endblock %}
+{% block content %}
+<section class="page-wrap nv-social-signup">
+  <div class="nv-auth-face">
+    <span class="nv-auth-kicker">یک قدم تا ساخت حساب</span>
+    <h1>تکمیل ثبت‌نام</h1>
+    <p class="nv-auth-subtitle">برای ادامه، اطلاعات و رضایت‌های زیر را تأیید کنید.</p>
+    <form method="post" class="form-stack nv-auth-form">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      {% for field in form %}
+        {% if field.name == "accept_terms" or field.name == "newsletter_opt_in" %}
+          <label class="nv-consent-toggle" for="{{ field.id_for_label }}">
+            {{ field }}
+            <span class="nv-consent-track" aria-hidden="true"><i></i></span>
+            <span class="nv-consent-copy">{{ field.label }}{% if field.name == "accept_terms" %}<b>الزامی</b>{% else %}<small>اختیاری</small>{% endif %}</span>
+          </label>
+        {% else %}
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+        {% endif %}
+        {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+      {% endfor %}
+      <button class="button button-primary button-full" type="submit">تأیید و ساخت حساب</button>
+    </form>
+  </div>
+</section>
+{% endblock %}
