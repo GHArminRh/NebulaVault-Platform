@@ -366,9 +366,9 @@
     }
 
     /* Frosted glass feedback for the one admin submit control in progress. */
-    body:not(.login) input[type="submit"]:disabled,
-    body:not(.login) button[type="submit"]:disabled,
-    body.login .submit-row input[type="submit"]:disabled {
+    body:not(.login) input[type="submit"]:disabled[aria-disabled="true"],
+    body:not(.login) button[type="submit"]:disabled[aria-disabled="true"],
+    body.login .submit-row input[type="submit"]:disabled[aria-disabled="true"] {
       opacity: .58;
       color: rgba(232, 239, 255, .78);
       background: linear-gradient(135deg, rgba(178, 190, 224, .13), rgba(111, 130, 174, .07));
@@ -380,7 +380,7 @@
       filter: saturate(.55);
       transform: none;
     }
-    body.login .submit-row input[type="submit"]:disabled:hover {
+    body.login .submit-row input[type="submit"]:disabled[aria-disabled="true"]:hover {
       filter: saturate(.55);
       transform: none;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09), 0 4px 14px rgba(0, 0, 0, .12);
