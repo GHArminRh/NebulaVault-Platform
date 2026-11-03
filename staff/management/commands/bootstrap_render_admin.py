@@ -34,6 +34,27 @@ class Command(BaseCommand):
         )
         self.stdout.write(self.style.SUCCESS(f"Primary Django Site {site_id} is ready."))
 
+        # Optional one-time Algolia bootstrap. Render runs this command after
+        # migrations and cache-table creation; a persistent DB-cache marker
+        # prevents reindexing on every subsequent restart.
+        reindex_token = os.environ.get("ALGOLIA_REINDEX_ON_BOOT", "").strip()
+        if reindex_token:
+            from django.core.cache import cache
+            from django.core.management import call_command
+
+            cache_key = f"nebula:algolia:reindex:{reindex_token[:160]}"
+            if cache.get(cache_key) == "done":
+                self.stdout.write("Algolia bootstrap reindex already completed.")
+            elif cache.add(cache_key, "running", timeout=900):
+                try:
+                    call_command("reindex_algolia")
+                except Exception:
+                    cache.delete(cache_key)
+                    raise
+                cache.set(cache_key, "done", timeout=None)
+            else:
+                self.stdout.write("Algolia bootstrap reindex is already running.")
+
         password = os.environ.get("NEBULA_BOOTSTRAP_ADMIN_PASSWORD", "")
         if not password:
             self.stdout.write("Bootstrap admin skipped: no temporary password configured.")
