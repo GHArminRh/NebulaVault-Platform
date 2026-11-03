@@ -10,7 +10,7 @@ test.describe('authentication experience', () => {
       .locator('form.nv-auth-form')
       .filter({ has: page.locator('input[name="username"]') });
     await expect(form).toBeVisible();
-    await expect(form.locator('input[name="username"]')).toHaveAttribute('type', 'email');
+    await expect(form.locator('input[name="username"]')).toHaveAttribute('type', 'text');
     await expect(form.locator('input[name="username"]')).toHaveAttribute(
       'autocomplete',
       'username'
@@ -44,6 +44,8 @@ test.describe('authentication experience', () => {
       'autocomplete',
       'new-password'
     );
+    await expect(form.locator('input[name="accept_terms"]')).toHaveAttribute('required', '');
+    await expect(form.locator('input[name="newsletter_opt_in"]')).not.toBeChecked();
     await expect(form.locator('button[type="submit"]')).toBeVisible();
   });
 
@@ -78,6 +80,7 @@ test.describe('authentication experience', () => {
     await form.locator('input[name="email"]').fill(email);
     await form.locator('input[name="password1"]').fill(password);
     await form.locator('input[name="password2"]').fill(password);
+    await form.locator('input[name="accept_terms"]').check();
     await form.locator('button[type="submit"]').click({ timeout: 30_000 });
 
     await expect(page.locator('#id_code')).toBeVisible({ timeout: 30_000 });

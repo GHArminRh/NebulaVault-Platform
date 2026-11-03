@@ -52,7 +52,7 @@
               {% endif %}
             {% endfor %}
           {% else %}
-            <label for="nv-login-email">نشانی ایمیل</label><input id="nv-login-email" name="username" type="email" autocomplete="username" required placeholder="ایمیل خود را وارد کنید" value="{% if auth_side == 'login' %}{{ form.username.value|default:'' }}{% endif %}">
+            <label for="nv-login-email">نام کاربری یا ایمیل</label><input id="nv-login-email" name="username" type="text" autocomplete="username" dir="auto" required placeholder="نام کاربری یا ایمیل خود را وارد کنید" value="{% if auth_side == 'login' %}{{ form.username.value|default:'' }}{% endif %}">
             <label for="nv-login-password">رمز عبور</label>
             <div class="password-wrap">
               <input id="nv-login-password" name="password" type="password" autocomplete="current-password" required placeholder="رمز عبور خود را وارد کنید"><button class="password-toggle" type="button">نمایش</button>
@@ -91,6 +91,13 @@
             {% endif %}
           {% endfor %}
         </form>
+        {% if SOCIAL_AUTH_GOOGLE_ENABLED or SOCIAL_AUTH_APPLE_ENABLED %}
+          <div class="nv-social-divider"><span>یا ورود با</span></div>
+          <div class="nv-social-actions">
+            {% if SOCIAL_AUTH_GOOGLE_ENABLED %}<form method="post" action="{% url 'accounts:social_start' provider='google' flow='login' %}" data-social-start data-social-flow="login">{% csrf_token %}<input type="hidden" name="cf-turnstile-response" value=""><input type="hidden" name="next" value="{{ next|default:'' }}"><button class="nv-social-button" type="submit"><span class="nv-google-g" aria-hidden="true">G</span>ادامه با Google</button></form>{% endif %}
+            {% if SOCIAL_AUTH_APPLE_ENABLED %}<form method="post" action="{% url 'accounts:social_start' provider='apple' flow='login' %}" data-social-start data-social-flow="login">{% csrf_token %}<input type="hidden" name="cf-turnstile-response" value=""><input type="hidden" name="next" value="{{ next|default:'' }}"><button class="nv-social-button" type="submit"><svg class="nv-apple-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.8c0-2 1.6-3 1.7-3.1a3.7 3.7 0 0 0-2.9-1.6c-1.2-.1-2.3.7-2.9.7-.6 0-1.5-.7-2.5-.7a3.8 3.8 0 0 0-3.2 2c-1.4 2.4-.4 6 1 8 .7 1 1.5 2 2.5 2 1 0 1.3-.6 2.5-.6s1.5.6 2.5.6 1.7-1 2.3-2c.8-1.1 1.1-2.2 1.1-2.3-.1 0-2.1-.8-2.1-3ZM14.5 6.8c.5-.7.9-1.6.8-2.5-.8 0-1.8.5-2.4 1.2-.5.6-.9 1.5-.8 2.4.9.1 1.8-.4 2.4-1.1Z"/></svg>ادامه با Apple</button></form>{% endif %}
+          </div>
+        {% endif %}
         <p class="nv-auth-small-link"><a href="{% url 'accounts:password_reset' %}">رمز عبور را فراموش کرده‌اید؟</a></p>
         <div class="nv-auth-flip-prompt"><span>هنوز حساب ندارید؟</span><button type="button" data-auth-flip="register">ساخت حساب <span>↶</span></button><a class="nv-auth-nojs-link" href="{% url 'accounts:register' %}">ساخت حساب</a></div>
       </div>
@@ -122,6 +129,19 @@
        autocomplete="new-password"
        required
        placeholder="رمز عبور را دوباره وارد کنید">{% if auth_side == "register" and form.password2.errors %}<small class="field-error">{{ form.password2.errors|join:', ' }}</small>{% endif %}
+          <div class="nv-consent-list">
+            <label class="nv-consent-toggle" for="nv-accept-terms">
+              <input id="nv-accept-terms" name="accept_terms" type="checkbox" value="on" required {% if auth_side == 'register' and form.accept_terms.value %}checked{% endif %}>
+              <span class="nv-consent-track" aria-hidden="true"><i></i></span>
+              <span class="nv-consent-copy">قوانین و مقررات نبیولا والت را می‌پذیرم <b>الزامی</b></span>
+            </label>
+            {% if auth_side == 'register' and form.accept_terms.errors %}<small class="field-error">{{ form.accept_terms.errors|join:', ' }}</small>{% endif %}
+            <label class="nv-consent-toggle" for="nv-newsletter-opt-in">
+              <input id="nv-newsletter-opt-in" name="newsletter_opt_in" type="checkbox" value="on" {% if auth_side == 'register' and form.newsletter_opt_in.value %}checked{% endif %}>
+              <span class="nv-consent-track" aria-hidden="true"><i></i></span>
+              <span class="nv-consent-copy">مایلم آخرین اخبار، محصولات و اطلاعیه‌ها را دریافت کنم <small>اختیاری</small></span>
+            </label>
+          </div>
           <p class="nv-auth-help">پس از ثبت‌نام، برای فعال‌سازی حساب باید ایمیل خود را تأیید کنید.</p>
           {% if TURNSTILE_ENABLED|default:True %}
           <div class="turnstile-shell" role="group" aria-labelledby="nv-register-turnstile-heading">
@@ -139,6 +159,13 @@
           <button class="button button-primary button-full button-large auth-submit"
                   type="submit">ایجاد حساب و تأیید ایمیل <span>↗</span></button>
         </form>
+        {% if SOCIAL_AUTH_GOOGLE_ENABLED or SOCIAL_AUTH_APPLE_ENABLED %}
+          <div class="nv-social-divider"><span>یا ثبت‌نام با</span></div>
+          <div class="nv-social-actions">
+            {% if SOCIAL_AUTH_GOOGLE_ENABLED %}<form method="post" action="{% url 'accounts:social_start' provider='google' flow='register' %}" data-social-start data-social-flow="register">{% csrf_token %}<input type="hidden" name="cf-turnstile-response" value=""><input type="hidden" name="accept_terms" value=""><input type="hidden" name="newsletter_opt_in" value=""><button class="nv-social-button" type="submit"><span class="nv-google-g" aria-hidden="true">G</span>ثبت‌نام با Google</button></form>{% endif %}
+            {% if SOCIAL_AUTH_APPLE_ENABLED %}<form method="post" action="{% url 'accounts:social_start' provider='apple' flow='register' %}" data-social-start data-social-flow="register">{% csrf_token %}<input type="hidden" name="cf-turnstile-response" value=""><input type="hidden" name="accept_terms" value=""><input type="hidden" name="newsletter_opt_in" value=""><button class="nv-social-button" type="submit"><svg class="nv-apple-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.8c0-2 1.6-3 1.7-3.1a3.7 3.7 0 0 0-2.9-1.6c-1.2-.1-2.3.7-2.9.7-.6 0-1.5-.7-2.5-.7a3.8 3.8 0 0 0-3.2 2c-1.4 2.4-.4 6 1 8 .7 1 1.5 2 2.5 2 1 0 1.3-.6 2.5-.6s1.5.6 2.5.6 1.7-1 2.3-2c.8-1.1 1.1-2.2 1.1-2.3-.1 0-2.1-.8-2.1-3ZM14.5 6.8c.5-.7.9-1.6.8-2.5-.8 0-1.8.5-2.4 1.2-.5.6-.9 1.5-.8 2.4.9.1 1.8-.4 2.4-1.1Z"/></svg>ثبت‌نام با Apple</button></form>{% endif %}
+          </div>
+        {% endif %}
         <div class="nv-auth-flip-prompt"><span>از قبل حساب دارید؟</span><button type="button" data-auth-flip="login">ورود به حساب <span>↷</span></button><a class="nv-auth-nojs-link" href="{% url 'login' %}">ورود به حساب</a></div>
       </div>
     </div>

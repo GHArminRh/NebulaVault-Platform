@@ -32,6 +32,12 @@ document.addEventListener('DOMContentLoaded', () => {
           while (submitter.firstChild) label.append(submitter.firstChild);
           submitter.append(label);
         }
+        if (!submitter.querySelector(':scope > .nv-button-spinner')) {
+          const spinner = document.createElement('span');
+          spinner.className = 'nv-button-spinner';
+          spinner.setAttribute('aria-hidden', 'true');
+          submitter.append(spinner);
+        }
       } else {
         submitter.dataset.originalValue = submitter.value;
         submitter.value = 'Processing…';

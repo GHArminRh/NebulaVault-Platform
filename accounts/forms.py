@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
+from django.utils import timezone
 
 from .models import Customer
 from .turnstile import verify_turnstile
@@ -49,7 +50,7 @@ class NebulaAuthenticationForm(HumanCheckMixin, AuthenticationForm):
     email_otp_token = forms.CharField(required=False, max_length=6, label="کد ایمیل")
     recovery_code = forms.CharField(required=False, max_length=16, label="کد بازیابی")
     two_factor_method = forms.ChoiceField(required=False, choices=(), label="روش تأیید")
-    username = forms.EmailField(label="نشانی ایمیل", widget=forms.EmailInput(attrs={"autocomplete": "username", "autofocus": True}))
+    username = forms.CharField(label="نام کاربری یا ایمیل", widget=forms.TextInput(attrs={"autocomplete": "username", "autofocus": True, "dir": "auto"}))
 
     PENDING_SESSION_KEY = "customer_two_factor_pending"
     CHALLENGE_TTL_SECONDS = 300
@@ -149,6 +150,8 @@ class RegisterForm(HumanCheckMixin, forms.ModelForm):
         label="تکرار رمز عبور",
         widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
     )
+    accept_terms = forms.BooleanField(required=True, label="قوانین و مقررات را می‌پذیرم.")
+    newsletter_opt_in = forms.BooleanField(required=False, initial=False, label="مایلم آخرین اخبار و اطلاعیه‌ها را دریافت کنم.")
 
     class Meta:
         model = Customer
@@ -192,6 +195,10 @@ class RegisterForm(HumanCheckMixin, forms.ModelForm):
         customer = super().save(commit=False)
         customer.email = self.cleaned_data["email"]
         customer.username = self._username_from_email(customer.email)
+        customer.terms_accepted_at = timezone.now()
+        customer.terms_version = getattr(settings, "TERMS_VERSION", "2026-11-04")
+        customer.newsletter_opt_in = bool(self.cleaned_data.get("newsletter_opt_in"))
+        customer.newsletter_opt_in_at = timezone.now() if customer.newsletter_opt_in else None
         customer.set_password(self.cleaned_data["password1"])
         if commit:
             customer.save()

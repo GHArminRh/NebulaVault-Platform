@@ -67,52 +67,40 @@
   {{ block.super }}
   <style>
 
-/* Nebula loading orb for native POST submissions. */
+/* Shared dot-circle indicator for admin POST forms. */
 .nv-button-spinner {
-  position: relative;
-  display: inline-block;
-  width: 23px;
-  height: 23px;
-  margin-inline-start: .55em;
-  vertical-align: middle;
-  border: 2px solid rgba(239, 244, 255, .25);
-  border-top-color: #b2a8ff;
-  border-right-color: #8ae6e7;
-  border-radius: 50%;
-  box-shadow: 0 0 10px rgba(138, 230, 231, .22), inset 0 0 8px rgba(178, 168, 255, .12);
-  animation: nv-button-spin .72s linear infinite;
+  position: relative; display: inline-block; width: 18px; height: 18px;
+  margin-inline-start: .6em; vertical-align: -4px; border-radius: 50%;
+  color: currentColor;
+  box-shadow: 0 -7px 0 -2px currentColor, 5px -5px 0 -2px currentColor,
+    7px 0 0 -2px currentColor, 5px 5px 0 -2px currentColor,
+    0 7px 0 -2px currentColor, -5px 5px 0 -2px currentColor,
+    -7px 0 0 -2px currentColor, -5px -5px 0 -2px currentColor;
+  animation: nv-dot-circle .85s steps(8, end) infinite;
 }
-button.is-loading,
-input.is-loading {
-  position: relative;
-  width: 44px !important;
-  min-width: 44px !important;
-  height: 44px !important;
-  min-height: 44px !important;
-  padding: 0 !important;
-  overflow: visible;
-  border: 1px solid rgba(169, 154, 255, .42) !important;
-  border-radius: 50% !important;
-  color: transparent !important;
-  background: radial-gradient(circle at 32% 26%, #e0fbff 0%, #9beaf1 11%, #8e82ff 36%, #5145b5 68%, #171b43 100%) !important;
-  box-shadow: 0 0 12px rgba(138, 230, 231, .25), 0 0 26px rgba(117, 103, 245, .24) !important;
-  opacity: 1 !important;
-  cursor: wait !important;
-}
-button.is-loading .nv-button-spinner {
-  position: absolute;
-  inset: 0;
-  width: 24px;
-  height: 24px;
-  margin: auto;
-}
-input.is-loading + .nv-button-spinner {
-  position: relative;
-  margin-inline-start: -34px;
-  margin-inline-end: 12px;
-  vertical-align: middle;
-}
-@keyframes nv-button-spin { to { transform: rotate(360deg); } }
+button.is-loading, input.is-loading { opacity: .82; cursor: wait; }
+input.is-loading + .nv-button-spinner { margin-inline-start: -34px; margin-inline-end: 12px; vertical-align: middle; }
+@keyframes nv-dot-circle { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .nv-button-spinner { animation: none; } }
+
+    body.login #content .form-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+    body.login #content .form-row label::before {
+      content: "";
+      display: inline-block;
+      flex: 0 0 14px;
+      width: 14px;
+      height: 14px;
+      background: #91a8d8;
+      opacity: .9;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21a8 8 0 0 1 16 0'/%3E%3C/svg%3E") center/contain no-repeat;
+    }
+    body.login #content label[for*="password"]::before {
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='10' width='16' height='11' rx='2'/%3E%3Cpath d='M8 10V7a4 4 0 0 1 8 0v3'/%3E%3C/svg%3E");
+    }
 
     /*
      * Login-only visual language follows the public Nebula Vault site:
@@ -155,25 +143,25 @@ input.is-loading + .nv-button-spinner {
     body.login input[aria-label="Filter navigation items"],
     body.login #header nav,
     body.login .breadcrumbs {
-      display: none !important;
+      display: none;
     }
 
     body.login #main {
-      display: flex !important;
+      display: flex;
       flex: 1 0 auto;
       align-items: center;
       justify-content: center;
-      width: 100% !important;
-      min-width: 0 !important;
-      margin: 0 !important;
-      padding: 18px !important;
+      width: 100%;
+      min-width: 0;
+      margin: 0;
+      padding: 18px;
       box-sizing: border-box;
     }
 
     body.login #content {
       position: relative;
       width: min(420px, 100%);
-      margin: 0 auto !important;
+      margin: 0 auto;
       padding: 22px 26px;
       box-sizing: border-box;
       float: none;
@@ -286,7 +274,7 @@ input.is-loading + .nv-button-spinner {
 
     @media (max-height: 700px) {
       body.login #main {
-        padding: 10px !important;
+        padding: 10px;
       }
 
       body.login #content {
@@ -302,18 +290,18 @@ input.is-loading + .nv-button-spinner {
       }
 
       body.login .turnstile-row {
-        margin: 8px 0 2px !important;
-        padding: 8px 10px !important;
+        margin: 8px 0 2px;
+        padding: 8px 10px;
       }
 
       body.login .turnstile-heading {
-        margin-bottom: 5px !important;
+        margin-bottom: 5px;
       }
     }
 
     @media (max-width: 480px) {
       body.login #main {
-        padding: 12px !important;
+        padding: 12px;
       }
 
       body.login #content {

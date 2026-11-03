@@ -644,13 +644,14 @@ class CustomerLoginView(LoginView):
         # Resolve the account state here as well as in the form. This keeps the
         # verification route reliable when AuthenticationForm rejects an inactive
         # customer before Django assigns form.get_user().
-        email = (self.request.POST.get("username") or "").strip()
+        identifier = (self.request.POST.get("username") or "").strip()
         password = self.request.POST.get("password") or ""
         human_check_passed = bool(form.cleaned_data.get("turnstile_verified"))
 
         customer = None
-        if email and password and human_check_passed:
-            candidate = Customer.objects.filter(email__iexact=email).first()
+        if identifier and password and human_check_passed:
+            lookup = {"email__iexact": identifier} if "@" in identifier else {"username__iexact": identifier}
+            candidate = Customer.objects.filter(**lookup).first()
             if candidate and candidate.check_password(password):
                 customer = candidate
 

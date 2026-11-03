@@ -30,6 +30,10 @@ class Customer(AbstractBaseUser):
     last_name = models.CharField(max_length=150, blank=True)
     is_active = models.BooleanField(default=True)
     is_banned = models.BooleanField(default=False, help_text="Blocked by an administrator; the customer cannot sign in.")
+    terms_accepted_at = models.DateTimeField(null=True, blank=True)
+    terms_version = models.CharField(max_length=32, blank=True)
+    newsletter_opt_in = models.BooleanField(default=False)
+    newsletter_opt_in_at = models.DateTimeField(null=True, blank=True)
     avatar = models.ImageField(upload_to=avatar_upload_to, blank=True, validators=[validate_avatar_size])
     two_factor_enabled = models.BooleanField(default=False)
     two_factor_secret = models.CharField(max_length=255, blank=True, editable=False)
@@ -75,6 +79,37 @@ class Customer(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return False
+
+
+class SocialIdentity(models.Model):
+    """Verified external identity linked only to a customer account."""
+
+    class Provider(models.TextChoices):
+        GOOGLE = "google", "Google"
+        APPLE = "apple", "Apple"
+
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.CASCADE,
+        related_name="social_identities",
+    )
+    provider = models.CharField(max_length=12, choices=Provider.choices)
+    provider_subject = models.CharField(max_length=255)
+    email = models.EmailField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_login_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["provider", "provider_subject"],
+                name="unique_customer_social_identity",
+            ),
+        ]
+        ordering = ["provider", "email"]
+
+    def __str__(self):
+        return f"{self.get_provider_display()} · {self.email or self.provider_subject}"
 
 
 class AccountEmailLog(models.Model):
