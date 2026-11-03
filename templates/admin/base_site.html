@@ -78,7 +78,7 @@
     -7px 0 0 -2px currentColor, -5px -5px 0 -2px currentColor;
   animation: nv-dot-circle .85s steps(8, end) infinite;
 }
-button.is-loading, input.is-loading { opacity: .82 !important; cursor: wait !important; }
+button.is-loading, input.is-loading { opacity: .82; cursor: wait; }
 input.is-loading + .nv-button-spinner { margin-inline-start: -34px; margin-inline-end: 12px; vertical-align: middle; }
 @keyframes nv-dot-circle { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .nv-button-spinner { animation: none; } }
@@ -143,25 +143,25 @@ input.is-loading + .nv-button-spinner { margin-inline-start: -34px; margin-inlin
     body.login input[aria-label="Filter navigation items"],
     body.login #header nav,
     body.login .breadcrumbs {
-      display: none !important;
+      display: none;
     }
 
     body.login #main {
-      display: flex !important;
+      display: flex;
       flex: 1 0 auto;
       align-items: center;
       justify-content: center;
-      width: 100% !important;
-      min-width: 0 !important;
-      margin: 0 !important;
-      padding: 18px !important;
+      width: 100%;
+      min-width: 0;
+      margin: 0;
+      padding: 18px;
       box-sizing: border-box;
     }
 
     body.login #content {
       position: relative;
       width: min(420px, 100%);
-      margin: 0 auto !important;
+      margin: 0 auto;
       padding: 22px 26px;
       box-sizing: border-box;
       float: none;
@@ -274,7 +274,7 @@ input.is-loading + .nv-button-spinner { margin-inline-start: -34px; margin-inlin
 
     @media (max-height: 700px) {
       body.login #main {
-        padding: 10px !important;
+        padding: 10px;
       }
 
       body.login #content {
@@ -290,18 +290,18 @@ input.is-loading + .nv-button-spinner { margin-inline-start: -34px; margin-inlin
       }
 
       body.login .turnstile-row {
-        margin: 8px 0 2px !important;
-        padding: 8px 10px !important;
+        margin: 8px 0 2px;
+        padding: 8px 10px;
       }
 
       body.login .turnstile-heading {
-        margin-bottom: 5px !important;
+        margin-bottom: 5px;
       }
     }
 
     @media (max-width: 480px) {
       body.login #main {
-        padding: 12px !important;
+        padding: 12px;
       }
 
       body.login #content {
