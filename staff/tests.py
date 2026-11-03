@@ -99,6 +99,7 @@ class StaffPermissionMultiSelectAdminTests(SimpleTestCase):
         )
 
         self.assertIsInstance(field.widget, AdminSearchableMultiSelectWidget)
+        self.assertIs(field.widget.choices.field, field)
         self.assertIn("data-nv-admin-multiselect", str(field.widget.render("permissions", [])))
 
     def test_staff_user_permissions_use_shared_searchable_widget(self):
@@ -116,4 +117,5 @@ class StaffPermissionMultiSelectAdminTests(SimpleTestCase):
         )
 
         self.assertIsInstance(field.widget, AdminSearchableMultiSelectWidget)
+        self.assertIs(field.widget.choices.field, field)
         self.assertIn("data-nv-admin-multiselect", str(field.widget.render("user_permissions", [])))
