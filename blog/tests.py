@@ -171,7 +171,7 @@ class BlogPostTagMultiSelectWidgetTests(TestCase):
         self.assertIsInstance(form.fields["tags"].widget, BlogTagMultiSelectWidget)
 
         rendered = str(form["tags"])
-        self.assertIn("data-nv-blog-tag-select", rendered)
+        self.assertIn("data-nv-admin-multiselect", rendered)
         self.assertIn('multiple', rendered)
         self.assertNotIn("selector-available", rendered)
 
