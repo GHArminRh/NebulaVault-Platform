@@ -119,8 +119,6 @@ class BlogPostAdmin(ImportExportModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
     ordering = ("status", "published_at")
     actions = (make_published, make_drafted)
-    # Preserve Django's familiar dual-list selector for multiple tags.
-    filter_horizontal = ("tags",)
     search_fields = ("title", "slug", "excerpt", "tags__name")
     save_on_top = True
     fieldsets = (
