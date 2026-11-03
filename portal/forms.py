@@ -1,1 +1,1 @@
-# Customer account forms are maintained in the accounts app.
+# Customer account forms are maintained in the customer_accounts app.

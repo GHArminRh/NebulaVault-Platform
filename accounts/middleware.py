@@ -1,10 +1,9 @@
-"""Authentication middleware that supports UUID customer IDs alongside Django staff IDs.
+"""Authentication middleware for separate UUID-backed staff and customer models.
 
-Django's stock auth middleware converts the session user ID using
-get_user_model().pk.to_python() before it calls the configured backend. Since
-this project intentionally keeps Django's built-in User for staff and uses a
-separate UUID-primary-key Customer model, that conversion rejects customer
-UUIDs before CustomerAuthenticationBackend.get_user() can run.
+Django's stock middleware resolves a session user through the configured user
+model before consulting the stored authentication backend. This project has two
+user models, so resolve the user through the backend recorded in the session.
+Both models now use UUID primary keys.
 """
 from django.conf import settings
 from django.contrib.auth import BACKEND_SESSION_KEY, HASH_SESSION_KEY, SESSION_KEY, load_backend
@@ -15,7 +14,7 @@ from django.utils.functional import SimpleLazyObject
 
 
 def get_session_user(request):
-    """Resolve the user using the session's backend without assuming an integer PK."""
+    """Resolve the active user through the backend recorded in the session."""
     user_id = request.session.get(SESSION_KEY)
     backend_path = request.session.get(BACKEND_SESSION_KEY)
     if user_id is None or backend_path not in settings.AUTHENTICATION_BACKENDS:
@@ -37,7 +36,6 @@ def get_session_user(request):
         if constant_time_compare(session_hash, user.get_session_auth_hash()):
             return user
 
-        # Support Django's configured SECRET_KEY rotation behavior.
         for secret in getattr(settings, "SECRET_KEY_FALLBACKS", []):
             if constant_time_compare(
                 session_hash, user.get_session_auth_hash(secret=secret)
@@ -48,13 +46,12 @@ def get_session_user(request):
     except (AttributeError, TypeError):
         return AnonymousUser()
 
-    # A changed password or invalid auth hash invalidates the session.
     request.session.flush()
     return AnonymousUser()
 
 
 class UUIDCompatibleAuthenticationMiddleware(AuthenticationMiddleware):
-    """Keep standard Django session auth while allowing UUID customer primary keys."""
+    """Restore authentication using the backend associated with the session."""
 
     def process_request(self, request):
         if not hasattr(request, "session"):
@@ -64,15 +61,4 @@ class UUIDCompatibleAuthenticationMiddleware(AuthenticationMiddleware):
                 "'django.contrib.sessions.middleware.SessionMiddleware' before "
                 "'accounts.middleware.UUIDCompatibleAuthenticationMiddleware'."
             )
-        # Django's admin login uses the built-in integer-PK User model. If a
-        # customer UUID session is already present, auth_login() tries to coerce
-        # that old session ID to an integer before replacing it with the staff ID.
-        # End the customer session before processing the admin login form.
-        if (
-            request.path.rstrip("/") == "/admin/login"
-            and request.session.get(BACKEND_SESSION_KEY)
-            == "accounts.backends.CustomerAuthenticationBackend"
-        ):
-            request.session.flush()
-
         request.user = SimpleLazyObject(lambda: get_session_user(request))

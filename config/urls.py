@@ -4,7 +4,7 @@ from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
 
-from accounts.forms import NebulaAuthenticationForm
+from customer_accounts.forms import NebulaAuthenticationForm
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -17,7 +17,7 @@ urlpatterns = [
         name="login",
     ),
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
-    path("accounts/", include("accounts.urls")),
+    path("accounts/", include("customer_accounts.urls")),
     path("", include("portal.urls")),
 ]
 
