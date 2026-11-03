@@ -5,6 +5,7 @@
 
 {% block extrahead %}
   {{ block.super }}
+  <link rel="stylesheet" href="{% static 'portal/css/boolean-switches.css' %}">
   {% if request.user.is_authenticated %}
     <link rel="stylesheet" href="{% static 'portal/css/admin-motion.css' %}">
     <link rel="stylesheet" href="{% static 'portal/admin-enhancements.css' %}">
