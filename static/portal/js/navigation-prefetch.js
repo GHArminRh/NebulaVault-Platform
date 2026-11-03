@@ -5,7 +5,8 @@
   // Authentication, account, cart, payment, admin and API routes are excluded.
   const MAX_PREFETCHES = 6;
   const prefetched = new Set();
-  const excludedPath = /\/(?:admin|api|login|logout|register|cart|checkout|payment|account|dashboard)(?:\/|$)/i;
+  const excludedPath =
+    /\/(?:admin|api|login|logout|register|cart|checkout|payment|account|dashboard)(?:\/|$)/i;
 
   const canPrefetch = (anchor) => {
     if (
@@ -33,11 +34,6 @@
       excludedPath.test(url.pathname) ||
       url.pathname.startsWith('/.well-known/')
     ) {
-      return null;
-    }
-
-    // Ignore fragment-only changes and non-HTML-looking endpoints.
-    if (url.pathname === window.location.pathname && url.search === window.location.search) {
       return null;
     }
 
@@ -70,11 +66,15 @@
   };
 
   // Pointer intent is useful on desktop; keyboard focus gets the same benefit.
-  document.addEventListener('pointerover', (event) => {
-    if (event.pointerType === 'touch') return;
-    const anchor = event.target.closest?.('a[href]');
-    if (anchor) prefetch(anchor);
-  }, { passive: true });
+  document.addEventListener(
+    'pointerover',
+    (event) => {
+      if (event.pointerType === 'touch') return;
+      const anchor = event.target.closest?.('a[href]');
+      if (anchor) prefetch(anchor);
+    },
+    { passive: true },
+  );
 
   document.addEventListener('focusin', (event) => {
     const anchor = event.target.closest?.('a[href]');
