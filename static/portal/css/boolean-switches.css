@@ -5,7 +5,7 @@
  * Native inputs remain in place for forms, keyboard use, and accessibility.
  */
 body.nv-portal input[type='checkbox'],
-#content input[type='checkbox']:not(.action-select):not(#action-toggle) {
+#content input[type='checkbox']:not(.action-select):not(#action-toggle)
   -webkit-appearance: none;
   appearance: none;
   position: relative;
@@ -28,7 +28,7 @@ body.nv-portal input[type='checkbox'],
 }
 
 body.nv-portal input[type='checkbox']::before,
-#content input[type='checkbox']:not(.action-select):not(#action-toggle)::before::before {
+#content input[type='checkbox']:not(.action-select):not(#action-toggle)::before
   content: '';
   position: absolute;
   top: 2px;
@@ -42,33 +42,33 @@ body.nv-portal input[type='checkbox']::before,
 }
 
 body.nv-portal input[type='checkbox']:checked,
-#content input[type='checkbox']:not(.action-select):not(#action-toggle):checked:checked {
+#content input[type='checkbox']:not(.action-select):not(#action-toggle):checked
   background: #259d70;
 }
 
 body.nv-portal input[type='checkbox']:checked::before,
-#content input[type='checkbox']:not(.action-select):not(#action-toggle):checked::before:checked::before {
+#content input[type='checkbox']:not(.action-select):not(#action-toggle):checked::before
   transform: translateX(18px);
 }
 
 body.nv-portal input[type='checkbox']:indeterminate,
-#content input[type='checkbox']:not(.action-select):not(#action-toggle):indeterminate:indeterminate {
+#content input[type='checkbox']:not(.action-select):not(#action-toggle):indeterminate
   background: #7567f5;
 }
 
 body.nv-portal input[type='checkbox']:indeterminate::before,
-#content input[type='checkbox']:not(.action-select):not(#action-toggle):indeterminate::before:indeterminate::before {
+#content input[type='checkbox']:not(.action-select):not(#action-toggle):indeterminate::before
   transform: translateX(9px);
 }
 
 body.nv-portal input[type='checkbox']:focus-visible,
-#content input[type='checkbox']:not(.action-select):not(#action-toggle):focus-visible:focus-visible {
+#content input[type='checkbox']:not(.action-select):not(#action-toggle):focus-visible
   outline: 2px solid #8ae6e7;
   outline-offset: 3px;
 }
 
 body.nv-portal input[type='checkbox']:disabled,
-#content input[type='checkbox']:not(.action-select):not(#action-toggle):disabled:disabled {
+#content input[type='checkbox']:not(.action-select):not(#action-toggle):disabled
   cursor: not-allowed;
   opacity: 0.48;
 }
@@ -76,13 +76,13 @@ body.nv-portal input[type='checkbox']:disabled,
 @media (prefers-reduced-motion: reduce) {
   body.nv-portal input[type='checkbox'],
   #content input[type='checkbox']:not(.action-select):not(#action-toggle),
-  body:not(.nv-portal) input[type='checkbox']:not(.action-select, #action-toggle) {
+  body:not(.nv-portal) input[type='checkbox'] {
     transition: none;
   }
 
   body.nv-portal input[type='checkbox']::before,
   #content input[type='checkbox']:not(.action-select):not(#action-toggle)::before,
-  body:not(.nv-portal) input[type='checkbox']:not(.action-select, #action-toggle)::before {
+  body:not(.nv-portal) input[type='checkbox']::before {
     transition: none;
   }
 }
