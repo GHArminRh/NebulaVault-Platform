@@ -58,5 +58,5 @@ class StaffUserAdmin(UserAdmin):
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         formfield = super().formfield_for_manytomany(db_field, request, **kwargs)
         if formfield and db_field.name == "user_permissions":
-            formfield.widget = AdminSearchableMultiSelectWidget()
+            formfield.widget = AdminSearchableMultiSelectWidget(choices=formfield.choices)
         return formfield
