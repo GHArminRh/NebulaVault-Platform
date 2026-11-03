@@ -31,10 +31,13 @@ class PortalPageTests(TestCase):
         ALGOLIA_ADMIN_API_KEY="server-only-admin-secret",
         ALGOLIA_SEARCH_API_KEY="public-search-key",
     )
-    def test_storefront_exposes_only_the_search_api_key(self):
-        response = self.client.get(reverse("portal:home"))
-        self.assertContains(response, 'data-algolia-search-key="public-search-key"')
-        self.assertNotContains(response, "server-only-admin-secret")
+    def test_blog_exposes_only_the_search_api_key(self):
+        homepage = self.client.get(reverse("portal:home"))
+        blog = self.client.get(reverse("blog:post_list"))
+
+        self.assertNotContains(homepage, "data-algolia-search-key")
+        self.assertContains(blog, 'data-algolia-search-key="public-search-key"')
+        self.assertNotContains(blog, "server-only-admin-secret")
 
     def test_homepage_renders_for_authenticated_customer(self):
         self.client.force_login(
