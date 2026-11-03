@@ -73,7 +73,7 @@
       const anchor = event.target.closest?.('a[href]');
       if (anchor) prefetch(anchor);
     },
-    { passive: true },
+    { passive: true }
   );
 
   document.addEventListener('focusin', (event) => {
