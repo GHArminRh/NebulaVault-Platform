@@ -71,9 +71,10 @@
 }
 
 .nv-blog-tag-select__panel {
-  position: absolute;
-  z-index: 1000;
-  inset: calc(100% + 7px) 0 auto;
+  position: relative;
+  z-index: 2;
+  inset: auto;
+  margin-top: 7px;
   overflow: hidden;
   border: 1px solid rgba(154, 169, 205, 0.28);
   border-radius: 13px;
@@ -228,12 +229,6 @@
 @media (max-width: 767px) {
   .nv-blog-tag-select {
     width: 100%;
-  }
-
-  .nv-blog-tag-select__panel {
-    position: relative;
-    inset: auto;
-    margin-top: 7px;
   }
 }
 
