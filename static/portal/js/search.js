@@ -113,8 +113,7 @@
 
     if (platform && scope === 'all')
       productParams.set('filters', 'platforms:"' + escapeFilterValue(platform) + '"');
-    if (category)
-      articleParams.set('filters', 'category:"' + escapeFilterValue(category) + '"');
+    if (category) articleParams.set('filters', 'category:"' + escapeFilterValue(category) + '"');
 
     const requests =
       scope === 'articles'
