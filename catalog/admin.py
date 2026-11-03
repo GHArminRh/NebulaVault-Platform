@@ -71,6 +71,7 @@ class ReleaseAdmin(ImportExportModelAdmin):
     list_display = ("product", "version", "platform", "architecture", "is_published", "published_at")
     list_filter = ("platform", "architecture", "is_published")
     search_fields = ("product__name", "version")
+    autocomplete_fields = ("product",)
     list_select_related = ("product",)
     readonly_fields = ("sha256", "created_at")
     fields = ("product", "version", "platform", "architecture", "installer_file", "download_url", "sha256", "release_notes", "is_published", "published_at", "created_at")
