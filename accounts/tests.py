@@ -131,7 +131,7 @@ class AccountBackendTests(TestCase):
     def test_customer_auth_pages_render_separate_login_and_registration_challenges(self):
         response = self.client.get(reverse("login"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Security verification")
+        self.assertContains(response, "بررسی امنیتی")
         self.assertContains(response, 'data-action="customer_login"')
         self.assertContains(response, 'data-action="customer_register"')
 
