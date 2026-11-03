@@ -57,3 +57,5 @@ jobs:
           fi
           git commit -m "style(frontend): format browser source [skip ci]"
           git push origin "HEAD:${GITHUB_REF_NAME}"
+
+# Temporary branch-specific formatting hook; removed before merge.
