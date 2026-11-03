@@ -41,3 +41,21 @@ class NebulaImageUploaderWidget(forms.ClearableFileInput):
                 widget["initial_url"] = ""
 
         return context
+
+
+class AdminSearchableMultiSelectWidget(forms.SelectMultiple):
+    """Searchable multi-select shared by Django admin many-to-many fields."""
+
+    template_name = "admin/widgets/searchable_multi_select.html"
+
+    class Media:
+        css = {"all": ("portal/css/admin-blog-tag-multiselect.css",)}
+        js = ("portal/js/admin-blog-tag-multiselect.js",)
+
+    def __init__(self, attrs=None, choices=()):
+        attributes = dict(attrs or {})
+        attributes["data-nv-admin-multiselect"] = "true"
+        attributes["class"] = (
+            f"{attributes.get('class', '')} nv-admin-multiselect__native".strip()
+        )
+        super().__init__(attrs=attributes, choices=choices)

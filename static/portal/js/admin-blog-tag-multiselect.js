@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  function initTagMultiSelect(root) {
+  function initAdminMultiSelect(root) {
     if (root.dataset.nvEnhanced === 'true') return;
 
     var select = root.querySelector('select[multiple]');
@@ -11,55 +11,55 @@
 
     var trigger = document.createElement('button');
     trigger.type = 'button';
-    trigger.className = 'nv-blog-tag-select__trigger';
+    trigger.className = 'nv-admin-multiselect__trigger';
     trigger.setAttribute('aria-haspopup', 'listbox');
     trigger.setAttribute('aria-expanded', 'false');
 
     var triggerText = document.createElement('span');
-    triggerText.className = 'nv-blog-tag-select__trigger-text';
+    triggerText.className = 'nv-admin-multiselect__trigger-text';
 
     var chevron = document.createElement('span');
-    chevron.className = 'nv-blog-tag-select__chevron';
+    chevron.className = 'nv-admin-multiselect__chevron';
     chevron.setAttribute('aria-hidden', 'true');
     trigger.append(triggerText, chevron);
 
     var panel = document.createElement('div');
-    panel.className = 'nv-blog-tag-select__panel';
+    panel.className = 'nv-admin-multiselect__panel';
     panel.hidden = true;
 
     var searchWrap = document.createElement('div');
-    searchWrap.className = 'nv-blog-tag-select__search-wrap';
+    searchWrap.className = 'nv-admin-multiselect__search-wrap';
 
     var search = document.createElement('input');
     search.type = 'search';
-    search.className = 'nv-blog-tag-select__search';
-    search.placeholder = 'Search tags…';
-    search.setAttribute('aria-label', 'Search tags');
+    search.className = 'nv-admin-multiselect__search';
+    search.placeholder = 'Search options…';
+    search.setAttribute('aria-label', 'Search options');
     search.autocomplete = 'off';
     searchWrap.append(search);
 
     var list = document.createElement('div');
-    list.className = 'nv-blog-tag-select__options';
+    list.className = 'nv-admin-multiselect__options';
     list.setAttribute('role', 'listbox');
     list.setAttribute('aria-multiselectable', 'true');
 
     var empty = document.createElement('p');
-    empty.className = 'nv-blog-tag-select__empty';
-    empty.textContent = 'No tags found';
+    empty.className = 'nv-admin-multiselect__empty';
+    empty.textContent = 'No options found';
     empty.hidden = true;
 
     var footer = document.createElement('div');
-    footer.className = 'nv-blog-tag-select__footer';
+    footer.className = 'nv-admin-multiselect__footer';
 
     var reset = document.createElement('button');
     reset.type = 'button';
-    reset.className = 'nv-blog-tag-select__footer-action';
+    reset.className = 'nv-admin-multiselect__footer-action';
     reset.textContent = 'Reset';
 
     var selectAll = document.createElement('button');
     selectAll.type = 'button';
     selectAll.className =
-      'nv-blog-tag-select__footer-action nv-blog-tag-select__footer-action--primary';
+      'nv-admin-multiselect__footer-action nv-admin-multiselect__footer-action--primary';
     selectAll.textContent = 'Select all';
 
     footer.append(reset, selectAll);
@@ -68,6 +68,13 @@
     root.classList.add('is-enhanced');
 
     var rows = [];
+
+    function getOptionLabel(option) {
+      var group = option.parentElement;
+      var groupLabel = group && group.tagName === 'OPTGROUP' ? group.label.trim() : '';
+      var label = option.textContent.trim();
+      return groupLabel ? groupLabel + ' — ' + label : label;
+    }
 
     function selectedCount() {
       return rows.reduce(function (count, item) {
@@ -78,8 +85,8 @@
     function refresh() {
       var count = selectedCount();
       triggerText.textContent = count
-        ? count + (count === 1 ? ' tag selected' : ' tags selected')
-        : 'Select tags';
+        ? count + (count === 1 ? ' option selected' : ' options selected')
+        : 'Select options';
 
       rows.forEach(function (item) {
         item.checkbox.checked = item.option.selected;
@@ -91,7 +98,7 @@
       selectAll.disabled = rows.length === 0 || count === rows.length;
       trigger.setAttribute(
         'aria-label',
-        count ? count + (count === 1 ? ' tag selected' : ' tags selected') : 'Select blog tags'
+        count ? count + (count === 1 ? ' option selected' : ' options selected') : 'Select options'
       );
     }
 
@@ -128,12 +135,12 @@
 
     function addOptionRow(option, index) {
       var row = document.createElement('div');
-      row.className = 'nv-blog-tag-select__option';
-      row.dataset.searchText = option.textContent.trim().toLocaleLowerCase();
+      row.className = 'nv-admin-multiselect__option';
+      row.dataset.searchText = getOptionLabel(option).toLocaleLowerCase();
 
       var checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
-      checkbox.className = 'nv-blog-tag-select__checkbox';
+      checkbox.className = 'nv-admin-multiselect__checkbox';
       checkbox.checked = option.selected;
       checkbox.disabled = option.disabled;
       checkbox.value = option.value;
@@ -141,12 +148,12 @@
       checkbox.setAttribute('aria-hidden', 'true');
 
       var checkmark = document.createElement('span');
-      checkmark.className = 'nv-blog-tag-select__checkmark';
+      checkmark.className = 'nv-admin-multiselect__checkmark';
       checkmark.setAttribute('aria-hidden', 'true');
 
       var label = document.createElement('span');
-      label.className = 'nv-blog-tag-select__option-label';
-      label.textContent = option.textContent.trim();
+      label.className = 'nv-admin-multiselect__option-label';
+      label.textContent = getOptionLabel(option);
 
       row.append(checkbox, checkmark, label);
       row.setAttribute('role', 'option');
@@ -197,9 +204,9 @@
           addOptionRow(option, index);
         } else {
           existing.row.dataset.optionIndex = String(index);
-          existing.row.dataset.searchText = option.textContent.trim().toLocaleLowerCase();
-          existing.row.querySelector('.nv-blog-tag-select__option-label').textContent =
-            option.textContent.trim();
+          existing.row.dataset.searchText = getOptionLabel(option).toLocaleLowerCase();
+          existing.row.querySelector('.nv-admin-multiselect__option-label').textContent =
+            getOptionLabel(option);
           existing.checkbox.disabled = option.disabled;
           list.append(existing.row);
         }
@@ -251,7 +258,7 @@
       });
     }
 
-    // Django's green "add related tag" popup inserts a new <option> into
+    // Django's related-object popup inserts a new <option> into
     // the native select. Watch that source of truth so the custom menu stays
     // in sync without requiring a page reload.
     if (window.MutationObserver) {
@@ -265,7 +272,7 @@
   }
 
   function initAll() {
-    document.querySelectorAll('[data-nv-blog-tag-select]').forEach(initTagMultiSelect);
+    document.querySelectorAll('[data-nv-admin-multiselect]').forEach(initAdminMultiSelect);
   }
 
   if (document.readyState === 'loading') {

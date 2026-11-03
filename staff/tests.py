@@ -81,3 +81,41 @@ class RenderStartupCommandTests(SimpleTestCase):
                 call("bootstrap_render_admin", verbosity=1),
             ],
         )
+
+
+class StaffPermissionMultiSelectAdminTests(TestCase):
+    def test_group_permissions_use_shared_searchable_widget(self):
+        from django.contrib import admin
+        from django.test import RequestFactory
+
+        from portal.widgets import AdminSearchableMultiSelectWidget
+        from staff.admin import StaffGroupAdmin
+        from staff.models import Group
+
+        model_admin = StaffGroupAdmin(Group, admin.site)
+        field = model_admin.formfield_for_manytomany(
+            Group._meta.get_field("permissions"),
+            RequestFactory().get("/admin/staff/group/add/"),
+        )
+
+        self.assertIsInstance(field.widget, AdminSearchableMultiSelectWidget)
+        self.assertIs(field.widget.choices.field, field)
+        self.assertIn("data-nv-admin-multiselect", str(field.widget.render("permissions", [])))
+
+    def test_staff_user_permissions_use_shared_searchable_widget(self):
+        from django.contrib import admin
+        from django.test import RequestFactory
+
+        from portal.widgets import AdminSearchableMultiSelectWidget
+        from staff.admin import StaffUserAdmin
+        from staff.models import StaffUser
+
+        model_admin = StaffUserAdmin(StaffUser, admin.site)
+        field = model_admin.formfield_for_manytomany(
+            StaffUser._meta.get_field("user_permissions"),
+            RequestFactory().get("/admin/staff/staffuser/add/"),
+        )
+
+        self.assertIsInstance(field.widget, AdminSearchableMultiSelectWidget)
+        self.assertIs(field.widget.choices.field, field)
+        self.assertIn("data-nv-admin-multiselect", str(field.widget.render("user_permissions", [])))

@@ -1,11 +1,5 @@
-from django import forms
+from portal.widgets import AdminSearchableMultiSelectWidget
 
 
-class BlogTagMultiSelectWidget(forms.SelectMultiple):
-    """Searchable, accessible multi-select for blog tags in Django admin."""
-
-    template_name = "admin/widgets/blog_tag_multi_select.html"
-
-    class Media:
-        css = {"all": ("portal/css/admin-blog-tag-multiselect.css",)}
-        js = ("portal/js/admin-blog-tag-multiselect.js",)
+class BlogTagMultiSelectWidget(AdminSearchableMultiSelectWidget):
+    """Searchable multi-select for blog tags in Django admin."""

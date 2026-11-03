@@ -4,6 +4,8 @@ from django.contrib.auth.models import Group as DjangoAuthGroup
 from filer.admin.permissionadmin import PermissionAdmin
 from filer.models import FolderPermission
 
+from portal.widgets import AdminSearchableMultiSelectWidget
+
 from .models import Group, StaffUser
 
 # جایگزینی گروه پیش‌فرض جنگو با مدل اختصاصی برنامه.
@@ -30,7 +32,13 @@ admin.site.register(FolderPermission, StaffFilerPermissionAdmin)
 
 @admin.register(Group)
 class StaffGroupAdmin(GroupAdmin):
-    """Keep Django standard group-permissions admin experience."""
+    """Use the shared searchable selector for group permissions."""
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        formfield = super().formfield_for_manytomany(db_field, request, **kwargs)
+        if formfield and db_field.name == "permissions":
+            formfield.widget = AdminSearchableMultiSelectWidget(choices=formfield.choices)
+        return formfield
 
 
 @admin.register(StaffUser)
@@ -46,3 +54,9 @@ class StaffUserAdmin(UserAdmin):
             for title, options in fieldsets
             if any(name != "password" for name in options.get("fields", ()))
         )
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        formfield = super().formfield_for_manytomany(db_field, request, **kwargs)
+        if formfield and db_field.name == "user_permissions":
+            formfield.widget = AdminSearchableMultiSelectWidget(choices=formfield.choices)
+        return formfield
