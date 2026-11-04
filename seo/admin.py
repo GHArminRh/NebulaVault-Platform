@@ -3,6 +3,9 @@ from django.contrib import admin
 from .models import SEOAuditIssue, SEOAuditRun
 
 
+# The dedicated dashboard is linked from the audit-run changelist.
+
+
 class SEOAuditIssueInline(admin.TabularInline):
     model = SEOAuditIssue
     extra = 0
@@ -14,6 +17,7 @@ class SEOAuditIssueInline(admin.TabularInline):
 
 @admin.register(SEOAuditRun)
 class SEOAuditRunAdmin(admin.ModelAdmin):
+    change_list_template = "admin/seo/seoauditrun/change_list.html"
     list_display = (
         "id",
         "status",
