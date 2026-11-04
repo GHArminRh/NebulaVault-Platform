@@ -1,6 +1,5 @@
 """Read-only SEO Center overview inside the existing Django admin."""
 
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.db.models import Count
 from django.shortcuts import render
@@ -8,7 +7,6 @@ from django.shortcuts import render
 from .models import SEOAuditIssue, SEOAuditRun
 
 
-@staff_member_required
 @permission_required("seo.view_seoauditrun", raise_exception=True)
 def seo_dashboard(request):
     latest_run = SEOAuditRun.objects.first()
