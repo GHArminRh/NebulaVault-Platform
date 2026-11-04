@@ -17,6 +17,7 @@ from django.conf import settings
 
 
 DEFAULT_USER_AGENT = "NebulaSEOBot/1.0 (+site audit; respects robots.txt)"
+SKIPPED_SUFFIXES = (".pdf", ".zip", ".exe", ".msi", ".dmg", ".pkg", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".css", ".js", ".woff", ".woff2", ".ico")
 SKIPPED_PREFIXES = (
     "/admin",
     "/cms",
@@ -170,6 +171,8 @@ class SiteCrawler:
         if not path.startswith("/"):
             return None
         if any(path == prefix or path.startswith(prefix + "/") for prefix in SKIPPED_PREFIXES):
+            return None
+        if path.lower().endswith(SKIPPED_SUFFIXES):
             return None
         # Query-string variants are intentionally excluded to avoid crawl traps.
         if parts.query:
