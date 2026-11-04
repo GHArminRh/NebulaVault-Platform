@@ -1,5 +1,14 @@
 # Nebula SEO Center
 
+## Current repository findings
+
+- The project is on Django 5.2 and Wagtail 8.0.1.
+- Public HTML currently has shared default description and Open Graph values in `templates/portal/base.html`.
+- Blog posts already have `seo_title` and `seo_description`; product records do not yet have equivalent SEO fields.
+- Wagtail's sitemap view is already mounted at `/sitemap.xml`. It needs to be extended or replaced carefully so public Django product and blog URLs are represented too.
+- No project-owned `robots.txt` endpoint or file was found in the active branch tree.
+- The `wagtail-seo` package currently advertises Wagtail support through version 7, while this project uses Wagtail 8.0.1. Do not add it until upstream explicitly supports Wagtail 8 and compatibility tests pass.
+
 ## Implementation principles
 
 - Keep SEO tooling in a dedicated Django app named `seo`.
