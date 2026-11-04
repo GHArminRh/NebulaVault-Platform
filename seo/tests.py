@@ -1,8 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 from .models import SEOAuditIssue, SEOAuditRun
+from .services.crawler import SiteCrawler
 
 
 class SEOAuditModelTests(TestCase):
@@ -31,3 +32,80 @@ class SEOAuditModelTests(TestCase):
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
                 SEOAuditIssue.objects.create(**issue_data)
+
+
+class StubFetcher:
+    def __init__(self, pages):
+        self.pages = pages
+        self.calls = []
+
+    def __call__(self, url, accept="text/html"):
+        self.calls.append(url)
+        status, content_type, body = self.pages.get(
+            url, (404, "text/html; charset=utf-8", b"")
+        )
+        return status, content_type, body, url
+
+
+class SEOCrawlerTests(SimpleTestCase):
+    def test_normalize_url_rejects_external_and_sensitive_routes(self):
+        crawler = SiteCrawler(base_url="https://mydigigi.ir", fetcher=lambda *a, **k: None)
+
+        self.assertEqual(
+            crawler.normalize_url("/products/nebula/"),
+            "https://mydigigi.ir/products/nebula/",
+        )
+        self.assertIsNone(crawler.normalize_url("https://evil.example/"))
+        self.assertIsNone(crawler.normalize_url("/admin/"))
+        self.assertIsNone(crawler.normalize_url("/accounts/login/"))
+        self.assertIsNone(crawler.normalize_url("/products/?page=2"))
+
+    def test_crawler_reports_missing_metadata_and_follows_same_origin_links(self):
+        home = b"""<!doctype html><html><head><title>Home page</title>
+        <meta name="description" content="A short description">
+        <link rel="canonical" href="https://mydigigi.ir/">
+        </head><body><h1>Home</h1><a href="/products/nebula/">Product</a>
+        <a href="https://external.example/">External</a></body></html>"""
+        product = b"""<!doctype html><html><head></head><body>
+        <img src="/image.webp"><h1>Product</h1></body></html>"""
+        fetcher = StubFetcher({
+            "https://mydigigi.ir/robots.txt": (404, "text/plain", b""),
+            "https://mydigigi.ir/sitemap.xml": (404, "application/xml", b""),
+            "https://mydigigi.ir/": (200, "text/html; charset=utf-8", home),
+            "https://mydigigi.ir/products/nebula/": (200, "text/html; charset=utf-8", product),
+        })
+        result = SiteCrawler(
+            base_url="https://mydigigi.ir",
+            fetcher=fetcher,
+            max_pages=10,
+            request_delay=0,
+        ).crawl()
+
+        self.assertEqual(result["pages_scanned"], 2)
+        issue_codes = {issue["code"] for issue in result["issues"]}
+        self.assertIn("missing-title", issue_codes)
+        self.assertIn("missing-meta-description", issue_codes)
+        self.assertIn("missing-canonical", issue_codes)
+        self.assertIn("images-missing-alt", issue_codes)
+        self.assertFalse(any("external.example" in url for url in fetcher.calls))
+
+    def test_robots_disallow_rules_are_respected(self):
+        home = b"""<html><head><title>Home</title></head><body>
+        <a href="/private-preview/">Private</a><a href="/products/">Products</a>
+        </body></html>"""
+        fetcher = StubFetcher({
+            "https://mydigigi.ir/robots.txt": (
+                200, "text/plain", b"User-agent: *\\nDisallow: /private-preview/\\n"
+            ),
+            "https://mydigigi.ir/sitemap.xml": (404, "application/xml", b""),
+            "https://mydigigi.ir/": (200, "text/html", home),
+            "https://mydigigi.ir/products/": (200, "text/html", b"<title>Products</title>"),
+        })
+        result = SiteCrawler(
+            base_url="https://mydigigi.ir",
+            fetcher=fetcher,
+            request_delay=0,
+        ).crawl()
+
+        self.assertEqual(result["pages_scanned"], 2)
+        self.assertNotIn("https://mydigigi.ir/private-preview/", fetcher.calls)
