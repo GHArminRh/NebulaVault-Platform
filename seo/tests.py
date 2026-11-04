@@ -138,3 +138,34 @@ class SEOContextProcessorTests(SimpleTestCase):
             result["seo_canonical_url"],
             "https://mydigigi.ir/products/nebula/",
         )
+
+
+class SEORobotsAndSitemapTests(TestCase):
+    def test_robots_txt_blocks_private_routes_and_advertises_sitemap(self):
+        from django.test import override_settings
+
+        with override_settings(SITE_BASE_URL="https://mydigigi.ir"):
+            response = self.client.get("/robots.txt")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Disallow: /admin/")
+        self.assertContains(response, "Disallow: /cart/")
+        self.assertContains(response, "Sitemap: https://mydigigi.ir/sitemap.xml")
+
+    def test_sitemap_index_includes_all_site_content_sitemaps(self):
+        from django.test import override_settings
+        from xml.etree import ElementTree
+
+        with override_settings(SITE_BASE_URL="https://mydigigi.ir"):
+            response = self.client.get("/sitemap.xml")
+
+        self.assertEqual(response.status_code, 200)
+        root = ElementTree.fromstring(response.content)
+        locations = [
+            node.text
+            for node in root.iter()
+            if node.tag.endswith("loc")
+        ]
+        self.assertIn("https://mydigigi.ir/sitemap-products.xml", locations)
+        self.assertIn("https://mydigigi.ir/sitemap-blog.xml", locations)
+        self.assertIn("https://mydigigi.ir/sitemap-wagtail.xml", locations)
