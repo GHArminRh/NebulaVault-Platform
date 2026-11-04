@@ -2,27 +2,35 @@
 
 ## Current repository findings
 
-- The project is on Django 5.2 and Wagtail 8.0.1.
+- The project uses Django 5.2 and Wagtail 8.0.1.
 - Public HTML currently has shared default description and Open Graph values in `templates/portal/base.html`.
 - Blog posts already have `seo_title` and `seo_description`; product records do not yet have equivalent SEO fields.
-- Wagtail's sitemap view is already mounted at `/sitemap.xml`. It needs to be extended or replaced carefully so public Django product and blog URLs are represented too.
-- No project-owned `robots.txt` endpoint or file was found in the active branch tree.
-- The `wagtail-seo` package currently advertises Wagtail support through version 7, while this project uses Wagtail 8.0.1. Do not add it until upstream explicitly supports Wagtail 8 and compatibility tests pass.
+- Wagtail Page has native SEO fields.
+- The `/sitemap.xml` route currently uses Wagtail's sitemap view and does not yet explicitly cover all public Django catalog and blog URLs.
+- A dedicated `robots.txt` endpoint was not found in the active branch tree.
+- Do not install `wagtail-seo` until it explicitly supports the project's Wagtail 8 release.
+
+## Current implementation
+
+- A dedicated `seo` Django app stores audit runs and individual findings.
+- `python manage.py run_seo_audit` runs a bounded technical crawl against `SITE_BASE_URL`.
+- The crawler reads robots.txt, discovers sitemap URLs, follows same-origin public HTML links, and records metadata, heading, canonical, image-alt, duplicate-title, and HTTP findings.
+- The crawler skips authentication, account, cart, checkout, billing, admin, CMS, API, and other sensitive route prefixes.
+- It rejects cross-origin URLs and redirects, query-string variants, non-public resolved IP addresses, and oversized responses.
+- Crawl limits are configurable through command-line options and have conservative defaults.
 
 ## Implementation principles
 
-- Keep SEO tooling in a dedicated Django app named `seo`.
 - Treat Google Search Console as the source of truth for search performance metrics.
 - Keep crawl findings factual and actionable; do not present an invented SEO score as a Google ranking signal.
-- Crawl only the configured public site origin. Never follow links to authentication, checkout, account, admin, API, or other private routes.
 - Make audit runs bounded, rate-limited, observable, and safe to retry.
-- Keep the existing storefront, product, blog, account, payment, licensing, and Wagtail behavior intact.
+- Keep existing storefront, product, blog, account, payment, licensing, and Wagtail behavior intact.
 - Prefer first-party Django/Wagtail features and free/open-source components. Add paid APIs only as optional integrations.
 
 ## Planned phases
 
-1. Audit persistence and admin visibility.
-2. Safe same-origin crawler and technical checks.
+1. Audit persistence and admin visibility. (implemented)
+2. Safe same-origin crawler and technical checks. (implemented; tests added)
 3. SEO metadata integration for catalog products, blog posts, and Wagtail pages.
 4. Correct combined sitemap, robots policy, and redirect diagnostics.
 5. Google Search Console integration with explicit consent and token security.
