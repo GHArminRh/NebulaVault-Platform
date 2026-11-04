@@ -74,3 +74,60 @@ class SEOAuditIssue(models.Model):
 
     def __str__(self):
         return f"{self.get_severity_display()}: {self.title}"
+
+
+class SearchConsoleConnection(models.Model):
+    site_url = models.CharField(max_length=255, unique=True)
+    connected_email = models.EmailField(blank=True)
+    refresh_token_encrypted = models.TextField()
+    granted_scope = models.TextField(blank=True)
+    connected_at = models.DateTimeField(auto_now_add=True)
+    last_synced_at = models.DateTimeField(null=True, blank=True)
+    last_sync_error = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Search Console connection"
+        verbose_name_plural = "Search Console connections"
+
+    def __str__(self):
+        return self.site_url
+
+
+class SearchConsoleMetric(models.Model):
+    class DimensionType(models.TextChoices):
+        DAILY = "daily", "Daily"
+        QUERY = "query", "Query"
+        PAGE = "page", "Page"
+
+    connection = models.ForeignKey(
+        SearchConsoleConnection,
+        on_delete=models.CASCADE,
+        related_name="metrics",
+    )
+    date = models.DateField(db_index=True)
+    dimension_type = models.CharField(max_length=8, choices=DimensionType.choices)
+    dimension_value = models.CharField(max_length=2048, blank=True)
+    clicks = models.FloatField(default=0)
+    impressions = models.FloatField(default=0)
+    ctr = models.FloatField(default=0)
+    position = models.FloatField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("date", "dimension_type", "dimension_value")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("connection", "date", "dimension_type", "dimension_value"),
+                name="seo_gsc_metric_unique",
+            )
+        ]
+        indexes = [
+            models.Index(
+                fields=("connection", "dimension_type", "date"),
+                name="seo_gsc_type_date_idx",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.date} — {self.dimension_type}: {self.dimension_value}"
