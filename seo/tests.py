@@ -178,7 +178,13 @@ class SEODashboardTests(TestCase):
             email="seo-admin@example.invalid",
             password="test-password",
         )
-        self.client.force_login(staff)
+        # force_login defaults to the first configured backend, which is the
+        # customer-only backend in this project. Exercise the actual staff
+        # permission backend for this Django admin view instead.
+        self.client.force_login(
+            staff,
+            backend="django.contrib.auth.backends.ModelBackend",
+        )
         run = SEOAuditRun.objects.create(pages_scanned=3, issues_count=1)
         SEOAuditIssue.objects.create(
             run=run,
