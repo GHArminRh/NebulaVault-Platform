@@ -18,6 +18,7 @@ on:
   pull_request:
     paths:
       - "sitecms/**"
+      - "seo/**"
       - "blog/**"
       - "staff/**"
       - "accounts/backends.py"
