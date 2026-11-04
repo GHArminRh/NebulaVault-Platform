@@ -161,6 +161,7 @@ TEMPLATES = [
                 "portal.context_processors.analytics_context",
                 "accounts.context_processors.turnstile",
                 "portal.context_processors.algolia_search_context",
+                "seo.context_processors.seo_context",
             ],
         },
     },
