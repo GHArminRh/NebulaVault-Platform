@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "dj_error_panel",
     "dj_control_room",
     "staff.apps.StaffConfig",
+    "seo.apps.SEOConfig",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.contrib.sitemaps",
