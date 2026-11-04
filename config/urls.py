@@ -22,6 +22,7 @@ from config.admin_toggle import toggle_boolean_field
 from portal.editor_uploads import editor_image_upload
 from sitecms.media_proxy import private_media_proxy
 from sitecms.cron_views import publish_scheduled_pages
+from seo.views import blog_sitemap, core_sitemap, product_sitemap, robots_txt, sitemap_index
 from staff.admin_forms import AdminTurnstileAuthenticationForm
 
 admin.site.login_form = AdminTurnstileAuthenticationForm
@@ -102,7 +103,12 @@ urlpatterns = [
         name="wagtail-publish-scheduled",
     ),
     path("healthz/", healthcheck, name="healthcheck"),
-    path("sitemap.xml", sitemap, name="sitemap"),
+    path("robots.txt", robots_txt, name="robots-txt"),
+    path("sitemap.xml", sitemap_index, name="sitemap"),
+    path("sitemap-wagtail.xml", sitemap, name="sitemap-wagtail"),
+    path("sitemap-pages.xml", core_sitemap, name="sitemap-pages"),
+    path("sitemap-products.xml", product_sitemap, name="sitemap-products"),
+    path("sitemap-blog.xml", blog_sitemap, name="sitemap-blog"),
     path("media-proxy/<path:path>", private_media_proxy, name="private-media-proxy"),
     path("service-worker.js", service_worker, name="service-worker"),
     path("admin/quick-toggle/", toggle_boolean_field, name="admin-quick-toggle"),
