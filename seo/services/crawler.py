@@ -281,7 +281,7 @@ class SiteCrawler:
             key = key.lower()
             if key == "user-agent":
                 active = value == "*" or value.lower() in {"nebulaseobot", "nebulaseobot/1.0"}
-            elif active and key == "disallow" and value:
+            elif active and key in {"allow", "disallow"} and value:
                 rules.append((key == "allow", value))
             elif key == "sitemap" and value:
                 normalized = self.normalize_url(value)
