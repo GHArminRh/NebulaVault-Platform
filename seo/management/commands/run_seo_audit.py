@@ -12,6 +12,7 @@ class Command(BaseCommand):
         parser.add_argument("--max-pages", type=int, default=150)
         parser.add_argument("--timeout", type=int, default=8)
         parser.add_argument("--request-delay", type=float, default=0.2)
+        parser.add_argument("--max-duration", type=int, default=180)
         parser.add_argument("--run-id", type=int)
 
     def handle(self, *args, **options):
@@ -38,6 +39,7 @@ class Command(BaseCommand):
                 max_pages=options["max_pages"],
                 timeout=options["timeout"],
                 request_delay=options["request_delay"],
+                max_duration_seconds=options["max_duration"],
             ).crawl()
             SEOAuditIssue.objects.bulk_create(
                 [
