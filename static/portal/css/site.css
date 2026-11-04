@@ -3195,3 +3195,29 @@ html body.nv-portal .nv-home-hero .nv-hero-copy h1 > .gradient-text {
   color: transparent;
   -webkit-text-fill-color: transparent;
 }
+
+/* Frosted glass feedback for the single submit control while a POST is pending. */
+.button:disabled[aria-disabled="true"],
+.button[aria-disabled="true"],
+body.nv-portal .nv-auth-form button[type="submit"]:disabled[aria-disabled="true"],
+body.nv-portal .nv-auth-form input[type="submit"]:disabled[aria-disabled="true"] {
+  opacity: 0.58;
+  color: rgba(232, 239, 255, 0.78);
+  background: linear-gradient(135deg, rgba(178, 190, 224, 0.13), rgba(111, 130, 174, 0.07));
+  border-color: rgba(190, 207, 244, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 4px 14px rgba(0, 0, 0, 0.12);
+  -webkit-backdrop-filter: blur(10px) saturate(0.65);
+  backdrop-filter: blur(10px) saturate(0.65);
+  cursor: wait;
+  filter: saturate(0.55);
+  transform: none;
+  transition: opacity 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+.button:disabled[aria-disabled="true"]:hover,
+.button[aria-disabled="true"]:hover,
+body.nv-portal .nv-auth-form button[type="submit"]:disabled[aria-disabled="true"]:hover,
+body.nv-portal .nv-auth-form input[type="submit"]:disabled[aria-disabled="true"]:hover {
+  transform: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 4px 14px rgba(0, 0, 0, 0.12);
+  filter: saturate(0.55);
+}
