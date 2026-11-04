@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import SEOAuditIssue, SEOAuditRun
+from .models import SEOAuditIssue, SEOAuditRun, SearchConsoleConnection, SearchConsoleMetric
 
 
 # The dedicated dashboard is linked from the audit-run changelist.
@@ -58,3 +58,29 @@ class SEOAuditIssueAdmin(admin.ModelAdmin):
         "created_at",
     )
     date_hierarchy = "created_at"
+
+
+@admin.register(SearchConsoleConnection)
+class SearchConsoleConnectionAdmin(admin.ModelAdmin):
+    list_display = ("site_url", "is_active", "connected_at", "last_synced_at")
+    readonly_fields = ("site_url", "connected_email", "refresh_token_encrypted", "granted_scope", "connected_at", "last_synced_at", "last_sync_error")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(SearchConsoleMetric)
+class SearchConsoleMetricAdmin(admin.ModelAdmin):
+    list_display = ("date", "dimension_type", "dimension_value", "clicks", "impressions", "position")
+    list_filter = ("dimension_type", "date")
+    search_fields = ("dimension_value",)
+    readonly_fields = ("connection", "date", "dimension_type", "dimension_value", "clicks", "impressions", "ctr", "position", "updated_at")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
