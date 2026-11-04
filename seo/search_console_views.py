@@ -4,6 +4,7 @@ from urllib.parse import urlsplit
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import permission_required
 from django.core import signing
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -46,6 +47,7 @@ def _valid_property(value):
     )
 
 
+@permission_required("seo.view_seoauditrun", raise_exception=True)
 @staff_member_required
 @require_POST
 def search_console_connect(request):
@@ -71,6 +73,7 @@ def search_console_connect(request):
     return redirect(url)
 
 
+@permission_required("seo.view_seoauditrun", raise_exception=True)
 @staff_member_required
 @require_GET
 def search_console_callback(request):
