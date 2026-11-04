@@ -1,6 +1,5 @@
 """Read-only SEO Center overview inside the existing Django admin."""
 
-from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.db.models import Count
