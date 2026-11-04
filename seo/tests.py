@@ -95,7 +95,7 @@ class SEOCrawlerTests(SimpleTestCase):
         </body></html>"""
         fetcher = StubFetcher({
             "https://mydigigi.ir/robots.txt": (
-                200, "text/plain", b"User-agent: *\\nDisallow: /private-preview/\\n"
+                200, "text/plain", b"User-agent: *\nDisallow: /private-preview/\n"
             ),
             "https://mydigigi.ir/sitemap.xml": (404, "application/xml", b""),
             "https://mydigigi.ir/": (200, "text/html", home),
