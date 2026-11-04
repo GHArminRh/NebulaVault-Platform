@@ -54,6 +54,8 @@ def search_console_connect(request):
     if not _valid_property(site_url):
         messages.error(request, "Enter a valid HTTPS URL-prefix property or sc-domain:example.com property.")
         return redirect("admin:seo-dashboard")
+    if site_url.startswith("https://") and not site_url.endswith("/"):
+        site_url += "/"
     if not settings.GOOGLE_SEARCH_CONSOLE_CLIENT_ID or not settings.GOOGLE_SEARCH_CONSOLE_CLIENT_SECRET:
         messages.error(request, "Google OAuth Client ID and Client Secret must first be configured in the server environment.")
         return redirect("admin:seo-dashboard")
