@@ -23,6 +23,7 @@ from portal.editor_uploads import editor_image_upload
 from sitecms.media_proxy import private_media_proxy
 from sitecms.cron_views import publish_scheduled_pages
 from seo.views import blog_sitemap, core_sitemap, product_sitemap, robots_txt, sitemap_index
+from seo.admin_views import seo_dashboard
 from staff.admin_forms import AdminTurnstileAuthenticationForm
 
 admin.site.login_form = AdminTurnstileAuthenticationForm
@@ -122,6 +123,7 @@ urlpatterns = [
     path("admin/dj-signals-panel/", include("dj_signals_panel.urls")),
     path("admin/dj-error-panel/", include("dj_error_panel.urls")),
     path("admin/dj-control-room/", include("dj_control_room.urls")),
+    path("admin/seo-center/", admin.site.admin_view(seo_dashboard), name="seo-dashboard"),
     path("admin/account/", admin.site.admin_view(staff_account), name="staff-account"),
     path("admin/", admin.site.urls),
     path("api", api_index, name="admin-api-index"),
