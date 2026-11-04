@@ -227,4 +227,59 @@ class SearchConsoleHelperTests(SimpleTestCase):
         self.assertFalse(_valid_property("http://mydigigi.ir/"))
         self.assertFalse(_valid_property("https://mydigigi.ir/path/"))
         self.assertFalse(_valid_property("https://user:pass@mydigigi.ir/"))
+        self.assertFalse(_valid_property("https://mydigigi.ir:invalid/"))
+        self.assertFalse(_valid_property("https://[::1/"))
         self.assertFalse(_valid_property("sc-domain:localhost"))
+
+
+class SearchConsoleSyncCommandTests(TestCase):
+    def test_sync_persists_daily_query_and_page_metrics(self):
+        from datetime import datetime, timedelta
+        from unittest.mock import patch
+        from zoneinfo import ZoneInfo
+
+        from django.core.management import call_command
+        from django.test import override_settings
+
+        from .models import SearchConsoleConnection, SearchConsoleMetric
+        from .search_console import encrypt_refresh_token
+
+        with override_settings(SECRET_KEY="search-console-sync-test-secret"):
+            connection = SearchConsoleConnection.objects.create(
+                site_url="https://mydigigi.ir/",
+                refresh_token_encrypted=encrypt_refresh_token("refresh-token"),
+            )
+
+            report_date = (
+                datetime.now(ZoneInfo("America/Los_Angeles")).date()
+                - timedelta(days=3)
+            ).isoformat()
+
+            def fake_query(*, dimensions, **kwargs):
+                if dimensions == ["date"]:
+                    return [{"keys": [report_date], "clicks": 12, "impressions": 300, "ctr": 0.04, "position": 8.5}]
+                if dimensions == ["date", "query"]:
+                    return [{"keys": [report_date, "nebula vault"], "clicks": 7, "impressions": 100, "ctr": 0.07, "position": 5.0}]
+                if dimensions == ["date", "page"]:
+                    return [{"keys": [report_date, "https://mydigigi.ir/"], "clicks": 5, "impressions": 200, "ctr": 0.025, "position": 10.0}]
+                self.fail(f"Unexpected Search Console dimensions: {dimensions}")
+
+            with (
+                patch("seo.management.commands.sync_search_console.refresh_access_token", return_value="access-token"),
+                patch("seo.management.commands.sync_search_console.query_search_analytics", side_effect=fake_query),
+            ):
+                call_command("sync_search_console", days=28)
+
+            self.assertEqual(
+                SearchConsoleMetric.objects.filter(connection=connection).count(),
+                3,
+            )
+            query_metric = SearchConsoleMetric.objects.get(
+                connection=connection,
+                dimension_type=SearchConsoleMetric.DimensionType.QUERY,
+            )
+            self.assertEqual(query_metric.dimension_value, "nebula vault")
+            self.assertEqual(query_metric.clicks, 7)
+            connection.refresh_from_db()
+            self.assertIsNotNone(connection.last_synced_at)
+            self.assertEqual(connection.last_sync_error, "")
