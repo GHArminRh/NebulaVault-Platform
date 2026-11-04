@@ -28,5 +28,6 @@ def seo_context(request):
     canonical_url = f"{settings.SITE_BASE_URL.rstrip('/')}{path}"
     return {
         "seo_canonical_url": canonical_url,
+        "seo_site_base_url": settings.SITE_BASE_URL.rstrip("/"),
         "seo_default_robots": "noindex,nofollow" if is_private else "index,follow",
     }
