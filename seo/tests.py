@@ -109,3 +109,32 @@ class SEOCrawlerTests(SimpleTestCase):
 
         self.assertEqual(result["pages_scanned"], 2)
         self.assertNotIn("https://mydigigi.ir/private-preview/", fetcher.calls)
+
+
+class SEOContextProcessorTests(SimpleTestCase):
+    def test_private_utility_routes_are_noindex(self):
+        from django.test import RequestFactory, override_settings
+
+        from .context_processors import seo_context
+
+        request = RequestFactory().get("/cart/")
+        with override_settings(SITE_BASE_URL="https://mydigigi.ir"):
+            result = seo_context(request)
+
+        self.assertEqual(result["seo_default_robots"], "noindex,nofollow")
+        self.assertEqual(result["seo_canonical_url"], "https://mydigigi.ir/cart/")
+
+    def test_public_product_routes_are_indexable(self):
+        from django.test import RequestFactory, override_settings
+
+        from .context_processors import seo_context
+
+        request = RequestFactory().get("/products/nebula/")
+        with override_settings(SITE_BASE_URL="https://mydigigi.ir"):
+            result = seo_context(request)
+
+        self.assertEqual(result["seo_default_robots"], "index,follow")
+        self.assertEqual(
+            result["seo_canonical_url"],
+            "https://mydigigi.ir/products/nebula/",
+        )
