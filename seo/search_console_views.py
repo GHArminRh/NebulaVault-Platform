@@ -35,7 +35,12 @@ def _valid_property(value):
     if value.startswith("sc-domain:"):
         domain = value.removeprefix("sc-domain:").strip().lower()
         return bool(domain and "/" not in domain and " " not in domain and "." in domain)
-    parts = urlsplit(value)
+    try:
+        parts = urlsplit(value)
+        # Accessing .port also validates malformed port values.
+        _ = parts.port
+    except ValueError:
+        return False
     return (
         parts.scheme == "https"
         and bool(parts.hostname)
