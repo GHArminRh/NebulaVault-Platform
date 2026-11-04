@@ -35,9 +35,6 @@ SKIPPED_PREFIXES = (
     "/media",
     "/static",
 )
-TRACKING_QUERY_KEYS = {"fbclid", "gclid", "mc_cid", "mc_eid"}
-
-
 class CrawlError(Exception):
     """Raised when the configured origin cannot be crawled safely."""
 
@@ -74,7 +71,7 @@ class PageParser(HTMLParser):
             if "canonical" in rel:
                 self.canonical = (attrs.get("href") or "").strip()
         elif tag == "img":
-            if "alt" not in attrs or not (attrs.get("alt") or "").strip():
+            if "alt" not in attrs:
                 self.images_without_alt += 1
         elif tag == "a":
             href = (attrs.get("href") or "").strip()
@@ -124,6 +121,7 @@ class SiteCrawler:
         timeout=8,
         max_response_bytes=2_000_000,
         request_delay=0.2,
+        max_duration_seconds=180,
         fetcher=None,
     ):
         self.base_url = (base_url or settings.SITE_BASE_URL).rstrip("/")
@@ -131,6 +129,7 @@ class SiteCrawler:
         self.timeout = max(1, min(int(timeout), 20))
         self.max_response_bytes = max(64_000, min(int(max_response_bytes), 5_000_000))
         self.request_delay = max(0, min(float(request_delay), 2))
+        self.max_duration_seconds = max(15, min(int(max_duration_seconds), 600))
         self.fetcher = fetcher
         parsed = urlsplit(self.base_url)
         if (
@@ -283,7 +282,7 @@ class SiteCrawler:
             if key == "user-agent":
                 active = value == "*" or value.lower() in {"nebulaseobot", "nebulaseobot/1.0"}
             elif active and key == "disallow" and value:
-                rules.append(value)
+                rules.append((key == "allow", value))
             elif key == "sitemap" and value:
                 normalized = self.normalize_url(value)
                 if normalized:
@@ -293,12 +292,16 @@ class SiteCrawler:
 
     def _allowed_by_robots(self, url):
         path = urlsplit(url).path
-        matching = [rule for rule in self._robots_rules if path.startswith(rule.rstrip("*"))]
+        matching = [
+            (len(pattern.rstrip("*")), allowed)
+            for allowed, pattern in self._robots_rules
+            if path.startswith(pattern.rstrip("*"))
+        ]
         if not matching:
             return True
-        # Longest matching rule wins; equal-length Disallow rules are conservative.
-        longest = max(matching, key=len)
-        return False if longest else True
+        # The most specific rule wins; Allow wins a tie, as specified by robots.txt.
+        specificity = max(length for length, _ in matching)
+        return any(allowed for length, allowed in matching if length == specificity)
 
     def _sitemap_urls(self, candidates):
         urls = []
@@ -376,6 +379,17 @@ class SiteCrawler:
             )
             return []
 
+        effective_url = self.normalize_url(final_url) or url
+        if effective_url != url:
+            self._add_issue(
+                url,
+                "redirected-url",
+                "info",
+                "Page redirects to another URL",
+                f"Final URL: {effective_url}",
+                "Update internal links and sitemap entries to point directly to the final URL where practical.",
+            )
+
         title = parser.title
         if not title:
             self._add_issue(url, "missing-title", "error", "Page has no title element", recommendation="Add a unique, descriptive HTML title.")
@@ -400,7 +414,7 @@ class SiteCrawler:
             canonical_parts = urlsplit(canonical_url)
             if (canonical_parts.scheme.lower(), (canonical_parts.hostname or "").lower(), canonical_parts.port or self._default_port(canonical_parts.scheme)) != self.origin:
                 self._add_issue(url, "external-canonical", "error", "Canonical URL points outside the site", canonical_url, "Use a canonical URL on the intended public site origin.")
-            elif self.normalize_url(canonical_url) != url:
+            elif self.normalize_url(canonical_url) != effective_url:
                 self._add_issue(url, "canonical-mismatch", "warning", "Canonical URL differs from the crawled URL", canonical_url, "Confirm that the canonical target is intentional and indexable.")
 
         if "noindex" in parser.robots:
@@ -411,7 +425,7 @@ class SiteCrawler:
 
         discovered = []
         for href in parser.links:
-            target = self.normalize_url(href, current_url=url)
+            target = self.normalize_url(href, current_url=effective_url)
             if target and self._allowed_by_robots(target) and target not in self._visited:
                 discovered.append(target)
         return discovered
@@ -423,8 +437,19 @@ class SiteCrawler:
         start_urls = [self.normalize_url(self.origin_root)] + sitemap_urls
         queue = [url for url in start_urls if url and self._allowed_by_robots(url)]
         pages_scanned = 0
+        started_at = time.monotonic()
 
         while queue and pages_scanned < self.max_pages:
+            if time.monotonic() - started_at >= self.max_duration_seconds:
+                self._add_issue(
+                    self.origin_root,
+                    "crawl-time-limit",
+                    "warning",
+                    "Crawler reached its time limit",
+                    f"Stopped after {self.max_duration_seconds} seconds.",
+                    "Run a larger audit window or reduce per-request latency before increasing crawl limits.",
+                )
+                break
             url = queue.pop(0)
             if url in self._visited or not self._allowed_by_robots(url):
                 continue
