@@ -5,6 +5,7 @@ on:
     branches: [feat/wagtail-cms-integration, deploy/render-ready, "feat/wagtail-cms-completion"]
     paths:
       - "sitecms/**"
+      - "seo/**"
       - "blog/**"
       - "staff/**"
       - "accounts/backends.py"
@@ -86,4 +87,4 @@ jobs:
       - name: Check model and migration consistency
         run: python manage.py makemigrations --check --dry-run --settings=config.test_settings
       - name: Run Wagtail integration tests
-        run: python manage.py test sitecms blog portal staff --settings=config.test_settings --verbosity=2
+        run: python manage.py test sitecms blog portal staff seo --settings=config.test_settings --verbosity=2
