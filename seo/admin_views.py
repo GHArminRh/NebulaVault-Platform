@@ -1,5 +1,6 @@
 """Read-only SEO Center overview inside the existing Django admin."""
 
+from django.conf import settings
 from django.contrib.auth.decorators import permission_required
 from django.db.models import Count, Sum
 from django.shortcuts import render
@@ -64,8 +65,8 @@ def seo_dashboard(request):
             "total_runs": SEOAuditRun.objects.count(),
             "search_console": search_console,
             "google_oauth_configured": bool(
-                getattr(__import__("django.conf", fromlist=["settings"]).settings, "GOOGLE_SEARCH_CONSOLE_CLIENT_ID", "")
-                and getattr(__import__("django.conf", fromlist=["settings"]).settings, "GOOGLE_SEARCH_CONSOLE_CLIENT_SECRET", "")
+                settings.GOOGLE_SEARCH_CONSOLE_CLIENT_ID
+                and settings.GOOGLE_SEARCH_CONSOLE_CLIENT_SECRET
             ),
         },
     )
