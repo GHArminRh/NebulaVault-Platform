@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from django.core.management.base import BaseCommand, CommandError
@@ -26,7 +26,7 @@ class Command(BaseCommand):
         days = max(1, min(options["days"], 90))
         # Search Console dates are interpreted in Pacific Time. Exclude the
         # latest three days to avoid presenting still-processing data as final.
-        end_date = date.today() - timedelta(days=3)
+        end_date = datetime.now(ZoneInfo("America/Los_Angeles")).date() - timedelta(days=3)
         start_date = end_date - timedelta(days=days - 1)
         try:
             refresh_token = decrypt_refresh_token(connection.refresh_token_encrypted)
