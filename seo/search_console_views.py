@@ -32,6 +32,8 @@ def _redirect_uri(request):
 
 def _valid_property(value):
     value = (value or "").strip()
+    if not value or len(value) > 255:
+        return False
     if value.startswith("sc-domain:"):
         domain = value.removeprefix("sc-domain:").strip().lower()
         return bool(domain and "/" not in domain and " " not in domain and "." in domain)
@@ -111,6 +113,7 @@ def search_console_callback(request):
             raise SearchConsoleError(
                 "Google did not issue a refresh token. Revoke the previous app grant in Google Account permissions and reconnect."
             )
+        SearchConsoleConnection.objects.exclude(site_url=site_url).update(is_active=False)
         SearchConsoleConnection.objects.update_or_create(
             site_url=site_url,
             defaults={
