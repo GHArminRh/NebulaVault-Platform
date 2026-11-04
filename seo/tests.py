@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from .models import SEOAuditIssue, SEOAuditRun
@@ -18,12 +19,15 @@ class SEOAuditModelTests(TestCase):
 
     def test_issue_is_unique_per_run_url_and_code(self):
         run = SEOAuditRun.objects.create()
-        issue = SEOAuditIssue.objects.create(
-            run=run,
-            url="https://mydigigi.ir/example/",
-            code="missing-title",
-            severity=SEOAuditIssue.Severity.ERROR,
-            title="Page has no title",
-        )
+        issue_data = {
+            "run": run,
+            "url": "https://mydigigi.ir/example/",
+            "code": "missing-title",
+            "severity": SEOAuditIssue.Severity.ERROR,
+            "title": "Page has no title",
+        }
+        SEOAuditIssue.objects.create(**issue_data)
 
-        self.assertEqual(run.issues.get(), issue)
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                SEOAuditIssue.objects.create(**issue_data)
