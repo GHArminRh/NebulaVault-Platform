@@ -18,6 +18,7 @@ on:
       - "templates/portal/home.html"
       - "templates/portal/base.html"
       - "templates/portal/products.html"
+      - "templates/portal/product_detail.html"
       - "templates/portal/pricing.html"
       - "requirements.txt"
       - ".github/workflows/wagtail-tests.yml"
