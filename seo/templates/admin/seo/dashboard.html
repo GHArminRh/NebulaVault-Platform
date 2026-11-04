@@ -8,6 +8,51 @@
   <p>Technical SEO audit history and current findings for the public website.</p>
 
   <div class="module">
+    <h2>Google Search Console</h2>
+    {% if search_console %}
+      <p><strong>Connected property:</strong> {{ search_console.connection.site_url }}</p>
+      <p><strong>Last sync:</strong> {{ search_console.connection.last_synced_at|default:"Not synced yet" }}</p>
+      <p><strong>Clicks (stored daily data):</strong> {{ search_console.clicks }} &nbsp; <strong>Impressions:</strong> {{ search_console.impressions }}</p>
+      {% if search_console.connection.last_sync_error %}
+        <p class="errornote">{{ search_console.connection.last_sync_error }}</p>
+      {% endif %}
+      <h3>Daily search performance</h3>
+      <table>
+        <thead><tr><th>Date (Pacific)</th><th>Clicks</th><th>Impressions</th><th>CTR</th><th>Average position</th></tr></thead>
+        <tbody>
+          {% for metric in search_console.daily_metrics %}
+          <tr><td>{{ metric.date }}</td><td>{{ metric.clicks|floatformat:0 }}</td><td>{{ metric.impressions|floatformat:0 }}</td><td>{{ metric.ctr|floatformat:4 }}</td><td>{{ metric.position|floatformat:1 }}</td></tr>
+          {% empty %}<tr><td colspan="5">No Search Console data has been synced yet.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+      <h3>Top search queries (stored rows)</h3>
+      <table>
+        <thead><tr><th>Query</th><th>Clicks</th><th>Impressions</th></tr></thead>
+        <tbody>{% for item in search_console.top_queries %}<tr><td>{{ item.dimension_value }}</td><td>{{ item.clicks|floatformat:0 }}</td><td>{{ item.impressions|floatformat:0 }}</td></tr>{% empty %}<tr><td colspan="3">No query data available.</td></tr>{% endfor %}</tbody>
+      </table>
+      <h3>Top pages from Google Search</h3>
+      <table>
+        <thead><tr><th>Page</th><th>Clicks</th><th>Impressions</th></tr></thead>
+        <tbody>{% for item in search_console.top_pages %}<tr><td><a href="{{ item.dimension_value }}" target="_blank" rel="noopener noreferrer">{{ item.dimension_value }}</a></td><td>{{ item.clicks|floatformat:0 }}</td><td>{{ item.impressions|floatformat:0 }}</td></tr>{% empty %}<tr><td colspan="3">No page data available.</td></tr>{% endfor %}</tbody>
+      </table>
+      <p>Data is limited to the rows returned by Google Search Console. The API may omit lower-ranked rows; stored query and page totals are not guaranteed to equal the property-wide totals.</p>
+    {% else %}
+      <p>No Search Console property is connected.</p>
+      {% if google_oauth_configured %}
+      <form method="post" action="{% url 'admin:seo-search-console-connect' %}">
+        {% csrf_token %}
+        <label for="gsc-site-url">Search Console property</label>
+        <input id="gsc-site-url" name="site_url" type="text" required placeholder="https://mydigigi.ir/ or sc-domain:mydigigi.ir" style="min-width: 320px; max-width: 100%;">
+        <button type="submit" class="button">Connect Google Search Console</button>
+      </form>
+      {% else %}
+      <p>Configure GOOGLE_SEARCH_CONSOLE_CLIENT_ID and GOOGLE_SEARCH_CONSOLE_CLIENT_SECRET in the server environment to enable OAuth.</p>
+      {% endif %}
+    {% endif %}
+    <p><code>python manage.py sync_search_console --days 28</code></p>
+  </div>
+
+  <div class="module">
     <h2>Overview</h2>
     <table>
       <tbody>
