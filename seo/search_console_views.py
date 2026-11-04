@@ -7,7 +7,6 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core import signing
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
 from .models import SearchConsoleConnection
@@ -53,12 +52,12 @@ def search_console_connect(request):
     site_url = (request.POST.get("site_url") or "").strip()
     if not _valid_property(site_url):
         messages.error(request, "Enter a valid HTTPS URL-prefix property or sc-domain:example.com property.")
-        return redirect("admin:seo-dashboard")
+        return redirect("seo-dashboard")
     if site_url.startswith("https://") and not site_url.endswith("/"):
         site_url += "/"
     if not settings.GOOGLE_SEARCH_CONSOLE_CLIENT_ID or not settings.GOOGLE_SEARCH_CONSOLE_CLIENT_SECRET:
         messages.error(request, "Google OAuth Client ID and Client Secret must first be configured in the server environment.")
-        return redirect("admin:seo-dashboard")
+        return redirect("seo-dashboard")
     state = signing.dumps(
         {"site_url": site_url, "user_id": str(request.user.pk)},
         salt=STATE_SALT,
@@ -68,7 +67,7 @@ def search_console_connect(request):
         url = authorization_url(redirect_uri=_redirect_uri(request), state=state)
     except SearchConsoleError as exc:
         messages.error(request, str(exc))
-        return redirect("admin:seo-dashboard")
+        return redirect("seo-dashboard")
     return redirect(url)
 
 
@@ -79,22 +78,22 @@ def search_console_callback(request):
     supplied_state = request.GET.get("state", "")
     if not expected_state or not supplied_state or not secrets_compare(expected_state, supplied_state):
         messages.error(request, "Google OAuth state validation failed. Please try connecting again.")
-        return redirect("admin:seo-dashboard")
+        return redirect("seo-dashboard")
     try:
         state_data = signing.loads(supplied_state, salt=STATE_SALT, max_age=600)
     except signing.BadSignature:
         messages.error(request, "Google OAuth request expired or was invalid.")
-        return redirect("admin:seo-dashboard")
+        return redirect("seo-dashboard")
     if state_data.get("user_id") != str(request.user.pk):
         messages.error(request, "The Google connection was started by a different admin session.")
-        return redirect("admin:seo-dashboard")
+        return redirect("seo-dashboard")
     if request.GET.get("error"):
         messages.error(request, "Google authorization was not completed.")
-        return redirect("admin:seo-dashboard")
+        return redirect("seo-dashboard")
     code = request.GET.get("code", "")
     if not code:
         messages.error(request, "Google did not return an authorization code.")
-        return redirect("admin:seo-dashboard")
+        return redirect("seo-dashboard")
 
     site_url = state_data["site_url"]
     try:
@@ -120,10 +119,10 @@ def search_console_callback(request):
         )
     except SearchConsoleError as exc:
         messages.error(request, str(exc))
-        return redirect("admin:seo-dashboard")
+        return redirect("seo-dashboard")
 
     messages.success(request, f"Google Search Console connected for {site_url}.")
-    return redirect("admin:seo-dashboard")
+    return redirect("seo-dashboard")
 
 
 def secrets_compare(left, right):
