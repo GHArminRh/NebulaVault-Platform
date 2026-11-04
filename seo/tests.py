@@ -205,3 +205,26 @@ class SEODashboardTests(TestCase):
         changelist = self.client.get("/admin/seo/seoauditrun/")
         self.assertEqual(changelist.status_code, 200)
         self.assertContains(changelist, "SEO Center dashboard")
+
+
+class SearchConsoleHelperTests(SimpleTestCase):
+    def test_refresh_token_is_encrypted_and_round_trips(self):
+        from django.test import override_settings
+
+        from .search_console import decrypt_refresh_token, encrypt_refresh_token
+
+        with override_settings(SECRET_KEY="test-secret-key-for-search-console"):
+            encrypted = encrypt_refresh_token("google-refresh-token")
+            self.assertNotEqual(encrypted, "google-refresh-token")
+            self.assertEqual(decrypt_refresh_token(encrypted), "google-refresh-token")
+
+    def test_search_console_property_validation(self):
+        from .search_console_views import _valid_property
+
+        self.assertTrue(_valid_property("https://mydigigi.ir/"))
+        self.assertTrue(_valid_property("https://mydigigi.ir"))
+        self.assertTrue(_valid_property("sc-domain:mydigigi.ir"))
+        self.assertFalse(_valid_property("http://mydigigi.ir/"))
+        self.assertFalse(_valid_property("https://mydigigi.ir/path/"))
+        self.assertFalse(_valid_property("https://user:pass@mydigigi.ir/"))
+        self.assertFalse(_valid_property("sc-domain:localhost"))
