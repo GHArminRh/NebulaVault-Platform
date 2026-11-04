@@ -169,3 +169,29 @@ class SEORobotsAndSitemapTests(TestCase):
         self.assertIn("https://mydigigi.ir/sitemap-products.xml", locations)
         self.assertIn("https://mydigigi.ir/sitemap-blog.xml", locations)
         self.assertIn("https://mydigigi.ir/sitemap-wagtail.xml", locations)
+
+
+class SEODashboardTests(TestCase):
+    def test_staff_admin_can_view_dashboard_and_latest_findings(self):
+        staff = get_user_model().objects.create_superuser(
+            username="seo-admin",
+            email="seo-admin@example.invalid",
+            password="test-password",
+        )
+        self.client.force_login(staff)
+        run = SEOAuditRun.objects.create(pages_scanned=3, issues_count=1)
+        SEOAuditIssue.objects.create(
+            run=run,
+            url="https://mydigigi.ir/products/example/",
+            code="missing-title",
+            severity=SEOAuditIssue.Severity.ERROR,
+            title="Page has no title",
+            recommendation="Add a unique title.",
+        )
+
+        response = self.client.get("/admin/seo-center/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Nebula SEO Center")
+        self.assertContains(response, "Page has no title")
+        self.assertContains(response, "Add a unique title.")
