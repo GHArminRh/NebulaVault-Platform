@@ -25,9 +25,7 @@ STATE_SALT = "nebula-seo-search-console-oauth"
 
 def _redirect_uri(request):
     configured = getattr(settings, "GOOGLE_SEARCH_CONSOLE_REDIRECT_URI", "")
-    return configured or request.build_absolute_uri(
-        reverse("seo-search-console-callback")
-    )
+    return configured or f"{settings.SITE_BASE_URL.rstrip('/')}{reverse('seo-search-console-callback')}"
 
 
 def _valid_property(value):
