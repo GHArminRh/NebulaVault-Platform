@@ -1,4 +1,4 @@
-{% extends "portal/base.html" %}{% load money rich_text %}{% block title %}{{ product.name }} — نبیولا والت{% endblock %}{% block content %}<section class="product-hero page-wrap"
+{% extends "portal/base.html" %}{% load money rich_text %}{% block title %}{{ product.seo_title|default:product.name }} — نبیولا والت{% endblock %}{% block meta_description %}{{ product.seo_description|default:product.description|striptags|truncatechars:160 }}{% endblock %}{% block og_title %}{{ product.seo_title|default:product.name }}{% endblock %}{% block og_description %}{{ product.seo_description|default:product.description|striptags|truncatechars:160 }}{% endblock %}{% block twitter_title %}{{ product.seo_title|default:product.name }}{% endblock %}{% block twitter_description %}{{ product.seo_description|default:product.description|striptags|truncatechars:160 }}{% endblock %}{% block content %}<section class="product-hero page-wrap"
          data-ga4-view-item
          data-item-id="{{ product.pk }}"
          data-item-name="{{ product.name }}"
