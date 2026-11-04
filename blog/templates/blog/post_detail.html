@@ -17,6 +17,21 @@
 {% endblock %}
 
 {% block content %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "{{ post.seo_title|default:post.title|escapejs }}",
+  "description": "{{ post.seo_description|default:post.excerpt|striptags|truncatechars:300|escapejs }}",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ seo_canonical_url|escapejs }}"
+  },
+  "dateModified": "{{ post.updated_at|date:'c' }}"{% if post.published_at %},
+  "datePublished": "{{ post.published_at|date:'c' }}"{% endif %}{% if seo_og_image_url %},
+  "image": "{{ seo_og_image_url|escapejs }}"{% endif %}
+}
+</script>
   <article class="nv-article page-wrap">
     <nav class="nv-article-breadcrumb" aria-label="مسیر صفحه">
       <a href="{% url 'portal:home' %}">خانه</a>
