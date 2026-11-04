@@ -1,5 +1,9 @@
 name: Wagtail CMS tests
 
+concurrency:
+  group: wagtail-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [feat/wagtail-cms-integration, deploy/render-ready, "feat/wagtail-cms-completion"]
@@ -13,6 +17,8 @@ on:
       - "portal/**"
       - "templates/portal/home.html"
       - "templates/portal/base.html"
+      - "templates/portal/products.html"
+      - "templates/portal/pricing.html"
       - "requirements.txt"
       - ".github/workflows/wagtail-tests.yml"
   pull_request:
