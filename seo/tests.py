@@ -195,3 +195,7 @@ class SEODashboardTests(TestCase):
         self.assertContains(response, "Nebula SEO Center")
         self.assertContains(response, "Page has no title")
         self.assertContains(response, "Add a unique title.")
+
+        changelist = self.client.get("/admin/seo/seoauditrun/")
+        self.assertEqual(changelist.status_code, 200)
+        self.assertContains(changelist, "SEO Center dashboard")
