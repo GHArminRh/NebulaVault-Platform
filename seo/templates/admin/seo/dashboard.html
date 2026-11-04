@@ -1,0 +1,85 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Nebula SEO Center{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>Nebula SEO Center</h1>
+  <p>Technical SEO audit history and current findings for the public website.</p>
+
+  <div class="module">
+    <h2>Overview</h2>
+    <table>
+      <tbody>
+        <tr><th>Total audit runs</th><td>{{ total_runs }}</td></tr>
+        <tr><th>Queued or running</th><td>{{ active_runs }}</td></tr>
+        <tr><th>Latest audit</th><td>{% if latest_run %}#{{ latest_run.pk }} — {{ latest_run.get_status_display }}{% else %}No audit has run yet{% endif %}</td></tr>
+        <tr><th>Pages scanned</th><td>{% if latest_run %}{{ latest_run.pages_scanned }}{% else %}—{% endif %}</td></tr>
+        <tr><th>Findings in latest audit</th><td>{% if latest_run %}{{ latest_run.issues_count }}{% else %}—{% endif %}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  {% if latest_run %}
+  <div class="module">
+    <h2>Latest audit findings by severity</h2>
+    <table>
+      <tbody>
+        <tr><th>Critical</th><td>{{ severity_counts.critical|default:0 }}</td></tr>
+        <tr><th>Errors</th><td>{{ severity_counts.error|default:0 }}</td></tr>
+        <tr><th>Warnings</th><td>{{ severity_counts.warning|default:0 }}</td></tr>
+        <tr><th>Informational</th><td>{{ severity_counts.info|default:0 }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="module">
+    <h2>Recent findings</h2>
+    <table>
+      <thead><tr><th>Severity</th><th>Issue</th><th>URL</th><th>Recommendation</th></tr></thead>
+      <tbody>
+        {% for issue in latest_issues %}
+        <tr>
+          <td>{{ issue.get_severity_display }}</td>
+          <td>{{ issue.title }}</td>
+          <td><a href="{{ issue.url }}" target="_blank" rel="noopener noreferrer">{{ issue.url }}</a></td>
+          <td>{{ issue.recommendation|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No findings were recorded in the latest audit.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p><a href="{% url 'admin:seo_seoauditissue_changelist' %}">View all audit issues</a></p>
+  </div>
+  {% endif %}
+
+  <div class="module">
+    <h2>Recent audit runs</h2>
+    <table>
+      <thead><tr><th>Run</th><th>Status</th><th>Pages</th><th>Issues</th><th>Created</th></tr></thead>
+      <tbody>
+        {% for run in recent_runs %}
+        <tr>
+          <td><a href="{% url 'admin:seo_seoauditrun_change' run.pk %}">#{{ run.pk }}</a></td>
+          <td>{{ run.get_status_display }}</td>
+          <td>{{ run.pages_scanned }}</td>
+          <td>{{ run.issues_count }}</td>
+          <td>{{ run.created_at }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No audit runs yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p><a href="{% url 'admin:seo_seoauditrun_changelist' %}">View all audit runs</a></p>
+  </div>
+
+  <div class="module">
+    <h2>Run a technical audit</h2>
+    <p>Audits are run from the application environment, not during an admin page request.</p>
+    <pre>python manage.py run_seo_audit --max-pages 150 --timeout 8 --max-duration 180</pre>
+    <p>For a retry of an existing run, use <code>--run-id RUN_ID</code>.</p>
+  </div>
+</div>
+{% endblock %}
