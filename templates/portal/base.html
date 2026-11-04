@@ -33,6 +33,9 @@
     <meta name="twitter:title" content="{% block twitter_title %}نبیولا والت{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}پلتفرم امن نرم‌افزار نبیولا والت{% endblock %}">
     {% block twitter_image %}{% endblock %}
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"WebSite","name":"{{ chrome.brand_title|escapejs }}","url":"{{ seo_site_base_url|escapejs }}"}
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700;800&display=swap"
