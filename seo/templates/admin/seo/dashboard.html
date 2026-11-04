@@ -39,7 +39,7 @@
     {% else %}
       <p>No Search Console property is connected.</p>
       {% if google_oauth_configured %}
-      <form method="post" action="{% url 'admin:seo-search-console-connect' %}">
+      <form method="post" action="{% url 'seo-search-console-connect' %}">
         {% csrf_token %}
         <label for="gsc-site-url">Search Console property</label>
         <input id="gsc-site-url" name="site_url" type="text" required placeholder="https://mydigigi.ir/ or sc-domain:mydigigi.ir" style="min-width: 320px; max-width: 100%;">
