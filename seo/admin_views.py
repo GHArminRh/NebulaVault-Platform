@@ -2,6 +2,9 @@
 
 from django.conf import settings
 from django.contrib.auth.decorators import permission_required
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 from django.db.models import Count, Sum
 from django.shortcuts import render
 
@@ -30,14 +33,17 @@ def seo_dashboard(request):
             dimension_type=SearchConsoleMetric.DimensionType.DAILY,
         ).order_by("-date")[:28]
         totals = daily_metrics.aggregate(clicks=Sum("clicks"), impressions=Sum("impressions"))
+        metric_start = datetime.now(ZoneInfo("America/Los_Angeles")).date() - timedelta(days=28)
         top_queries = SearchConsoleMetric.objects.filter(
             connection=connection,
+            date__gte=metric_start,
             dimension_type=SearchConsoleMetric.DimensionType.QUERY,
         ).values("dimension_value").annotate(
             clicks=Sum("clicks"), impressions=Sum("impressions")
         ).order_by("-clicks")[:10]
         top_pages = SearchConsoleMetric.objects.filter(
             connection=connection,
+            date__gte=metric_start,
             dimension_type=SearchConsoleMetric.DimensionType.PAGE,
         ).values("dimension_value").annotate(
             clicks=Sum("clicks"), impressions=Sum("impressions")
