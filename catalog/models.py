@@ -28,6 +28,8 @@ class Product(models.Model):
     name = models.CharField(max_length=120)
     slug = models.SlugField(max_length=140, unique=True)
     description = models.TextField(blank=True)
+    seo_title = models.CharField(max_length=220, blank=True, help_text="Optional search-result title; falls back to the product name.")
+    seo_description = models.CharField(max_length=320, blank=True, help_text="Optional search description; falls back to the product description.")
     website_url = models.URLField(blank=True)
     is_active = models.BooleanField(default=True)
 
