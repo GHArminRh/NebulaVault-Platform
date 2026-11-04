@@ -8,7 +8,9 @@
 {% block og_description %}{{ post.seo_description|default:post.excerpt|truncatechars:160 }}{% endblock %}
 {% block twitter_title %}{{ post.seo_title|default:post.title }}{% endblock %}
 {% block twitter_description %}{{ post.seo_description|default:post.excerpt|truncatechars:160 }}{% endblock %}
-{% if post.img %}{% block og_image %}<meta property="og:image" content="{{ request.build_absolute_uri }}{{ post.img.url }}"><meta name="twitter:card" content="summary_large_image">{% endblock %}{% block twitter_image %}<meta name="twitter:image" content="{{ request.build_absolute_uri }}{{ post.img.url }}">{% endblock %}{% endif %}
+{% block og_image %}{% if post.img %}<meta property="og:image" content="{{ request.build_absolute_uri }}{{ post.img.url }}">{% endif %}{% endblock %}
+{% block twitter_card %}{% if post.img %}summary_large_image{% else %}summary{% endif %}{% endblock %}
+{% block twitter_image %}{% if post.img %}<meta name="twitter:image" content="{{ request.build_absolute_uri }}{{ post.img.url }}">{% endif %}{% endblock %}
 
 {% block blog_css %}
   <link rel="stylesheet" href="{% static 'portal/css/blog.css' %}">
