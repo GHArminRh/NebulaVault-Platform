@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Verify that browser-facing CSS bundles were generated from the reviewed source modules.
+python scripts/build_frontend_css.py --check
+
 # Render already provides pip. Upgrading it on every deploy adds an avoidable
 # network install and can make otherwise identical builds less reproducible.
 python -m pip install --disable-pip-version-check -r requirements.txt
