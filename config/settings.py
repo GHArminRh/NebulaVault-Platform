@@ -296,24 +296,23 @@ CACHES = {
     }
 }
 
-# Redis inspection is optional in local environments and enabled on Render
-# through the private REDIS_URL connection string.
+# Redis inspection uses the private Render Key Value connection string.
+# Always register the instance so the panel can distinguish a missing or
+# unreachable connection from an entirely unconfigured panel.
 REDIS_PANEL_URL = os.environ.get("REDIS_URL", "").strip()
 DJ_REDIS_PANEL_SETTINGS = {
     "ALLOW_KEY_DELETE": False,
     "ALLOW_KEY_EDIT": False,
     "ALLOW_TTL_UPDATE": False,
     "CURSOR_PAGINATED_SCAN": True,
-    "INSTANCES": (
-        {
-            "default": {
-                "description": "Nebula Vault Render Key Value",
-                "url": REDIS_PANEL_URL,
-            }
+    "INSTANCES": {
+        "nebula_vault": {
+            "description": "Nebula Vault Render Key Value",
+            "url": REDIS_PANEL_URL or "redis://127.0.0.1:6379",
+            "socket_timeout": 5.0,
+            "socket_connect_timeout": 5.0,
         }
-        if REDIS_PANEL_URL
-        else {}
-    ),
+    },
 }
 
 LOGIN_URL = "login"
