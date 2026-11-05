@@ -1,6 +1,9 @@
 name: Keep Render Free Web Service Awake
 
 on:
+  push:
+    branches:
+      - master
   schedule:
     # Five-minute cadence, offset from the top of the hour to reduce GitHub
     # Actions scheduling delays during peak start-of-hour load.
