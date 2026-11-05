@@ -128,9 +128,15 @@
 
   <div class="module">
     <h2>Run a technical audit</h2>
-    <p>Audits are run from the application environment, not during an admin page request.</p>
-    <pre>python manage.py run_seo_audit --max-pages 150 --timeout 8 --max-duration 180</pre>
-    <p>For a retry of an existing run, use <code>--run-id RUN_ID</code>.</p>
+    <p>Start a bounded crawl of the public website. The results will appear in the latest audit and audit history below.</p>
+    <form method="post" action="{% url 'seo-audit-run-now' %}">
+      {% csrf_token %}
+      <button type="submit" class="button" onclick="return confirm('Start a technical SEO crawl of the public website now?');">
+        Run technical SEO audit now
+      </button>
+    </form>
+    <p class="help">Scans up to 100 public pages, respects robots.txt, and stops after 60 seconds. No Render Shell access is required.</p>
+    <p>For advanced runs or retries, the management command remains available: <code>python manage.py run_seo_audit</code>.</p>
   </div>
 </div>
 {% endblock %}
