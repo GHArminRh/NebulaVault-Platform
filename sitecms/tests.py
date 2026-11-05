@@ -658,5 +658,14 @@ class CanonicalSiteURLTests(TestCase):
         self.assertEqual(wagtail_site.hostname, "cms.example.test")
         self.assertEqual(wagtail_site.port, 8443)
 
+    def test_favicon_route_redirects_to_existing_brand_icon(self):
+        response = self.client.get("/favicon.ico")
+
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(
+            response["Location"],
+            "/static/portal/img/pwa-icon-192.svg",
+        )
+
     def test_wagtail_admin_base_url_uses_canonical_site_setting(self):
         self.assertEqual(settings.WAGTAILADMIN_BASE_URL, settings.SITE_BASE_URL)
