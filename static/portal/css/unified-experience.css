@@ -3536,8 +3536,7 @@ html body.nv-portal .nv-page-progress.is-complete .nv-page-progress-glow {
 }
 
 /* Dashboard: remove the global top navigation; keep the right-side dashboard rail. */
-html body.nv-portal.nv-dashboard-page .site-header,
-html body.nv-portal.nv-dashboard-page .mobile-nav {
+html body.nv-portal.nv-dashboard-page .site-header {
   display: none;
 }
 html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-home-brand-link {
