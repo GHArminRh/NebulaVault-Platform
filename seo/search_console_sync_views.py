@@ -24,6 +24,7 @@ def search_console_sync_now(request):
     web workers without relying on process-local locks or a cache table.
     """
     output = StringIO()
+    sync_error = ""
 
     try:
         with transaction.atomic():
@@ -36,9 +37,12 @@ def search_console_sync_now(request):
                 messages.error(request, "No active Google Search Console property is connected.")
                 return redirect("seo-dashboard")
 
-            call_command("sync_search_console", days=28, stdout=output)
-    except CommandError as exc:
-        messages.error(request, f"Search Console sync failed: {exc}")
+            # Catch CommandError inside the transaction so the command's
+            # last_sync_error update is committed instead of rolled back.
+            try:
+                call_command("sync_search_console", days=28, stdout=output)
+            except CommandError as exc:
+                sync_error = str(exc)
     except Exception:
         # Do not expose tracebacks, credentials, or provider response bodies in
         # the admin UI. Detailed diagnostics remain in the server error logs.
@@ -47,10 +51,13 @@ def search_console_sync_now(request):
             "Search Console sync failed unexpectedly. Check the application logs for details.",
         )
     else:
-        result = output.getvalue().strip()
-        messages.success(
-            request,
-            result or "Google Search Console synchronization completed successfully.",
-        )
+        if sync_error:
+            messages.error(request, f"Search Console sync failed: {sync_error}")
+        else:
+            result = output.getvalue().strip()
+            messages.success(
+                request,
+                result or "Google Search Console synchronization completed successfully.",
+            )
 
     return redirect("seo-dashboard")
