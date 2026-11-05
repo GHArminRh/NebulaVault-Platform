@@ -12,7 +12,7 @@ The modules are assembled into the existing static files:
 - `static/portal/css/site.css`
 - `static/portal/css/unified-experience.css`
 
-These generated files remain the browser-facing assets. Their URLs and their order in `templates/portal/base.html` are intentionally unchanged, so this refactor does not add stylesheet requests or alter the cascade contract.
+The two feature bundles remain the CSS source of truth. The build also assembles `public-foundation.css` and `public-shell.css` from ordered shared stylesheets. The public base template loads these combined bundles in the same cascade positions as the original links, reducing render-blocking requests without changing selector order. Page-specific stylesheets remain in their original positions.
 
 ## Commands
 
