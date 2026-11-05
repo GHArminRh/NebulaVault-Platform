@@ -37,3 +37,46 @@ jobs:
             exit 1
           fi
           printf 'Render service is healthy.\n'
+
+      - name: Smoke-test SEO endpoints after repository updates
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://nebula-vault-oesn.onrender.com"
+          curl --fail --silent --show-error --retry 2 --retry-all-errors --retry-delay 3 --max-time 20 "$base/" -o /tmp/mydigigi-home.html
+          grep -Eqi '<html|<!doctype html' /tmp/mydigigi-home.html
+          grep -Eqi 'rel=["'"'"']canonical["'"'"']' /tmp/mydigigi-home.html
+
+          curl --fail --silent --show-error --retry 2 --retry-all-errors --retry-delay 3 --max-time 20 "$base/robots.txt" -o /tmp/mydigigi-robots.txt
+          grep -Fq "Sitemap: https://mydigigi.ir/sitemap.xml" /tmp/mydigigi-robots.txt
+
+          curl --fail --silent --show-error --retry 2 --retry-all-errors --retry-delay 3 --max-time 20 "$base/sitemap.xml" -o /tmp/mydigigi-sitemap.xml
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          from urllib.parse import urlsplit
+
+          root = ET.parse("/tmp/mydigigi-sitemap.xml").getroot()
+          locs = [
+              element.text.strip()
+              for element in root.iter()
+              if element.tag.endswith("loc") and element.text
+          ]
+          if not locs:
+              raise SystemExit("Sitemap contains no loc entries.")
+          invalid = [
+              url for url in locs
+              if urlsplit(url).scheme != "https"
+              or urlsplit(url).netloc != "mydigigi.ir"
+          ]
+          if invalid:
+              raise SystemExit("Non-canonical sitemap URLs: " + ", ".join(invalid[:5]))
+          print(f"Validated {len(locs)} canonical sitemap URLs.")
+          PY
+
+          favicon_status="$(curl --fail --silent --show-error --location --retry 2 --retry-all-errors --retry-delay 3 --max-time 20 --output /dev/null --write-out '%{http_code}' "$base/favicon.ico")"
+          if [[ "$favicon_status" != "200" ]]; then
+            printf 'favicon.ico final status was %s, expected 200.\n' "$favicon_status" >&2
+            exit 1
+          fi
+          printf 'Home, robots.txt, sitemap.xml, and favicon checks passed.\n'
