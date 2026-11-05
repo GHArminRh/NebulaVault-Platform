@@ -1,0 +1,389 @@
+/* Login and registration: a real two-sided card with preserved Django POST endpoints. */
+html body.nv-portal .nv-auth-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(440px, 1fr);
+  align-items: center;
+  gap: clamp(28px, 5vw, 82px);
+  min-height: calc(100svh - 190px);
+  padding-top: 48px;
+  padding-bottom: 58px;
+}
+html body.nv-portal .nv-auth-intro {
+  position: relative;
+  min-height: 540px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  padding: 34px 0;
+}
+html body.nv-portal .nv-auth-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 55px;
+  width: max-content;
+  font:
+    700 20px/1.1 'Vazirmatn',
+    sans-serif;
+}
+html body.nv-portal .nv-auth-brand small {
+  display: block;
+  margin-top: 6px;
+  color: #7d8aa8;
+  font-size: 9px;
+  font-weight: 500;
+}
+html body.nv-portal .nv-auth-intro > .eyebrow {
+  position: relative;
+  z-index: 2;
+}
+html body.nv-portal .nv-auth-intro h1 {
+  position: relative;
+  z-index: 2;
+  margin: 20px 0 16px;
+  font:
+    800 clamp(34px, 4vw, 52px)/1.45 'Vazirmatn',
+    sans-serif;
+  letter-spacing: -1.2px;
+}
+html body.nv-portal .nv-auth-intro > p {
+  position: relative;
+  z-index: 2;
+  max-width: 440px;
+  color: #9aa7c3;
+  font-size: 13px;
+  line-height: 2;
+}
+html body.nv-portal .nv-auth-points {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 13px;
+  margin-top: 25px;
+  color: #aab6d0;
+  font-size: 11px;
+}
+html body.nv-portal .nv-auth-points span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+html body.nv-portal .nv-auth-points b {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(120, 228, 180, 0.22);
+  border-radius: 8px;
+  background: rgba(120, 228, 180, 0.07);
+  color: #78e4b4;
+}
+html body.nv-portal .nv-auth-orbit {
+  position: absolute;
+  left: -110px;
+  bottom: -190px;
+  width: 370px;
+  height: 370px;
+  border: 1px solid rgba(150, 135, 255, 0.13);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+html body.nv-portal .nv-auth-orbit:before,
+html body.nv-portal .nv-auth-orbit:after {
+  content: '';
+  position: absolute;
+  border: 1px solid rgba(100, 211, 227, 0.12);
+  border-radius: 50%;
+  inset: 35px;
+  transform: rotate(40deg) scaleX(0.6);
+}
+html body.nv-portal .nv-auth-orbit:after {
+  inset: 70px;
+  transform: rotate(-35deg) scaleX(0.75);
+  border-style: dashed;
+}
+html body.nv-portal .nv-auth-orbit span {
+  display: grid;
+  place-items: center;
+  width: 110px;
+  height: 110px;
+  border: 1px solid rgba(165, 153, 255, 0.22);
+  border-radius: 35px;
+  background: rgba(116, 102, 255, 0.08);
+  color: #a99aff;
+  font-size: 76px;
+  box-shadow: 0 0 55px rgba(115, 99, 255, 0.12);
+}
+html body.nv-portal .nv-auth-stage {
+  min-width: 0;
+  perspective: 1500px;
+}
+html body.nv-portal .nv-auth-flip-card {
+  position: relative;
+  width: 100%;
+  height: 760px;
+  transform-style: preserve-3d;
+  transition: transform 0.78s cubic-bezier(0.2, 0.75, 0.2, 1);
+  will-change: transform;
+}
+html body.nv-portal .nv-auth-flip-card.is-register {
+  transform: rotateY(180deg);
+}
+html body.nv-portal .nv-auth-face {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border: 1px solid rgba(166, 183, 231, 0.17);
+  border-radius: 25px;
+  padding: clamp(24px, 3vw, 38px);
+  background: linear-gradient(150deg, rgba(21, 30, 53, 0.97), rgba(10, 17, 32, 0.98));
+  box-shadow:
+    0 28px 85px rgba(0, 0, 0, 0.28),
+    inset 0 1px rgba(255, 255, 255, 0.035);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 125, 255, 0.35) transparent;
+}
+html body.nv-portal .nv-auth-face:before {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  top: -100px;
+  left: -70px;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: rgba(120, 104, 255, 0.12);
+  filter: blur(55px);
+}
+html body.nv-portal .nv-auth-register {
+  transform: rotateY(180deg);
+}
+html body.nv-portal .nv-auth-face-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+html body.nv-portal .nv-auth-kicker {
+  font-size: 10px;
+  color: #b2a7ff;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+html body.nv-portal .nv-auth-step {
+  font:
+    700 10px 'DM Sans',
+    sans-serif;
+  color: #7281a2;
+  letter-spacing: 1px;
+}
+html body.nv-portal .nv-auth-step i {
+  font-style: normal;
+  color: #4b5876;
+}
+html body.nv-portal .nv-auth-face h2 {
+  position: relative;
+  z-index: 1;
+  margin: 22px 0 6px;
+  font:
+    800 clamp(25px, 2.8vw, 33px)/1.5 'Vazirmatn',
+    sans-serif;
+  letter-spacing: -0.6px;
+}
+html body.nv-portal .nv-auth-subtitle {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 23px;
+  color: #94a2c0;
+  font-size: 12px;
+  line-height: 1.9;
+}
+html body.nv-portal .nv-auth-form {
+  position: relative;
+  z-index: 1;
+  gap: 8px;
+}
+html body.nv-portal .nv-auth-form label {
+  margin-top: 5px;
+  color: #c5cee3;
+  font-size: 11px;
+  font-weight: 700;
+}
+html body.nv-portal .nv-auth-form input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(166, 183, 231, 0.17);
+  border-radius: 11px;
+  background: rgba(5, 11, 24, 0.54);
+  color: #f2f4ff;
+  padding: 12px 13px;
+  font-size: 12px;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    background 0.2s;
+}
+html body.nv-portal .nv-auth-form input:focus {
+  border-color: rgba(133, 220, 232, 0.6);
+  box-shadow: 0 0 0 3px rgba(94, 207, 222, 0.08);
+  background: rgba(8, 15, 30, 0.8);
+}
+html body.nv-portal .nv-auth-form input::placeholder {
+  color: #8292b1;
+}
+html body.nv-portal .nv-auth-form .password-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+html body.nv-portal .nv-auth-form .password-wrap input {
+  padding-left: 65px;
+}
+html body.nv-portal .nv-auth-form .password-toggle {
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: #a99aff;
+  font-size: 10px;
+  padding: 6px;
+}
+html body.nv-portal .nv-auth-form .turnstile-shell {
+  min-height: 70px;
+  margin: 8px 0 2px;
+  max-width: 100%;
+  overflow: hidden;
+}
+html body.nv-portal .nv-auth-form .turnstile-shell .nv-turnstile-widget {
+  position: relative;
+  z-index: 1;
+  min-height: 65px;
+  max-width: 100%;
+  overflow: hidden;
+}
+html body.nv-portal .nv-auth-form .turnstile-loading {
+  font-size: 10px;
+}
+html body.nv-portal .nv-auth-form .button-full {
+  margin-top: 7px;
+}
+html body.nv-portal .nv-auth-help {
+  margin: 3px 0 0;
+  color: #7f8eac;
+  font-size: 10px;
+  line-height: 1.8;
+}
+html body.nv-portal .nv-auth-small-link {
+  position: relative;
+  z-index: 1;
+  margin: 14px 0 0;
+  font-size: 10px;
+}
+html body.nv-portal .nv-auth-small-link a {
+  color: #a99aff;
+}
+html body.nv-portal .nv-auth-flip-prompt {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 17px;
+  border-top: 1px solid rgba(166, 183, 231, 0.1);
+  font-size: 10px;
+  color: #8997b4;
+}
+html body.nv-portal .nv-auth-flip-prompt button {
+  border: 0;
+  background: transparent;
+  color: #c2b9ff;
+  font-weight: 800;
+  font-size: 11px;
+  padding: 4px;
+  cursor: pointer;
+}
+html body.nv-portal .nv-auth-flip-prompt button span {
+  display: inline-block;
+  font-size: 16px;
+  vertical-align: middle;
+}
+html body.nv-portal .nv-auth-nojs-link {
+  display: none;
+  color: #c2b9ff;
+}
+html body.nv-portal .nv-auth-security-note {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  color: #8292b1;
+  font-size: 10px;
+  margin: 17px 0 0;
+}
+html body.nv-portal .nv-auth-security-note span {
+  color: #a99aff;
+  font-size: 16px;
+}
+html body.nv-portal .turnstile-shell {
+  position: relative;
+  min-height: 76px;
+  margin: 12px 0;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+html body.nv-portal .turnstile-shell .cf-turnstile {
+  position: relative;
+  z-index: 1;
+  min-height: 65px;
+}
+html body.nv-portal .turnstile-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.45);
+  color: #aab6c8;
+  font-size: 12px;
+  direction: rtl;
+  transition: opacity 0.18s ease;
+}
+html body.nv-portal .turnstile-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(148, 163, 184, 0.3);
+  border-top-color: #60a5fa;
+  border-radius: 50%;
+  animation: turnstile-spin 0.8s linear infinite;
+  flex: 0 0 auto;
+}
+html body.nv-portal .turnstile-script-loaded .turnstile-loading {
+  opacity: 0;
+  pointer-events: none;
+}
+@keyframes turnstile-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+

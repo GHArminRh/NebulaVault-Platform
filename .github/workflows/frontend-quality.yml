@@ -42,6 +42,9 @@ jobs:
       - name: Check CSS, JavaScript, and tooling formatting
         run: npm run check:assets
 
+      - name: Verify generated CSS bundles
+        run: npm run check:css-build
+
       - name: Check public Django templates
         run: npm run check:templates
 

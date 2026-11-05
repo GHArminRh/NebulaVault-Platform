@@ -1,0 +1,396 @@
+/* Page-load progress: a single synchronized track and crisp travelling tip. */
+html body.nv-portal .nv-page-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 3px;
+  z-index: 2147483647;
+  pointer-events: none;
+  opacity: 0;
+  overflow: visible;
+  background: rgba(169, 154, 255, 0.09);
+  transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html body.nv-portal .nv-page-progress.is-loading {
+  opacity: 1;
+}
+
+html body.nv-portal .nv-page-progress-track {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(90deg, #7567f5 0%, #a99aff 38%, #91e7ef 76%, #baf5fb 100%);
+  box-shadow:
+    0 0 7px rgba(131, 228, 237, 0.48),
+    0 0 16px rgba(124, 108, 255, 0.22);
+  transform: scaleX(var(--nv-progress-ratio, 0));
+  transform-origin: left center;
+  transition: none;
+  will-change: transform;
+}
+
+html body.nv-portal .nv-page-progress-glow {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: var(--nv-progress, 0%);
+  width: 34px;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(131, 228, 237, 0.12) 48%,
+    rgba(145, 231, 239, 0.7) 82%,
+    rgba(217, 251, 255, 0.98) 100%
+  );
+  opacity: 0.9;
+  filter: drop-shadow(0 0 3px rgba(131, 228, 237, 0.55));
+  pointer-events: none;
+}
+
+html body.nv-portal .nv-page-progress.is-complete .nv-page-progress-track {
+  transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow:
+    0 0 9px rgba(131, 228, 237, 0.62),
+    0 0 20px rgba(124, 108, 255, 0.28);
+}
+
+html body.nv-portal .nv-page-progress.is-complete .nv-page-progress-glow {
+  transition: left 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body.nv-portal .nv-page-progress,
+  html body.nv-portal .nv-page-progress-track,
+  html body.nv-portal .nv-page-progress-glow {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  html body.nv-portal .nv-dash-rail-compact {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 100%;
+    min-height: 0;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  html body.nv-portal .nv-dash-rail-compact .nv-rail-bottom {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-inline-start: auto;
+  }
+  html body.nv-portal .nv-dashboard-logout {
+    margin: 0;
+  }
+  html body.nv-portal .nv-logout-link {
+    width: auto;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 480px) {
+  html body.nv-portal .nv-dash-rail-compact {
+    gap: 12px;
+    padding: 12px;
+  }
+  html body.nv-portal .nv-home-brand-link {
+    gap: 8px;
+  }
+  html body.nv-portal .nv-home-brand-link .brand-mark {
+    flex: 0 0 auto;
+  }
+  html body.nv-portal .nv-dash-rail-compact .nv-rail-status {
+    display: none;
+  }
+  html body.nv-portal .nv-logout-link {
+    padding: 8px 10px;
+  }
+}
+
+/* Dashboard: remove the global top navigation; keep the right-side dashboard rail. */
+html body.nv-portal.nv-dashboard-page .site-header {
+  display: none;
+}
+html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-home-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #f3f5ff;
+  text-decoration: none;
+}
+html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-home-brand-link > span:last-child {
+  display: flex;
+  flex-direction: column;
+  font-weight: 800;
+  line-height: 1.7;
+}
+html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-home-brand-link small {
+  font-size: 10px;
+  color: var(--nv-muted, #94a2c1);
+  font-weight: 500;
+}
+html body.nv-portal.nv-dashboard-page .nv-dashboard-logout {
+  display: block;
+  margin-top: 12px;
+  position: relative;
+  z-index: 3;
+}
+html body.nv-portal.nv-dashboard-page .nv-logout-link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  border: 1px solid rgba(255, 112, 139, 0.22);
+  background: rgba(255, 91, 124, 0.07);
+  color: #ffb1c0;
+  cursor: pointer;
+  font: inherit;
+  text-align: right;
+}
+html body.nv-portal.nv-dashboard-page .nv-logout-link:hover {
+  background: rgba(255, 91, 124, 0.15);
+  border-color: rgba(255, 112, 139, 0.45);
+}
+
+/* Mobile dashboard layout polish: prevent horizontal overflow and the blank left gutter. */
+@media (max-width: 900px) {
+  html:has(body.nv-portal),
+  html body.nv-dashboard-page,
+  html body.nv-dashboard-page main {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+  html body.nv-dashboard-page main {
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dashboard-layout.page-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    width: 100%;
+    max-width: 100%;
+    margin: 12px 0 32px;
+    padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right));
+    box-sizing: border-box;
+    overflow-x: clip;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail {
+    position: relative;
+    inset: auto;
+    float: none;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 0;
+    max-height: none;
+    margin: 0;
+    padding: 12px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    overflow: visible;
+    border-radius: 16px;
+    transform: none;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-rail-brand {
+    flex: 1 0 100%;
+    width: 100%;
+    min-width: 0;
+    margin: 0 0 4px;
+    padding: 0 0 10px;
+    box-sizing: border-box;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-rail-link {
+    flex: 1 1 calc(50% - 8px);
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+    white-space: normal;
+    text-align: center;
+    overflow-wrap: anywhere;
+    padding: 10px 8px;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-rail-bottom {
+    display: contents;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-rail-status {
+    display: none;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-dashboard-logout {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 0;
+    margin: 0;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-logout-link {
+    width: 100%;
+    min-height: 40px;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dashboard-content {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: visible;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dashboard,
+  html body.nv-portal.nv-dashboard-page .nv-dashboard-content > * {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-welcome {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-home-cta {
+    align-self: stretch;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-stats,
+  html body.nv-portal.nv-dashboard-page .nv-main-columns,
+  html body.nv-portal.nv-dashboard-page .nv-settings-grid {
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-panel,
+  html body.nv-portal.nv-dashboard-page .nv-settings-card,
+  html body.nv-portal.nv-dashboard-page .nv-dashboard-banner,
+  html body.nv-portal.nv-dashboard-page .nv-account-section {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-table-list,
+  html body.nv-portal.nv-dashboard-page .table-row,
+  html body.nv-portal.nv-dashboard-page .table-main {
+    min-width: 0;
+    max-width: 100%;
+  }
+  html body.nv-portal.nv-dashboard-page input,
+  html body.nv-portal.nv-dashboard-page button,
+  html body.nv-portal.nv-dashboard-page select,
+  html body.nv-portal.nv-dashboard-page textarea {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+@media (max-width: 420px) {
+  html body.nv-portal.nv-dashboard-page .nv-dashboard-layout.page-wrap {
+    padding-inline: 10px;
+    gap: 12px;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail {
+    padding: 10px;
+    gap: 6px;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-rail-link,
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-dashboard-logout {
+    flex-basis: 100%;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-welcome h1 {
+    font-size: clamp(24px, 7vw, 32px);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-panel,
+  html body.nv-portal.nv-dashboard-page .nv-settings-card {
+    padding: 14px;
+  }
+}
+
+/* Dashboard navigation: compact vertical rail, never create an inner scrollbar. */
+html body.nv-portal.nv-dashboard-page .nv-dash-rail {
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+  overflow-y: visible;
+  overscroll-behavior: auto;
+  padding: 12px 10px;
+  gap: 0;
+}
+html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-rail-brand {
+  padding: 3px 6px 10px;
+}
+html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-rail-label {
+  margin: 10px 8px 5px;
+}
+html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-rail-link {
+  min-height: 0;
+  padding: 7px 8px;
+  margin: 2px 0;
+  line-height: 1.45;
+}
+html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-rail-link span {
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+}
+html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-rail-bottom {
+  margin-top: 9px;
+  padding: 8px 7px 0;
+}
+html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-dashboard-logout {
+  margin-top: 8px;
+}
+@media (min-width: 901px) {
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail {
+    top: 88px;
+    bottom: auto;
+    max-height: none;
+    overflow: visible;
+    overflow-y: visible;
+  }
+}
+@media (max-width: 900px) {
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail {
+    position: relative;
+    max-height: none;
+    overflow: visible;
+    overflow-x: visible;
+    overflow-y: visible;
+    flex-wrap: wrap;
+    white-space: normal;
+    padding: 10px;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-rail-brand {
+    flex-basis: 100%;
+    padding-bottom: 8px;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-rail-label {
+    display: none;
+  }
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-rail-link {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 0;
+  }
+
+  html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-dashboard-logout {
+    flex: 1 1 calc(50% - 8px);
+    margin: 0;
+  }
+}
+
