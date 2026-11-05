@@ -28,9 +28,9 @@ Required to import the Django project and connect to its database:
 - CELERY_BROKER_URL: the CloudAMQP AMQPS connection URL (scheme must be
   amqps://). Do not use the Render cache's REDIS_URL as a broker.
 
-If Render uses Backblaze B2/S3 media storage, also copy the matching storage
-configuration from Render so tasks that read or write media use the same
-bucket:
+This project uses Backblaze B2/S3 media storage in production. Copy the
+matching storage configuration from Render so Django can initialize and any
+tasks that read or write media use the same bucket:
 
 - MEDIA_STORAGE_BACKEND=s3
 - AWS_STORAGE_BUCKET_NAME
