@@ -39,6 +39,11 @@ jobs:
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
           npm ci --no-audit --no-fund
 
+      - name: Inspect formatted image preview script
+        run: |
+          npx prettier --write static/portal/js/image-preview.js
+          cat static/portal/js/image-preview.js
+
       - name: Check CSS, JavaScript, and tooling formatting
         run: npm run check:assets
 
