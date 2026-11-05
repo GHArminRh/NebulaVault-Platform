@@ -117,12 +117,15 @@
     if (clearInput.dataset.nvImageClearControl === 'true') return;
 
     const fileUpload = clearInput.closest('.file-upload');
-    const currentLink = fileUpload?.querySelector('a.nv-image-preview-link img.nv-image-preview-thumb')
+    const currentLink = fileUpload
+      ?.querySelector('a.nv-image-preview-link img.nv-image-preview-thumb')
       ?.closest('a');
     if (!fileUpload || !currentLink) return;
 
     const fileInput = fileUpload.querySelector('input[type="file"]');
-    const label = fileUpload.querySelector('label[for="' + clearInput.id + '"]');
+    const label = fileUpload.querySelector(
+      'label[for="' + clearInput.id + '"]'
+    );
     const control = document.createElement('span');
     control.className = 'nv-image-clear-control';
 
@@ -144,7 +147,10 @@
       'M14 11v5',
     ];
     paths.forEach((pathData) => {
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const path = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'path'
+      );
       path.setAttribute('d', pathData);
       icon.append(path);
     });
@@ -186,7 +192,9 @@
   function scan(root = document) {
     if (root instanceof Element && root.matches(LINK_SELECTOR)) enhanceLink(root);
     root.querySelectorAll?.(LINK_SELECTOR).forEach(enhanceLink);
-    if (root instanceof Element && root.matches(CLEAR_SELECTOR)) enhanceImageClearControl(root);
+    if (root instanceof Element && root.matches(CLEAR_SELECTOR)) {
+      enhanceImageClearControl(root);
+    }
     root.querySelectorAll?.(CLEAR_SELECTOR).forEach(enhanceImageClearControl);
   }
 
