@@ -152,22 +152,44 @@ class SEORobotsAndSitemapTests(TestCase):
         self.assertContains(response, "Disallow: /cart/")
         self.assertContains(response, "Sitemap: https://mydigigi.ir/sitemap.xml")
 
-    def test_sitemap_index_includes_all_site_content_sitemaps(self):
-        from django.test import override_settings
+    def _sitemap_locations(self, response):
         from xml.etree import ElementTree
-
-        with override_settings(SITE_BASE_URL="https://mydigigi.ir"):
-            response = self.client.get("/sitemap.xml")
 
         self.assertEqual(response.status_code, 200)
         root = ElementTree.fromstring(response.content)
-        locations = [
+        return [
             node.text
             for node in root.iter()
             if node.tag.endswith("loc")
         ]
+
+    def test_sitemap_index_omits_wagtail_when_it_has_no_public_pages(self):
+        from unittest.mock import patch
+        from django.test import override_settings
+
+        with (
+            override_settings(SITE_BASE_URL="https://mydigigi.ir"),
+            patch("seo.views._has_public_wagtail_pages", return_value=False),
+        ):
+            response = self.client.get("/sitemap.xml")
+
+        locations = self._sitemap_locations(response)
+        self.assertIn("https://mydigigi.ir/sitemap-pages.xml", locations)
         self.assertIn("https://mydigigi.ir/sitemap-products.xml", locations)
         self.assertIn("https://mydigigi.ir/sitemap-blog.xml", locations)
+        self.assertNotIn("https://mydigigi.ir/sitemap-wagtail.xml", locations)
+
+    def test_sitemap_index_includes_wagtail_when_public_pages_exist(self):
+        from unittest.mock import patch
+        from django.test import override_settings
+
+        with (
+            override_settings(SITE_BASE_URL="https://mydigigi.ir"),
+            patch("seo.views._has_public_wagtail_pages", return_value=True),
+        ):
+            response = self.client.get("/sitemap.xml")
+
+        locations = self._sitemap_locations(response)
         self.assertIn("https://mydigigi.ir/sitemap-wagtail.xml", locations)
 
 
