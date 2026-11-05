@@ -3,6 +3,9 @@ name: Public frontend browser tests
 # Full browser regression is intentionally manual because it is relatively slow.
 # Run it from GitHub Actions -> Public frontend browser tests -> Run workflow.
 on:
+  push:
+    branches:
+      - test/production-frontend-browser
   workflow_dispatch:
 
 permissions:
