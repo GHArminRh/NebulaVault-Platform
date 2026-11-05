@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "dj_error_panel",
     "dj_control_room",
     "staff.apps.StaffConfig",
+    "seo.apps.SEOConfig",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.contrib.sitemaps",
@@ -160,6 +161,7 @@ TEMPLATES = [
                 "portal.context_processors.analytics_context",
                 "accounts.context_processors.turnstile",
                 "portal.context_processors.algolia_search_context",
+                "seo.context_processors.seo_context",
             ],
         },
     },
@@ -212,6 +214,11 @@ _site_base = urlsplit(SITE_BASE_URL)
 if _site_base.scheme not in {"http", "https"} or not _site_base.netloc:
     raise ValueError("SITE_BASE_URL must be an absolute http:// or https:// URL.")
 WAGTAILADMIN_BASE_URL = SITE_BASE_URL
+
+# Google Search Console OAuth. Credentials are supplied through Render env vars.
+GOOGLE_SEARCH_CONSOLE_CLIENT_ID = os.environ.get("GOOGLE_SEARCH_CONSOLE_CLIENT_ID", "").strip()
+GOOGLE_SEARCH_CONSOLE_CLIENT_SECRET = os.environ.get("GOOGLE_SEARCH_CONSOLE_CLIENT_SECRET", "").strip()
+GOOGLE_SEARCH_CONSOLE_REDIRECT_URI = os.environ.get("GOOGLE_SEARCH_CONSOLE_REDIRECT_URI", "").strip()
 # Shared bearer secret for the external free cron-job.org scheduler.
 WAGTAIL_CRON_SECRET = os.environ.get("WAGTAIL_CRON_SECRET", "").strip()
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10_000

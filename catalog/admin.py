@@ -12,7 +12,7 @@ from .models import Plan, Product, Release
 class ProductResource(resources.ModelResource):
     class Meta:
         model = Product
-        fields = ("id", "name", "slug", "description", "website_url", "is_active")
+        fields = ("id", "name", "slug", "description", "seo_title", "seo_description", "website_url", "is_active")
         export_order = fields
         import_id_fields = ("slug",)
 
@@ -57,6 +57,12 @@ class ProductAdmin(ImportExportModelAdmin):
     search_fields = ("name", "slug")
     prepopulated_fields = {"slug": ("name",)}
     inlines = [ReleaseInline]
+    readonly_fields = ("created_at", "updated_at")
+    fieldsets = (
+        (None, {"fields": ("name", "slug", "description", "website_url", "is_active")}),
+        ("Search engines", {"classes": ("collapse",), "fields": ("seo_title", "seo_description")}),
+        ("Dates", {"classes": ("collapse",), "fields": ("created_at", "updated_at")}),
+    )
 
     @admin.display(description="Slug", ordering="slug")
     def slug_link(self, obj):

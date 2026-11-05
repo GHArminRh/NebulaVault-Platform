@@ -91,6 +91,7 @@ def post_detail(request, slug):
         related = related.filter(category=post.category)
     return render(request, "blog/post_detail.html", {
         "post": post,
+        "seo_og_image_url": request.build_absolute_uri(post.img.url) if post.img else "",
         "comments": comment_page.object_list,
         "comment_page": comment_page,
         "comment_settings": comment_settings,

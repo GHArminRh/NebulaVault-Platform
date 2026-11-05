@@ -2,13 +2,36 @@
 {% load static %}
 
 {% block title %}{{ post.seo_title|default:post.title }} | نبیولا والت{% endblock %}
-{% block meta_description %}{{ post.seo_description|default:post.excerpt }}{% endblock %}
+{% block meta_description %}{{ post.seo_description|default:post.excerpt|truncatechars:160 }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ post.seo_title|default:post.title }}{% endblock %}
+{% block og_description %}{{ post.seo_description|default:post.excerpt|truncatechars:160 }}{% endblock %}
+{% block twitter_title %}{{ post.seo_title|default:post.title }}{% endblock %}
+{% block twitter_description %}{{ post.seo_description|default:post.excerpt|truncatechars:160 }}{% endblock %}
+{% block og_image %}{% if post.img %}<meta property="og:image" content="{{ seo_og_image_url }}">{% endif %}{% endblock %}
+{% block twitter_card %}{% if post.img %}summary_large_image{% else %}summary{% endif %}{% endblock %}
+{% block twitter_image %}{% if post.img %}<meta name="twitter:image" content="{{ seo_og_image_url }}">{% endif %}{% endblock %}
 
 {% block blog_css %}
   <link rel="stylesheet" href="{% static 'portal/css/blog.css' %}">
 {% endblock %}
 
 {% block content %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "{{ post.seo_title|default:post.title|escapejs }}",
+  "description": "{{ post.seo_description|default:post.excerpt|striptags|truncatechars:300|escapejs }}",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ seo_canonical_url|escapejs }}"
+  },
+  "dateModified": "{{ post.updated_at|date:'c' }}"{% if post.published_at %},
+  "datePublished": "{{ post.published_at|date:'c' }}"{% endif %}{% if seo_og_image_url %},
+  "image": "{{ seo_og_image_url|escapejs }}"{% endif %}
+}
+</script>
   <article class="nv-article page-wrap">
     <nav class="nv-article-breadcrumb" aria-label="مسیر صفحه">
       <a href="{% url 'portal:home' %}">خانه</a>

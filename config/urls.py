@@ -22,6 +22,9 @@ from config.admin_toggle import toggle_boolean_field
 from portal.editor_uploads import editor_image_upload
 from sitecms.media_proxy import private_media_proxy
 from sitecms.cron_views import publish_scheduled_pages
+from seo.views import blog_sitemap, core_sitemap, product_sitemap, robots_txt, sitemap_index
+from seo.admin_views import seo_dashboard
+from seo.search_console_views import search_console_callback, search_console_connect
 from staff.admin_forms import AdminTurnstileAuthenticationForm
 
 admin.site.login_form = AdminTurnstileAuthenticationForm
@@ -102,7 +105,12 @@ urlpatterns = [
         name="wagtail-publish-scheduled",
     ),
     path("healthz/", healthcheck, name="healthcheck"),
-    path("sitemap.xml", sitemap, name="sitemap"),
+    path("robots.txt", robots_txt, name="robots-txt"),
+    path("sitemap.xml", sitemap_index, name="sitemap"),
+    path("sitemap-wagtail.xml", sitemap, name="sitemap-wagtail"),
+    path("sitemap-pages.xml", core_sitemap, name="sitemap-pages"),
+    path("sitemap-products.xml", product_sitemap, name="sitemap-products"),
+    path("sitemap-blog.xml", blog_sitemap, name="sitemap-blog"),
     path("media-proxy/<path:path>", private_media_proxy, name="private-media-proxy"),
     path("service-worker.js", service_worker, name="service-worker"),
     path("admin/quick-toggle/", toggle_boolean_field, name="admin-quick-toggle"),
@@ -116,6 +124,9 @@ urlpatterns = [
     path("admin/dj-signals-panel/", include("dj_signals_panel.urls")),
     path("admin/dj-error-panel/", include("dj_error_panel.urls")),
     path("admin/dj-control-room/", include("dj_control_room.urls")),
+    path("admin/seo-center/", admin.site.admin_view(seo_dashboard), name="seo-dashboard"),
+    path("admin/seo-center/search-console/connect/", admin.site.admin_view(search_console_connect), name="seo-search-console-connect"),
+    path("admin/seo-center/search-console/callback/", admin.site.admin_view(search_console_callback), name="seo-search-console-callback"),
     path("admin/account/", admin.site.admin_view(staff_account), name="staff-account"),
     path("admin/", admin.site.urls),
     path("api", api_index, name="admin-api-index"),

@@ -1,0 +1,130 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Nebula SEO Center{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>Nebula SEO Center</h1>
+  <p>Technical SEO audit history and current findings for the public website.</p>
+
+  <div class="module">
+    <h2>Google Search Console</h2>
+    {% if search_console %}
+      <p><strong>Connected property:</strong> {{ search_console.connection.site_url }}</p>
+      <p><strong>Last sync:</strong> {{ search_console.connection.last_synced_at|default:"Not synced yet" }}</p>
+      <p><strong>Clicks (stored daily data):</strong> {{ search_console.clicks }} &nbsp; <strong>Impressions:</strong> {{ search_console.impressions }}</p>
+      {% if search_console.connection.last_sync_error %}
+        <p class="errornote">{{ search_console.connection.last_sync_error }}</p>
+      {% endif %}
+      <h3>Daily search performance</h3>
+      <table>
+        <thead><tr><th>Date (Pacific)</th><th>Clicks</th><th>Impressions</th><th>CTR</th><th>Average position</th></tr></thead>
+        <tbody>
+          {% for metric in search_console.daily_metrics %}
+          <tr><td>{{ metric.date }}</td><td>{{ metric.clicks|floatformat:0 }}</td><td>{{ metric.impressions|floatformat:0 }}</td><td>{{ metric.ctr|floatformat:4 }}</td><td>{{ metric.position|floatformat:1 }}</td></tr>
+          {% empty %}<tr><td colspan="5">No Search Console data has been synced yet.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+      <h3>Top search queries (stored rows)</h3>
+      <table>
+        <thead><tr><th>Query</th><th>Clicks</th><th>Impressions</th></tr></thead>
+        <tbody>{% for item in search_console.top_queries %}<tr><td>{{ item.dimension_value }}</td><td>{{ item.clicks|floatformat:0 }}</td><td>{{ item.impressions|floatformat:0 }}</td></tr>{% empty %}<tr><td colspan="3">No query data available.</td></tr>{% endfor %}</tbody>
+      </table>
+      <h3>Top pages from Google Search</h3>
+      <table>
+        <thead><tr><th>Page</th><th>Clicks</th><th>Impressions</th></tr></thead>
+        <tbody>{% for item in search_console.top_pages %}<tr><td><a href="{{ item.dimension_value }}" target="_blank" rel="noopener noreferrer">{{ item.dimension_value }}</a></td><td>{{ item.clicks|floatformat:0 }}</td><td>{{ item.impressions|floatformat:0 }}</td></tr>{% empty %}<tr><td colspan="3">No page data available.</td></tr>{% endfor %}</tbody>
+      </table>
+      <p>Data is limited to the rows returned by Google Search Console. The API may omit lower-ranked rows; stored query and page totals are not guaranteed to equal the property-wide totals.</p>
+    {% else %}
+      <p>No Search Console property is connected.</p>
+      {% if google_oauth_configured %}
+      <form method="post" action="{% url 'seo-search-console-connect' %}">
+        {% csrf_token %}
+        <label for="gsc-site-url">Search Console property</label>
+        <input id="gsc-site-url" name="site_url" type="text" required placeholder="https://mydigigi.ir/ or sc-domain:mydigigi.ir" style="min-width: 320px; max-width: 100%;">
+        <button type="submit" class="button">Connect Google Search Console</button>
+      </form>
+      {% else %}
+      <p>Configure GOOGLE_SEARCH_CONSOLE_CLIENT_ID and GOOGLE_SEARCH_CONSOLE_CLIENT_SECRET in the server environment to enable OAuth.</p>
+      {% endif %}
+    {% endif %}
+    <p><code>python manage.py sync_search_console --days 28</code></p>
+  </div>
+
+  <div class="module">
+    <h2>Overview</h2>
+    <table>
+      <tbody>
+        <tr><th>Total audit runs</th><td>{{ total_runs }}</td></tr>
+        <tr><th>Queued or running</th><td>{{ active_runs }}</td></tr>
+        <tr><th>Latest audit</th><td>{% if latest_run %}#{{ latest_run.pk }} — {{ latest_run.get_status_display }}{% else %}No audit has run yet{% endif %}</td></tr>
+        <tr><th>Pages scanned</th><td>{% if latest_run %}{{ latest_run.pages_scanned }}{% else %}—{% endif %}</td></tr>
+        <tr><th>Findings in latest audit</th><td>{% if latest_run %}{{ latest_run.issues_count }}{% else %}—{% endif %}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  {% if latest_run %}
+  <div class="module">
+    <h2>Latest audit findings by severity</h2>
+    <table>
+      <tbody>
+        <tr><th>Critical</th><td>{{ severity_counts.critical|default:0 }}</td></tr>
+        <tr><th>Errors</th><td>{{ severity_counts.error|default:0 }}</td></tr>
+        <tr><th>Warnings</th><td>{{ severity_counts.warning|default:0 }}</td></tr>
+        <tr><th>Informational</th><td>{{ severity_counts.info|default:0 }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="module">
+    <h2>Recent findings</h2>
+    <table>
+      <thead><tr><th>Severity</th><th>Issue</th><th>URL</th><th>Recommendation</th></tr></thead>
+      <tbody>
+        {% for issue in latest_issues %}
+        <tr>
+          <td>{{ issue.get_severity_display }}</td>
+          <td>{{ issue.title }}</td>
+          <td><a href="{{ issue.url }}" target="_blank" rel="noopener noreferrer">{{ issue.url }}</a></td>
+          <td>{{ issue.recommendation|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No findings were recorded in the latest audit.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p><a href="{% url 'admin:seo_seoauditissue_changelist' %}">View all audit issues</a></p>
+  </div>
+  {% endif %}
+
+  <div class="module">
+    <h2>Recent audit runs</h2>
+    <table>
+      <thead><tr><th>Run</th><th>Status</th><th>Pages</th><th>Issues</th><th>Created</th></tr></thead>
+      <tbody>
+        {% for run in recent_runs %}
+        <tr>
+          <td><a href="{% url 'admin:seo_seoauditrun_change' run.pk %}">#{{ run.pk }}</a></td>
+          <td>{{ run.get_status_display }}</td>
+          <td>{{ run.pages_scanned }}</td>
+          <td>{{ run.issues_count }}</td>
+          <td>{{ run.created_at }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No audit runs yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p><a href="{% url 'admin:seo_seoauditrun_changelist' %}">View all audit runs</a></p>
+  </div>
+
+  <div class="module">
+    <h2>Run a technical audit</h2>
+    <p>Audits are run from the application environment, not during an admin page request.</p>
+    <pre>python manage.py run_seo_audit --max-pages 150 --timeout 8 --max-duration 180</pre>
+    <p>For a retry of an existing run, use <code>--run-id RUN_ID</code>.</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,5 +1,9 @@
 name: Licensing tests
 
+concurrency:
+  group: licensing-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [deploy/render-ready, refactor/staff-app, feat/django-login-failed-attempt-throttle]
