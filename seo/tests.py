@@ -89,6 +89,23 @@ class SEOCrawlerTests(SimpleTestCase):
         self.assertIn("images-missing-alt", issue_codes)
         self.assertFalse(any("external.example" in url for url in fetcher.calls))
 
+    def test_crawler_reports_missing_robots_and_unavailable_sitemap(self):
+        home = b"""<html><head><title>Home</title></head><body></body></html>"""
+        fetcher = StubFetcher({
+            "https://mydigigi.ir/robots.txt": (404, "text/plain", b""),
+            "https://mydigigi.ir/sitemap.xml": (503, "application/xml", b""),
+            "https://mydigigi.ir/": (200, "text/html", home),
+        })
+        result = SiteCrawler(
+            base_url="https://mydigigi.ir",
+            fetcher=fetcher,
+            request_delay=0,
+        ).crawl()
+
+        issue_codes = {issue["code"] for issue in result["issues"]}
+        self.assertIn("robots-not-found", issue_codes)
+        self.assertIn("sitemap-http-error", issue_codes)
+
     def test_robots_disallow_rules_are_respected(self):
         home = b"""<html><head><title>Home</title></head><body>
         <a href="/private-preview/">Private</a><a href="/products/">Products</a>
