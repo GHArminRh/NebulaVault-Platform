@@ -598,7 +598,7 @@ class SiteCrawler:
         if not parser.canonical:
             self._add_issue(url, "missing-canonical", "warning", "Page has no canonical link", recommendation="Add a canonical URL when the page should have a preferred indexable URL.")
         else:
-            canonical_url = urljoin(url, parser.canonical)
+            canonical_url = urljoin(self._display_url(url), parser.canonical)
             canonical_parts = urlsplit(canonical_url)
             if (canonical_parts.scheme.lower(), (canonical_parts.hostname or "").lower(), canonical_parts.port or self._default_port(canonical_parts.scheme)) != self.public_origin:
                 self._add_issue(url, "external-canonical", "error", "Canonical URL points outside the site", canonical_url, "Use a canonical URL on the intended public site origin.")
