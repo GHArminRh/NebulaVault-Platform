@@ -77,6 +77,33 @@ test('homepage declares Persian RTL document metadata', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('lang', 'fa');
 });
 
+test('deferred feature modules use Django static asset URLs', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  const moduleUrls = await page.locator('body').evaluate((body) => ({
+    auth: body.dataset.authUiSrc,
+    sections: body.dataset.sectionNavigationSrc,
+    effects: body.dataset.visualEffectsSrc,
+  }));
+
+  expect(moduleUrls.auth).toMatch(/\\/static\\/portal\\/js\\/auth-ui(?:\\.[a-f0-9]{12})?\\.js$/);
+  expect(moduleUrls.sections).toMatch(
+    /\\/static\\/portal\\/js\\/section-navigation(?:\\.[a-f0-9]{12})?\\.js$/
+  );
+  expect(moduleUrls.effects).toMatch(
+    /\\/static\\/portal\\/js\\/visual-effects(?:\\.[a-f0-9]{12})?\\.js$/
+  );
+});
+
+test('catalog and pricing pages expose a semantic section heading', async ({ page }) => {
+  for (const [route, expectedHeading] of [
+    ['/products/', 'فهرست محصولات'],
+    ['/pricing/', 'طرح‌های اشتراک'],
+  ]) {
+    await page.goto(route, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('h2.nv-visually-hidden')).toHaveText(expectedHeading);
+  }
+});
+
 test('registration form is visible and usable on narrow mobile screens', async ({ page }) => {
   for (const width of [320, 375, 390]) {
     await page.setViewportSize({ width, height: 844 });
