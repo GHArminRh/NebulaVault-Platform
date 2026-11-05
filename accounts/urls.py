@@ -7,7 +7,7 @@ from .forms import AccountPasswordResetForm, AccountSetPasswordForm
 app_name = "accounts"
 
 urlpatterns = [
-    path("social/<str:provider>/<str:flow>/", social_views.social_start, name="social_start"),
+    path("social/<str:provider>/<str:flow>/start/", social_views.social_start, name="social_start"),
     path("social/<str:provider>/callback/", social_views.social_callback, name="social_callback"),
     path("register/", views.register, name="register"),
     path("verify/<str:uidb64>/<str:token>/", views.verify_email, name="verify_email"),
