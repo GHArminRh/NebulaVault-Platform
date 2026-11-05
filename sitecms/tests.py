@@ -667,5 +667,14 @@ class CanonicalSiteURLTests(TestCase):
             "/static/portal/img/pwa-icon-192.svg",
         )
 
+    def test_render_service_hostname_resolves_to_default_wagtail_site(self):
+        request = RequestFactory().get(
+            "/",
+            HTTP_HOST="nebula-vault-oesn.onrender.com",
+        )
+
+        default_site = Site.objects.get(is_default_site=True)
+        self.assertEqual(Site.find_for_request(request), default_site)
+
     def test_wagtail_admin_base_url_uses_canonical_site_setting(self):
         self.assertEqual(settings.WAGTAILADMIN_BASE_URL, settings.SITE_BASE_URL)
