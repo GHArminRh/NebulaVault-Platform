@@ -98,7 +98,25 @@
           <article class="nv-blog-card">
             <a class="nv-blog-cover" href="{% url 'blog:post_detail' post.slug %}">
               {% if post.img %}
-                <img src="{{ post.img.url }}" alt="{{ post.title }}" loading="lazy">
+                {% if forloop.first %}
+                  <img
+                    src="{{ post.img.url }}"
+                    alt="{{ post.title }}"
+                    width="{{ post.img.width }}"
+                    height="{{ post.img.height }}"
+                    loading="eager"
+                    fetchpriority="high"
+                  >
+                {% else %}
+                  <img
+                    src="{{ post.img.url }}"
+                    alt="{{ post.title }}"
+                    width="{{ post.img.width }}"
+                    height="{{ post.img.height }}"
+                    loading="lazy"
+                    decoding="async"
+                  >
+                {% endif %}
               {% else %}
                 <span class="nv-blog-cover-placeholder">◇<small>NEBULA JOURNAL</small></span>
               {% endif %}
