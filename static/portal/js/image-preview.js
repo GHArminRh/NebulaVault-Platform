@@ -124,9 +124,7 @@
     const currentDisplay = currentLink.closest('p') || currentLink;
 
     const fileInput = fileUpload.querySelector('input[type="file"]');
-    const label = fileUpload.querySelector(
-      'label[for="' + clearInput.id + '"]'
-    );
+    const label = fileUpload.querySelector('label[for="' + clearInput.id + '"]');
     const control = document.createElement('span');
     control.className = 'nv-image-clear-control';
 
@@ -140,18 +138,9 @@
     icon.setAttribute('viewBox', '0 0 24 24');
     icon.setAttribute('aria-hidden', 'true');
     icon.setAttribute('focusable', 'false');
-    const paths = [
-      'M3 6h18',
-      'M8 6V4h8v2',
-      'm19 6-1 14H6L5 6',
-      'M10 11v5',
-      'M14 11v5',
-    ];
+    const paths = ['M3 6h18', 'M8 6V4h8v2', 'm19 6-1 14H6L5 6', 'M10 11v5', 'M14 11v5'];
     paths.forEach((pathData) => {
-      const path = document.createElementNS(
-        'http://www.w3.org/2000/svg',
-        'path'
-      );
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', pathData);
       icon.append(path);
     });
