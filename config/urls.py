@@ -29,6 +29,7 @@ from seo.audit_run_views import seo_audit_run_now
 from seo.search_console_views import search_console_callback, search_console_connect
 from seo.search_console_sync_views import search_console_sync_now
 from staff.admin_forms import AdminTurnstileAuthenticationForm
+from config.temporary_redis_probe import temporary_redis_cache_probe
 
 admin.site.login_form = AdminTurnstileAuthenticationForm
 
@@ -110,6 +111,7 @@ def api_index(request):
 
 
 urlpatterns = [
+    path("__ops/cache-probe-9f4b7c2e81d6a305f0c9b7e2a64d18f3c8a1e5b907d2f6a4c1e8b3d5f7092a6c/", temporary_redis_cache_probe, name="temporary-redis-cache-probe"),
     path(
         "internal/cron/wagtail/publish-scheduled/",
         publish_scheduled_pages,
