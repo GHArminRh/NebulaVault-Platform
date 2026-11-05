@@ -1,10 +1,10 @@
-{% extends "portal/base.html" %}{% load money rich_text %}{% block title %}{{ product.seo_title|default:product.name }} — نبیولا والت{% endblock %}{% block meta_description %}{{ product.seo_description|default:product.description|striptags|truncatechars:160 }}{% endblock %}{% block og_title %}{{ product.seo_title|default:product.name }}{% endblock %}{% block og_description %}{{ product.seo_description|default:product.description|striptags|truncatechars:160 }}{% endblock %}{% block twitter_title %}{{ product.seo_title|default:product.name }}{% endblock %}{% block twitter_description %}{{ product.seo_description|default:product.description|striptags|truncatechars:160 }}{% endblock %}{% block content %}
+{% extends "portal/base.html" %}{% load money rich_text %}{% block title %}{{ product.seo_title|default:product.name }} — نبیولا والت{% endblock %}{% block meta_description %}{{ product.seo_description|default:product.description|default:'مشخصات، قابلیت‌ها، طرح‌ها و نسخه‌های نرم‌افزار را در نبیولا والت بررسی کنید.'|striptags|truncatechars:160 }}{% endblock %}{% block og_title %}{{ product.seo_title|default:product.name }}{% endblock %}{% block og_description %}{{ product.seo_description|default:product.description|default:'مشخصات، قابلیت‌ها، طرح‌ها و نسخه‌های نرم‌افزار را در نبیولا والت بررسی کنید.'|striptags|truncatechars:160 }}{% endblock %}{% block twitter_title %}{{ product.seo_title|default:product.name }}{% endblock %}{% block twitter_description %}{{ product.seo_description|default:product.description|default:'مشخصات، قابلیت‌ها، طرح‌ها و نسخه‌های نرم‌افزار را در نبیولا والت بررسی کنید.'|striptags|truncatechars:160 }}{% endblock %}{% block content %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "{{ product.name|escapejs }}",
-  "description": "{{ product.seo_description|default:product.description|striptags|truncatechars:300|escapejs }}",
+  "description": "{{ product.seo_description|default:product.description|default:'مشخصات، قابلیت‌ها، طرح‌ها و نسخه‌های نرم‌افزار را در نبیولا والت بررسی کنید.'|striptags|truncatechars:300|escapejs }}",
   "url": "{{ seo_canonical_url|escapejs }}"
 }
 </script><section class="product-hero page-wrap"

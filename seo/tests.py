@@ -89,6 +89,23 @@ class SEOCrawlerTests(SimpleTestCase):
         self.assertIn("images-missing-alt", issue_codes)
         self.assertFalse(any("external.example" in url for url in fetcher.calls))
 
+    def test_crawler_reports_missing_robots_and_unavailable_sitemap(self):
+        home = b"""<html><head><title>Home</title></head><body></body></html>"""
+        fetcher = StubFetcher({
+            "https://mydigigi.ir/robots.txt": (404, "text/plain", b""),
+            "https://mydigigi.ir/sitemap.xml": (503, "application/xml", b""),
+            "https://mydigigi.ir/": (200, "text/html", home),
+        })
+        result = SiteCrawler(
+            base_url="https://mydigigi.ir",
+            fetcher=fetcher,
+            request_delay=0,
+        ).crawl()
+
+        issue_codes = {issue["code"] for issue in result["issues"]}
+        self.assertIn("robots-not-found", issue_codes)
+        self.assertIn("sitemap-http-error", issue_codes)
+
     def test_robots_disallow_rules_are_respected(self):
         home = b"""<html><head><title>Home</title></head><body>
         <a href="/private-preview/">Private</a><a href="/products/">Products</a>
@@ -260,6 +277,64 @@ class SEODashboardTests(TestCase):
         changelist = self.client.get("/admin/seo/seoauditrun/")
         self.assertEqual(changelist.status_code, 200)
         self.assertContains(changelist, "SEO Center dashboard")
+
+    def test_staff_can_run_technical_audit_from_dashboard(self):
+        from unittest.mock import ANY, patch
+
+        staff = get_user_model().objects.create_superuser(
+            username="seo-run-admin",
+            email="seo-run-admin@example.invalid",
+            password="test-password",
+        )
+        self.client.force_login(
+            staff,
+            backend="django.contrib.auth.backends.ModelBackend",
+        )
+
+        with patch("seo.audit_run_views.call_command") as call_command:
+            response = self.client.post("/admin/seo-center/audit/run/")
+
+        self.assertRedirects(response, "/admin/seo-center/")
+        call_command.assert_called_once_with(
+            "run_seo_audit",
+            max_pages=100,
+            timeout=8,
+            request_delay=0.2,
+            max_duration=60,
+            stdout=ANY,
+        )
+
+    def test_technical_audit_action_rejects_get_requests(self):
+        staff = get_user_model().objects.create_superuser(
+            username="seo-run-get-admin",
+            email="seo-run-get-admin@example.invalid",
+            password="test-password",
+        )
+        self.client.force_login(
+            staff,
+            backend="django.contrib.auth.backends.ModelBackend",
+        )
+
+        response = self.client.get("/admin/seo-center/audit/run/")
+
+        self.assertEqual(response.status_code, 405)
+
+    def test_admin_app_index_links_directly_to_seo_center_dashboard(self):
+        staff = get_user_model().objects.create_superuser(
+            username="seo-index-admin",
+            email="seo-index-admin@example.invalid",
+            password="test-password",
+        )
+        self.client.force_login(
+            staff,
+            backend="django.contrib.auth.backends.ModelBackend",
+        )
+
+        response = self.client.get("/admin/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "SEO Center dashboard")
+        self.assertContains(response, 'href="/admin/seo-center/"')
 
 
 class SearchConsoleHelperTests(SimpleTestCase):

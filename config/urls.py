@@ -24,6 +24,7 @@ from sitecms.media_proxy import private_media_proxy
 from sitecms.cron_views import publish_scheduled_pages
 from seo.views import blog_sitemap, core_sitemap, product_sitemap, robots_txt, sitemap_index
 from seo.admin_views import seo_dashboard
+from seo.audit_run_views import seo_audit_run_now
 from seo.search_console_views import search_console_callback, search_console_connect
 from seo.search_console_sync_views import search_console_sync_now
 from staff.admin_forms import AdminTurnstileAuthenticationForm
@@ -126,6 +127,7 @@ urlpatterns = [
     path("admin/dj-error-panel/", include("dj_error_panel.urls")),
     path("admin/dj-control-room/", include("dj_control_room.urls")),
     path("admin/seo-center/", admin.site.admin_view(seo_dashboard), name="seo-dashboard"),
+    path("admin/seo-center/audit/run/", admin.site.admin_view(seo_audit_run_now), name="seo-audit-run-now"),
     path("admin/seo-center/search-console/connect/", admin.site.admin_view(search_console_connect), name="seo-search-console-connect"),
     path("admin/seo-center/search-console/callback/", admin.site.admin_view(search_console_callback), name="seo-search-console-callback"),
     path("admin/seo-center/search-console/sync/", admin.site.admin_view(search_console_sync_now), name="seo-search-console-sync"),
