@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET
-from wagtail.models import Page
+from wagtail.models import Site
 
 from blog.models import BlogPost
 from catalog.models import Product
@@ -43,8 +43,14 @@ def _urlset(entries):
 
 
 def _has_public_wagtail_pages():
-    """Return whether Wagtail has any live, public pages beyond the global root."""
-    return Page.objects.live().public().filter(depth__gt=1).exists()
+    """Return whether the active Wagtail site has sitemap-eligible descendants."""
+    site = Site.objects.filter(is_default_site=True).select_related("root_page").first()
+    if site is None:
+        return False
+    # Wagtail's sitemap view lists descendants of the site's root page, not
+    # the root page itself. Match that scope so the index never advertises an
+    # empty Wagtail sitemap when the only page is the configured homepage.
+    return site.root_page.get_descendants().live().public().exists()
 
 
 @require_GET
