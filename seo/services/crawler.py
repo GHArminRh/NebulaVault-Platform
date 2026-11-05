@@ -6,6 +6,8 @@ import ipaddress
 import re
 import socket
 import time
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 from html.parser import HTMLParser
@@ -145,6 +147,7 @@ class SiteCrawler:
         self.origin = (parsed.scheme.lower(), parsed.hostname.lower(), parsed.port or self._default_port(parsed.scheme))
         self.origin_root = urlunsplit((parsed.scheme, parsed.netloc, "/", "", ""))
         self._last_request_at = 0
+        self._last_response_metadata = {}
         self._issues = []
         self._issue_keys = set()
         self._robots_rules = []
