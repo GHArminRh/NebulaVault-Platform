@@ -1,8 +1,21 @@
 name: Public frontend browser tests
 
-# Full browser regression is intentionally manual because it is relatively slow.
-# Run it from GitHub Actions -> Public frontend browser tests -> Run workflow.
+# Run full browser regression on pull requests and allow manual reruns.
 on:
+  pull_request:
+    branches:
+      - deploy/render-ready
+    paths:
+      - "frontend/**"
+      - "static/portal/**"
+      - "templates/portal/**"
+      - "accounts/templates/**"
+      - "accounts/static/**"
+      - "tests/e2e/**"
+      - "playwright.config.js"
+      - ".github/workflows/frontend-browser-tests.yml"
+      - "package.json"
+      - "package-lock.json"
   workflow_dispatch:
 
 permissions:
@@ -14,7 +27,7 @@ concurrency:
 
 jobs:
   browser:
-    name: Browser regression (Chromium + WebKit)
+    name: Browser regression (Chromium + Firefox + WebKit)
     runs-on: ubuntu-latest
     timeout-minutes: 35
     services:
@@ -118,8 +131,8 @@ jobs:
       - name: Install locked browser-test dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Install Chromium and WebKit
-        run: npx playwright install --with-deps chromium webkit
+      - name: Install Chromium, Firefox, and WebKit
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Run browser regression suite
         run: npm run test:e2e
