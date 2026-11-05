@@ -6,7 +6,8 @@ from django.shortcuts import redirect, render
 from django.urls import include, path, reverse
 from django.conf import settings
 from django.conf.urls.static import static
-from django.http import HttpResponse
+from django.contrib.staticfiles.storage import staticfiles_storage
+from django.http import HttpResponse, HttpResponsePermanentRedirect
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from wagtail import urls as wagtail_urls
@@ -64,6 +65,14 @@ def healthcheck(request):
     return HttpResponse("ok", content_type="text/plain")
 
 
+def favicon_redirect(request):
+    try:
+        icon_url = staticfiles_storage.url("portal/img/pwa-icon-192.svg")
+    except ValueError:
+        icon_url = "/static/portal/img/pwa-icon-192.svg"
+    return HttpResponsePermanentRedirect(icon_url)
+
+
 @admin_page_required
 def api_index(request):
     """Private API route directory for authenticated staff members."""
@@ -107,6 +116,7 @@ urlpatterns = [
         name="wagtail-publish-scheduled",
     ),
     path("healthz/", healthcheck, name="healthcheck"),
+    path("favicon.ico", favicon_redirect, name="favicon"),
     path("robots.txt", robots_txt, name="robots-txt"),
     path("sitemap.xml", sitemap_index, name="sitemap"),
     path("sitemap-wagtail.xml", sitemap, name="sitemap-wagtail"),
