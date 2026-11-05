@@ -67,7 +67,10 @@
   </head>
   <body class="nv-portal {% block body_class %} {% endblock %}"
       data-ga4-id="{{ ga4_measurement_id|default:'' }}"
-      data-ga4-pending-event="{{ ga4_pending_event|default:'' }}">
+      data-ga4-pending-event="{{ ga4_pending_event|default:'' }}"
+      data-auth-ui-src="{% static 'portal/js/auth-ui.js' %}"
+      data-section-navigation-src="{% static 'portal/js/section-navigation.js' %}"
+      data-visual-effects-src="{% static 'portal/js/visual-effects.js' %}">
     <div class="nv-page-progress"
          role="progressbar"
          aria-label="وضعیت بارگذاری صفحه"
