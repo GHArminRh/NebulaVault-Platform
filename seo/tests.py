@@ -65,7 +65,7 @@ class SEOCrawlerTests(SimpleTestCase):
 
         render_url = "https://nebula-vault-oesn.onrender.com"
         fetcher = StubFetcher({
-            f"{render_url}/robots.txt": (200, "text/plain", b"User-agent: *\\nAllow: /\\n"),
+            f"{render_url}/robots.txt": (200, "text/plain", b"User-agent: *\nAllow: /\n"),
         })
         with patch.dict(
             "os.environ",
