@@ -3,10 +3,10 @@
 services:
   - type: keyvalue
     name: nebula-vault-celery-queue
-    plan: free
+    plan: 256mb
     region: oregon
     maxmemoryPolicy: noeviction
-    persistenceMode: off
+    persistenceMode: journal-snapshot
     ipAllowList: []
 
   - type: worker
