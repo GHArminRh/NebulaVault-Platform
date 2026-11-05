@@ -163,6 +163,7 @@ TEMPLATES = [
                 "portal.context_processors.cart_context",
                 "portal.context_processors.analytics_context",
                 "accounts.context_processors.turnstile",
+                "accounts.context_processors.social_auth",
                 "portal.context_processors.algolia_search_context",
                 "seo.context_processors.seo_context",
             ],
@@ -203,6 +204,12 @@ LANGUAGE_CODE = "fa"
 SITE_ID = 1
 
 TERMS_VERSION = os.environ.get("TERMS_VERSION", "2026-11-04")
+
+# Customer Google OAuth is separate from the Search Console integration.
+GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "").strip()
+GOOGLE_OAUTH_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "").strip()
+SOCIAL_AUTH_GOOGLE_ENABLED = bool(GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET)
+SOCIAL_AUTH_APPLE_ENABLED = False
 
 X_FRAME_OPTIONS = "SAMEORIGIN"
 LANGUAGES = [("en", "English"), ("fa", "Persian")]
