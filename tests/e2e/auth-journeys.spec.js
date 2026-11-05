@@ -146,7 +146,7 @@ test.describe('authentication experience', () => {
     await expect(emailCode).toBeVisible();
   });
 
-  test('POST submission shows one loading indicator and blocks duplicate submits', async ({
+  test('POST submission uses the shared progress bar and blocks duplicate submits', async ({
     page,
   }) => {
     await page.goto('/accounts/login/');
@@ -164,12 +164,15 @@ test.describe('authentication experience', () => {
     const submit = form.locator('button[type="submit"]');
     await expect(form).toHaveAttribute('aria-busy', 'true');
     await expect(submit).toBeDisabled();
-    await expect(submit.locator('.nv-button-spinner')).toHaveCount(1);
+    const progress = page.locator('.nv-page-progress');
+    await expect(progress).toHaveCount(1);
+    await expect(progress).toHaveClass(/is-loading/);
 
     await form.evaluate((element) =>
       element.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
     );
-    await expect(submit.locator('.nv-button-spinner')).toHaveCount(1);
+    await expect(form).toHaveAttribute('data-submitting', 'true');
+    await expect(progress).toHaveCount(1);
   });
 
   test('login and registration flip-card switches the active face without losing the route', async ({
