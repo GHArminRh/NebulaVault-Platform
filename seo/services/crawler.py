@@ -8,6 +8,8 @@ import socket
 import time
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlsplit, urlunsplit
@@ -145,6 +147,7 @@ class SiteCrawler:
         self.origin = (parsed.scheme.lower(), parsed.hostname.lower(), parsed.port or self._default_port(parsed.scheme))
         self.origin_root = urlunsplit((parsed.scheme, parsed.netloc, "/", "", ""))
         self._last_request_at = 0
+        self._last_response_metadata = {}
         self._issues = []
         self._issue_keys = set()
         self._robots_rules = []
@@ -195,11 +198,59 @@ class SiteCrawler:
             if not ip.is_global:
                 raise CrawlError("Crawler refused a host that resolves to a non-public IP address.")
 
+    @staticmethod
+    def _safe_response_headers(headers):
+        """Keep only non-sensitive headers useful for diagnosing proxy responses."""
+        names = (
+            "Server",
+            "CF-Ray",
+            "CF-Mitigated",
+            "CF-Cache-Status",
+            "Retry-After",
+            "Content-Type",
+            "Via",
+            "X-Request-ID",
+        )
+        return {
+            name.lower(): str(headers.get(name, ""))[:200]
+            for name in names
+            if headers.get(name)
+        }
+
+    @staticmethod
+    def _retry_delay(status, headers):
+        """Return a safe retry delay, or None when Retry-After is too long."""
+        retry_after = headers.get("Retry-After") if headers else None
+        if retry_after:
+            try:
+                delay = max(0.0, float(retry_after))
+            except (TypeError, ValueError):
+                try:
+                    retry_at = parsedate_to_datetime(str(retry_after))
+                    if retry_at.tzinfo is None:
+                        retry_at = retry_at.replace(tzinfo=timezone.utc)
+                    delay = max(0.0, (retry_at - datetime.now(timezone.utc)).total_seconds())
+                except (TypeError, ValueError, OverflowError):
+                    delay = 1.0
+            # Do not keep a web request open for a long server-imposed cooldown.
+            # Record the response and let the operator decide when to retry.
+            return delay if delay <= 2.0 else None
+        return 1.0 if status == 429 else 0.25
+
+    def _http_diagnostics(self, status, final_url):
+        parts = [f"HTTP {status}", f"Final URL: {final_url}"]
+        parts.extend(
+            f"{name}: {value}"
+            for name, value in self._last_response_metadata.items()
+        )
+        return "; ".join(parts)
+
     def _fetch(self, url, accept="text/html,application/xhtml+xml"):
-        """Fetch with one retry for transient network and upstream failures."""
+        """Fetch with one bounded retry and retain safe response diagnostics."""
         if not self.fetcher:
             self._validate_public_host()
 
+        self._last_response_metadata = {}
         retryable_statuses = {429, 500, 502, 503, 504, 520, 521, 522, 523, 524}
         for attempt in range(2):
             elapsed = time.monotonic() - self._last_request_at
@@ -208,11 +259,16 @@ class SiteCrawler:
             try:
                 if self.fetcher:
                     result = self.fetcher(url, accept=accept)
-                    if result[0] in retryable_statuses and attempt == 0:
-                        time.sleep(0.25)
-                        continue
+                    headers = result[4] if len(result) > 4 and isinstance(result[4], dict) else {}
+                    status = result[0]
+                    self._last_response_metadata = self._safe_response_headers(headers)
                     self._last_request_at = time.monotonic()
-                    return result
+                    if status in retryable_statuses and attempt == 0:
+                        delay = self._retry_delay(status, headers)
+                        if delay is not None:
+                            time.sleep(delay)
+                            continue
+                    return result[:4]
 
                 request = Request(
                     url,
@@ -226,13 +282,23 @@ class SiteCrawler:
                 try:
                     response = opener.open(request, timeout=self.timeout)
                 except HTTPError as exc:
+                    headers = exc.headers or {}
+                    self._last_response_metadata = self._safe_response_headers(headers)
+                    self._last_request_at = time.monotonic()
                     if exc.code in retryable_statuses and attempt == 0:
-                        exc.close()
-                        time.sleep(0.25)
-                        continue
-                    return exc.code, exc.headers.get("Content-Type", ""), b"", exc.geturl()
+                        delay = self._retry_delay(exc.code, headers)
+                        if delay is not None:
+                            exc.close()
+                            time.sleep(delay)
+                            continue
+                    status = exc.code
+                    content_type = headers.get("Content-Type", "")
+                    final_url = exc.geturl()
+                    exc.close()
+                    return status, content_type, b"", final_url
 
                 with response:
+                    self._last_response_metadata = self._safe_response_headers(response.headers)
                     content_type = response.headers.get("Content-Type", "").lower()
                     body = response.read(self.max_response_bytes + 1)
                     if len(body) > self.max_response_bytes:
@@ -240,6 +306,7 @@ class SiteCrawler:
                     self._last_request_at = time.monotonic()
                     return response.status, content_type, body, response.geturl()
             except (URLError, OSError, TimeoutError) as exc:
+                self._last_request_at = time.monotonic()
                 if attempt == 0:
                     time.sleep(0.25)
                     continue
@@ -295,7 +362,7 @@ class SiteCrawler:
                 "robots-http-error",
                 "warning",
                 "robots.txt returned an HTTP error",
-                f"HTTP {status}",
+                self._http_diagnostics(status, final_url),
                 "Return a valid robots.txt response or intentionally configure the route.",
             )
             return []
@@ -365,7 +432,7 @@ class SiteCrawler:
                     "sitemap-http-error",
                     "warning",
                     f"Sitemap returned HTTP {status}",
-                    f"HTTP {status}",
+                    self._http_diagnostics(status, final_url),
                     "Fix the sitemap endpoint or remove the unavailable sitemap from the sitemap index.",
                 )
                 continue
@@ -417,7 +484,7 @@ class SiteCrawler:
                 "http-error",
                 "error" if status >= 500 else "warning",
                 f"Page returned HTTP {status}",
-                f"Final URL: {final_url}",
+                self._http_diagnostics(status, final_url),
                 "Fix the response or update internal links that point to this URL.",
             )
             return []
