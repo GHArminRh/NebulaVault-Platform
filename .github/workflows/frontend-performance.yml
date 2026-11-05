@@ -1,0 +1,59 @@
+name: Public frontend performance audit
+
+on:
+  push:
+    branches:
+      - deploy/render-ready
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-performance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  wait-for-production:
+    name: Wait for the latest Render deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Wait until the production health endpoint responds
+        run: |
+          for attempt in $(seq 1 48); do
+            if curl --fail --silent --show-error https://nebula-vault-oesn.onrender.com/healthz/ >/dev/null; then
+              echo "Production health endpoint is responding."
+              exit 0
+            fi
+            echo "Production is not ready yet (attempt ${attempt}/48)."
+            sleep 15
+          done
+          echo "Production did not become healthy within 12 minutes."
+          exit 1
+
+  lighthouse:
+    name: Lighthouse mobile and desktop
+    needs: wait-for-production
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        device: [mobile, desktop]
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Audit production pages with Lighthouse
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            https://nebula-vault-oesn.onrender.com/
+            https://nebula-vault-oesn.onrender.com/products/
+            https://nebula-vault-oesn.onrender.com/pricing/
+            https://nebula-vault-oesn.onrender.com/accounts/login/
+            https://nebula-vault-oesn.onrender.com/blog/
+          runs: 3
+          configPath: ${{ matrix.device == 'desktop' && './.lighthouserc.desktop.json' || './.lighthouserc.json' }}
+          uploadArtifacts: true

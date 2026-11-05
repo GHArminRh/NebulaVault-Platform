@@ -1,0 +1,228 @@
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.65 var(--font);
+}
+body.nv-portal {
+  overflow-x: clip;
+}
+body:before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -2;
+  background:
+    radial-gradient(ellipse at 12% 5%, rgba(76, 67, 161, 0.16), transparent 34%),
+    radial-gradient(ellipse at 90% 28%, rgba(38, 139, 160, 0.09), transparent 28%),
+    linear-gradient(180deg, #0a0e1c, #090d19 60%, #0b1020);
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button,
+input {
+  font: inherit;
+}
+button {
+  color: inherit;
+  cursor: pointer;
+}
+.page-wrap {
+  width: min(1160px, calc(100% - 56px));
+  margin-inline: auto;
+}
+.ambient {
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  filter: blur(110px);
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: -1;
+}
+.ambient-one {
+  top: 180px;
+  left: -180px;
+  background: #6f60ff;
+}
+.ambient-two {
+  top: 650px;
+  right: -180px;
+  background: #34bdc9;
+}
+.site-header {
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  width: min(1320px, calc(100% - 56px));
+  margin: auto;
+  border-bottom: 1px solid rgba(174, 191, 236, 0.08);
+  position: relative;
+  z-index: 10;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font: 700 21px/1.05 var(--display);
+  letter-spacing: -0.8px;
+}
+.brand-light {
+  font-weight: 400;
+  color: #b6bfd6;
+}
+.brand small {
+  display: block;
+  margin-top: 6px;
+  font: 600 8px var(--font);
+  letter-spacing: 2px;
+  color: #8292b1;
+}
+.brand-mark {
+  width: 39px;
+  height: 39px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(159, 146, 255, 0.42);
+  border-radius: 13px;
+  background: linear-gradient(145deg, rgba(131, 113, 255, 0.19), rgba(83, 225, 229, 0.06));
+  color: #b5aaff;
+  font-size: 29px;
+  box-shadow: 0 0 24px rgba(123, 102, 255, 0.09);
+}
+.desktop-nav {
+  display: flex;
+  gap: 36px;
+  margin-left: auto;
+  margin-right: 30px;
+}
+.desktop-nav a,
+.mobile-nav a {
+  font-size: 13px;
+  color: #a5afc8;
+  transition: color 0.2s;
+}
+.desktop-nav a:hover,
+.mobile-nav a:hover {
+  color: white;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.inline-form {
+  display: inline-flex;
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  padding: 11px 17px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    transform 0.2s,
+    border-color 0.2s,
+    background 0.2s,
+    box-shadow 0.2s;
+}
+.button:hover {
+  transform: translateY(-2px);
+}
+.button-primary {
+  color: #0b1020;
+  background: linear-gradient(110deg, #b2a8ff, #8ae6e7);
+  box-shadow: 0 8px 24px rgba(130, 126, 255, 0.15);
+}
+.button-primary:hover {
+  box-shadow: 0 10px 32px rgba(130, 126, 255, 0.26);
+}
+.button-quiet {
+  background: rgba(255, 255, 255, 0.025);
+  border-color: var(--line);
+  color: #d4d9ea;
+}
+.button-quiet:hover,
+.button-glass:hover {
+  border-color: rgba(170, 158, 255, 0.4);
+  background: rgba(155, 141, 255, 0.07);
+}
+.button-glass {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(174, 191, 236, 0.17);
+  color: #edf0ff;
+}
+.button-small {
+  padding: 9px 13px;
+  font-size: 12px;
+  border-radius: 9px;
+}
+.button-large {
+  padding: 14px 19px;
+  font-size: 13px;
+}
+.button-full {
+  width: 100%;
+  margin-top: 18px;
+}
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  color: #c3cbe0;
+}
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: linear-gradient(145deg, #8c7dff, #55cbd9);
+  color: #0b1020;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+}
+.menu-toggle {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  width: 40px;
+  height: 38px;
+  padding: 10px;
+}
+.menu-toggle span {
+  display: block;
+  height: 1px;
+  background: #dce3f9;
+  margin: 5px 0;
+}
+.mobile-nav {
+  display: none;
+}
+.pulse {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 12px rgba(120, 228, 180, 0.6);
+  flex-shrink: 0;
+}

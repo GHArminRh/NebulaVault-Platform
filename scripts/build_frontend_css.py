@@ -13,12 +13,18 @@ ROOT = Path(__file__).resolve().parents[1]
 # changes to them together with the stylesheet order in templates/portal/base.html.
 BUNDLES = {
     "static/portal/css/site.css": (
-        "frontend/css/site/01-foundation.css",
-        "frontend/css/site/02-authentication.css",
-        "frontend/css/site/03-storefront-polish.css",
-        "frontend/css/site/04-dashboard.css",
-        "frontend/css/site/05-commerce-and-account.css",
-        "frontend/css/site/06-visual-utilities.css",
+        "frontend/css/site/01-global-shell.css",
+        "frontend/css/site/02-home-hero.css",
+        "frontend/css/site/03-home-sections.css",
+        "frontend/css/site/04-catalog-pages.css",
+        "frontend/css/site/05-dashboard.css",
+        "frontend/css/site/06-authentication-and-messages.css",
+        "frontend/css/site/07-responsive-and-rtl.css",
+        "frontend/css/site/08-authentication-polish.css",
+        "frontend/css/site/09-storefront-polish.css",
+        "frontend/css/site/10-dashboard-refinements.css",
+        "frontend/css/site/11-commerce-and-account.css",
+        "frontend/css/site/12-visual-utilities.css",
     ),
     "static/portal/css/unified-experience.css": (
         "frontend/css/experience/01-storefront.css",
@@ -26,8 +32,10 @@ BUNDLES = {
         "frontend/css/experience/03-dashboard.css",
         "frontend/css/experience/04-navigation-and-effects.css",
         "frontend/css/experience/05-responsive-layouts.css",
-        "frontend/css/experience/06-dashboard-shell-and-progress.css",
-        "frontend/css/experience/07-header-effects.css",
+        "frontend/css/experience/06-navigation-responsive.css",
+        "frontend/css/experience/07-dashboard-responsive.css",
+        "frontend/css/experience/08-dashboard-shell-and-progress.css",
+        "frontend/css/experience/09-header-effects.css",
     ),
 }
 

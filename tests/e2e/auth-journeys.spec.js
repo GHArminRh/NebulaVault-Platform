@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 test.describe('authentication experience', () => {
@@ -67,6 +68,40 @@ test.describe('authentication experience', () => {
     await expect(page.locator('.nv-dashboard h1')).toContainText('e2e-customer');
   });
 
+  test('authenticated dashboard has no serious or critical accessibility violations', async ({
+    page,
+  }) => {
+    await page.goto('/accounts/login/');
+    const form = page
+      .locator('form.nv-auth-form')
+      .filter({ has: page.locator('input[name="username"]') });
+    await form.locator('input[name="username"]').fill(process.env.E2E_CUSTOMER_EMAIL);
+    await form.locator('input[name="password"]').fill(process.env.E2E_CUSTOMER_PASSWORD);
+    await form.locator('button[type="submit"]').click({ timeout: 30_000 });
+    await expect(page).toHaveURL(new RegExp('dashboard'), { timeout: 30_000 });
+    await expect(page.locator('.nv-dashboard')).toBeVisible();
+
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+      .analyze();
+    const blocking = results.violations.filter((violation) =>
+      ['critical', 'serious'].includes(violation.impact || '')
+    );
+
+    expect(
+      blocking.map((violation) => ({
+        id: violation.id,
+        impact: violation.impact,
+        description: violation.description,
+        nodes: violation.nodes.map((node) => ({
+          target: node.target,
+          summary: node.failureSummary,
+        })),
+      })),
+      'Resolve serious and critical accessibility violations on the authenticated dashboard'
+    ).toEqual([]);
+  });
+
   test('customer registration submits and reaches the email-verification step', async ({
     page,
   }) => {
@@ -111,7 +146,7 @@ test.describe('authentication experience', () => {
     await expect(emailCode).toBeVisible();
   });
 
-  test('POST submission shows one loading indicator and blocks duplicate submits', async ({
+  test('POST submission uses the shared progress bar and blocks duplicate submits', async ({
     page,
   }) => {
     await page.goto('/accounts/login/');
@@ -129,12 +164,15 @@ test.describe('authentication experience', () => {
     const submit = form.locator('button[type="submit"]');
     await expect(form).toHaveAttribute('aria-busy', 'true');
     await expect(submit).toBeDisabled();
-    await expect(submit.locator('.nv-button-spinner')).toHaveCount(1);
+    const progress = page.locator('.nv-page-progress');
+    await expect(progress).toHaveCount(1);
+    await expect(progress).toHaveClass(/is-loading/);
 
     await form.evaluate((element) =>
       element.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
     );
-    await expect(submit.locator('.nv-button-spinner')).toHaveCount(1);
+    await expect(form).toHaveAttribute('data-submitting', 'true');
+    await expect(progress).toHaveCount(1);
   });
 
   test('login and registration flip-card switches the active face without losing the route', async ({

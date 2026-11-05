@@ -1,0 +1,10 @@
+{
+  "ci": {
+    "collect": {
+      "settings": {
+        "emulatedFormFactor": "desktop",
+        "chromeFlags": "--no-sandbox --disable-dev-shm-usage"
+      }
+    }
+  }
+}

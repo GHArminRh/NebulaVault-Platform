@@ -4,8 +4,8 @@
 
 Edit CSS modules under `frontend/css/`. Files are grouped by feature and carry a numeric prefix to make cascade order explicit.
 
-- `frontend/css/site/` contains the foundational public-site styles, authentication, storefront/dashboard styling, commerce/account rules, and shared visual utilities.
-- `frontend/css/experience/` contains the extended storefront experience, authentication and dashboard refinements, navigation/effects, responsive layouts, dashboard shell, and header effects.
+- `frontend/css/site/` separates the global shell, homepage hero and sections, catalog pages, dashboard, authentication/messages, responsive rules, and visual utilities into ordered feature modules.
+- `frontend/css/experience/` contains the extended storefront experience, authentication/dashboard refinements, navigation/effects, general responsive layouts, navigation-specific responsive rules, dashboard responsive rules, dashboard shell, and header effects.
 
 The modules are assembled into the existing static files:
 
