@@ -5,14 +5,7 @@
  * decisions live in one documented place rather than scattered overrides.
  */
 
-/* Fluid foundations */
-html:has(body.nv-portal) {
-  --nv-content-width: 1160px;
-  --nv-wide-width: 1320px;
-  --nv-gutter: clamp(16px, 3.2vw, 32px);
-  --nv-layout-gap: clamp(16px, 2.4vw, 28px);
-  --nv-card-padding: clamp(16px, 2.2vw, 26px);
-}
+/* Responsive overrides; base values are defined in tokens.css. */
 
 html:has(body.nv-portal) {
   max-width: 100%;

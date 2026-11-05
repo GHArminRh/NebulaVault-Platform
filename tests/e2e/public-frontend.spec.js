@@ -29,6 +29,36 @@ test('public pages load their stylesheets without failed CSS responses', async (
   expect(failedStylesheets).toEqual([]);
 });
 
+test('global design tokens load before the site foundation stylesheet', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+  const stylesheetPaths = await page
+    .locator('link[rel="stylesheet"]')
+    .evaluateAll((links) => links.map((link) => new URL(link.href).pathname));
+  const tokensIndex = stylesheetPaths.findIndex((path) => path.endsWith('/portal/css/tokens.css'));
+  const foundationIndex = stylesheetPaths.findIndex((path) =>
+    path.endsWith('/portal/css/site.css')
+  );
+
+  expect(tokensIndex).toBeGreaterThanOrEqual(0);
+  expect(foundationIndex).toBeGreaterThan(tokensIndex);
+
+  const tokens = await page.locator('html').evaluate((element) => {
+    const styles = getComputedStyle(element);
+    return {
+      background: styles.getPropertyValue('--bg').trim(),
+      contentWidth: styles.getPropertyValue('--nv-content-width').trim(),
+      glass: styles.getPropertyValue('--nv-glass').trim(),
+    };
+  });
+
+  expect(tokens).toEqual({
+    background: '#050a18',
+    contentWidth: '1160px',
+    glass: 'rgba(17, 25, 46, 0.72)',
+  });
+});
+
 test('blog styles are loaded only on pages that render blog components', async ({ page }) => {
   for (const route of ['/', '/blog/']) {
     await page.goto(route, { waitUntil: 'domcontentloaded' });

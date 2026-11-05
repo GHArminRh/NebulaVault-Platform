@@ -1,0 +1,33 @@
+/*
+ * Nebula Vault design tokens.
+ * Keep global palette, typography, and shared layout values here.
+ * Page and breakpoint-specific overrides stay in their owning stylesheets.
+ * This file is loaded before site.css from the shared public base template.
+ */
+
+:root {
+  color-scheme: dark;
+  --bg: #050a18;
+  --panel: #0b1428;
+  --line: rgba(104, 157, 255, 0.19);
+  --text: #f3f5ff;
+  --muted: #98a4c0;
+  --violet: #9b82ff;
+  --cyan: #48cfff;
+  --green: #62e4c0;
+  --font: 'DM Sans', 'Vazirmatn', sans-serif;
+  --display: 'Space Grotesk', 'Vazirmatn', sans-serif;
+}
+
+html:has(body.nv-portal) {
+  --nv-glass: rgba(17, 25, 46, 0.72);
+  --nv-stroke: rgba(166, 183, 231, 0.14);
+  --nv-purple: #a99aff;
+  --nv-cyan: #83e4ed;
+  --nv-muted: #94a2c1;
+  --nv-content-width: 1160px;
+  --nv-wide-width: 1320px;
+  --nv-gutter: clamp(16px, 3.2vw, 32px);
+  --nv-layout-gap: clamp(16px, 2.4vw, 28px);
+  --nv-card-padding: clamp(16px, 2.2vw, 26px);
+}

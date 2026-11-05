@@ -1,12 +1,5 @@
 /* Nebula Vault unified public experience — additive layer over the existing site styles. */
 html:has(body.nv-portal) {
-  --nv-glass: rgba(17, 25, 46, 0.72);
-  --nv-stroke: rgba(166, 183, 231, 0.14);
-  --nv-purple: #a99aff;
-  --nv-cyan: #83e4ed;
-  --nv-muted: #94a2c1;
-}
-html:has(body.nv-portal) {
   scroll-behavior: smooth;
   scroll-padding-top: 104px;
 }

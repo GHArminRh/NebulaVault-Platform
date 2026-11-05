@@ -1,16 +1,3 @@
-:root {
-  color-scheme: dark;
-  --bg: #050a18;
-  --panel: #0b1428;
-  --line: rgba(104, 157, 255, 0.19);
-  --text: #f3f5ff;
-  --muted: #98a4c0;
-  --violet: #9b82ff;
-  --cyan: #48cfff;
-  --green: #62e4c0;
-  --font: 'DM Sans', 'Vazirmatn', sans-serif;
-  --display: 'Space Grotesk', 'Vazirmatn', sans-serif;
-}
 * {
   box-sizing: border-box;
 }
