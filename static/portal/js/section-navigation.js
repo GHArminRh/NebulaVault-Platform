@@ -106,6 +106,7 @@ if (railTargets.length || homeTargets.length) {
       } catch {
         return;
       }
+      // Only intercept same-origin section links; matching paths alone are not sufficient.
       if (url.origin !== location.origin || url.pathname !== location.pathname || !url.hash) return;
       const target = getHashTarget(url.hash);
       if (!target) return;
