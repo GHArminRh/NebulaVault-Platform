@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ipaddress
+import os
 import re
 import socket
 import time
@@ -105,7 +106,10 @@ class SameOriginRedirectHandler(HTTPRedirectHandler):
         normalized = self.crawler.normalize_url(newurl)
         if not normalized:
             raise HTTPError(req.full_url, 403, "Cross-origin redirect blocked", headers, fp)
-        return super().redirect_request(req, fp, code, msg, headers, normalized)
+        redirected = super().redirect_request(req, fp, code, msg, headers, normalized)
+        if redirected and self.crawler.uses_direct_origin:
+            redirected.add_unredirected_header("Host", self.crawler.public_netloc)
+        return redirected
 
 
 class SiteCrawler:
@@ -126,6 +130,7 @@ class SiteCrawler:
         request_delay=0.2,
         max_duration_seconds=180,
         fetcher=None,
+        fetch_base_url=None,
     ):
         self.base_url = (base_url or settings.SITE_BASE_URL).rstrip("/")
         self.max_pages = max(1, min(int(max_pages), 500))
@@ -134,18 +139,49 @@ class SiteCrawler:
         self.request_delay = max(0, min(float(request_delay), 2))
         self.max_duration_seconds = max(15, min(int(max_duration_seconds), 600))
         self.fetcher = fetcher
-        parsed = urlsplit(self.base_url)
+
+        public_parsed = urlsplit(self.base_url)
         if (
-            parsed.scheme not in {"http", "https"}
-            or not parsed.hostname
-            or parsed.username
-            or parsed.password
-            or parsed.query
-            or parsed.fragment
+            public_parsed.scheme not in {"http", "https"}
+            or not public_parsed.hostname
+            or public_parsed.username
+            or public_parsed.password
+            or public_parsed.query
+            or public_parsed.fragment
         ):
             raise CrawlError("SITE_BASE_URL must be a plain absolute HTTP(S) origin.")
-        self.origin = (parsed.scheme.lower(), parsed.hostname.lower(), parsed.port or self._default_port(parsed.scheme))
-        self.origin_root = urlunsplit((parsed.scheme, parsed.netloc, "/", "", ""))
+
+        render_origin = ""
+        if fetch_base_url is None and os.environ.get("RENDER", "").lower() == "true":
+            render_origin = os.environ.get("RENDER_EXTERNAL_URL", "").strip()
+        self.fetch_base_url = (fetch_base_url or render_origin or self.base_url).rstrip("/")
+        fetch_parsed = urlsplit(self.fetch_base_url)
+        if (
+            fetch_parsed.scheme not in {"http", "https"}
+            or not fetch_parsed.hostname
+            or fetch_parsed.username
+            or fetch_parsed.password
+            or fetch_parsed.query
+            or fetch_parsed.fragment
+        ):
+            raise CrawlError("SEO audit fetch origin must be a plain absolute HTTP(S) origin.")
+
+        self.public_origin = (
+            public_parsed.scheme.lower(),
+            public_parsed.hostname.lower(),
+            public_parsed.port or self._default_port(public_parsed.scheme),
+        )
+        self.public_netloc = public_parsed.netloc
+        self.origin = (
+            fetch_parsed.scheme.lower(),
+            fetch_parsed.hostname.lower(),
+            fetch_parsed.port or self._default_port(fetch_parsed.scheme),
+        )
+        self.fetch_netloc = fetch_parsed.netloc
+        self.uses_direct_origin = self.origin != self.public_origin
+        self.origin_root = urlunsplit(
+            (fetch_parsed.scheme, fetch_parsed.netloc, "/", "", "")
+        )
         self._last_request_at = 0
         self._last_response_metadata = {}
         self._issues = []
@@ -168,7 +204,8 @@ class SiteCrawler:
         if parts.username or parts.password:
             return None
         port = parts.port or self._default_port(parts.scheme)
-        if (parts.scheme.lower(), parts.hostname.lower(), port) != self.origin:
+        candidate_origin = (parts.scheme.lower(), parts.hostname.lower(), port)
+        if candidate_origin not in {self.origin, self.public_origin}:
             return None
         path = parts.path or "/"
         if not path.startswith("/"):
@@ -183,7 +220,26 @@ class SiteCrawler:
         clean_path = re.sub(r"/{2,}", "/", path)
         if clean_path != "/" and not clean_path.endswith("/") and "." not in clean_path.rsplit("/", 1)[-1]:
             clean_path += "/"
-        return urlunsplit((self.origin[0], parts.netloc, clean_path, "", ""))
+        return urlunsplit((self.origin[0], self.fetch_netloc, clean_path, "", ""))
+
+    def _display_url(self, url):
+        """Map the internal Render fetch URL back to the canonical public origin."""
+        parts = urlsplit(url)
+        if not parts.hostname:
+            return url
+        port = parts.port or self._default_port(parts.scheme)
+        candidate_origin = (parts.scheme.lower(), parts.hostname.lower(), port)
+        if candidate_origin != self.origin:
+            return url
+        return urlunsplit(
+            (
+                self.public_origin[0],
+                self.public_netloc,
+                parts.path or "/",
+                parts.query,
+                parts.fragment,
+            )
+        )
 
     def _validate_public_host(self):
         host = self.origin[1]
@@ -238,7 +294,7 @@ class SiteCrawler:
         return 1.0 if status == 429 else 0.25
 
     def _http_diagnostics(self, status, final_url):
-        parts = [f"HTTP {status}", f"Final URL: {final_url}"]
+        parts = [f"HTTP {status}", f"Final URL: {self._display_url(final_url)}"]
         parts.extend(
             f"{name}: {value}"
             for name, value in self._last_response_metadata.items()
@@ -247,6 +303,9 @@ class SiteCrawler:
 
     def _fetch(self, url, accept="text/html,application/xhtml+xml"):
         """Fetch with one bounded retry and retain safe response diagnostics."""
+        url = self.normalize_url(url)
+        if not url:
+            raise CrawlError("Crawler refused a URL outside the configured site origins.")
         if not self.fetcher:
             self._validate_public_host()
 
@@ -270,14 +329,16 @@ class SiteCrawler:
                             continue
                     return result[:4]
 
-                request = Request(
-                    url,
-                    headers={
-                        "User-Agent": DEFAULT_USER_AGENT,
-                        "Accept": accept,
-                        "Accept-Encoding": "identity",
-                    },
-                )
+                request_headers = {
+                    "User-Agent": DEFAULT_USER_AGENT,
+                    "Accept": accept,
+                    "Accept-Encoding": "identity",
+                }
+                if self.uses_direct_origin:
+                    # Connect to Render directly while preserving the public Host
+                    # header so Django/Wagtail still resolve the canonical Site.
+                    request_headers["Host"] = self.public_netloc
+                request = Request(url, headers=request_headers)
                 opener = build_opener(SameOriginRedirectHandler(self))
                 try:
                     response = opener.open(request, timeout=self.timeout)
@@ -315,6 +376,7 @@ class SiteCrawler:
         raise CrawlError("The request failed after a transient retry.")
 
     def _add_issue(self, url, code, severity, title, details="", recommendation=""):
+        url = self._display_url(url)
         key = (url, code)
         if key in self._issue_keys:
             return
@@ -538,7 +600,7 @@ class SiteCrawler:
         else:
             canonical_url = urljoin(url, parser.canonical)
             canonical_parts = urlsplit(canonical_url)
-            if (canonical_parts.scheme.lower(), (canonical_parts.hostname or "").lower(), canonical_parts.port or self._default_port(canonical_parts.scheme)) != self.origin:
+            if (canonical_parts.scheme.lower(), (canonical_parts.hostname or "").lower(), canonical_parts.port or self._default_port(canonical_parts.scheme)) != self.public_origin:
                 self._add_issue(url, "external-canonical", "error", "Canonical URL points outside the site", canonical_url, "Use a canonical URL on the intended public site origin.")
             elif self.normalize_url(canonical_url) != effective_url:
                 self._add_issue(url, "canonical-mismatch", "warning", "Canonical URL differs from the crawled URL", canonical_url, "Confirm that the canonical target is intentional and indexable.")
@@ -607,7 +669,7 @@ class SiteCrawler:
                         "duplicate-title",
                         "warning",
                         "Page title is duplicated",
-                        f"Shared with: {', '.join(page for page in page_urls if page != page_url)[:1500]}",
+                        f"Shared with: {', '.join(self._display_url(page) for page in page_urls if page != page_url)[:1500]}",
                         "Give each important indexable page a distinct title.",
                     )
 
