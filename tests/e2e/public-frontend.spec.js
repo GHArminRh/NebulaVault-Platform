@@ -90,7 +90,9 @@ test('registration form is visible and usable on narrow mobile screens', async (
   }
 });
 
-test('mobile navigation opens as a fixed menu and closes cleanly', async ({ page }) => {
+test('mobile navigation opens, closes with Escape, and restores keyboard focus', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 375, height: 844 });
   await page.goto('/', { waitUntil: 'domcontentloaded' });
 
@@ -98,9 +100,12 @@ test('mobile navigation opens as a fixed menu and closes cleanly', async ({ page
   const nav = page.locator('.mobile-nav');
 
   await expect(toggle).toBeVisible();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await expect(nav).toBeHidden();
   await toggle.click();
   await expect(nav).toBeVisible();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(toggle).toHaveAttribute('aria-label', 'بستن منو');
 
   const menuStyle = await nav.evaluate((element) => {
     const style = getComputedStyle(element);
@@ -117,8 +122,11 @@ test('mobile navigation opens as a fixed menu and closes cleanly', async ({ page
     overflowY: 'auto',
   });
 
-  await toggle.click();
+  await page.keyboard.press('Escape');
   await expect(nav).toBeHidden();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(toggle).toHaveAttribute('aria-label', 'بازکردن منو');
+  await expect(toggle).toBeFocused();
 });
 
 test.describe('public frontend smoke checks', () => {
@@ -242,4 +250,38 @@ test.describe('accessibility', () => {
       ).toEqual([]);
     });
   }
+});
+
+test('admin image form keeps its normal submit flow when no replacement file is selected', async ({
+  page,
+}) => {
+  await page.setContent(`
+    <form id="image-form" method="post">
+      <div data-nv-image-uploader data-max-bytes="12582912">
+        <div data-dropzone>
+          <input type="file" data-nv-image-input>
+        </div>
+        <div data-selection hidden>
+          <img data-preview-image alt="Selected image preview">
+          <span data-file-name></span>
+          <span data-file-size></span>
+        </div>
+        <p data-uploader-message role="status"></p>
+      </div>
+      <button type="submit">Save</button>
+    </form>
+  `);
+
+  await page.addScriptTag({ path: 'static/portal/js/nebula-image-uploader.js' });
+  await page.evaluate(() => {
+    const form = document.querySelector('#image-form');
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      form.dataset.normalSubmitReached = 'true';
+    });
+    form.requestSubmit();
+  });
+
+  await expect(page.locator('#image-form')).toHaveAttribute('data-normal-submit-reached', 'true');
+  await expect(page.locator('#image-form')).not.toHaveAttribute('aria-busy');
 });

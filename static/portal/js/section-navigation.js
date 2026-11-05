@@ -12,9 +12,9 @@ const homeLinks = [
   ...document.querySelectorAll(".desktop-nav a[href*='#'], .mobile-nav a[href*='#']"),
 ].filter((link) => {
   try {
+    const url = new URL(link.href, location.href);
     return (
-      new URL(link.href, location.href).pathname === location.pathname &&
-      Boolean(new URL(link.href, location.href).hash)
+      url.origin === location.origin && url.pathname === location.pathname && Boolean(url.hash)
     );
   } catch {
     return false;
@@ -106,12 +106,14 @@ if (railTargets.length || homeTargets.length) {
       } catch {
         return;
       }
-      if (url.pathname !== location.pathname || !url.hash) return;
+      // Only intercept same-origin section links; matching paths alone are not sufficient.
+      if (url.origin !== location.origin || url.pathname !== location.pathname || !url.hash) return;
       const target = getHashTarget(url.hash);
       if (!target) return;
       event.preventDefault();
       if (toggle && nav && link.closest('.mobile-nav')) {
         toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', 'بازکردن منو');
         nav.hidden = true;
       }
       const nextUrl = url.pathname + url.search + url.hash;

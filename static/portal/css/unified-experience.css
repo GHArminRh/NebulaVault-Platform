@@ -3829,8 +3829,6 @@ html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-dashboard-logout {
     margin: 0;
   }
 }
-@media (max-width: 420px) {
-}
 
 /* A single slow light travels around the OUTER header frame, not the inner nav pill. */
 @property --nv-header-border-angle {
