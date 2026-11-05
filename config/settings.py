@@ -287,19 +287,46 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media/"
 DJANGORESIZED_DEFAULT_FORMAT_EXTENSIONS = {"WEBP": ".webp", "JPEG": ".jpg"}
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
-        "LOCATION": "django_cache",
-        "TIMEOUT": 300,
-        "OPTIONS": {"MAX_ENTRIES": 10000},
-    }
-}
+# Use Render Key Value (Redis-compatible Valkey) for the default cache
+# when REDIS_URL is configured. Keep the database cache as a safe local
+# development fallback.
+REDIS_URL = os.environ.get("REDIS_URL", "").strip()
 
-# Redis inspection uses the private Render Key Value connection string.
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "TIMEOUT": 300,
+            "KEY_PREFIX": "nebula_vault",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                # Cache is an optimization: Redis outages must not take
+                # the storefront or admin offline.
+                "IGNORE_EXCEPTIONS": True,
+                "CONNECTION_POOL_KWARGS": {
+                    "max_connections": 50,
+                    "socket_connect_timeout": 5,
+                    "socket_timeout": 5,
+                    "retry_on_timeout": True,
+                },
+            },
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+            "LOCATION": "django_cache",
+            "TIMEOUT": 300,
+            "OPTIONS": {"MAX_ENTRIES": 10000},
+        }
+    }
+
+# Redis inspection uses the same private Render Key Value connection string.
 # Always register the instance so the panel can distinguish a missing or
 # unreachable connection from an entirely unconfigured panel.
-REDIS_PANEL_URL = os.environ.get("REDIS_URL", "").strip()
+REDIS_PANEL_URL = REDIS_URL
 DJ_REDIS_PANEL_SETTINGS = {
     "ALLOW_KEY_DELETE": False,
     "ALLOW_KEY_EDIT": False,
