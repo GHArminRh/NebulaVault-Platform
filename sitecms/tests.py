@@ -662,9 +662,11 @@ class CanonicalSiteURLTests(TestCase):
         response = self.client.get("/favicon.ico")
 
         self.assertEqual(response.status_code, 301)
+        from django.contrib.staticfiles.storage import staticfiles_storage
+
         self.assertEqual(
             response["Location"],
-            "/static/portal/img/pwa-icon-192.svg",
+            staticfiles_storage.url("portal/img/pwa-icon-192.svg"),
         )
 
     def test_render_service_hostname_resolves_to_default_wagtail_site(self):
