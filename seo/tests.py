@@ -62,20 +62,23 @@ class SEOCrawlerTests(SimpleTestCase):
 
     def test_render_fetch_origin_bypasses_edge_without_changing_public_urls(self):
         from unittest.mock import patch
+        from django.test import override_settings
 
         render_url = "https://nebula-vault-oesn.onrender.com"
         fetcher = StubFetcher({
             f"{render_url}/robots.txt": (200, "text/plain", b"User-agent: *\nAllow: /\n"),
         })
-        with patch.dict(
-            "os.environ",
-            {
-                "RENDER": "true",
-                "RENDER_EXTERNAL_URL": render_url,
-            },
+        with (
+            patch.dict(
+                "os.environ",
+                {
+                    "RENDER": "true",
+                    "RENDER_EXTERNAL_URL": render_url,
+                },
+            ),
+            override_settings(SITE_BASE_URL="https://mydigigi.ir"),
         ):
             crawler = SiteCrawler(
-                base_url="https://mydigigi.ir",
                 fetcher=fetcher,
                 request_delay=0,
             )
