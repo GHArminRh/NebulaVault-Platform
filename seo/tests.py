@@ -104,6 +104,37 @@ class SEOCrawlerTests(SimpleTestCase):
         self.assertEqual(result[0], 200)
         self.assertEqual(len(calls), 2)
 
+    def test_fetch_does_not_retry_429_before_retry_after_and_keeps_safe_headers(self):
+        calls = []
+
+        def fetch(url, accept="text/html"):
+            calls.append(url)
+            return (
+                429,
+                "text/html",
+                b"",
+                url,
+                {
+                    "Server": "cloudflare",
+                    "CF-Ray": "abc123-test",
+                    "Retry-After": "30",
+                    "Set-Cookie": "private=session-value",
+                },
+            )
+
+        crawler = SiteCrawler(base_url="https://mydigigi.ir", fetcher=fetch, request_delay=0)
+        url = "https://mydigigi.ir/"
+        result = crawler._fetch(url)
+        details = crawler._http_diagnostics(result[0], result[3])
+
+        self.assertEqual(result[0], 429)
+        self.assertEqual(len(calls), 1)
+        self.assertIn("server: cloudflare", details)
+        self.assertIn("cf-ray: abc123-test", details)
+        self.assertIn("retry-after: 30", details)
+        self.assertNotIn("Set-Cookie", details)
+        self.assertNotIn("private=session-value", details)
+
     def test_crawler_reports_missing_robots_and_unavailable_sitemap(self):
         home = b"""<html><head><title>Home</title></head><body></body></html>"""
         fetcher = StubFetcher({
