@@ -131,16 +131,19 @@ test('mobile navigation opens, closes with Escape, and restores keyboard focus',
 
 test.describe('public frontend smoke checks', () => {
   for (const route of PUBLIC_ROUTES) {
-    test(`${route.name} route renders without a server error`, async ({ page }) => {
+    test(`${route.name} route renders without a server error`, async ({ page }, testInfo) => {
       const pageErrors = [];
       const failedLocalAssets = [];
-      const baseURL = new URL(page.url());
+      const expectedOrigin = new URL(
+        route.path,
+        testInfo.project.use.baseURL || 'http://127.0.0.1:8000'
+      ).origin;
 
       page.on('pageerror', (error) => pageErrors.push(error.message));
       page.on('response', (response) => {
         const url = new URL(response.url());
         if (
-          url.origin === baseURL.origin &&
+          url.origin === expectedOrigin &&
           response.status() >= 400 &&
           /\.(css|js)(?:$|\?)/i.test(url.pathname + url.search)
         ) {
