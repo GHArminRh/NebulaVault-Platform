@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET
+from wagtail.models import Page
 
 from blog.models import BlogPost
 from catalog.models import Product
@@ -41,6 +42,11 @@ def _urlset(entries):
     return response
 
 
+def _has_public_wagtail_pages():
+    """Return whether Wagtail has any live, public pages beyond the global root."""
+    return Page.objects.live().public().filter(depth__gt=1).exists()
+
+
 @require_GET
 def robots_txt(request):
     """Tell compliant crawlers which utility routes are private and where the sitemap lives."""
@@ -69,14 +75,17 @@ def robots_txt(request):
 
 @require_GET
 def sitemap_index(request):
-    """Index separate sitemaps for Wagtail, products, articles, and key public pages."""
-    root = ElementTree.Element(f"{{{SITEMAP_NS}}}sitemapindex")
-    for path in (
-        "/sitemap-wagtail.xml",
+    """Index only populated content sitemaps so crawlers never receive empty feeds."""
+    paths = [
         "/sitemap-pages.xml",
         "/sitemap-products.xml",
         "/sitemap-blog.xml",
-    ):
+    ]
+    if _has_public_wagtail_pages():
+        paths.insert(0, "/sitemap-wagtail.xml")
+
+    root = ElementTree.Element(f"{{{SITEMAP_NS}}}sitemapindex")
+    for path in paths:
         item = ElementTree.SubElement(root, f"{{{SITEMAP_NS}}}sitemap")
         ElementTree.SubElement(item, f"{{{SITEMAP_NS}}}loc").text = _absolute_url(path)
     response = _xml_response(root)
