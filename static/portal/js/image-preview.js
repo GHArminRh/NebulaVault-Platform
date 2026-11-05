@@ -163,7 +163,7 @@
 
     button.addEventListener('click', () => {
       clearInput.checked = true;
-      clearInput.dispatchEvent(new Event('change', { bubbles: true }));
+      clearInput.dispatchEvent(new window.Event('change', { bubbles: true }));
       currentDisplay.hidden = true;
       button.hidden = true;
       status.hidden = false;
@@ -172,7 +172,7 @@
     fileInput?.addEventListener('change', () => {
       if (!fileInput.files?.length) return;
       clearInput.checked = false;
-      clearInput.dispatchEvent(new Event('change', { bubbles: true }));
+      clearInput.dispatchEvent(new window.Event('change', { bubbles: true }));
       currentDisplay.hidden = false;
       button.hidden = false;
       status.hidden = true;
