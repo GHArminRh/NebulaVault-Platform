@@ -196,32 +196,23 @@ class SiteCrawler:
                 raise CrawlError("Crawler refused a host that resolves to a non-public IP address.")
 
     def _fetch(self, url, accept="text/html,application/xhtml+xml"):
-        """Fetch one URL with a single retry for transient network/5xx failures.
-
-        The SEO audit runs inside the same Render service it inspects. A brief
-        edge/proxy delay or cold-start response must not be recorded as a
-        permanent SEO error after one attempt.
-        """
+        """Fetch with one retry for transient network and upstream failures."""
         if not self.fetcher:
             self._validate_public_host()
 
         retryable_statuses = {500, 502, 503, 504}
-        last_error = None
         for attempt in range(2):
             elapsed = time.monotonic() - self._last_request_at
             if elapsed < self.request_delay:
                 time.sleep(self.request_delay - elapsed)
-
             try:
                 if self.fetcher:
-                    status, content_type, body, final_url = self.fetcher(
-                        url, accept=accept
-                    )
-                    if status in retryable_statuses and attempt == 0:
+                    result = self.fetcher(url, accept=accept)
+                    if result[0] in retryable_statuses and attempt == 0:
                         time.sleep(0.25)
                         continue
                     self._last_request_at = time.monotonic()
-                    return status, content_type, body, final_url
+                    return result
 
                 request = Request(
                     url,
@@ -239,12 +230,7 @@ class SiteCrawler:
                         exc.close()
                         time.sleep(0.25)
                         continue
-                    return (
-                        exc.code,
-                        exc.headers.get("Content-Type", ""),
-                        b"",
-                        exc.geturl(),
-                    )
+                    return exc.code, exc.headers.get("Content-Type", ""), b"", exc.geturl()
 
                 with response:
                     content_type = response.headers.get("Content-Type", "").lower()
@@ -254,14 +240,11 @@ class SiteCrawler:
                     self._last_request_at = time.monotonic()
                     return response.status, content_type, body, response.geturl()
             except (URLError, OSError, TimeoutError) as exc:
-                last_error = exc
                 if attempt == 0:
                     time.sleep(0.25)
                     continue
                 raise CrawlError(str(exc)) from exc
 
-        if last_error:
-            raise CrawlError(str(last_error)) from last_error
         raise CrawlError("The request failed after a transient retry.")
 
     def _add_issue(self, url, code, severity, title, details="", recommendation=""):
