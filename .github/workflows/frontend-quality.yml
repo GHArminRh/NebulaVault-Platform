@@ -39,6 +39,16 @@ jobs:
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
           npm ci --no-audit --no-fund
 
+      - name: Format image preview script
+        run: npx prettier --write static/portal/js/image-preview.js
+
+      - name: Export formatted image preview script
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-image-preview-script
+          path: static/portal/js/image-preview.js
+          if-no-files-found: error
+
       - name: Check CSS, JavaScript, and tooling formatting
         run: npm run check:assets
 
