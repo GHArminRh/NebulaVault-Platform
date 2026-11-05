@@ -112,9 +112,10 @@ class SameOriginRedirectHandler(HTTPRedirectHandler):
 class SiteCrawler:
     """Crawl one configured public origin with strict bounds and safe redirects.
 
-    A custom fetcher can be injected in tests. Production requests use urllib,
-    validate public DNS results, restrict redirects to the configured origin,
-    and cap response sizes.
+    A custom fetcher can be injected in tests. On Render, production requests
+    use the service's direct hostname while preserving public canonical URLs.
+    DNS validation, same-site redirect checks, and response-size limits remain
+    in place.
     """
 
     def __init__(
@@ -149,7 +150,7 @@ class SiteCrawler:
             raise CrawlError("SITE_BASE_URL must be a plain absolute HTTP(S) origin.")
 
         render_origin = ""
-        if fetch_base_url is None and os.environ.get("RENDER", "").lower() == "true":
+        if base_url is None and fetch_base_url is None and os.environ.get("RENDER", "").lower() == "true":
             render_origin = os.environ.get("RENDER_EXTERNAL_URL", "").strip()
         self.fetch_base_url = (fetch_base_url or render_origin or self.base_url).rstrip("/")
         fetch_parsed = urlsplit(self.fetch_base_url)
@@ -243,9 +244,9 @@ class SiteCrawler:
         try:
             addresses = {item[4][0] for item in socket.getaddrinfo(host, self.origin[2], type=socket.SOCK_STREAM)}
         except OSError as exc:
-            raise CrawlError(f"Could not resolve configured public host: {exc}") from exc
+            raise CrawlError(f"Could not resolve configured crawl host: {exc}") from exc
         if not addresses:
-            raise CrawlError("Configured public host did not resolve to an IP address.")
+            raise CrawlError("Configured crawl host did not resolve to an IP address.")
         for address in addresses:
             ip = ipaddress.ip_address(address)
             if not ip.is_global:
