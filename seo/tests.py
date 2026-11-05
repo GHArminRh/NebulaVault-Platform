@@ -261,6 +261,23 @@ class SEODashboardTests(TestCase):
         self.assertEqual(changelist.status_code, 200)
         self.assertContains(changelist, "SEO Center dashboard")
 
+    def test_admin_app_index_links_directly_to_seo_center_dashboard(self):
+        staff = get_user_model().objects.create_superuser(
+            username="seo-index-admin",
+            email="seo-index-admin@example.invalid",
+            password="test-password",
+        )
+        self.client.force_login(
+            staff,
+            backend="django.contrib.auth.backends.ModelBackend",
+        )
+
+        response = self.client.get("/admin/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "SEO Center dashboard")
+        self.assertContains(response, 'href="/admin/seo-center/"')
+
 
 class SearchConsoleHelperTests(SimpleTestCase):
     def test_refresh_token_is_encrypted_and_round_trips(self):
