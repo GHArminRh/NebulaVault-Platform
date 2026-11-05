@@ -32,6 +32,15 @@ class CustomerGoogleOAuthTests(TestCase):
         )
         self.assertEqual(response.status_code, 405)
 
+    def test_google_callback_has_its_own_route(self):
+        response = self.client.get(
+            reverse(
+                "accounts:social_callback",
+                kwargs={"provider": "google"},
+            )
+        )
+        self.assertRedirects(response, reverse("login"), fetch_redirect_response=False)
+
     def test_registration_oauth_requires_terms_acceptance(self):
         with patch("accounts.social_views.get_oauth_client") as get_client:
             response = self.client.post(
