@@ -295,6 +295,27 @@ CACHES = {
         "OPTIONS": {"MAX_ENTRIES": 10000},
     }
 }
+
+# Redis inspection is optional in local environments and enabled on Render
+# through the private REDIS_URL connection string.
+REDIS_PANEL_URL = os.environ.get("REDIS_URL", "").strip()
+DJ_REDIS_PANEL_SETTINGS = {
+    "ALLOW_KEY_DELETE": False,
+    "ALLOW_KEY_EDIT": False,
+    "ALLOW_TTL_UPDATE": False,
+    "CURSOR_PAGINATED_SCAN": True,
+    "INSTANCES": (
+        {
+            "default": {
+                "description": "Nebula Vault Render Key Value",
+                "url": REDIS_PANEL_URL,
+            }
+        }
+        if REDIS_PANEL_URL
+        else {}
+    ),
+}
+
 LOGIN_URL = "login"
 
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "").strip()
