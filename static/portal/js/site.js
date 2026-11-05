@@ -1,4 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Apply the preloaded web-font stylesheet after the browser can render with
+  // its local fallback stack; font-display: swap keeps text available meanwhile.
+  const webFonts = document.querySelector('#nv-web-fonts');
+  if (webFonts) {
+    const activateWebFonts = () => {
+      webFonts.media = 'all';
+    };
+    if (webFonts.sheet) activateWebFonts();
+    else webFonts.addEventListener('load', activateWebFonts, { once: true });
+  }
+
   // POST submissions reuse the same page progress bar as normal navigation.
   // Only the control that initiated this submission is disabled.
   let triggerPageProgress = () => {};
@@ -214,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // Load page-specific enhancements separately so they do not inflate the shared entry point.
   if (document.querySelector('.nv-auth-shell')) {
-    void import('./auth-ui.js');
+    void import(document.body.dataset.authUiSrc || './auth-ui.js');
   }
 
   const hasSectionNavigation =
@@ -234,12 +245,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     );
   if (hasSectionNavigation) {
-    void import('./section-navigation.js');
+    void import(document.body.dataset.sectionNavigationSrc || './section-navigation.js');
   }
 
   // The canvas/ambient effects are intentionally non-critical: fetch their chunk after first paint.
   if (document.querySelector('.nv-starfield, .ambient')) {
-    const loadVisualEffects = () => void import('./visual-effects.js');
+    const loadVisualEffects = () =>
+      void import(document.body.dataset.visualEffectsSrc || './visual-effects.js');
     if (typeof window.requestIdleCallback === 'function') {
       window.requestIdleCallback(loadVisualEffects, { timeout: 1200 });
     } else {

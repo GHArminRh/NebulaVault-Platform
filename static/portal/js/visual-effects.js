@@ -6,6 +6,10 @@ const starContext = starCanvas?.getContext('2d', { alpha: true });
 if (starCanvas && starContext) {
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
   const stars = [];
+  const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+  const maxStars = coarsePointer ? 100 : 230;
+  const minStars = coarsePointer ? 40 : 65;
+  const frameInterval = 1000 / 30;
   let width = 0,
     height = 0,
     dpr = 1,
@@ -47,13 +51,13 @@ if (starCanvas && starContext) {
       oldHeight = height || window.innerHeight;
     width = Math.max(1, window.innerWidth);
     height = Math.max(1, window.innerHeight);
-    dpr = Math.min(window.devicePixelRatio || 1, 1.7);
+    dpr = Math.min(window.devicePixelRatio || 1, coarsePointer ? 1.35 : 1.7);
     starCanvas.width = Math.round(width * dpr);
     starCanvas.height = Math.round(height * dpr);
     starCanvas.style.width = width + 'px';
     starCanvas.style.height = height + 'px';
     starContext.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const count = Math.min(230, Math.max(65, Math.round((width * height) / 7200)));
+    const count = Math.min(maxStars, Math.max(minStars, Math.round((width * height) / 7200)));
     if (!stars.length) for (let i = 0; i < count; i++) stars.push(makeStar());
     else {
       stars.forEach((star) => {
@@ -122,7 +126,11 @@ if (starCanvas && starContext) {
       paintStars(0, false);
       return;
     }
-    const delta = lastTime ? Math.min(now - lastTime, 32) : 16;
+    if (lastTime && now - lastTime < frameInterval) {
+      raf = requestAnimationFrame(animateStars);
+      return;
+    }
+    const delta = lastTime ? Math.min(now - lastTime, 50) : frameInterval;
     lastTime = now;
     paintStars(delta, true);
     raf = requestAnimationFrame(animateStars);

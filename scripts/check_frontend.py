@@ -215,7 +215,14 @@ def main() -> int:
             f"{asset}: no source-code filename reference found; verify CMS/dynamic usage"
         )
 
-    css_files = list((ROOT / "static" / "portal" / "css").glob("*.css"))
+    # Aggregate delivery bundles repeat declarations from their source
+    # stylesheets; count source assets once rather than double-counting copies.
+    generated_aggregate_bundles = {"public-foundation.css", "public-shell.css"}
+    css_files = [
+        path
+        for path in (ROOT / "static" / "portal" / "css").glob("*.css")
+        if path.name not in generated_aggregate_bundles
+    ]
     css_important_count = sum(
         len(re.findall(r"!\s*important\b", path.read_text(encoding="utf-8"), re.I))
         for path in css_files

@@ -53,3 +53,15 @@ html body.nv-portal .nv-home-hero .nv-hero-copy h1 > .gradient-text {
   color: transparent;
   -webkit-text-fill-color: transparent;
 }
+/* Accessible heading utility: visually hidden without removing it from the accessibility tree. */
+.nv-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
