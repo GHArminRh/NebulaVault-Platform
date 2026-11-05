@@ -6,10 +6,10 @@ import ipaddress
 import re
 import socket
 import time
-from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlsplit, urlunsplit
@@ -291,7 +291,11 @@ class SiteCrawler:
                             exc.close()
                             time.sleep(delay)
                             continue
-                    return exc.code, headers.get("Content-Type", ""), b"", exc.geturl()
+                    status = exc.code
+                    content_type = headers.get("Content-Type", "")
+                    final_url = exc.geturl()
+                    exc.close()
+                    return status, content_type, b"", final_url
 
                 with response:
                     self._last_response_metadata = self._safe_response_headers(response.headers)
