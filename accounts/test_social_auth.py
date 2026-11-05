@@ -12,6 +12,7 @@ from django.urls import reverse
     SOCIAL_AUTH_APPLE_ENABLED=False,
     TURNSTILE_ENABLED=False,
     SITE_BASE_URL="https://mydigigi.ir",
+    ALLOWED_HOSTS=["testserver", "www.mydigigi.ir"],
 )
 class CustomerGoogleOAuthTests(TestCase):
     def test_login_and_registration_pages_render_google_actions(self):
