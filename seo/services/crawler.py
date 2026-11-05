@@ -358,7 +358,7 @@ class SiteCrawler:
                 "robots-http-error",
                 "warning",
                 "robots.txt returned an HTTP error",
-                f"HTTP {status}",
+                self._http_diagnostics(status, final_url),
                 "Return a valid robots.txt response or intentionally configure the route.",
             )
             return []
@@ -428,7 +428,7 @@ class SiteCrawler:
                     "sitemap-http-error",
                     "warning",
                     f"Sitemap returned HTTP {status}",
-                    f"HTTP {status}",
+                    self._http_diagnostics(status, final_url),
                     "Fix the sitemap endpoint or remove the unavailable sitemap from the sitemap index.",
                 )
                 continue
@@ -480,7 +480,7 @@ class SiteCrawler:
                 "http-error",
                 "error" if status >= 500 else "warning",
                 f"Page returned HTTP {status}",
-                f"Final URL: {final_url}",
+                self._http_diagnostics(status, final_url),
                 "Fix the response or update internal links that point to this URL.",
             )
             return []
