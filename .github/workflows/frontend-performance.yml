@@ -22,14 +22,16 @@ jobs:
       - name: Wait until the production health endpoint responds
         run: |
           for attempt in $(seq 1 48); do
-            if curl --fail --silent --show-error https://nebula-vault-oesn.onrender.com/healthz/ >/dev/null; then
-              echo "Production health endpoint is responding."
+            headers="$(curl --fail --silent --show-error --dump-header - --output /dev/null https://nebula-vault-oesn.onrender.com/healthz/ || true)"
+            deployed_commit="$(printf '%s\n' "$headers" | grep -i '^X-Render-Git-Commit:' | tail -n 1 | cut -d ' ' -f2 | tr -d '\r')"
+            if [ "$deployed_commit" = "$GITHUB_SHA" ]; then
+              echo "Production is healthy and serves the requested commit: $deployed_commit"
               exit 0
             fi
-            echo "Production is not ready yet (attempt ${attempt}/48)."
+            echo "Waiting for Render commit $GITHUB_SHA (attempt ${attempt}/48; currently serving ${deployed_commit:-unknown})."
             sleep 15
           done
-          echo "Production did not become healthy within 12 minutes."
+          echo "Render did not serve the requested commit within 12 minutes."
           exit 1
 
   lighthouse:
