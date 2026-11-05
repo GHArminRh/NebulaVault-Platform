@@ -106,10 +106,7 @@ class SameOriginRedirectHandler(HTTPRedirectHandler):
         normalized = self.crawler.normalize_url(newurl)
         if not normalized:
             raise HTTPError(req.full_url, 403, "Cross-origin redirect blocked", headers, fp)
-        redirected = super().redirect_request(req, fp, code, msg, headers, normalized)
-        if redirected and self.crawler.uses_direct_origin:
-            redirected.add_unredirected_header("Host", self.crawler.public_netloc)
-        return redirected
+        return super().redirect_request(req, fp, code, msg, headers, normalized)
 
 
 class SiteCrawler:
@@ -329,16 +326,14 @@ class SiteCrawler:
                             continue
                     return result[:4]
 
-                request_headers = {
-                    "User-Agent": DEFAULT_USER_AGENT,
-                    "Accept": accept,
-                    "Accept-Encoding": "identity",
-                }
-                if self.uses_direct_origin:
-                    # Connect to Render directly while preserving the public Host
-                    # header so Django/Wagtail still resolve the canonical Site.
-                    request_headers["Host"] = self.public_netloc
-                request = Request(url, headers=request_headers)
+                request = Request(
+                    url,
+                    headers={
+                        "User-Agent": DEFAULT_USER_AGENT,
+                        "Accept": accept,
+                        "Accept-Encoding": "identity",
+                    },
+                )
                 opener = build_opener(SameOriginRedirectHandler(self))
                 try:
                     response = opener.open(request, timeout=self.timeout)
