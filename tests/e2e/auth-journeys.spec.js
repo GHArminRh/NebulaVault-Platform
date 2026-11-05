@@ -68,7 +68,6 @@ test.describe('authentication experience', () => {
     await expect(page.locator('.nv-dashboard h1')).toContainText('e2e-customer');
   });
 
-
   test('authenticated dashboard has no serious or critical accessibility violations', async ({
     page,
   }) => {
