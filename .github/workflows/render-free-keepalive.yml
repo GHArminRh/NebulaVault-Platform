@@ -79,4 +79,11 @@ jobs:
             printf 'favicon.ico final status was %s, expected 200.\n' "$favicon_status" >&2
             exit 1
           fi
+          cron_status="$(curl --silent --show-error --max-time 20 --output /tmp/wagtail-cron-probe.json --write-out '%{http_code}' --request POST "$base/internal/cron/wagtail/publish-scheduled/")"
+          if [[ "$cron_status" != "403" ]]; then
+            printf 'Wagtail cron config probe expected 403, got %s. A 503 means WAGTAIL_CRON_SECRET is missing or too short.\n' "$cron_status" >&2
+            cat /tmp/wagtail-cron-probe.json >&2
+            exit 1
+          fi
+          printf 'Wagtail cron secret is configured; unauthenticated probe was rejected as expected.\n'
           printf 'Home, robots.txt, sitemap.xml, and favicon checks passed.\n'
