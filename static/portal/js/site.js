@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // Load page-specific enhancements separately so they do not inflate the shared entry point.
   if (document.querySelector('.nv-auth-shell')) {
-    void import('./auth-ui.js');
+    void import(document.body.dataset.authUiSrc || './auth-ui.js');
   }
 
   const hasSectionNavigation =
@@ -234,12 +234,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     );
   if (hasSectionNavigation) {
-    void import('./section-navigation.js');
+    void import(document.body.dataset.sectionNavigationSrc || './section-navigation.js');
   }
 
   // The canvas/ambient effects are intentionally non-critical: fetch their chunk after first paint.
   if (document.querySelector('.nv-starfield, .ambient')) {
-    const loadVisualEffects = () => void import('./visual-effects.js');
+    const loadVisualEffects = () =>
+      void import(document.body.dataset.visualEffectsSrc || './visual-effects.js');
     if (typeof window.requestIdleCallback === 'function') {
       window.requestIdleCallback(loadVisualEffects, { timeout: 1200 });
     } else {
