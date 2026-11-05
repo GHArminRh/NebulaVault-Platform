@@ -11,7 +11,6 @@ from django.urls import reverse
     SOCIAL_AUTH_GOOGLE_ENABLED=True,
     SOCIAL_AUTH_APPLE_ENABLED=False,
     TURNSTILE_ENABLED=False,
-    SITE_BASE_URL="https://mydigigi.ir",
     ALLOWED_HOSTS=["testserver", "www.mydigigi.ir"],
 )
 class CustomerGoogleOAuthTests(TestCase):
@@ -46,7 +45,7 @@ class CustomerGoogleOAuthTests(TestCase):
         self.assertRedirects(response, reverse("login"), fetch_redirect_response=False)
         get_client.assert_not_called()
 
-    def test_google_start_uses_canonical_callback_url(self):
+    def test_google_start_keeps_callback_on_initiating_host(self):
         class FakeGoogleClient:
             callback_uri = None
 
@@ -73,7 +72,7 @@ class CustomerGoogleOAuthTests(TestCase):
         self.assertEqual(response["Location"], "https://accounts.google.com/")
         self.assertEqual(
             fake_client.callback_uri,
-            "https://mydigigi.ir/accounts/social/google/callback/",
+            "https://www.mydigigi.ir/accounts/social/google/callback/",
         )
         self.assertTrue(
             any(key.startswith("customer-social-state:") for key in self.client.session)
