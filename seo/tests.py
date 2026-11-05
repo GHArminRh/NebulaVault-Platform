@@ -283,3 +283,62 @@ class SearchConsoleSyncCommandTests(TestCase):
             connection.refresh_from_db()
             self.assertIsNotNone(connection.last_synced_at)
             self.assertEqual(connection.last_sync_error, "")
+
+
+class SearchConsoleManualSyncViewTests(TestCase):
+    def setUp(self):
+        self.staff = get_user_model().objects.create_superuser(
+            username="seo-sync-admin",
+            email="seo-sync-admin@example.invalid",
+            password="test-password",
+        )
+        self.client.force_login(
+            self.staff,
+            backend="django.contrib.auth.backends.ModelBackend",
+        )
+
+    def test_post_runs_existing_sync_command_for_28_days(self):
+        from unittest.mock import patch
+
+        from django.contrib.messages import get_messages
+        from .models import SearchConsoleConnection
+
+        SearchConsoleConnection.objects.create(
+            site_url="sc-domain:mydigigi.ir",
+            refresh_token_encrypted="encrypted-token",
+        )
+        with patch("seo.search_console_sync_views.call_command") as run_sync:
+            response = self.client.post("/admin/seo-center/search-console/sync/")
+
+        self.assertRedirects(response, "/admin/seo-center/")
+        run_sync.assert_called_once()
+        self.assertEqual(run_sync.call_args.args, ("sync_search_console",))
+        self.assertEqual(run_sync.call_args.kwargs["days"], 28)
+        self.assertTrue(any("completed successfully" in str(message) for message in get_messages(response.wsgi_request)))
+
+    def test_sync_requires_post(self):
+        response = self.client.get("/admin/seo-center/search-console/sync/")
+        self.assertEqual(response.status_code, 405)
+
+    def test_sync_without_active_connection_does_not_run_command(self):
+        from unittest.mock import patch
+
+        from django.contrib.messages import get_messages
+
+        with patch("seo.search_console_sync_views.call_command") as run_sync:
+            response = self.client.post("/admin/seo-center/search-console/sync/")
+
+        self.assertRedirects(response, "/admin/seo-center/")
+        run_sync.assert_not_called()
+        self.assertTrue(any("No active Google Search Console property" in str(message) for message in get_messages(response.wsgi_request)))
+
+    def test_sync_requires_staff_access(self):
+        self.client.logout()
+        customer = get_user_model().objects.create_user(
+            username="not-staff",
+            email="customer@example.invalid",
+            password="test-password",
+        )
+        self.client.force_login(customer)
+        response = self.client.post("/admin/seo-center/search-console/sync/")
+        self.assertIn(response.status_code, (302, 403))
