@@ -323,6 +323,27 @@ else:
         }
     }
 
+
+# Celery background processing. The broker is deliberately separate from the
+# default Redis cache so queue messages are not subject to cache eviction.
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "").strip()
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "").strip() or None
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_IGNORE_RESULT = True
+CELERY_TASK_ACKS_LATE = True
+CELERY_TASK_REJECT_ON_WORKER_LOST = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_TASK_SOFT_TIME_LIMIT = 210
+CELERY_TASK_TIME_LIMIT = 240
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_CONNECTION_MAX_RETRIES = 10
+CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 3600}
+
 # Redis inspection uses the same private Render Key Value connection string.
 # Always register the instance so the panel can distinguish a missing or
 # unreachable connection from an entirely unconfigured panel.
