@@ -39,7 +39,7 @@ a.nv-image-preview-link:focus-visible {
 }
 
 .nv-image-preview-dialog {
-  width: min( min(1100px, calc(100vw - 36px)), calc(100vw - 36px));
+  width: min(1100px, calc(100vw - 36px));
   max-width: 1100px;
   max-height: calc(100dvh - 36px);
   padding: 0;
