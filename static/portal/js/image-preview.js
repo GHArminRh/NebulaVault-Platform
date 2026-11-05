@@ -153,6 +153,7 @@
     status.hidden = true;
 
     clearInput.classList.add('nv-image-clear-native');
+    clearInput.style.setProperty('display', 'none', 'important');
     clearInput.setAttribute('aria-hidden', 'true');
     clearInput.tabIndex = -1;
     if (label) label.hidden = true;
