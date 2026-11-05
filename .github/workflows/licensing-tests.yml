@@ -90,6 +90,7 @@ jobs:
           accounts.test_turnstile
           accounts.tests
           accounts.test_email_backends
+          accounts.test_social_auth
           billing.tests
           portal.tests
           --settings=config.test_settings
