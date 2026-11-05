@@ -128,9 +128,7 @@
                           نامشخص
                         {% endif %}
                       </span>
-                      <small class="money">
-                        {{ order.amount_minor_units|money }} {{ order.currency }}
-                      </small>
+                      <small class="money">{{ order.amount_minor_units|money }} {{ order.currency }}</small>
                     </div>
                   </div>
                 {% endfor %}
