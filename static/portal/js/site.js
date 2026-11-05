@@ -1,4 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Apply the preloaded web-font stylesheet after the browser can render with
+  // its local fallback stack; font-display: swap keeps text available meanwhile.
+  const webFonts = document.querySelector('#nv-web-fonts');
+  if (webFonts) {
+    const activateWebFonts = () => {
+      webFonts.media = 'all';
+    };
+    if (webFonts.sheet) activateWebFonts();
+    else webFonts.addEventListener('load', activateWebFonts, { once: true });
+  }
+
   // POST submissions reuse the same page progress bar as normal navigation.
   // Only the control that initiated this submission is disabled.
   let triggerPageProgress = () => {};
