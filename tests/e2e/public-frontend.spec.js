@@ -29,19 +29,13 @@ test('public pages load their stylesheets without failed CSS responses', async (
   expect(failedStylesheets).toEqual([]);
 });
 
-test('global design tokens load before the site foundation stylesheet', async ({ page }) => {
+test('shared foundation bundle preserves global design tokens', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-  const stylesheetPaths = await page
-    .locator('link[rel="stylesheet"]')
-    .evaluateAll((links) => links.map((link) => new URL(link.href).pathname));
-  const tokensIndex = stylesheetPaths.findIndex((path) => path.endsWith('/portal/css/tokens.css'));
-  const foundationIndex = stylesheetPaths.findIndex((path) =>
-    path.endsWith('/portal/css/site.css')
+  const foundation = page.locator(
+    'link[rel="stylesheet"][href*="portal/css/public-foundation"]'
   );
-
-  expect(tokensIndex).toBeGreaterThanOrEqual(0);
-  expect(foundationIndex).toBeGreaterThan(tokensIndex);
+  await expect(foundation).toHaveCount(1);
 
   const tokens = await page.locator('html').evaluate((element) => {
     const styles = getComputedStyle(element);
