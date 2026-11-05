@@ -35,10 +35,13 @@ document.querySelectorAll('.nv-auth-shell').forEach((shell) => {
       if (flow === 'register') {
         const terms = sourceForm.querySelector('[name="accept_terms"]');
         const newsletter = sourceForm.querySelector('[name="newsletter_opt_in"]');
-        socialForm.querySelector('[name="accept_terms"]').value = terms?.checked ? 'on' : '';
-        socialForm.querySelector('[name="newsletter_opt_in"]').value = newsletter?.checked
-          ? 'on'
-          : '';
+        const termsField = socialForm.querySelector('[name="accept_terms"]');
+        const newsletterField = socialForm.querySelector('[name="newsletter_opt_in"]');
+
+        if (termsField) termsField.value = terms?.checked ? 'on' : '';
+        if (newsletterField) {
+          newsletterField.value = newsletter?.checked ? 'on' : '';
+        }
       }
 
       const next = sourceForm.querySelector('[name="next"]')?.value || '';

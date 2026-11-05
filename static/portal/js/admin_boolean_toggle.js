@@ -12,13 +12,6 @@
         ? formToken.value
         : '';
   }
-  function addSwitchStyles() {
-    if (document.getElementById('nv-admin-switch-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'nv-admin-switch-styles';
-    style.textContent = `.nv-boolean-toggle{appearance:none;display:inline-flex;align-items:center;justify-content:center;padding:5px 7px;margin:0;border:0;border-radius:9px;background:transparent;color:inherit;cursor:pointer;vertical-align:middle;transition:background-color .18s ease}.nv-boolean-toggle:hover{background:rgba(120,145,180,.10)}.nv-boolean-toggle:focus-visible{outline:2px solid #4b9cff;outline-offset:2px}.nv-switch-track{position:relative;display:inline-block;flex:0 0 42px;width:42px;height:24px;border-radius:999px;background:#667085;transition:background-color .18s ease}.nv-switch-thumb{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.22);transition:transform .22s cubic-bezier(.2,.75,.25,1)}.nv-boolean-toggle.is-on .nv-switch-track{background:#259d70}.nv-boolean-toggle.is-on .nv-switch-thumb{transform:translateX(18px)}@media(prefers-reduced-motion:reduce){.nv-boolean-toggle,.nv-switch-track,.nv-switch-thumb{transition:none!important}}`;
-    document.head.appendChild(style);
-  }
   function objectIdForRow(row) {
     if (!row) return null;
     if (row.dataset.objectPk) return row.dataset.objectPk;
@@ -103,7 +96,6 @@
     if (!id) return;
     const cell = document.createElement('td');
     cell.className = actionCellClass;
-    cell.style.cssText = 'white-space:nowrap;text-align:center;vertical-align:middle;';
     const link = document.createElement('a');
     link.href =
       '/admin/' +
@@ -118,8 +110,7 @@
     const img = document.createElement('img');
     img.src = '/static/admin/img/icon-deletelink.svg';
     img.alt = '';
-    img.style.cssText =
-      'width:10px;height:10px;display:inline-block;vertical-align:middle;border:0;';
+    img.className = 'nv-record-actions__delete-icon';
     link.appendChild(img);
     cell.appendChild(link);
     row.appendChild(cell);
@@ -127,7 +118,6 @@
   function enhance() {
     const context = appAndModel();
     if (!context) return;
-    addSwitchStyles();
     const table = document.querySelector('#result_list'),
       header = table && table.querySelector('thead tr');
     if (header && !header.querySelector('.' + actionCellClass + '-header')) {
@@ -135,7 +125,6 @@
       th.className = actionCellClass + '-header';
       th.scope = 'col';
       th.textContent = 'Tools';
-      th.style.textAlign = 'center';
       header.appendChild(th);
     }
     document.querySelectorAll('#result_list tbody tr').forEach((row) => {

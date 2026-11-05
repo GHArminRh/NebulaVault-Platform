@@ -159,21 +159,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggle = document.querySelector('.menu-toggle');
   const nav = document.querySelector('.mobile-nav');
   if (toggle && nav) {
+    const setMenuOpen = (open) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'بستن منو' : 'بازکردن منو');
+      nav.hidden = !open;
+    };
+
     toggle.addEventListener('click', () => {
-      const open = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!open));
-      nav.hidden = open;
+      setMenuOpen(toggle.getAttribute('aria-expanded') !== 'true');
     });
-    nav.querySelectorAll('a[href*="#"]').forEach((link) =>
-      link.addEventListener('click', () => {
-        toggle.setAttribute('aria-expanded', 'false');
-        nav.hidden = true;
-      })
-    );
+
+    nav.querySelectorAll('a[href]').forEach((link) => {
+      link.addEventListener('click', () => setMenuOpen(false));
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || nav.hidden) return;
+      setMenuOpen(false);
+      toggle.focus();
+    });
   }
   document.querySelectorAll('.password-toggle').forEach((button) =>
     button.addEventListener('click', () => {
-      const input = button.parentElement.querySelector('input');
+      const input = button.parentElement?.querySelector('input');
+      if (!input) return;
       const show = input.type === 'password';
       input.type = show ? 'text' : 'password';
       button.textContent = show ? 'پنهان' : 'نمایش';
@@ -214,7 +223,11 @@ document.addEventListener('DOMContentLoaded', () => {
       (link) => {
         try {
           const url = new URL(link.href, location.href);
-          return url.pathname === location.pathname && Boolean(url.hash);
+          return (
+            url.origin === location.origin &&
+            url.pathname === location.pathname &&
+            Boolean(url.hash)
+          );
         } catch {
           return false;
         }

@@ -9,8 +9,6 @@
 
   const initializeUploader = (root) => {
     if (root.dataset.nvReady === 'true') return;
-    root.dataset.nvReady = 'true';
-
     const input = root.querySelector('[data-nv-image-input]');
     const dropzone = root.querySelector('[data-dropzone]');
     const selection = root.querySelector('[data-selection]');
@@ -23,8 +21,10 @@
     let previewUrl = null;
 
     if (!input || !dropzone) return;
+    root.dataset.nvReady = 'true';
 
     const showMessage = (text, isError) => {
+      if (!message) return;
       message.textContent = text || '';
       message.classList.toggle('is-error', Boolean(isError));
       message.classList.toggle('is-success', Boolean(text) && !isError);
@@ -37,7 +37,16 @@
 
     const setFile = (file) => {
       showMessage('', false);
-      if (!file) return;
+      if (!file) {
+        selection.hidden = true;
+        if (current) current.hidden = false;
+        root.dataset.hasSelection = 'false';
+        releasePreview();
+        preview.removeAttribute('src');
+        filename.textContent = '';
+        filesize.textContent = '';
+        return;
+      }
       if (!file.type || !file.type.startsWith('image/')) {
         input.value = '';
         selection.hidden = true;
@@ -53,7 +62,7 @@
         if (current) current.hidden = false;
         root.dataset.hasSelection = 'false';
         releasePreview();
-        showMessage('This image exceeds the 12 MB upload limit.', true);
+        showMessage('This image exceeds the ' + formatBytes(maxBytes) + ' upload limit.', true);
         return;
       }
 
@@ -70,7 +79,7 @@
     input.addEventListener('change', () => setFile(input.files && input.files[0]));
 
     dropzone.addEventListener('click', (event) => {
-      if (event.target === input || event.target.closest('button')) return;
+      if (event.target === input || event.target.closest?.('button')) return;
       input.click();
     });
     dropzone.addEventListener('keydown', (event) => {
@@ -152,6 +161,14 @@
       return;
     if (event.defaultPrevented) return;
 
+    const roots = Array.from(form.querySelectorAll('[data-nv-image-uploader]')).filter((root) => {
+      const input = root.querySelector('[data-nv-image-input]');
+      return Boolean(input && input.files && input.files.length);
+    });
+    // Preserve the normal Django form submission when the user is saving
+    // without selecting a replacement image (including clearing an image).
+    if (!roots.length) return;
+
     event.preventDefault();
     event.stopImmediatePropagation();
 
@@ -165,12 +182,6 @@
     if (submitter && submitter.name && !submitter.disabled) {
       data.append(submitter.name, submitter.value);
     }
-
-    const roots = Array.from(form.querySelectorAll('[data-nv-image-uploader]')).filter((root) => {
-      const input = root.querySelector('[data-nv-image-input]');
-      return Boolean(input && input.files && input.files.length);
-    });
-    if (!roots.length) return;
 
     const buttons = Array.from(
       form.querySelectorAll("button[type='submit'], input[type='submit']")

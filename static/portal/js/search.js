@@ -14,7 +14,9 @@
   const safeUrl = (value) => {
     try {
       const url = new URL(value, window.location.origin);
-      return url.origin === window.location.origin ? url.href : null;
+      return url.origin === window.location.origin && !url.username && !url.password
+        ? url.href
+        : null;
     } catch {
       return null;
     }
