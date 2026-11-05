@@ -218,4 +218,3 @@ html body.nv-portal:not(:has(.nv-dashboard-layout)) .desktop-nav > a::after {
 }
 
 /* Sticky rail fix: hidden horizontal overflow on body creates a competing scroll container. */
-
