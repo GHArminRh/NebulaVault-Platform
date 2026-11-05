@@ -11,8 +11,7 @@
     try {
       const url = new URL(value, window.location.href);
       return (
-        ['http:', 'https:', 'blob:'].includes(url.protocol) &&
-        IMAGE_EXTENSION.test(url.pathname)
+        ['http:', 'https:', 'blob:'].includes(url.protocol) && IMAGE_EXTENSION.test(url.pathname)
       );
     } catch {
       return false;
@@ -76,9 +75,7 @@
 
     const fileName = (() => {
       try {
-        return decodeURIComponent(
-          new URL(href, window.location.href).pathname.split('/').pop()
-        );
+        return decodeURIComponent(new URL(href, window.location.href).pathname.split('/').pop());
       } catch {
         return 'تصویر';
       }
