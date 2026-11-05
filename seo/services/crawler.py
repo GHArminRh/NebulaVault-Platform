@@ -200,7 +200,7 @@ class SiteCrawler:
         if not self.fetcher:
             self._validate_public_host()
 
-        retryable_statuses = {500, 502, 503, 504}
+        retryable_statuses = {429, 500, 502, 503, 504, 520, 521, 522, 523, 524}
         for attempt in range(2):
             elapsed = time.monotonic() - self._last_request_at
             if elapsed < self.request_delay:
