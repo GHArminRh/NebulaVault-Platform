@@ -15,7 +15,31 @@
         <div class="nv-auth-face-head"><span class="nv-auth-kicker">خوش آمدید</span><span class="nv-auth-step">01 <i>/</i> 02</span></div>
         <h2>ورود به حساب</h2>
         <p class="nv-auth-subtitle">برای ادامه، وارد فضای شخصی خود شوید.</p>
-        {% if auth_side == "login" %}{% if login_throttled %}<div class="form-error" role="alert">ورود شما موقتاً محدود شده است؛ پنج تلاش ناموفق ثبت شده. لطفاً ۱۵ دقیقه صبر کنید و سپس دوباره تلاش کنید.</div>{% elif banned_account %}<div class="form-error" role="alert">شما توسط ادمین بن شده‌اید و امکان ورود به حساب را ندارید.</div>{% elif form.turnstile_error %}<div class="form-error" role="alert">تأیید امنیتی ناموفق بود. لطفاً کپچا را تکمیل کنید و دوباره تلاش کنید.</div>{% elif form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors|join:' ' }}</div>{% elif form.otp_token.errors %}<div class="form-error" role="alert">کد تأیید یا کد بازیابی نامعتبر است یا وارد نشده است.</div>{% elif form.errors %}<div class="form-error" role="alert">نام کاربری یا رمز عبور اشتباه است. اطلاعات را بررسی و دوباره تلاش کنید.</div>{% endif %}{% endif %}
+        {% if auth_side == "login" %}
+          {% if login_throttled %}
+            <div class="form-error" role="alert">
+              ورود شما موقتاً محدود شده است؛ پنج تلاش ناموفق ثبت شده. لطفاً ۱۵ دقیقه صبر کنید و سپس دوباره تلاش کنید.
+            </div>
+          {% elif banned_account %}
+            <div class="form-error" role="alert">
+              شما توسط ادمین بن شده‌اید و امکان ورود به حساب را ندارید.
+            </div>
+          {% elif form.turnstile_error %}
+            <div class="form-error" role="alert">
+              تأیید امنیتی ناموفق بود. لطفاً کپچا را تکمیل کنید و دوباره تلاش کنید.
+            </div>
+          {% elif form.non_field_errors %}
+            <div class="form-error" role="alert">{{ form.non_field_errors|join:' ' }}</div>
+          {% elif form.otp_token.errors %}
+            <div class="form-error" role="alert">
+              کد تأیید یا کد بازیابی نامعتبر است یا وارد نشده است.
+            </div>
+          {% elif form.errors %}
+            <div class="form-error" role="alert">
+              نام کاربری یا رمز عبور اشتباه است. اطلاعات را بررسی و دوباره تلاش کنید.
+            </div>
+          {% endif %}
+        {% endif %}
         <form method="post"
               action="{% url 'login' %}"
               class="form-stack nv-auth-form">
@@ -52,7 +76,15 @@
               {% endif %}
             {% endfor %}
           {% else %}
-            <label for="nv-login-email">نام کاربری یا ایمیل</label><input id="nv-login-email" name="username" type="text" autocomplete="username" dir="auto" required placeholder="نام کاربری یا ایمیل خود را وارد کنید" value="{% if auth_side == 'login' %}{{ form.username.value|default:'' }}{% endif %}">
+            <label for="nv-login-email">نام کاربری یا ایمیل</label>
+            <input id="nv-login-email"
+                   name="username"
+                   type="text"
+                   autocomplete="username"
+                   dir="auto"
+                   required
+                   placeholder="نام کاربری یا ایمیل خود را وارد کنید"
+                   value="{% if auth_side == 'login' %}{{ form.username.value|default:'' }}{% endif %}">
             <label for="nv-login-password">رمز عبور</label>
             <div class="password-wrap">
               <input id="nv-login-password" name="password" type="password" autocomplete="current-password" required placeholder="رمز عبور خود را وارد کنید"><button class="password-toggle" type="button">نمایش</button>
@@ -70,7 +102,14 @@
           {% endif %}
           {% if not form.two_factor_required and TURNSTILE_ENABLED|default:True %}
           <div class="turnstile-shell" role="group" aria-labelledby="nv-login-turnstile-heading">
-            <div class="turnstile-heading" id="nv-login-turnstile-heading"><span class="turnstile-heading-mark" aria-hidden="true">✓</span><span class="turnstile-heading-copy"><strong>بررسی امنیتی</strong><small>برای محافظت از حساب شما</small></span><span class="turnstile-provider">CLOUDFLARE</span></div>
+            <div class="turnstile-heading" id="nv-login-turnstile-heading">
+              <span class="turnstile-heading-mark" aria-hidden="true">✓</span>
+              <span class="turnstile-heading-copy">
+                <strong>بررسی امنیتی</strong>
+                <small>برای محافظت از حساب شما</small>
+              </span>
+              <span class="turnstile-provider">CLOUDFLARE</span>
+            </div>
             {% if TURNSTILE_SITE_KEY %}
               <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
               <div class="nv-turnstile-widget"
@@ -138,7 +177,14 @@
           <p class="nv-auth-help">پس از ثبت‌نام، برای فعال‌سازی حساب باید ایمیل خود را تأیید کنید.</p>
           {% if TURNSTILE_ENABLED|default:True %}
           <div class="turnstile-shell" role="group" aria-labelledby="nv-register-turnstile-heading">
-            <div class="turnstile-heading" id="nv-register-turnstile-heading"><span class="turnstile-heading-mark" aria-hidden="true">✓</span><span class="turnstile-heading-copy"><strong>بررسی امنیتی</strong><small>برای محافظت از حساب شما</small></span><span class="turnstile-provider">CLOUDFLARE</span></div>
+            <div class="turnstile-heading" id="nv-register-turnstile-heading">
+              <span class="turnstile-heading-mark" aria-hidden="true">✓</span>
+              <span class="turnstile-heading-copy">
+                <strong>بررسی امنیتی</strong>
+                <small>برای محافظت از حساب شما</small>
+              </span>
+              <span class="turnstile-provider">CLOUDFLARE</span>
+            </div>
             {% if TURNSTILE_SITE_KEY %}
               <div class="turnstile-loading" aria-hidden="true"><span class="turnstile-spinner"></span><span>در حال آماده‌سازی تأیید امنیتی…</span></div>
               <div class="nv-turnstile-widget"
