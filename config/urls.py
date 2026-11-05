@@ -8,6 +8,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.generic.base import RedirectView
 
 from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
@@ -107,6 +108,14 @@ urlpatterns = [
         name="wagtail-publish-scheduled",
     ),
     path("healthz/", healthcheck, name="healthcheck"),
+    path(
+        "favicon.ico",
+        RedirectView.as_view(
+            url="/static/portal/img/pwa-icon-192.svg",
+            permanent=True,
+        ),
+        name="favicon",
+    ),
     path("robots.txt", robots_txt, name="robots-txt"),
     path("sitemap.xml", sitemap_index, name="sitemap"),
     path("sitemap-wagtail.xml", sitemap, name="sitemap-wagtail"),
