@@ -18,7 +18,10 @@ a.nv-image-preview-link {
   border: 1px solid rgba(128, 145, 176, 0.32);
   border-radius: 8px;
   background: rgba(128, 145, 176, 0.08);
-  transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
 a.nv-image-preview-link:hover .nv-image-preview-thumb,
