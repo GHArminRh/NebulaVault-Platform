@@ -2888,12 +2888,6 @@ html body.nv-portal .nv-dashboard-content .nv-main-columns {
     flex: 0 0 auto;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  html:has(body.nv-portal) {
-    scroll-behavior: auto !important;
-  }
-}
-
 /* Final polish: tighter section rhythm, softer navigation surfaces and reliable dashboard hit targets. */
 html body.nv-portal .nv-home-section,
 html body.nv-portal .nv-pricing-band,
