@@ -6,6 +6,7 @@ from django.shortcuts import redirect, render
 from django.urls import include, path, reverse
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.http import HttpResponse, HttpResponsePermanentRedirect
 from django.utils.http import url_has_allowed_host_and_scheme
 
