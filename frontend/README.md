@@ -37,6 +37,17 @@ npm run check:frontend
 
 Render runs the bundle check before collecting static files. A stale or missing generated bundle therefore fails the build instead of silently deploying mismatched CSS.
 
+## Other stylesheets
+
+The source modules above deliberately cover only the two large shared bundles. The remaining stylesheets keep their current, focused roles:
+
+- `tokens.css` owns shared design tokens and loads before the site foundation.
+- `responsive-system.css` remains the final shared responsive override layer in the public base template.
+- `site-shell.css`, `page-transitions.css`, and `form-icons.css` stay separate because they have independent shared responsibilities.
+- `blog.css`, `search.css`, `dashboard.css`, and other page/component styles remain conditionally loaded by their owning templates.
+
+Avoid moving these files into the generated bundles unless their ownership, load order, and browser behavior are explicitly reviewed. The goal is clearer source ownership without turning the site into a larger number of network requests.
+
 ## Cascade and maintenance rules
 
 1. Preserve the declared module order in `scripts/build_frontend_css.py`; order is part of the site's CSS architecture.
