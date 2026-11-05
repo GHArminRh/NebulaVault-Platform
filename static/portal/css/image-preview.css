@@ -126,3 +126,75 @@ body.nv-image-preview-open {
     transition: none;
   }
 }
+
+
+/* Replace Django's native image-clear checkbox with a direct trash action. */
+.nv-image-clear-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: 8px;
+  vertical-align: middle;
+}
+
+.nv-image-clear-native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.nv-image-clear-button {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(239, 91, 111, 0.36);
+  border-radius: 9px;
+  background: rgba(239, 91, 111, 0.09);
+  color: #e87988;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.nv-image-clear-button:hover,
+.nv-image-clear-button:focus-visible {
+  border-color: rgba(239, 91, 111, 0.72);
+  background: rgba(239, 91, 111, 0.18);
+  color: #ff9aa7;
+}
+
+.nv-image-clear-button:focus-visible {
+  outline: 2px solid #e87988;
+  outline-offset: 2px;
+}
+
+.nv-image-clear-button svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.nv-image-clear-status {
+  color: #e87988;
+  font-size: 12px;
+}
+
+.nv-image-clear-status[hidden],
+.nv-image-clear-button[hidden] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nv-image-clear-button {
+    transition: none;
+  }
+}
