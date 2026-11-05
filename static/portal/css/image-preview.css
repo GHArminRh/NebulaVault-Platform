@@ -127,7 +127,6 @@ body.nv-image-preview-open {
   }
 }
 
-
 /* Replace Django's native image-clear checkbox with a direct trash action. */
 .nv-image-clear-control {
   display: inline-flex;
