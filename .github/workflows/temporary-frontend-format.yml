@@ -1,0 +1,35 @@
+name: Temporary frontend formatter
+on:
+  push:
+    branches:
+      - refactor/frontend-quality-audit
+permissions:
+  contents: write
+concurrency:
+  group: temporary-frontend-format
+  cancel-in-progress: true
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Format the changed navigation module
+        run: |
+          npm ci --no-audit --no-fund
+          npx prettier --write static/portal/js/section-navigation.js
+      - name: Commit formatting and remove this temporary workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/temporary-frontend-format.yml
+          git add static/portal/js/section-navigation.js
+          git commit -m "style(frontend): apply Prettier output and remove temporary formatter"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
