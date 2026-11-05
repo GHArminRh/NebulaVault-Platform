@@ -5,6 +5,7 @@ on:
     branches:
       - maintenance/frontend-full-quality-oct-2026
       - refactor/css-important-reduction-2026-11
+      - refactor/frontend-css-architecture
   workflow_dispatch:
 
 permissions:
