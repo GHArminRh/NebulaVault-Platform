@@ -25,6 +25,7 @@ from sitecms.cron_views import publish_scheduled_pages
 from seo.views import blog_sitemap, core_sitemap, product_sitemap, robots_txt, sitemap_index
 from seo.admin_views import seo_dashboard
 from seo.search_console_views import search_console_callback, search_console_connect
+from seo.search_console_sync_views import search_console_sync_now
 from staff.admin_forms import AdminTurnstileAuthenticationForm
 
 admin.site.login_form = AdminTurnstileAuthenticationForm
@@ -127,6 +128,7 @@ urlpatterns = [
     path("admin/seo-center/", admin.site.admin_view(seo_dashboard), name="seo-dashboard"),
     path("admin/seo-center/search-console/connect/", admin.site.admin_view(search_console_connect), name="seo-search-console-connect"),
     path("admin/seo-center/search-console/callback/", admin.site.admin_view(search_console_callback), name="seo-search-console-callback"),
+    path("admin/seo-center/search-console/sync/", admin.site.admin_view(search_console_sync_now), name="seo-search-console-sync"),
     path("admin/account/", admin.site.admin_view(staff_account), name="staff-account"),
     path("admin/", admin.site.urls),
     path("api", api_index, name="admin-api-index"),
