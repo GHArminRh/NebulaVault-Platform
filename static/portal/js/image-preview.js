@@ -121,6 +121,7 @@
       ?.querySelector('a.nv-image-preview-link img.nv-image-preview-thumb')
       ?.closest('a');
     if (!fileUpload || !currentLink) return;
+    const currentDisplay = currentLink.closest('p') || currentLink;
 
     const fileInput = fileUpload.querySelector('input[type="file"]');
     const label = fileUpload.querySelector(
@@ -174,7 +175,7 @@
     button.addEventListener('click', () => {
       clearInput.checked = true;
       clearInput.dispatchEvent(new Event('change', { bubbles: true }));
-      currentLink.hidden = true;
+      currentDisplay.hidden = true;
       button.hidden = true;
       status.hidden = false;
     });
@@ -183,7 +184,7 @@
       if (!fileInput.files?.length) return;
       clearInput.checked = false;
       clearInput.dispatchEvent(new Event('change', { bubbles: true }));
-      currentLink.hidden = false;
+      currentDisplay.hidden = false;
       button.hidden = false;
       status.hidden = true;
     });
