@@ -88,6 +88,6 @@ class CustomerGoogleOAuthTests(TestCase):
             self.assertTrue(
                 any(
                     key.startswith("customer-social-state:")
-                    for key in self.client.session
+                    for key in self.client.session.keys()
                 )
             )
