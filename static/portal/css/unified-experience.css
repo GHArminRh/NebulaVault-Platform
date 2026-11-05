@@ -659,7 +659,6 @@ html body.nv-portal .nv-final-cta p {
   margin: 12px auto 26px;
   line-height: 2;
 }
-
 /* Login and registration: a real two-sided card with preserved Django POST endpoints. */
 html body.nv-portal .nv-auth-shell {
   display: grid;
@@ -1048,7 +1047,6 @@ html body.nv-portal .turnstile-script-loaded .turnstile-loading {
     transform: rotate(360deg);
   }
 }
-
 /* Desktop-inspired user workspace: compact rail, high-signal overview and responsive cards. */
 html body.nv-portal .nv-dashboard-layout {
   display: grid;
@@ -1643,7 +1641,6 @@ html body.nv-portal .nv-dashboard-content .nv-settings-card {
     transition: none !important;
   }
 }
-
 /* Fine tuning for the nested dashboard shell and explicit challenge rendering. */
 html body.nv-portal .nv-dashboard-content .nv-dashboard {
   padding-top: 10px;
@@ -2207,7 +2204,6 @@ html body.nv-portal .nv-home-section#about {
     scroll-margin-top: 82px;
   }
 }
-
 /* Responsive hardening — fluid layout across phones, tablets, laptops and wide screens. */
 html:has(body.nv-portal) {
   --nv-page-gutter: clamp(16px, 4vw, 56px);
@@ -3738,7 +3734,6 @@ html body.nv-portal.nv-dashboard-page .nv-dash-rail .nv-dashboard-logout {
     margin: 0;
   }
 }
-
 /* A single slow light travels around the OUTER header frame, not the inner nav pill. */
 @property --nv-header-border-angle {
   syntax: '<angle>';

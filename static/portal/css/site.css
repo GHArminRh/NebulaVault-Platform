@@ -1714,7 +1714,6 @@ html[dir='rtl'] .release-row {
 html[dir='rtl'] .price-line {
   direction: rtl;
 }
-
 /* Refined authentication screens — presentation only; existing Django form names and POST flow remain intact. */
 .auth-layout {
   max-width: 1060px;
@@ -2303,7 +2302,6 @@ html[dir='rtl'] .human-check-mark {
     min-height: 56px;
   }
 }
-
 /* Nebula Vault 2.8.46-inspired cosmic refinement */
 body:before {
   background:
@@ -2775,7 +2773,6 @@ html[dir='rtl'] .nv-field input {
     font-size: 28px;
   }
 }
-
 /* Shopping cart and demo checkout */
 html body.nv-portal .cart-nav-link {
   display: inline-flex;
@@ -3126,7 +3123,6 @@ html body.nv-portal .cart-nav-link {
     display: inline-flex;
   }
 }
-
 /* Nebula Vault themed native scrollbars. */
 html {
   scrollbar-width: thin;
