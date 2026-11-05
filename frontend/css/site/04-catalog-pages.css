@@ -1,0 +1,192 @@
+.page-hero {
+  padding-top: 86px;
+  padding-bottom: 28px;
+  text-align: center;
+}
+.page-hero .eyebrow {
+  justify-content: center;
+}
+.page-hero h1 {
+  font-size: clamp(38px, 5vw, 56px);
+  margin: 17px 0 13px;
+}
+.page-hero p {
+  color: #9ba7c1;
+  font-size: 14px;
+  max-width: 580px;
+  margin: 0 auto;
+  line-height: 1.8;
+}
+.compact-section {
+  padding-top: 32px;
+  padding-bottom: 95px;
+}
+.product-hero {
+  padding-top: 32px;
+  padding-bottom: 55px;
+}
+.back-link {
+  display: inline-block;
+  font-size: 11px;
+  color: #a5b0ca;
+  margin-bottom: 34px;
+}
+.product-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr;
+  gap: 80px;
+  align-items: center;
+}
+.product-icon-large {
+  width: 62px;
+  height: 62px;
+  font-size: 32px;
+}
+.product-hero h1 {
+  font-size: 54px;
+  margin: 16px 0;
+}
+.product-hero .hero-lede {
+  font-size: 14px;
+}
+.product-showcase {
+  height: 310px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(174, 191, 236, 0.1);
+  border-radius: 22px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(121, 102, 255, 0.18), transparent 60%),
+    linear-gradient(140deg, rgba(20, 28, 50, 0.8), rgba(11, 20, 35, 0.8));
+}
+.showcase-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(161, 170, 255, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(161, 170, 255, 0.2) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse at center, #000, transparent 75%);
+}
+.showcase-emblem {
+  width: 128px;
+  height: 128px;
+  display: grid;
+  place-items: center;
+  border-radius: 36px;
+  border: 1px solid rgba(178, 170, 255, 0.42);
+  background: linear-gradient(145deg, rgba(143, 125, 255, 0.24), rgba(54, 189, 207, 0.09));
+  box-shadow:
+    0 0 70px rgba(127, 110, 255, 0.24),
+    inset 0 0 24px rgba(174, 162, 255, 0.13);
+  font-size: 70px;
+  color: #c4bcff;
+  transform: rotate(-9deg);
+}
+.showcase-caption {
+  position: absolute;
+  bottom: 19px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 10px;
+  color: #9ca8c3;
+}
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.pricing-card {
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  padding: 25px;
+  background: linear-gradient(145deg, rgba(21, 29, 51, 0.9), rgba(13, 19, 34, 0.92));
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
+}
+.pricing-card:nth-child(3n + 2) {
+  border-color: rgba(155, 141, 255, 0.24);
+  background: linear-gradient(145deg, rgba(31, 32, 67, 0.8), rgba(13, 21, 38, 0.95));
+}
+.price-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 14px;
+}
+.price-line strong {
+  font: 38px var(--display);
+  letter-spacing: -1.5px;
+}
+.price-line span {
+  font-size: 11px;
+  color: #9da9c3;
+}
+.pricing-card > p {
+  margin: 0 0 18px;
+}
+.plan-feature {
+  font-size: 11px;
+  color: #aab5cd;
+  margin: 7px 0;
+}
+.plan-feature span {
+  color: #80e1b8;
+  margin-right: 8px;
+}
+.subtle-link {
+  font-size: 10px;
+  color: #9b91ef;
+  text-align: center;
+  margin-top: 13px;
+}
+.notice-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 11px;
+  color: #8c9ab6;
+  margin: 22px 0 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(174, 191, 236, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.018);
+}
+.empty-state {
+  text-align: center;
+  padding: 62px 22px;
+  border: 1px dashed rgba(174, 191, 236, 0.16);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.012);
+}
+.empty-symbol {
+  display: grid;
+  place-items: center;
+  margin: 0 auto 17px;
+  width: 50px;
+  height: 50px;
+  border-radius: 15px;
+  background: rgba(132, 117, 255, 0.12);
+  color: #b8adff;
+  font-size: 25px;
+}
+.empty-state h3 {
+  font: 21px var(--display);
+  margin-bottom: 8px;
+}
+.empty-state p,
+.subtle-empty {
+  font-size: 12px;
+  color: #8e9ab5;
+}
+.subtle-empty {
+  padding: 28px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  text-align: center;
+}
