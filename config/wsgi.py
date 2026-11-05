@@ -23,6 +23,11 @@ def application(environ, start_response):
                 ("Content-Type", "text/plain; charset=utf-8"),
                 ("Content-Length", str(len(body))),
                 ("Cache-Control", "no-store"),
+            *(
+                [("X-Render-Git-Commit", os.environ["RENDER_GIT_COMMIT"])]
+                if os.environ.get("RENDER_GIT_COMMIT")
+                else []
+            ),
             ],
         )
         return [body]
