@@ -2,6 +2,7 @@
  * Nebula Vault design tokens.
  * Keep global palette, typography, and shared layout values here.
  * Page and breakpoint-specific overrides stay in their owning stylesheets.
+ * This file is loaded before site.css from the shared public base template.
  */
 
 :root {
