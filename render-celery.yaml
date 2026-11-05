@@ -1,0 +1,38 @@
+# Separate Blueprint for Celery so the existing production web service and
+# its cache Redis instance remain untouched. Review cost before approving.
+services:
+  - type: keyvalue
+    name: nebula-vault-celery-queue
+    plan: free
+    region: oregon
+    maxmemoryPolicy: noeviction
+    persistenceMode: off
+    ipAllowList: []
+
+  - type: worker
+    name: nebula-vault-celery-worker
+    runtime: python
+    plan: 0.5c-512mb
+    region: oregon
+    autoDeployTrigger: commit
+    buildCommand: python -m pip install --disable-pip-version-check -r requirements.txt
+    startCommand: celery -A config worker --loglevel=INFO --concurrency=1 --prefetch-multiplier=1 --max-tasks-per-child=100
+    maxShutdownDelaySeconds: 300
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings
+      - key: DJANGO_SECRET_KEY
+        fromService:
+          type: web
+          name: nebula-vault
+          envVarKey: DJANGO_SECRET_KEY
+      - key: DATABASE_URL
+        fromService:
+          type: web
+          name: nebula-vault
+          envVarKey: DATABASE_URL
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: keyvalue
+          name: nebula-vault-celery-queue
+          property: connectionString
