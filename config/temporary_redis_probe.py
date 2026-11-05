@@ -35,7 +35,8 @@ def temporary_redis_cache_probe(request):
         result["redis_error"] = type(exc).__name__
 
     try:
-        result["cache_set"] = bool(cache.set(key, "nebula-cache-ok", timeout=90))
+        cache.set(key, "nebula-cache-ok", timeout=90)
+        result["cache_set"] = True
         result["cache_get_matches"] = cache.get(key) == "nebula-cache-ok"
     except Exception as exc:
         result["cache_error"] = type(exc).__name__
