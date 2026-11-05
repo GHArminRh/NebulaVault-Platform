@@ -60,6 +60,45 @@ class SEOCrawlerTests(SimpleTestCase):
         self.assertIsNone(crawler.normalize_url("/accounts/login/"))
         self.assertIsNone(crawler.normalize_url("/products/?page=2"))
 
+    def test_render_fetch_origin_bypasses_edge_without_changing_public_urls(self):
+        from unittest.mock import patch
+
+        render_url = "https://nebula-vault-oesn.onrender.com"
+        fetcher = StubFetcher({
+            f"{render_url}/robots.txt": (200, "text/plain", b"User-agent: *\\nAllow: /\\n"),
+        })
+        with patch.dict(
+            "os.environ",
+            {
+                "RENDER": "true",
+                "RENDER_EXTERNAL_URL": render_url,
+            },
+        ):
+            crawler = SiteCrawler(
+                base_url="https://mydigigi.ir",
+                fetcher=fetcher,
+                request_delay=0,
+            )
+
+        response = crawler._fetch("https://mydigigi.ir/robots.txt", accept="text/plain")
+        fetch_url = f"{render_url}/products/nebula/"
+        crawler._add_issue(
+            fetch_url,
+            "test-origin",
+            "info",
+            "Internal diagnostic",
+        )
+
+        self.assertEqual(response[0], 200)
+        self.assertEqual(fetcher.calls, [f"{render_url}/robots.txt"])
+        self.assertTrue(crawler.uses_direct_origin)
+        self.assertEqual(crawler.public_netloc, "mydigigi.ir")
+        self.assertEqual(
+            crawler.normalize_url("https://mydigigi.ir/products/nebula/"),
+            fetch_url,
+        )
+        self.assertEqual(crawler._issues[0]["url"], "https://mydigigi.ir/products/nebula/")
+
     def test_crawler_reports_missing_metadata_and_follows_same_origin_links(self):
         home = b"""<!doctype html><html><head><title>Home page</title>
         <meta name="description" content="A short description">
