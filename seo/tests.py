@@ -89,6 +89,21 @@ class SEOCrawlerTests(SimpleTestCase):
         self.assertIn("images-missing-alt", issue_codes)
         self.assertFalse(any("external.example" in url for url in fetcher.calls))
 
+    def test_fetch_retries_temporary_503(self):
+        calls = []
+
+        def fetch(url, accept="text/html"):
+            calls.append(url)
+            if len(calls) == 1:
+                return 503, "text/html", b"", url
+            return 200, "text/html", b"ok", url
+
+        crawler = SiteCrawler(base_url="https://mydigigi.ir", fetcher=fetch, request_delay=0)
+        result = crawler._fetch("https://mydigigi.ir/")
+
+        self.assertEqual(result[0], 200)
+        self.assertEqual(len(calls), 2)
+
     def test_crawler_reports_missing_robots_and_unavailable_sitemap(self):
         home = b"""<html><head><title>Home</title></head><body></body></html>"""
         fetcher = StubFetcher({

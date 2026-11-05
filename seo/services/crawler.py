@@ -196,34 +196,56 @@ class SiteCrawler:
                 raise CrawlError("Crawler refused a host that resolves to a non-public IP address.")
 
     def _fetch(self, url, accept="text/html,application/xhtml+xml"):
-        if self.fetcher:
-            return self.fetcher(url, accept=accept)
-        self._validate_public_host()
-        elapsed = time.monotonic() - self._last_request_at
-        if elapsed < self.request_delay:
-            time.sleep(self.request_delay - elapsed)
-        request = Request(
-            url,
-            headers={
-                "User-Agent": DEFAULT_USER_AGENT,
-                "Accept": accept,
-                "Accept-Encoding": "identity",
-            },
-        )
-        opener = build_opener(SameOriginRedirectHandler(self))
-        try:
-            response = opener.open(request, timeout=self.timeout)
-        except HTTPError as exc:
-            return exc.code, exc.headers.get("Content-Type", ""), b"", exc.geturl()
-        except (URLError, OSError, TimeoutError) as exc:
-            raise CrawlError(str(exc)) from exc
-        self._last_request_at = time.monotonic()
-        with response:
-            content_type = response.headers.get("Content-Type", "").lower()
-            body = response.read(self.max_response_bytes + 1)
-            if len(body) > self.max_response_bytes:
-                raise CrawlError("Response exceeded the configured size limit.")
-            return response.status, content_type, body, response.geturl()
+        """Fetch with one retry for transient network and upstream failures."""
+        if not self.fetcher:
+            self._validate_public_host()
+
+        retryable_statuses = {429, 500, 502, 503, 504, 520, 521, 522, 523, 524}
+        for attempt in range(2):
+            elapsed = time.monotonic() - self._last_request_at
+            if elapsed < self.request_delay:
+                time.sleep(self.request_delay - elapsed)
+            try:
+                if self.fetcher:
+                    result = self.fetcher(url, accept=accept)
+                    if result[0] in retryable_statuses and attempt == 0:
+                        time.sleep(0.25)
+                        continue
+                    self._last_request_at = time.monotonic()
+                    return result
+
+                request = Request(
+                    url,
+                    headers={
+                        "User-Agent": DEFAULT_USER_AGENT,
+                        "Accept": accept,
+                        "Accept-Encoding": "identity",
+                    },
+                )
+                opener = build_opener(SameOriginRedirectHandler(self))
+                try:
+                    response = opener.open(request, timeout=self.timeout)
+                except HTTPError as exc:
+                    if exc.code in retryable_statuses and attempt == 0:
+                        exc.close()
+                        time.sleep(0.25)
+                        continue
+                    return exc.code, exc.headers.get("Content-Type", ""), b"", exc.geturl()
+
+                with response:
+                    content_type = response.headers.get("Content-Type", "").lower()
+                    body = response.read(self.max_response_bytes + 1)
+                    if len(body) > self.max_response_bytes:
+                        raise CrawlError("Response exceeded the configured size limit.")
+                    self._last_request_at = time.monotonic()
+                    return response.status, content_type, body, response.geturl()
+            except (URLError, OSError, TimeoutError) as exc:
+                if attempt == 0:
+                    time.sleep(0.25)
+                    continue
+                raise CrawlError(str(exc)) from exc
+
+        raise CrawlError("The request failed after a transient retry.")
 
     def _add_issue(self, url, code, severity, title, details="", recommendation=""):
         key = (url, code)
