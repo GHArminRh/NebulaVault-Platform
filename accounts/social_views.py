@@ -100,9 +100,9 @@ def social_start(request, provider, flow):
         "next": request.POST.get("next", ""),
         "started_at": int(time.time()),
     }
-    callback_uri = request.build_absolute_uri(
-        reverse("accounts:social_callback", kwargs={"provider": provider})
-    )
+    # Always use the canonical site origin so www and apex requests share
+    # one exact callback URI registered with the OAuth provider.
+    callback_uri = f"{settings.SITE_BASE_URL}{reverse('accounts:social_callback', kwargs={'provider': provider})}"
     try:
         client = get_oauth_client(provider)
         options = {"state": state, "code_verifier": secrets.token_urlsafe(64)}
