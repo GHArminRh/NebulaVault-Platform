@@ -14,9 +14,7 @@ const homeLinks = [
   try {
     const url = new URL(link.href, location.href);
     return (
-      url.origin === location.origin &&
-      url.pathname === location.pathname &&
-      Boolean(url.hash)
+      url.origin === location.origin && url.pathname === location.pathname && Boolean(url.hash)
     );
   } catch {
     return false;
@@ -108,11 +106,7 @@ if (railTargets.length || homeTargets.length) {
       } catch {
         return;
       }
-      if (
-        url.origin !== location.origin ||
-        url.pathname !== location.pathname ||
-        !url.hash
-      ) return;
+      if (url.origin !== location.origin || url.pathname !== location.pathname || !url.hash) return;
       const target = getHashTarget(url.hash);
       if (!target) return;
       event.preventDefault();
