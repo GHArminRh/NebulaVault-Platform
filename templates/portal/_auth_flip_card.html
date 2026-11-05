@@ -120,6 +120,14 @@
             {% endif %}
           </div>
           {% endif %}
+          {% if SOCIAL_AUTH_GOOGLE_ENABLED and not form.two_factor_required %}
+          <div class="nv-social-divider"><span>یا ورود با</span></div>
+          <div class="nv-social-actions">
+            <button class="nv-social-button" type="submit" formaction="{% url 'accounts:social_start' provider='google' flow='login' %}" formnovalidate>
+              <span class="nv-google-g" aria-hidden="true">G</span>ادامه با Google
+            </button>
+          </div>
+          {% endif %}
           <button class="button button-primary button-full button-large auth-submit"
                   type="submit">ورود به حساب <span>↗</span></button>
           {% for method, label in form.two_factor_methods %}
@@ -193,6 +201,14 @@
             {% else %}
               <p class="turnstile-config-error" role="alert">تأیید امنیتی در حال حاضر پیکربندی نشده است؛ ثبت‌نام تا رفع مشکل غیرفعال می‌ماند.</p>
             {% endif %}
+          </div>
+          {% endif %}
+          {% if SOCIAL_AUTH_GOOGLE_ENABLED %}
+          <div class="nv-social-divider"><span>یا ثبت‌نام با</span></div>
+          <div class="nv-social-actions">
+            <button class="nv-social-button" type="submit" formaction="{% url 'accounts:social_start' provider='google' flow='register' %}" formnovalidate>
+              <span class="nv-google-g" aria-hidden="true">G</span>ثبت‌نام با Google
+            </button>
           </div>
           {% endif %}
           <button class="button button-primary button-full button-large auth-submit"

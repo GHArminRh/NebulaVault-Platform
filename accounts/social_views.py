@@ -100,6 +100,8 @@ def social_start(request, provider, flow):
         "next": request.POST.get("next", ""),
         "started_at": int(time.time()),
     }
+    # Keep the callback on the same hostname that started the flow so the
+    # browser sends the matching host-only session cookie with the OAuth state.
     callback_uri = request.build_absolute_uri(
         reverse("accounts:social_callback", kwargs={"provider": provider})
     )

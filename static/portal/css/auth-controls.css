@@ -152,3 +152,7 @@ body.nv-portal .nv-apple-mark {
     transition: none;
   }
 }
+
+body.nv-portal .nv-social-actions > .nv-social-button:only-child {
+  grid-column: 1 / -1;
+}

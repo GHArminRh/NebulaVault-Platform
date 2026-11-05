@@ -366,3 +366,35 @@ test('direct image links become thumbnails and open in an in-page preview', asyn
   await expect(dialog).not.toBeVisible();
   await expect(link).toBeFocused();
 });
+
+test('Django image clear checkbox is replaced by a trash button', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => {
+    const upload = document.createElement('div');
+    upload.className = 'file-upload';
+    upload.innerHTML = `
+      <p>Currently: <a href="/static/portal/img/pwa-icon-192.svg">image.svg</a></p>
+      <p>Change: <input type="file" name="photo"></p>
+      <p>
+        <input type="checkbox" name="photo-clear" id="id_photo-clear_id">
+        <label for="id_photo-clear_id">Clear</label>
+      </p>
+    `;
+    document.querySelector('main').prepend(upload);
+  });
+
+  const upload = page.locator('.file-upload').first();
+  const clearButton = upload.getByRole('button', { name: 'حذف تصویر فعلی' });
+  const clearInput = upload.locator('input[name="photo-clear"]');
+  const currentImage = upload.locator('a.nv-image-preview-link');
+
+  await expect(clearButton).toBeVisible();
+  await expect(clearInput).not.toBeVisible();
+  await expect(upload.locator('label[for="id_photo-clear_id"]')).toBeHidden();
+
+  await clearButton.click();
+  await expect(clearInput).toBeChecked();
+  await expect(currentImage).toBeHidden();
+  await expect(upload.getByRole('status')).toHaveText('تصویر برای حذف پس از ذخیره علامت‌گذاری شد');
+  await expect(clearButton).toBeHidden();
+});
