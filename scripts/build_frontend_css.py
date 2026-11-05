@@ -37,6 +37,19 @@ BUNDLES = {
         "frontend/css/experience/08-dashboard-shell-and-progress.css",
         "frontend/css/experience/09-header-effects.css",
     ),
+    # Preserve the existing stylesheet cascade while reducing the number of
+    # render-blocking requests in the public base template.
+    "static/portal/css/public-foundation.css": (
+        "static/portal/css/tokens.css",
+        "static/portal/css/site.css",
+        "static/portal/css/unified-experience.css",
+        "static/portal/css/responsive-system.css",
+        "static/portal/css/page-transitions.css",
+    ),
+    "static/portal/css/public-shell.css": (
+        "static/portal/css/site-shell.css",
+        "static/portal/css/form-icons.css",
+    ),
 }
 
 
