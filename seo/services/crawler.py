@@ -258,6 +258,14 @@ class SiteCrawler:
             )
             return []
         if status == 404:
+            self._add_issue(
+                robots_url,
+                "robots-not-found",
+                "warning",
+                "robots.txt was not found",
+                "HTTP 404",
+                "Serve a valid robots.txt file that states crawler access rules and the sitemap location.",
+            )
             return []
         if status >= 400:
             self._add_issue(
@@ -319,9 +327,35 @@ class SiteCrawler:
                 status, content_type, body, final_url = self._fetch(
                     sitemap_url, accept="application/xml,text/xml,*/*"
                 )
-            except CrawlError:
+            except CrawlError as exc:
+                self._add_issue(
+                    sitemap_url,
+                    "sitemap-fetch-failed",
+                    "warning",
+                    "Sitemap could not be fetched",
+                    str(exc),
+                    "Verify that the sitemap URL is reachable and returns valid XML.",
+                )
                 continue
-            if status >= 400 or not body:
+            if status >= 400:
+                self._add_issue(
+                    sitemap_url,
+                    "sitemap-http-error",
+                    "warning",
+                    f"Sitemap returned HTTP {status}",
+                    f"HTTP {status}",
+                    "Fix the sitemap endpoint or remove the unavailable sitemap from the sitemap index.",
+                )
+                continue
+            if not body:
+                self._add_issue(
+                    sitemap_url,
+                    "empty-sitemap",
+                    "warning",
+                    "Sitemap response is empty",
+                    "The endpoint returned an empty response body.",
+                    "Return a valid XML sitemap containing the site's indexable URLs.",
+                )
                 continue
             try:
                 root = ET.fromstring(body)
