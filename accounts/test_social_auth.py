@@ -11,7 +11,7 @@ from django.urls import reverse
     SOCIAL_AUTH_GOOGLE_ENABLED=True,
     SOCIAL_AUTH_APPLE_ENABLED=False,
     TURNSTILE_ENABLED=False,
-    ALLOWED_HOSTS=["testserver", "www.mydigigi.ir"],
+    ALLOWED_HOSTS=["testserver", "mydigigi.ir", "www.mydigigi.ir"],
 )
 class CustomerGoogleOAuthTests(TestCase):
     def test_login_and_registration_pages_render_google_actions(self):
@@ -53,27 +53,32 @@ class CustomerGoogleOAuthTests(TestCase):
                 self.callback_uri = redirect_uri
                 return HttpResponseRedirect("https://accounts.google.com/")
 
-        fake_client = FakeGoogleClient()
-        with patch(
-            "accounts.social_views.get_oauth_client",
-            return_value=fake_client,
-        ):
-            response = self.client.post(
-                reverse(
-                    "accounts:social_start",
-                    kwargs={"provider": "google", "flow": "login"},
-                ),
-                {"next": "/dashboard/"},
-                secure=True,
-                HTTP_HOST="www.mydigigi.ir",
-            )
+        start_url = reverse(
+            "accounts:social_start",
+            kwargs={"provider": "google", "flow": "login"},
+        )
+        for host in ("mydigigi.ir", "www.mydigigi.ir"):
+            fake_client = FakeGoogleClient()
+            with self.subTest(host=host), patch(
+                "accounts.social_views.get_oauth_client",
+                return_value=fake_client,
+            ):
+                response = self.client.post(
+                    start_url,
+                    {"next": "/dashboard/"},
+                    secure=True,
+                    HTTP_HOST=host,
+                )
 
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], "https://accounts.google.com/")
-        self.assertEqual(
-            fake_client.callback_uri,
-            "https://www.mydigigi.ir/accounts/social/google/callback/",
-        )
-        self.assertTrue(
-            any(key.startswith("customer-social-state:") for key in self.client.session)
-        )
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(response["Location"], "https://accounts.google.com/")
+            self.assertEqual(
+                fake_client.callback_uri,
+                f"https://{host}/accounts/social/google/callback/",
+            )
+            self.assertTrue(
+                any(
+                    key.startswith("customer-social-state:")
+                    for key in self.client.session
+                )
+            )
