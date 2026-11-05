@@ -8,8 +8,10 @@
   <link rel="stylesheet" href="{% static 'portal/css/boolean-switches.css' %}">
   {% if request.user.is_authenticated %}
     <link rel="stylesheet" href="{% static 'portal/css/admin-motion.css' %}">
+    <link rel="stylesheet" href="{% static 'portal/css/image-preview.css' %}">
     <link rel="stylesheet" href="{% static 'portal/admin-enhancements.css' %}">
     <script src="{% static 'portal/js/admin-motion.js' %}" defer></script>
+    <script src="{% static 'portal/js/image-preview.js' %}" defer></script>
   {% endif %}
   <script>
     document.addEventListener("DOMContentLoaded", function () {
