@@ -860,18 +860,6 @@ html body.nv-portal .nv-panel {
   }
 }
 
-/* Accessibility: keep the layout responsive without forcing motion. */
-@media (prefers-reduced-motion: reduce) {
-  html body.nv-portal *,
-  html body.nv-portal *::before,
-  html body.nv-portal *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
 /* Mobile menu must be viewport-anchored, not placed back in the scrolled document flow. */
 @media (max-width: 900px) {
   html body.nv-portal > nav.mobile-nav:not([hidden]) {
