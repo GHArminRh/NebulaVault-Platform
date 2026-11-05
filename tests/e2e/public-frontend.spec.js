@@ -337,3 +337,32 @@ test('admin image form keeps its normal submit flow when no replacement file is 
   await expect(page.locator('#image-form')).toHaveAttribute('data-normal-submit-reached', 'true');
   await expect(page.locator('#image-form')).not.toHaveAttribute('aria-busy');
 });
+
+test('direct image links become thumbnails and open in an in-page preview', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => {
+    const link = document.createElement('a');
+    link.href = '/static/portal/img/pwa-icon-192.svg';
+    link.textContent = 'Open image';
+    link.id = 'image-preview-fixture';
+    document.querySelector('main').prepend(link);
+  });
+
+  const link = page.locator('#image-preview-fixture');
+  const thumbnail = link.locator('img.nv-image-preview-thumb');
+  await expect(thumbnail).toBeVisible();
+  await expect(thumbnail).toHaveAttribute('alt', 'Open image');
+  await expect(link).not.toHaveAttribute('target', '_blank');
+
+  await link.click();
+  const dialog = page.locator('dialog.nv-image-preview-dialog');
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator('img.nv-image-preview-full')).toHaveAttribute(
+    'src',
+    /pwa-icon-192\.svg$/
+  );
+
+  await page.keyboard.press('Escape');
+  await expect(dialog).not.toBeVisible();
+  await expect(link).toBeFocused();
+});
