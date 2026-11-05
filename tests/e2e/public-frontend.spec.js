@@ -85,12 +85,12 @@ test('deferred feature modules use Django static asset URLs', async ({ page }) =
     effects: body.dataset.visualEffectsSrc,
   }));
 
-  expect(moduleUrls.auth).toMatch(/\\/static\\/portal\\/js\\/auth-ui(?:\\.[a-f0-9]{12})?\\.js$/);
+  expect(moduleUrls.auth).toMatch(/\/static\/portal\/js\/auth-ui(?:\\.[a-f0-9]{12})?\\.js$/);
   expect(moduleUrls.sections).toMatch(
-    /\\/static\\/portal\\/js\\/section-navigation(?:\\.[a-f0-9]{12})?\\.js$/
+    /\/static\/portal\/js\/section-navigation(?:\\.[a-f0-9]{12})?\\.js$/
   );
   expect(moduleUrls.effects).toMatch(
-    /\\/static\\/portal\\/js\\/visual-effects(?:\\.[a-f0-9]{12})?\\.js$/
+    /\/static\/portal\/js\/visual-effects(?:\\.[a-f0-9]{12})?\\.js$/
   );
 });
 
