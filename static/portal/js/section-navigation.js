@@ -108,7 +108,11 @@ if (railTargets.length || homeTargets.length) {
       } catch {
         return;
       }
-      if (url.origin !== location.origin || url.pathname !== location.pathname || !url.hash) return;
+      if (
+        url.origin !== location.origin ||
+        url.pathname !== location.pathname ||
+        !url.hash
+      ) return;
       const target = getHashTarget(url.hash);
       if (!target) return;
       event.preventDefault();
