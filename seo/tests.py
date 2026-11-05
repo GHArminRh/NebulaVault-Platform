@@ -82,6 +82,20 @@ class SEOCrawlerTests(SimpleTestCase):
 
         response = crawler._fetch("https://mydigigi.ir/robots.txt", accept="text/plain")
         fetch_url = f"{render_url}/products/nebula/"
+        page = b"""<html><head><title>Nebula</title>
+        <meta name="description" content="Nebula product">
+        <link rel="canonical" href="https://mydigigi.ir/products/nebula/">
+        </head><body><h1>Nebula</h1></body></html>"""
+        crawler._inspect_page(
+            fetch_url,
+            200,
+            "text/html; charset=utf-8",
+            page,
+            fetch_url,
+        )
+        issue_codes = {issue["code"] for issue in crawler._issues}
+        self.assertNotIn("external-canonical", issue_codes)
+        self.assertNotIn("canonical-mismatch", issue_codes)
         crawler._add_issue(
             fetch_url,
             "test-origin",
