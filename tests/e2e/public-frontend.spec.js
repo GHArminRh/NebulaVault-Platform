@@ -32,9 +32,7 @@ test('public pages load their stylesheets without failed CSS responses', async (
 test('shared foundation bundle preserves global design tokens', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-  const foundation = page.locator(
-    'link[rel="stylesheet"][href*="portal/css/public-foundation"]'
-  );
+  const foundation = page.locator('link[rel="stylesheet"][href*="portal/css/public-foundation"]');
   await expect(foundation).toHaveCount(1);
 
   const tokens = await page.locator('html').evaluate((element) => {
