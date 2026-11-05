@@ -26,7 +26,7 @@ drf-spectacular>=0.28,<1.0
 dj-control-room[all]>=1.8.1,<2.0
 
 # Required by the official Django Control Room Celery panel.
-celery>=5.4,<6.0
+celery>=5.7,<6.0
 
 # Official error/traceback panel shown in the Control Room ecosystem.
 dj-error-panel>=0.1,<0.2

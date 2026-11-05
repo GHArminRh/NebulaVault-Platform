@@ -323,6 +323,22 @@ else:
         }
     }
 
+# Celery uses CloudAMQP as a durable external broker. Keep its URL in the
+# deployment environment; never commit credentials or reuse the cache-only Redis.
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "").strip() or None
+CELERY_TASK_IGNORE_RESULT = True
+CELERY_TASK_STORE_EAGER_RESULT = False
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_CONNECTION_TIMEOUT = 10
+CELERY_BROKER_HEARTBEAT = 30
+CELERY_BROKER_POOL_LIMIT = 2
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_TASK_DEFAULT_QUEUE = "nebula_vault"
 # Redis inspection uses the same private Render Key Value connection string.
 # Always register the instance so the panel can distinguish a missing or
 # unreachable connection from an entirely unconfigured panel.
