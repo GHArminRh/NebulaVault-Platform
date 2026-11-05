@@ -35,9 +35,7 @@ test('global design tokens load before the site foundation stylesheet', async ({
   const stylesheetPaths = await page
     .locator('link[rel="stylesheet"]')
     .evaluateAll((links) => links.map((link) => new URL(link.href).pathname));
-  const tokensIndex = stylesheetPaths.findIndex((path) =>
-    path.endsWith('/portal/css/tokens.css')
-  );
+  const tokensIndex = stylesheetPaths.findIndex((path) => path.endsWith('/portal/css/tokens.css'));
   const foundationIndex = stylesheetPaths.findIndex((path) =>
     path.endsWith('/portal/css/site.css')
   );
