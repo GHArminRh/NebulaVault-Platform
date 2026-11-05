@@ -1,0 +1,36 @@
+name: Keep Render Free Web Service Awake
+
+on:
+  schedule:
+    # Five-minute cadence, offset from the top of the hour to reduce GitHub
+    # Actions scheduling delays during peak start-of-hour load.
+    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: render-free-service-keepalive
+  cancel-in-progress: true
+
+jobs:
+  keepalive:
+    name: Ping Render health endpoint
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Check service health
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$(curl --fail --silent --show-error \
+            --retry 1 --retry-delay 2 --max-time 20 \
+            --header "Cache-Control: no-cache" \
+            --header "User-Agent: MyDigiGi-Render-Keepalive/1.0" \
+            "https://nebula-vault-oesn.onrender.com/healthz/")"
+          if [[ "$response" != "ok" ]]; then
+            printf 'Unexpected health-check response: %s\n' "$response" >&2
+            exit 1
+          fi
+          printf 'Render service is healthy.\n'
