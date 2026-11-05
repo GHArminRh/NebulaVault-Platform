@@ -278,6 +278,47 @@ class SEODashboardTests(TestCase):
         self.assertEqual(changelist.status_code, 200)
         self.assertContains(changelist, "SEO Center dashboard")
 
+    def test_staff_can_run_technical_audit_from_dashboard(self):
+        from unittest.mock import ANY, patch
+
+        staff = get_user_model().objects.create_superuser(
+            username="seo-run-admin",
+            email="seo-run-admin@example.invalid",
+            password="test-password",
+        )
+        self.client.force_login(
+            staff,
+            backend="django.contrib.auth.backends.ModelBackend",
+        )
+
+        with patch("seo.audit_run_views.call_command") as call_command:
+            response = self.client.post("/admin/seo-center/audit/run/")
+
+        self.assertRedirects(response, "/admin/seo-center/")
+        call_command.assert_called_once_with(
+            "run_seo_audit",
+            max_pages=100,
+            timeout=8,
+            request_delay=0.2,
+            max_duration=60,
+            stdout=ANY,
+        )
+
+    def test_technical_audit_action_rejects_get_requests(self):
+        staff = get_user_model().objects.create_superuser(
+            username="seo-run-get-admin",
+            email="seo-run-get-admin@example.invalid",
+            password="test-password",
+        )
+        self.client.force_login(
+            staff,
+            backend="django.contrib.auth.backends.ModelBackend",
+        )
+
+        response = self.client.get("/admin/seo-center/audit/run/")
+
+        self.assertEqual(response.status_code, 405)
+
     def test_admin_app_index_links_directly_to_seo_center_dashboard(self):
         staff = get_user_model().objects.create_superuser(
             username="seo-index-admin",
