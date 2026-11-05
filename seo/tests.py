@@ -140,6 +140,39 @@ class SEOContextProcessorTests(SimpleTestCase):
         )
 
 
+class WagtailSitemapEligibilityTests(SimpleTestCase):
+    def test_homepage_alone_does_not_make_wagtail_sitemap_eligible(self):
+        from unittest.mock import Mock, patch
+
+        from seo.views import _has_public_wagtail_pages
+
+        site = Mock()
+        site.root_page.get_descendants.return_value.live.return_value.public.return_value.exists.return_value = False
+        with patch("seo.views.Site.objects.filter") as filter_sites:
+            filter_sites.return_value.select_related.return_value.first.return_value = site
+            self.assertFalse(_has_public_wagtail_pages())
+
+    def test_public_descendant_makes_wagtail_sitemap_eligible(self):
+        from unittest.mock import Mock, patch
+
+        from seo.views import _has_public_wagtail_pages
+
+        site = Mock()
+        site.root_page.get_descendants.return_value.live.return_value.public.return_value.exists.return_value = True
+        with patch("seo.views.Site.objects.filter") as filter_sites:
+            filter_sites.return_value.select_related.return_value.first.return_value = site
+            self.assertTrue(_has_public_wagtail_pages())
+
+    def test_missing_default_wagtail_site_is_not_eligible(self):
+        from unittest.mock import patch
+
+        from seo.views import _has_public_wagtail_pages
+
+        with patch("seo.views.Site.objects.filter") as filter_sites:
+            filter_sites.return_value.select_related.return_value.first.return_value = None
+            self.assertFalse(_has_public_wagtail_pages())
+
+
 class SEORobotsAndSitemapTests(TestCase):
     def test_robots_txt_blocks_private_routes_and_advertises_sitemap(self):
         from django.test import override_settings
