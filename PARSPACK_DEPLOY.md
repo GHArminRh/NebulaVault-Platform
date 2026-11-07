@@ -15,6 +15,15 @@ Keep the existing Render production hostname/domain unchanged. Give ParsPack
 its own hostname, for example `parspack.mydigigi.ir`, and use that hostname
 as `SITE_BASE_URL` for the ParsPack deployment.
 
+## Database initialization decision
+
+The ParsPack database is intentionally **empty and initialized from scratch**.
+Do not export, clone, restore, or import any data from Render. The first
+ParsPack deployment should apply Django migrations to its own newly provisioned
+PostgreSQL database, then create its own administrator account. Render's
+database and all existing customer/order/license/content records remain
+untouched and are not copied.
+
 ## Create the independent resources first
 
 1. Create a new Django PaaS application in ParsPack from
