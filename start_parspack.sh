@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ParsPack has its own PostgreSQL DATABASE_URL and its own application secret.
+# ParsPack uses its own SQLite database on the attached persistent disk.
 # This startup command intentionally operates only on that deployment's DB.
 python manage.py render_startup
 
