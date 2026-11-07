@@ -64,6 +64,7 @@ For the guided Windows launcher, see [Local Windows setup](docs/LOCAL_WINDOWS_SE
 ## Configuration and deployment
 
 - Render setup: [RENDER_DEPLOY.md](RENDER_DEPLOY.md)
+- Independent ParsPack deployment: [PARSPACK_DEPLOY.md](PARSPACK_DEPLOY.md)
 - Email setup: [docs/email-setup.md](docs/email-setup.md)
 - Zarinpal setup: [docs/zarinpal-setup.md](docs/zarinpal-setup.md)
 - Signed offline license leases: [docs/signed-offline-license-leases.md](docs/signed-offline-license-leases.md)
