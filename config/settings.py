@@ -56,15 +56,6 @@ INSTALLED_APPS = [
     "storages",
     "easy_thumbnails",
     "filer",
-    # Django Control Room: register the shared base, official panels, then hub.
-    "dj_control_room_base",
-    "dj_redis_panel",
-    "dj_cache_panel",
-    "dj_celery_panel",
-    "dj_urls_panel",
-    "dj_signals_panel",
-    "dj_error_panel",
-    "dj_control_room",
     "staff.apps.StaffConfig",
     "seo.apps.SEOConfig",
     "wagtail.contrib.forms",
@@ -322,25 +313,6 @@ else:
             "OPTIONS": {"MAX_ENTRIES": 10000},
         }
     }
-
-# Redis inspection uses the same private Render Key Value connection string.
-# Always register the instance so the panel can distinguish a missing or
-# unreachable connection from an entirely unconfigured panel.
-REDIS_PANEL_URL = REDIS_URL
-DJ_REDIS_PANEL_SETTINGS = {
-    "ALLOW_KEY_DELETE": False,
-    "ALLOW_KEY_EDIT": False,
-    "ALLOW_TTL_UPDATE": False,
-    "CURSOR_PAGINATED_SCAN": True,
-    "INSTANCES": {
-        "nebula_vault": {
-            "description": "Nebula Vault Render Key Value",
-            "url": REDIS_PANEL_URL or "redis://127.0.0.1:6379",
-            "socket_timeout": 5.0,
-            "socket_connect_timeout": 5.0,
-        }
-    },
-}
 
 LOGIN_URL = "login"
 
