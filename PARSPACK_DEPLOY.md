@@ -73,6 +73,16 @@ ParsPack's Django build flow installs the dependencies listed in the root
   These increase pip's wait and retry limits during dependency installation;
   they cannot repair an unreachable mirror or a failing redirected download
   host. Confirm in the build log that the effective timeout is no longer 15s.
+- The custom Build command runs Django's `collectstatic`, so its Build ENV
+  must also provide `DJANGO_SECRET_KEY`. Use a separate temporary build-only
+  secret; keep the real ParsPack secret in Runtime ENV.
+- Django settings also require database configuration while loading settings.
+  If `DATABASE_URL` is not available in Build ENV, provide build-only
+  placeholders for `DB_NAME`, `DB_USER`, and `DB_PASSWORD`. Static
+  collection should not need to connect to the application database; do not
+  copy Render's database credentials into ParsPack. If the build's static
+  storage configuration requires provider credentials, provide the relevant
+  ParsPack-specific Build ENV values as well.
 
 The custom `build.sh` now only validates the committed frontend CSS bundles
 and runs `collectstatic`. Database migrations are deliberately deferred to
