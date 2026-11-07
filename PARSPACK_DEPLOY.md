@@ -31,14 +31,15 @@ untouched and are not copied.
 2. Select branch `feat/parspack-independent-deployment`.
 3. Set the Django context directory to the repository root (the directory
    containing `manage.py` and `requirements.txt`).
-4. Provision a **new PostgreSQL database for ParsPack**. Do not copy the
-   Render `DATABASE_URL`, Render database hostname, username, or password.
-5. Provision a separate Redis-compatible service only if you intend to use
-   Redis-backed cache or background jobs on this instance. Do not reuse
-   Render's private Key Value URL.
-6. For fully independent uploads, create a separate S3-compatible media
-   bucket, e.g. `nebula-vault-media-parspack-2026`. The current Render B2
-   bucket should not be configured here if media isolation is required.
+4. For the initial limited-user / smoke-test phase, do **not** provision a
+   PostgreSQL database. Enable the ParsPack-only ephemeral SQLite mode below.
+   The database file lives under `/tmp` and can disappear whenever the app
+   container is replaced or restarted.
+5. Do not provision Redis for this phase. With no `REDIS_URL`, Django uses
+   its database cache backend on the selected SQLite database.
+6. Set `MEDIA_STORAGE_BACKEND=local` for initial testing. Uploaded media is
+   stored on the app filesystem and may disappear when the container is
+   replaced. Do not reuse Render's B2 bucket or credentials.
 
 ## ParsPack build and runtime settings
 
@@ -76,13 +77,17 @@ ParsPack's Django build flow installs the dependencies listed in the root
 - The custom Build command runs Django's `collectstatic`, so its Build ENV
   must also provide `DJANGO_SECRET_KEY`. Use a separate temporary build-only
   secret; keep the real ParsPack secret in Runtime ENV.
-- Django settings also require database configuration while loading settings.
-  If `DATABASE_URL` is not available in Build ENV, provide build-only
-  placeholders for `DB_NAME`, `DB_USER`, and `DB_PASSWORD`. Static
-  collection should not need to connect to the application database; do not
-  copy Render's database credentials into ParsPack. If the build's static
-  storage configuration requires provider credentials, provide the relevant
-  ParsPack-specific Build ENV values as well.
+- Set `PARSPACK_USE_SQLITE=True` in **both Build ENV and Runtime ENV**. This
+  makes settings load without PostgreSQL credentials and ensures migrations
+  run against SQLite at runtime. Do not set this variable on Render.
+- Set `MEDIA_STORAGE_BACKEND=local` in Build ENV and Runtime ENV. No S3
+  credentials are required for this initial phase.
+- Do not add `DATABASE_URL`, `DB_NAME`, `DB_USER`, or `DB_PASSWORD` to
+  ParsPack while SQLite mode is enabled. Never copy Render's DB credentials.
+- Keep `PIP_TIMEOUT=60` and `PIP_RETRIES=10` in Build ENV as already
+  configured. If you later switch to PostgreSQL, remove `PARSPACK_USE_SQLITE`
+  from Build ENV and Runtime ENV and configure a new ParsPack-only
+  `DATABASE_URL`.
 
 The custom `build.sh` now only validates the committed frontend CSS bundles
 and runs `collectstatic`. Database migrations are deliberately deferred to
@@ -99,18 +104,21 @@ credentials or Django secret.
 | --- | --- |
 | `DJANGO_SECRET_KEY` | A new, unique, high-entropy secret |
 | `DJANGO_DEBUG` | `False` |
-| `DATABASE_URL` | Connection string for the new ParsPack PostgreSQL database |
+| `PARSPACK_USE_SQLITE` | `True` in both Build ENV and Runtime ENV for the temporary SQLite phase |
 | `SITE_BASE_URL` | The ParsPack-only HTTPS hostname |
 | `DJANGO_ALLOWED_HOSTS` | ParsPack hostname, plus localhost if needed |
 | `CSRF_TRUSTED_ORIGINS` | `https://` ParsPack hostname |
 | `DJANGO_SECURE_HSTS_SECONDS` | `31536000` after HTTPS is verified |
+| `MEDIA_STORAGE_BACKEND` | `local` for the initial temporary phase |
 | `ZARINPAL_ENABLED` | `False` until the separate instance is configured for payments |
 | `ZARINPAL_SANDBOX` | `True` while testing |
 
-Also configure the provider credentials you actually intend to use on this
-instance: Resend or SMTP, Cloudflare Turnstile, Google OAuth, Google Search
-Console, Algolia, and S3-compatible media storage. Each integration must be
-configured for the ParsPack hostname and its own data scope where applicable.
+Configure only integrations needed for the first test. Email, Turnstile,
+Google OAuth, Search Console, and Algolia need valid settings and hostname /
+callback configuration before those features can work. Do not paste the
+Render `.env` wholesale into ParsPack. Do not copy its database, Redis, B2
+storage, Django secret, or payment credentials. Uploaded files are local and
+ephemeral in this phase.
 
 ### Independent OAuth and security callbacks
 
@@ -124,8 +132,10 @@ instance.
 
 The ParsPack start script invokes the same project startup management command
 used by the existing Render deployment. It will apply the committed Django
-migrations to the ParsPack database only. Since this database is new and
-independent, it starts with an empty application dataset.
+migrations to the ParsPack SQLite database only. The database starts empty.
+Because the file is under `/tmp`, a container replacement/restart may erase
+accounts and other app data; this is accepted only for the initial test phase.
+Keep a single Gunicorn worker in SQLite mode to reduce write contention.
 
 After the first successful deploy:
 
@@ -141,8 +151,8 @@ After the first successful deploy:
 ## Separation checklist
 
 - Render retains its existing PostgreSQL database and environment.
-- ParsPack uses a different PostgreSQL database and a different
-  `DJANGO_SECRET_KEY`.
+- ParsPack uses explicit ephemeral SQLite mode for the initial test phase
+  and a different `DJANGO_SECRET_KEY`.
 - The two instances use different canonical hostnames.
 - Redis/cache and media buckets are not shared when strict data separation
   is required.
