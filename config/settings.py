@@ -172,26 +172,45 @@ TEMPLATES = [
 ]
 WSGI_APPLICATION = "config.wsgi.application"
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
-if DATABASE_URL:
-    import dj_database_url  # noqa: E402
-    DATABASES = {
-        "default": dj_database_url.parse(
-            DATABASE_URL, conn_max_age=60, ssl_require=not DEBUG
-        )
-    }
-else:
+# ParsPack can opt into an intentionally ephemeral SQLite database for
+# its initial smoke-test / limited-user phase. This flag is deployment-specific
+# and defaults off, so Render keeps its existing PostgreSQL configuration.
+PARSPACK_USE_SQLITE = (
+    os.environ.get("PARSPACK_USE_SQLITE", "False").strip().lower()
+    in {"1", "true", "yes", "on"}
+)
+if PARSPACK_USE_SQLITE:
+    PARSPACK_SQLITE_PATH = os.environ.get(
+        "PARSPACK_SQLITE_PATH", "/tmp/nebula-vault-parspack.sqlite3"
+    ).strip()
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ["DB_NAME"],
-            "USER": os.environ["DB_USER"],
-            "PASSWORD": os.environ["DB_PASSWORD"],
-            "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
-            "PORT": os.environ.get("DB_PORT", "5432"),
-            "CONN_MAX_AGE": 60,
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": PARSPACK_SQLITE_PATH,
+            "OPTIONS": {"timeout": 20},
         }
     }
+else:
+    DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+    if DATABASE_URL:
+        import dj_database_url  # noqa: E402
+        DATABASES = {
+            "default": dj_database_url.parse(
+                DATABASE_URL, conn_max_age=60, ssl_require=not DEBUG
+            )
+        }
+    else:
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": os.environ["DB_NAME"],
+                "USER": os.environ["DB_USER"],
+                "PASSWORD": os.environ["DB_PASSWORD"],
+                "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
+                "PORT": os.environ.get("DB_PORT", "5432"),
+                "CONN_MAX_AGE": 60,
+            }
+        }
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
