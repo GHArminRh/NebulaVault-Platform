@@ -189,9 +189,13 @@ if PARSPACK_USE_SQLITE:
         )
 
     _parspack_disk_path = Path(PARSPACK_DISK_MOUNT_PATH).expanduser().resolve()
-    if not _parspack_disk_path.is_dir() or not os.access(_parspack_disk_path, os.W_OK):
+    if (
+        not _parspack_disk_path.is_dir()
+        or not os.path.ismount(_parspack_disk_path)
+        or not os.access(_parspack_disk_path, os.W_OK)
+    ):
         raise RuntimeError(
-            "PARSPACK_DISK_MOUNT_PATH must exist and be writable by the application."
+            "PARSPACK_DISK_MOUNT_PATH must be an attached mount point and writable by the application."
         )
 
     PARSPACK_SQLITE_PATH = Path(
