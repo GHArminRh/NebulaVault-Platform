@@ -8,5 +8,5 @@ set -euo pipefail
 python scripts/build_frontend_css.py --check
 
 # Keep database migrations out of the image build. start_parspack.sh invokes
-# render_startup against the ParsPack-specific DATABASE_URL at runtime.
+# render_startup against the ParsPack runtime database at startup.
 python manage.py collectstatic --noinput
