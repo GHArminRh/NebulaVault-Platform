@@ -206,6 +206,7 @@ if PARSPACK_USE_SQLITE:
         raise RuntimeError(
             "PARSPACK_SQLITE_PATH must be located inside PARSPACK_DISK_MOUNT_PATH."
         ) from exc
+    PARSPACK_SQLITE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
     DATABASES = {
         "default": {
