@@ -8,7 +8,7 @@ this file.
 import os
 
 bind = "0.0.0.0:8000"
-# One worker reduces SQLite write contention during the temporary phase.
+# SQLite mode uses one worker to reduce concurrent database write contention.
 sqlite_mode = os.environ.get("PARSPACK_USE_SQLITE", "False").strip().lower() in {
     "1", "true", "yes", "on"
 }
