@@ -26,3 +26,4 @@ dj-error-panel>=0.1,<0.2
 django-redis>=5.4,<6.0
 celery>=5.4,<6.0
 algoliasearch>=4.0,<5.0
+django-storages[s3]>=1.14,<2.0
