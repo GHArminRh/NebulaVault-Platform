@@ -18,11 +18,11 @@ as `SITE_BASE_URL` for the ParsPack deployment.
 ## Database initialization decision
 
 The ParsPack database is intentionally **empty and initialized from scratch**.
-Do not export, clone, restore, or import any data from Render. The first
-ParsPack deployment should apply Django migrations to its own newly provisioned
-PostgreSQL database, then create its own administrator account. Render's
-database and all existing customer/order/license/content records remain
-untouched and are not copied.
+Do not export, clone, restore, or import any data from Render. During the
+initial test phase, Django migrations create a new SQLite database file inside
+the ParsPack app container, then you create a separate administrator account.
+The file is ephemeral and can be lost on restart or redeploy. Render's database
+and all existing customer/order/license/content records remain untouched.
 
 ## Create the independent resources first
 
@@ -91,8 +91,7 @@ ParsPack's Django build flow installs the dependencies listed in the root
 
 The custom `build.sh` now only validates the committed frontend CSS bundles
 and runs `collectstatic`. Database migrations are deliberately deferred to
-`start_parspack.sh`, which runs `render_startup` against the independent
-ParsPack database.
+`start_parspack.sh`, which runs `render_startup` against the ParsPack SQLite database.
 
 ## Required environment variables
 
