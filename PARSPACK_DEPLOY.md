@@ -55,6 +55,30 @@ The Gunicorn configuration binds to `0.0.0.0:8000`, as required by the
 ParsPack Django runtime. The Render service continues to use its existing
 `$PORT` command and its existing Render Blueprint.
 
+### Managed dependency installation (important)
+
+ParsPack's Django build flow installs the dependencies listed in the root
+`requirements.txt` before it runs the custom Build command. Therefore:
+
+- Keep `requirements.txt` in the configured Django context directory (the
+  repository root).
+- Keep the Build command as `bash build.sh`.
+- Do not run another `pip install -r requirements.txt` inside `build.sh`;
+  that would download and install the same packages twice.
+- Configure the application's `pip_index_url` parameter in ParsPack's
+  application/build settings to the package index or mirror intended for this
+  app. This is a ParsPack platform setting, not a Django runtime variable.
+- If package downloads time out, set `PIP_TIMEOUT=60` and
+  `PIP_RETRIES=10` in the application's **Build ENV** (not only Runtime ENV).
+  These increase pip's wait and retry limits during dependency installation;
+  they cannot repair an unreachable mirror or a failing redirected download
+  host. Confirm in the build log that the effective timeout is no longer 15s.
+
+The custom `build.sh` now only validates the committed frontend CSS bundles
+and runs `collectstatic`. Database migrations are deliberately deferred to
+`start_parspack.sh`, which runs `render_startup` against the independent
+ParsPack database.
+
 ## Required environment variables
 
 Set these values in the ParsPack application's environment settings. Use
