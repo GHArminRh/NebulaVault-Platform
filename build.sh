@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ParsPack installs requirements.txt during its managed dependency-install stage
+# before this custom build command runs. Do not install them a second time here.
+
 # Verify that browser-facing CSS bundles were generated from the reviewed source modules.
 python scripts/build_frontend_css.py --check
 
-# Render already provides pip. Upgrading it on every deploy adds an avoidable
-# network install and can make otherwise identical builds less reproducible.
-python -m pip install --disable-pip-version-check -r requirements.txt
-
-# Schema changes must be generated locally, reviewed, and committed. Never
-# create migrations during a deploy build; Render applies committed migrations
-# during the release/startup preparation step.
+# Keep database migrations out of the image build. start_parspack.sh invokes
+# render_startup against the ParsPack runtime database at startup.
 python manage.py collectstatic --noinput

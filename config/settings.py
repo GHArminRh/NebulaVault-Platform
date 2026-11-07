@@ -172,26 +172,74 @@ TEMPLATES = [
 ]
 WSGI_APPLICATION = "config.wsgi.application"
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
-if DATABASE_URL:
-    import dj_database_url  # noqa: E402
-    DATABASES = {
-        "default": dj_database_url.parse(
-            DATABASE_URL, conn_max_age=60, ssl_require=not DEBUG
+# ParsPack can opt into SQLite for its isolated test deployment. Require an
+# explicitly mounted persistent disk path so the database cannot silently fall
+# back to the container's ephemeral filesystem. Render leaves this flag off.
+PARSPACK_USE_SQLITE = (
+    os.environ.get("PARSPACK_USE_SQLITE", "False").strip().lower()
+    in {"1", "true", "yes", "on"}
+)
+if PARSPACK_USE_SQLITE:
+    PARSPACK_DISK_MOUNT_PATH = os.environ.get(
+        "PARSPACK_DISK_MOUNT_PATH", ""
+    ).strip()
+    if not PARSPACK_DISK_MOUNT_PATH:
+        raise RuntimeError(
+            "PARSPACK_DISK_MOUNT_PATH must point to the mounted ParsPack persistent disk."
         )
-    }
-else:
+
+    _parspack_disk_path = Path(PARSPACK_DISK_MOUNT_PATH).expanduser().resolve()
+    if (
+        not _parspack_disk_path.is_dir()
+        or not os.path.ismount(_parspack_disk_path)
+        or not os.access(_parspack_disk_path, os.W_OK)
+    ):
+        raise RuntimeError(
+            "PARSPACK_DISK_MOUNT_PATH must be an attached mount point and writable by the application."
+        )
+
+    PARSPACK_SQLITE_PATH = Path(
+        os.environ.get(
+            "PARSPACK_SQLITE_PATH",
+            str(_parspack_disk_path / "nebula-vault.sqlite3"),
+        )
+    ).expanduser().resolve()
+    try:
+        PARSPACK_SQLITE_PATH.relative_to(_parspack_disk_path)
+    except ValueError as exc:
+        raise RuntimeError(
+            "PARSPACK_SQLITE_PATH must be located inside PARSPACK_DISK_MOUNT_PATH."
+        ) from exc
+    PARSPACK_SQLITE_PATH.parent.mkdir(parents=True, exist_ok=True)
+
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ["DB_NAME"],
-            "USER": os.environ["DB_USER"],
-            "PASSWORD": os.environ["DB_PASSWORD"],
-            "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
-            "PORT": os.environ.get("DB_PORT", "5432"),
-            "CONN_MAX_AGE": 60,
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": str(PARSPACK_SQLITE_PATH),
+            "OPTIONS": {"timeout": 30},
         }
     }
+else:
+    DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+    if DATABASE_URL:
+        import dj_database_url  # noqa: E402
+        DATABASES = {
+            "default": dj_database_url.parse(
+                DATABASE_URL, conn_max_age=60, ssl_require=not DEBUG
+            )
+        }
+    else:
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": os.environ["DB_NAME"],
+                "USER": os.environ["DB_USER"],
+                "PASSWORD": os.environ["DB_PASSWORD"],
+                "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
+                "PORT": os.environ.get("DB_PORT", "5432"),
+                "CONN_MAX_AGE": 60,
+            }
+        }
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
