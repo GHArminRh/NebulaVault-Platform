@@ -172,22 +172,46 @@ TEMPLATES = [
 ]
 WSGI_APPLICATION = "config.wsgi.application"
 
-# ParsPack can opt into an intentionally ephemeral SQLite database for
-# its initial smoke-test / limited-user phase. This flag is deployment-specific
-# and defaults off, so Render keeps its existing PostgreSQL configuration.
+# ParsPack can opt into SQLite for its isolated test deployment. Require an
+# explicitly mounted persistent disk path so the database cannot silently fall
+# back to the container's ephemeral filesystem. Render leaves this flag off.
 PARSPACK_USE_SQLITE = (
     os.environ.get("PARSPACK_USE_SQLITE", "False").strip().lower()
     in {"1", "true", "yes", "on"}
 )
 if PARSPACK_USE_SQLITE:
-    PARSPACK_SQLITE_PATH = os.environ.get(
-        "PARSPACK_SQLITE_PATH", "/tmp/nebula-vault-parspack.sqlite3"
+    PARSPACK_DISK_MOUNT_PATH = os.environ.get(
+        "PARSPACK_DISK_MOUNT_PATH", ""
     ).strip()
+    if not PARSPACK_DISK_MOUNT_PATH:
+        raise RuntimeError(
+            "PARSPACK_DISK_MOUNT_PATH must point to the mounted ParsPack persistent disk."
+        )
+
+    _parspack_disk_path = Path(PARSPACK_DISK_MOUNT_PATH).expanduser().resolve()
+    if not _parspack_disk_path.is_dir() or not os.access(_parspack_disk_path, os.W_OK):
+        raise RuntimeError(
+            "PARSPACK_DISK_MOUNT_PATH must exist and be writable by the application."
+        )
+
+    PARSPACK_SQLITE_PATH = Path(
+        os.environ.get(
+            "PARSPACK_SQLITE_PATH",
+            str(_parspack_disk_path / "nebula-vault.sqlite3"),
+        )
+    ).expanduser().resolve()
+    try:
+        PARSPACK_SQLITE_PATH.relative_to(_parspack_disk_path)
+    except ValueError as exc:
+        raise RuntimeError(
+            "PARSPACK_SQLITE_PATH must be located inside PARSPACK_DISK_MOUNT_PATH."
+        ) from exc
+
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": PARSPACK_SQLITE_PATH,
-            "OPTIONS": {"timeout": 20},
+            "NAME": str(PARSPACK_SQLITE_PATH),
+            "OPTIONS": {"timeout": 30},
         }
     }
 else:
